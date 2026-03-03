@@ -205,7 +205,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
             });
 
             it('navigates to EXPENSE_REPORT_RHP when approve has exactly one report on wide layout', async () => {
@@ -224,7 +224,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
             });
 
             it('navigates to EXPENSE_REPORT_RHP when pay has exactly one report on wide layout', async () => {
@@ -243,7 +243,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
             });
 
             it('navigates to EXPENSE_REPORT_RHP when export has exactly one report on wide layout', async () => {
@@ -262,7 +262,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
             });
         });
 
@@ -298,7 +298,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             });
 
             it('navigates to REPORT_WITH_ID when approve has exactly one report on narrow layout', async () => {
@@ -317,7 +317,7 @@ describe('ForYouSection', () => {
                 pressFirstBeginButton();
 
                 expect(mockNavigate).toHaveBeenCalledTimes(1);
-                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                expect(mockNavigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
             });
         });
     });
