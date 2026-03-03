@@ -810,11 +810,26 @@ describe('getViolationsOnyxData', () => {
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
-        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
+        });
+
+        it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
+            policyTags.Department.tags.Engineering = {
+                name: 'Engineering',
+                enabled: true,
+            };
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+
             expect(result.value).toEqual([violation]);
         });
         it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
