@@ -544,7 +544,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delega ferie',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Report duplicato',
-        explain: 'Spiega',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -1371,6 +1370,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Inserisci una distanza valida prima di continuare',
             invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
+            distanceAmountTooLarge: "L'importo totale è troppo alto. Riduci la distanza o abbassa la tariffa.",
+            distanceAmountTooLargeReduceDistance: "L'importo totale è troppo alto. Riduci la distanza.",
+            distanceAmountTooLargeReduceRate: "L'importo totale è troppo alto. Abbassa la tariffa.",
+            odometerReadingTooLarge: (formattedMax: string) => `Le letture del contachilometri non possono superare ${formattedMax}.`,
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: (amount: string) => `L’importo massimo dell’imposta è ${amount}`,
             invalidSplit: 'La somma delle suddivisioni deve essere uguale all’importo totale',
@@ -1558,6 +1561,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'L’importo totale è troppo alto. Riduci le ore o abbassa la tariffa.',
         },
         correctRateError: "Correggi l'errore di tariffa e riprova.",
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
@@ -1571,6 +1575,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spese personali</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spazio di lavoro</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `invio del resoconto non riuscito tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">rimanda invii</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `invio del rapporto non riuscito. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3944,6 +3953,7 @@ ${
             clearFilter: 'Cancella filtro',
             workspaceName: 'Nome workspace',
             workspaceOwner: 'Proprietario',
+            keepMeAsAdmin: 'Mantienimi come amministratore',
             workspaceType: 'Tipo di workspace',
             workspaceAvatar: 'Avatar spazio di lavoro',
             clientID: 'ID cliente',
@@ -7634,7 +7644,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         },
     },
     gps: {
-        disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
         error: {
             failedToStart: 'Impossibile avviare il tracciamento della posizione.',
             failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di posizione richieste.',

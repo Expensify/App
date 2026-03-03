@@ -9,7 +9,7 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
@@ -37,19 +37,19 @@ function getItems(field: CorpayFormField) {
     return (field.links?.[0]?.content.regions ?? []).map(({name, code}) => ({value: code, label: name}));
 }
 
-function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubStepProps) {
+function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]),
         onNext,
         shouldSaveDraft: isEditing,
     });
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION], translate);
+            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION], translate);
         },
         [fieldsMap, translate],
     );
@@ -82,7 +82,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION])
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION])
                     .sort((a, b) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(b.id))
                     .map((field, index) => (
                         <View
@@ -97,11 +97,11 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubSt
                                 items={getItems(field)}
                                 shouldSaveDraft={!isEditing}
                                 renamedInputKeys={{
-                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
-                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
-                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
+                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine1) ? '' : 'bankAddressLine1',
+                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankAddressLine2) ? '' : 'bankAddressLine2',
+                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankCity) ? '' : 'bankCity',
                                     state: '',
-                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
+                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]?.bankPostal) ? '' : 'bankPostal',
                                     country: '',
                                     lat: '',
                                     lng: '',

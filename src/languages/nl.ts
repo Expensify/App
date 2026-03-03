@@ -543,7 +543,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
         duplicateReport: 'Dubbel rapport',
-        explain: 'Uitleggen',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1370,6 +1369,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Voer een geldige afstand in voordat je verdergaat',
             invalidReadings: 'Voer zowel de begin- als eindstanden in',
             negativeDistanceNotAllowed: 'Eindstand moet hoger zijn dan beginstand',
+            distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
+            distanceAmountTooLargeReduceDistance: 'Het totale bedrag is te hoog. Verlaag de afstand.',
+            distanceAmountTooLargeReduceRate: 'Het totale bedrag is te hoog. Verlaag het tarief.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometertellerstanden mogen niet hoger zijn dan ${formattedMax}.`,
             invalidIntegerAmount: 'Voer een volledig dollarbedrag in voordat je doorgaat',
             invalidTaxAmount: (amount: string) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
@@ -1556,6 +1559,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Het totale bedrag is te hoog. Verlaag het aantal uren of verlaag het tarief.',
         },
         correctRateError: 'Los de tarieffout op en probeer het opnieuw.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Uitleggen</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'Je kunt dagvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'markeerde de uitgave als „terugbetaalbaar”' : 'heeft de uitgave als ‘niet-vergoedbaar’ gemarkeerd'),
@@ -1569,6 +1573,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">persoonlijke onkostregels</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">werkruimte­regels</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `rapport indienen via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a> is mislukt. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `het is niet gelukt om het rapport in te dienen. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3944,6 +3952,7 @@ ${
             workspaceOwner: 'Eigenaar',
             workspaceType: 'Werkruimtetype',
             workspaceAvatar: 'Workspace-avatar',
+            keepMeAsAdmin: 'Houd mij als beheerder',
             clientID: 'Klant-ID',
             clientIDInputHint: 'Voer de unieke identificatie van de klant in',
             mustBeOnlineToViewMembers: 'Je moet online zijn om de leden van deze workspace te bekijken.',
@@ -7613,7 +7622,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
     },
     gps: {
-        disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om de registratie te beginnen.',
         error: {
             failedToStart: 'Locatietracking starten is mislukt.',
             failedToGetPermissions: 'Locatievereisten ophalen mislukt.',
