@@ -56,11 +56,6 @@ type BusinessBankAccountOption = {
     methodID: number | undefined;
 };
 
-type BusinessBankAccountMenu =
-    | {type: typeof CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE}
-    | {type: typeof CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.SINGLE_VBBA; account: BusinessBankAccountOption}
-    | {type: typeof CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.MULTIPLE_VBBA; accounts: BusinessBankAccountOption[]};
-
 /**
  * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
@@ -175,20 +170,6 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
             iconSize: formattedPaymentMethod?.iconSize,
             methodID: formattedPaymentMethod?.methodID,
         }));
-}
-
-/**
- * Determines how business bank accounts should appear in the Pay menu
- */
-function getBusinessBankAccountMenu(businessBankAccountOptions: BusinessBankAccountOption[]): BusinessBankAccountMenu {
-    if (businessBankAccountOptions.length === 0) {
-        return {type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE};
-    }
-    const singleBusinessBankAccount = businessBankAccountOptions.at(0);
-    if (businessBankAccountOptions.length === 1 && singleBusinessBankAccount) {
-        return {type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.SINGLE_VBBA, account: singleBusinessBankAccount};
-    }
-    return {type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.MULTIPLE_VBBA, accounts: businessBankAccountOptions};
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
@@ -324,16 +305,25 @@ function getActivePaymentType(
     };
 }
 
+/**
+ * Get the last 4 digits of a bank account used for payment.
+ */
+function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
+    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+
+    return bankAccount?.accountData?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+}
+
 export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
     getBusinessBankAccountOptions,
-    getBusinessBankAccountMenu,
     calculateWalletTransferBalanceFee,
     handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     getActivePaymentType,
+    getBankAccountLastFourDigits,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption, BusinessBankAccountMenu};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption};

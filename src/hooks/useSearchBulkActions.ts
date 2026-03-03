@@ -535,7 +535,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
-                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport) ?? paymentMethod;
+                const lastPolicyPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(itemPolicyID, personalPolicyID, lastPaymentMethods, reportType, isIOUReport);
 
                 if (!lastPolicyPaymentMethod) {
                     Navigation.navigate(
@@ -597,7 +597,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       }));
 
             const paymentData = itemsToPay.map((item) => {
-                const effectivePaymentType = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID)) ?? paymentMethod;
+                const effectivePaymentType = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
                 return {
                     reportID: item.reportID,
                     amount: item.amount,
@@ -826,13 +826,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
 
         if (shouldShowPayOption) {
+            const hasMultipleBusinessBankAccounts = (businessBankAccountOptions?.length ?? 0) > 1;
+            const shouldShowPaySubmenu = typeExpenseReport ? hasMultipleBusinessBankAccounts : isFirstTimePayment;
+
             const payButtonOption = {
                 icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
-                rightIcon: isFirstTimePayment ? expensifyIcons.ArrowRight : undefined,
+                rightIcon: shouldShowPaySubmenu ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
-                subMenuItems: isFirstTimePayment ? bulkPayButtonOptions : undefined,
+                subMenuItems: shouldShowPaySubmenu ? bulkPayButtonOptions : undefined,
                 onSelected: () => onBulkPaySelected(undefined),
             };
             options.push(payButtonOption);
@@ -1039,6 +1042,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showDelegateNoAccessModal,
         clearSelectedTransactions,
         bulkPayButtonOptions,
+        businessBankAccountOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,

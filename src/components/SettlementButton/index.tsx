@@ -25,7 +25,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountMenu, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -248,46 +248,31 @@ function SettlementButton({
         const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
 
         if (shouldShowBusinessBankAccountOptions) {
-            const businessBankAccountMenu = getBusinessBankAccountMenu(businessBankAccountOptionList);
-            if (businessBankAccountMenu.type === CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE) {
+            if (businessBankAccountOptionList.length === 0) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
-            } else if (businessBankAccountMenu.type === CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.SINGLE_VBBA) {
-                const {account} = businessBankAccountMenu;
-                buttonOptions.push({
-                    text: account.text,
-                    icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
-                    additionalIconStyles: account.iconStyles,
-                    iconWidth: account.iconSize,
-                    iconHeight: account.iconSize,
-                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                    description: account.description,
-                    onSelected: () => {
-                        if (checkForNecessaryAction()) {
-                            return;
-                        }
-                        onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, account.methodID, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
-                    },
-                });
             } else {
-                buttonOptions.push({
-                    text: translate('iou.settleBusiness', formattedAmount),
-                    icon: icons.Building,
-                    value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                    subMenuItems: businessBankAccountMenu.accounts.map((account) => ({
+                for (const account of businessBankAccountOptionList) {
+                    buttonOptions.push({
                         text: account.text,
-                        description: account.description,
-                        icon: account.icon,
-                        iconStyles: account.iconStyles,
-                        iconHeight: account.iconSize,
+                        icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
+                        additionalIconStyles: account.iconStyles,
                         iconWidth: account.iconSize,
+                        iconHeight: account.iconSize,
+                        value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        description: account.description,
                         onSelected: () => {
                             if (checkForNecessaryAction()) {
                                 return;
                             }
-                            onPress(CONST.IOU.PAYMENT_TYPE.VBBA, true, account.methodID, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                            onPress({
+                                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                payAsBusiness: true,
+                                methodID: account.methodID,
+                                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                            });
                         },
-                    })),
-                });
+                    });
+                }
             }
         }
 

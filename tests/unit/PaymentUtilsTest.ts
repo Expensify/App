@@ -1,8 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBusinessBankAccountMenu, getBusinessBankAccountOptions, handleUnvalidatedAccount} from '@libs/PaymentUtils';
-import type {BusinessBankAccountOption} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount} from '@libs/PaymentUtils';
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
 import type {Report} from '@src/types/onyx';
@@ -232,35 +231,6 @@ describe('PaymentUtils', () => {
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.text).toBe('Valid Business');
-        });
-    });
-
-    describe('getBusinessBankAccountMenu', () => {
-        it('returns NONE when zero options', () => {
-            const result = getBusinessBankAccountMenu([] as BusinessBankAccountOption[]);
-            expect(result).toEqual({type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.NONE});
-        });
-
-        it('returns SINGLE_VBBA with account when one option available', () => {
-            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Only Account', methodID: 1})];
-            const options = getBusinessBankAccountOptions(methods);
-            const result = getBusinessBankAccountMenu(options);
-
-            expect(result).toEqual({
-                type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.SINGLE_VBBA,
-                account: options.at(0),
-            });
-        });
-
-        it('returns MULTIPLE_VBBA with accounts array when two or more options available', () => {
-            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'A', methodID: 1}), createMockPaymentMethod({title: 'B', methodID: 2})];
-            const options = getBusinessBankAccountOptions(methods);
-            const result = getBusinessBankAccountMenu(options);
-
-            expect(result).toEqual({
-                type: CONST.IOU.BUSINESS_BANK_ACCOUNT_MENU_TYPE.MULTIPLE_VBBA,
-                accounts: options,
-            });
         });
     });
 });
