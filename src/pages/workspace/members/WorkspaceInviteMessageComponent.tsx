@@ -18,7 +18,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
@@ -69,7 +68,6 @@ function WorkspaceInviteMessageComponent({
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
-    const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
@@ -144,7 +142,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.dismissModal();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
 
@@ -153,8 +151,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
         });
     };
 
@@ -193,7 +191,6 @@ function WorkspaceInviteMessageComponent({
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID="WorkspaceInviteMessageComponent"
                 shouldEnableMaxHeight
-                style={{marginTop: viewportOffsetTop}}
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
