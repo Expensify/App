@@ -47,21 +47,29 @@ function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.reason ?? 'unknown'}`;
         const level = context.isSuccessful || isExpectedFailure ? 'info' : 'error';
 
+        const extra = {
+            isSuccessful: context.isSuccessful,
+            scenario: context.scenario,
+            reason: context.reason,
+            httpStatusCode: context.httpStatusCode,
+            message: context.message,
+            authenticationMethod: context.authenticationMethod,
+            isRegistrationComplete: context.isRegistrationComplete,
+            isAuthorizationComplete: context.isAuthorizationComplete,
+            softPromptApproved: context.softPromptApproved,
+            timestamp: Date.now(),
+        };
+
+        if (level === 'error') {
+            Log.hmmm(`[MFA] ${eventMessage}`, extra);
+        } else {
+            Log.info(`[MFA] ${eventMessage}`, false, extra);
+        }
+
         Sentry.captureMessage(eventMessage, {
             level,
             tags,
-            extra: {
-                isSuccessful: context.isSuccessful,
-                scenario: context.scenario,
-                reason: context.reason,
-                httpStatusCode: context.httpStatusCode,
-                message: context.message,
-                authenticationMethod: context.authenticationMethod,
-                isRegistrationComplete: context.isRegistrationComplete,
-                isAuthorizationComplete: context.isAuthorizationComplete,
-                softPromptApproved: context.softPromptApproved,
-                timestamp: Date.now(),
-            },
+            extra,
         });
     } catch (sentryError) {
         Log.warn('[trackMfaFlowOutcome] Failed to track MFA flow outcome', {sentryError, originalContext: context});
