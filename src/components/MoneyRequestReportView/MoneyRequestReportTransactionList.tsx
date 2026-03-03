@@ -652,19 +652,6 @@ function MoneyRequestReportTransactionList({
                         PopoverComponent={groupByPopoverComponent}
                     />
                 )}
-                {!shouldUseNarrowLayout && (
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.columns')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={expensifyIcons.Columns}
-                        textStyles={[styles.textMicroBold]}
-                        onPress={openColumnsPage}
-                    />
-                )}
             </View>
             {!shouldUseNarrowLayout && !shouldScrollHorizontally && tableHeaderContent}
             {shouldScrollHorizontally ? (
