@@ -185,7 +185,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     const headerTitle = currentView === 'cardPicker' ? 'Select card' : 'Simulate pending 3DS transaction';
 
     const FormView = (
-        <ScrollView style={[styles.flex1, styles.ph5]}>
+        <ScrollView style={[styles.flex1, styles.ph5, styles.pb5]}>
             <View style={styles.gap4}>
                 <View>
                     <Text>Card</Text>
@@ -243,6 +243,13 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
 
                 <View>
                     <Text>Delay before delivery (min)</Text>
+                    <TextInput
+                        placeholder="0"
+                        value={delayMinutesText}
+                        onChangeText={setDelayMinutesText}
+                        keyboardType="decimal-pad"
+                        accessibilityLabel="Delay in minutes before delivering challenge"
+                    />
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
@@ -260,17 +267,17 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                             onPress={() => setDelayMinutesText('5')}
                         />
                     </View>
-                    <TextInput
-                        placeholder="0"
-                        value={delayMinutesText}
-                        onChangeText={setDelayMinutesText}
-                        keyboardType="decimal-pad"
-                        accessibilityLabel="Delay in minutes before delivering challenge"
-                    />
                 </View>
 
                 <View>
                     <Text>Expires after (min)</Text>
+                    <TextInput
+                        placeholder="8"
+                        value={expiryMinutesText}
+                        onChangeText={setExpiryMinutesText}
+                        keyboardType="decimal-pad"
+                        accessibilityLabel="Challenge expiry in minutes"
+                    />
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
@@ -288,13 +295,6 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                             onPress={() => setExpiryMinutesText('60')}
                         />
                     </View>
-                    <TextInput
-                        placeholder="8"
-                        value={expiryMinutesText}
-                        onChangeText={setExpiryMinutesText}
-                        keyboardType="decimal-pad"
-                        accessibilityLabel="Challenge expiry in minutes"
-                    />
                 </View>
             </View>
         </ScrollView>

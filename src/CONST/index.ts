@@ -781,6 +781,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        EXPENSIFY_CARD_3DS_SIMULATION: 'expensifyCard3DSSimulation',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
