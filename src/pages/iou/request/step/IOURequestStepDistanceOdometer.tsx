@@ -14,7 +14,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOdometerImageStitching from '@hooks/useOdometerImageStitching';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -35,6 +34,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
+import stitchOdometerImages from '@libs/stitchOdometerImages';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OdometerImageType} from '@src/CONST';
@@ -363,9 +363,8 @@ function IOURequestStepDistanceOdometer({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
-    const stitchImages = useOdometerImageStitching(odometerStartImage, odometerEndImage);
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = () => {
+    const navigateToNextPage = async () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
 
@@ -378,8 +377,10 @@ function IOURequestStepDistanceOdometer({
 
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
-        const stitchedImage = await stitchImages();
-        setMoneyRequestReceipt(transactionID, stitchedImage?.uri, stitchedImage?.name, isTransactionDraft);
+        const stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
+        if (stitchedImage) {
+            setMoneyRequestReceipt(transactionID, stitchedImage.uri, stitchedImage.name, isTransactionDraft);
+        }
 
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
