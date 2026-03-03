@@ -648,12 +648,23 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
 
-        it('should not add a tagOutOfPolicy violation when policy requires tags but no tags are enabled', () => {
+        it('should not add missingTag or tagOutOfPolicy violations when policy requires tags but no tags are enabled', () => {
             policyTags = {};
+            transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual([]);
+        });
+
+        it('should remove an existing missingTag violation when policy requires tags but no tags are enabled', () => {
+            policyTags = {};
+            transaction.tag = undefined;
+            transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
         });
 
         it('should not add a tag violation when the transaction is scanning', () => {

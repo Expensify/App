@@ -75,13 +75,13 @@ function getTagViolationsForSingleLevelTags(
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
-    // Remove 'missingTag' violation if tag is valid according to policy
-    if (hasMissingTagViolation && isTagInPolicy) {
+    // Remove 'missingTag' violation if tag is valid according to policy or there are no enabled tags
+    if (hasMissingTagViolation && (isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
     }
 
-    // Add 'missingTag violation' if tag is required and not set
-    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+    // Add 'missingTag violation' if tag is required, not set, and there are enabled tags
+    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {tagName: tagNameToShow}});
