@@ -17,9 +17,7 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
         reportID = report?.reportID ?? htmlAttributeReportID;
-        // Match ExpensiMark htmlToText behavior: if we can't resolve a report name, show "Hidden".
-        // This keeps chat mentions consistent with LHN previews.
-        mentionDisplayText = removeLeadingLTRAndHash(report?.reportID && report?.reportName ? report?.reportName : 'Hidden');
+        mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
