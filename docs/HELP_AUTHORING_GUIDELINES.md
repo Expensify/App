@@ -107,6 +107,7 @@ Do not combine:
  - Admin + Member flows unless inseparable
 
 ---
+ 
 # 7. Cross-Linking Standards
 
 Cross-linking must reinforce the primary workflow, not expand scope or dilute retrieval precision.

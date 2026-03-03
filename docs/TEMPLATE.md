@@ -2,7 +2,7 @@
 title: Clear task-based title using the feature name
 description: A short description of the page's content. This is used for SEO purposes.
 keywords: [how to primary task, feature name, related task phrases]
-internalScope: Audience is [who this doc is for]. Covers [single clearly defined workflow], does not cover [closely related workflows intentionally excluded]. 
+internalScope: Audience is [who this doc is for]. Covers [single clearly defined workflow], does not cover [closely related workflows intentionally excluded].
 ---
 <!--
 This template follows the HelpDot governance standards.
@@ -57,7 +57,7 @@ Clearly state:
 
 If this feature depends on another setting:
 If [the required setting] is not enabled, [learn how to enable <Dependency Feature>](/relative-link).
-
+If [the required setting] is not enabled, [learn how to enable [Dependency Feature]](/relative-link).
 State explicitly if:
 This feature is not available on mobile.
 
@@ -91,7 +91,6 @@ Follow the Navigation Conventions in docs/HELP_AUTHORING_GUIDELINES.md.
 **ADD A SCREENSHOT HERE.**  
 Suggestion: Show the full page with the relevant section highlighted.
 
----
 
 ## What happens after you [complete primary task using exact feature name]
 
