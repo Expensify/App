@@ -517,7 +517,7 @@ function shouldRestrictUserBillableActions(
     for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriodCollection ?? {})) {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
-        if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
+        if (userBillingGracePeriodEnd && userBillingGracePeriodEnd.value > 0 && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
             // Extracts the owner account ID from the collection member key.
             const ownerAccountID = Number(entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length));
 
