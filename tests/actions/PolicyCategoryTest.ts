@@ -775,7 +775,6 @@ describe('actions/PolicyCategory', () => {
             });
 
             expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
-            expect(spreadsheet?.shouldFinalModalBeOpened).toBe(true);
             expect(spreadsheet?.importFinalModal?.promptKeyParams).toStrictEqual({added: 0, updated: 0});
         });
     });
