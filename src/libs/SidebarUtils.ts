@@ -9,7 +9,6 @@ import type {
     Card,
     PersonalDetails,
     PersonalDetailsList,
-    PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
@@ -185,11 +184,7 @@ import {
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 
-type WelcomeMessage = {
-    phrase1?: string;
-    messageText?: string;
-    messageHtml?: string;
-};
+type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -426,7 +421,7 @@ function categorizeReportsForLHN(
 
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName({report, conciergeReportID});
+        const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -678,8 +673,6 @@ function getOptionData({
     currentUserAccountID,
     visibleReportActionsData,
     reportAttributesDerived,
-    policyTags,
-    currentUserLogin,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -702,8 +695,6 @@ function getOptionData({
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-    policyTags?: OnyxEntry<PolicyTagLists>;
-    currentUserLogin?: string;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -844,8 +835,6 @@ function getOptionData({
             isReportArchived,
             reportMetadata,
             reportAttributesDerived,
-            policyTags,
-            currentUserLogin,
             lastAction,
         });
     }
@@ -892,7 +881,7 @@ function getOptionData({
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1018,11 +1007,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({
-                reportAction: lastAction,
-                expensifyCard: card,
-                translate,
-            });
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName =
                 (lastMessageTextFromReport.length > 0 &&
@@ -1143,7 +1128,7 @@ function getOptionData({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
+    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived, undefined, undefined, conciergeReportID);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1199,10 +1184,7 @@ function getWelcomeMessage(
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
                 getPolicyName({report}),
-                getDisplayNameForParticipant({
-                    accountID: report?.ownerAccountID,
-                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                }),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1232,9 +1214,7 @@ function getWelcomeMessage(
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
-        messageHtml += translate('reportActionsView.usePlusButton', {
-            additionalText,
-        });
+        messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
     }
     if (isConciergeChatReport(report)) {
         messageHtml = translate('reportActionsView.askConcierge');
@@ -1258,7 +1238,7 @@ function getRoomWelcomeMessage(
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report});
+    const reportName = getReportName(report);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1277,10 +1257,7 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({
-                      accountID: report?.invoiceReceiver?.accountID,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                  })
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : invoiceReceiverPolicy?.name;
         const receiver = getPolicyName({report});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
