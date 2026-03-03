@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import useSearchDeleteTransactions from '@hooks/useSearchDeleteTransactions';
 import type {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ const mockRevertSplitTransactionOnSearch = jest.fn();
 let mockCurrentSearchResults: SearchResults | undefined;
 
 jest.mock('@components/Search/SearchContext', () => ({
-    useSearchContext: jest.fn(),
+    useSearchStateContext: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -62,9 +62,9 @@ describe('useSearchDeleteTransactions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockCurrentSearchResults = undefined;
-        (useSearchContext as jest.MockedFunction<typeof useSearchContext>).mockReturnValue({
+        (useSearchStateContext as jest.MockedFunction<typeof useSearchStateContext>).mockReturnValue({
             currentSearchResults: mockCurrentSearchResults,
-        } as ReturnType<typeof useSearchContext>);
+        } as ReturnType<typeof useSearchStateContext>);
     });
 
     it('reverts split deletion when exactly one hidden sibling remains in the full transactions collection', () => {
@@ -81,9 +81,9 @@ describe('useSearchDeleteTransactions', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedSplitID}`]: selectedSplit,
         });
 
-        (useSearchContext as jest.MockedFunction<typeof useSearchContext>).mockReturnValue({
+        (useSearchStateContext as jest.MockedFunction<typeof useSearchStateContext>).mockReturnValue({
             currentSearchResults: mockCurrentSearchResults,
-        } as ReturnType<typeof useSearchContext>);
+        } as ReturnType<typeof useSearchStateContext>);
 
         const transactions: OnyxCollection<Transaction> = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedSplitID}`]: selectedSplit,
@@ -139,9 +139,9 @@ describe('useSearchDeleteTransactions', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${visibleSiblingID}`]: visibleSibling,
         });
 
-        (useSearchContext as jest.MockedFunction<typeof useSearchContext>).mockReturnValue({
+        (useSearchStateContext as jest.MockedFunction<typeof useSearchStateContext>).mockReturnValue({
             currentSearchResults: mockCurrentSearchResults,
-        } as ReturnType<typeof useSearchContext>);
+        } as ReturnType<typeof useSearchStateContext>);
 
         const transactions: OnyxCollection<Transaction> = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedSplitID}`]: selectedSplit,

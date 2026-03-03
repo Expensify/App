@@ -1,14 +1,14 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import { useSearchStateContext } from '@components/Search/SearchContext';
 
 function useSearchDeleteTransactions() {
-    const {currentSearchResults} = useSearchContext();
+    const {currentSearchResults} = useSearchStateContext();
     const searchResultsRecord = currentSearchResults?.data as Record<string, unknown> | undefined;
 
     const deleteTransactionsOnSearch = useCallback(
