@@ -28,7 +28,7 @@ function VerifyIdentity() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
-    const [walletOnfidoData] = useOnyx(ONYXKEYS.WALLET_ONFIDO);
+    const [walletOnfidoData] = useOnyx(ONYXKEYS.RAM_ONLY_WALLET_ONFIDO);
 
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {

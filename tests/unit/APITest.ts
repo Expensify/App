@@ -874,8 +874,8 @@ describe('API.write() persistence guarantees', () => {
             // persisted-requests queue. This avoids spy-ordering issues that caused
             // false passes on CI.
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
                     // Note: getAll() checks the in-memory queue, not durable (disk) state.
@@ -892,7 +892,7 @@ describe('API.write() persistence guarantees', () => {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
