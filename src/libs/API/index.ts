@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxKey} from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
@@ -25,34 +24,34 @@ import {READ_COMMANDS} from './types';
 // e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
 
 // Logging - Logs request details and errors.
-addMiddleware(Logging, CONST.TELEMETRY.MIDDLEWARE_LOGGING);
+addMiddleware(Logging);
 
 // RecheckConnection - Sets a timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
-addMiddleware(RecheckConnection, CONST.TELEMETRY.MIDDLEWARE_RECHECK_CONNECTION);
+addMiddleware(RecheckConnection);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
-addMiddleware(Reauthentication, CONST.TELEMETRY.MIDDLEWARE_REAUTHENTICATION);
+addMiddleware(Reauthentication);
 
 // Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
-addMiddleware(handleDeletedAccount, CONST.TELEMETRY.MIDDLEWARE_HANDLE_DELETED_ACCOUNT);
+addMiddleware(handleDeletedAccount);
 
 // Handle supportal permission denial centrally
-addMiddleware(SupportalPermission, CONST.TELEMETRY.MIDDLEWARE_SUPPORTAL_PERMISSION);
+addMiddleware(SupportalPermission);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
-addMiddleware(HandleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+addMiddleware(HandleUnusedOptimisticID);
 
-addMiddleware(Pagination, CONST.TELEMETRY.MIDDLEWARE_PAGINATION);
+addMiddleware(Pagination);
 
 // SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
-addMiddleware(SentryServerTiming, CONST.TELEMETRY.MIDDLEWARE_SENTRY_SERVER_TIMING);
+addMiddleware(SentryServerTiming);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
-addMiddleware(SaveResponseInOnyx, CONST.TELEMETRY.MIDDLEWARE_SAVE_RESPONSE_IN_ONYX);
+addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
-addMiddleware(FraudMonitoring, CONST.TELEMETRY.MIDDLEWARE_FRAUD_MONITORING);
+addMiddleware(FraudMonitoring);
 
 let requestIndex = 0;
 
@@ -79,23 +78,7 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
 
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
-        const span = Sentry.startInactiveSpan({
-            name: CONST.TELEMETRY.SPAN_APPLY_OPTIMISTIC_DATA,
-            op: CONST.TELEMETRY.SPAN_APPLY_OPTIMISTIC_DATA,
-            attributes: {
-                [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
-                [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: optimisticData.length,
-            },
-        });
-        Onyx.update(optimisticData)
-            .then(() => {
-                span.setStatus({code: 1});
-                span.end();
-            })
-            .catch((error: unknown) => {
-                span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-                span.end();
-            });
+        Onyx.update(optimisticData);
     }
 
     const isWriteRequest = type === CONST.API_REQUEST_TYPE.WRITE;
