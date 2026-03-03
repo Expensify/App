@@ -277,17 +277,7 @@ const ROUTES = {
     },
     BANK_ACCOUNT_NON_USD_SETUP: {
         route: 'bank-account/new/global/:page?/:subPage?/:action?',
-        getRoute: ({
-            policyID,
-            page,
-            subPage,
-            action,
-        }: {
-            policyID?: string;
-            page?: string;
-            subPage?: string;
-            action?: 'edit';
-        }) => {
+        getRoute: ({policyID, page, subPage, action}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'}) => {
             const base = 'bank-account/new/global';
             const pagePart = page ? `/${page}` : '';
             const subPagePart = subPage ? `/${subPage}` : '';
