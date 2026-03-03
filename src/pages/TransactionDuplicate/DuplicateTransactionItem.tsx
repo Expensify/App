@@ -2,7 +2,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,7 +13,7 @@ import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;

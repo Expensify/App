@@ -2,9 +2,7 @@ import React, {useCallback} from 'react';
 import type {FlatListProps, ListRenderItemInfo, ScrollViewProps} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FlatList from '@components/FlatList/FlatList';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import DuplicateTransactionItem from './DuplicateTransactionItem';
 

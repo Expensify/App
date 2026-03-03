@@ -21,14 +21,13 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-
     /** All the data of the action item */
     action: ReportAction;
 

@@ -1,6 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -25,7 +25,6 @@ type MoneyRequestReportPreviewStyleType = {
 };
 
 type MoneyRequestReportPreviewProps = {
-
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 

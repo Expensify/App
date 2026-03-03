@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +33,7 @@ import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
