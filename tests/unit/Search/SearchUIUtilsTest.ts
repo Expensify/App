@@ -6185,7 +6185,7 @@ describe('SearchUIUtils', () => {
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
         });
 
-        test('Should include COMMENTS column at the end in expense report view', () => {
+        test('Should include COMMENTS column at the end in expense report view with custom columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -6193,14 +6193,16 @@ describe('SearchUIUtils', () => {
                 merchant: 'Test Merchant',
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
+            // Use custom columns to trigger the custom columns path
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
 
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             // COMMENTS should be at the end
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
         });
 
-        test('Should not duplicate COMMENTS column when it would be auto-added', () => {
+        test('Should not duplicate COMMENTS column when already in visible columns', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const testTransaction = {
                 ...baseTransaction,
@@ -6208,7 +6210,9 @@ describe('SearchUIUtils', () => {
                 merchant: 'Test Merchant',
             };
 
-            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
+            // Include COMMENTS in visible columns - it should not be duplicated
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
 
             // COMMENTS should appear only once
             const commentsCount = columns.filter((col) => col === CONST.SEARCH.TABLE_COLUMNS.COMMENTS).length;

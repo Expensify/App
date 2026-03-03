@@ -13365,7 +13365,7 @@ describe('ReportUtils', () => {
         it('should return tax name for TAX_RATE when policy has tax rates', () => {
             const transaction = createMockTransaction({taxCode: 'TAX_CODE_1'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, mockPolicy);
-            expect(result).toBe('Standard Tax');
+            expect(result).toBe('Standard Tax (10%)');
         });
 
         it('should return empty string for unknown column', () => {
