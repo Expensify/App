@@ -4457,7 +4457,7 @@ function getTableMinWidth(columns: SearchColumnType[]) {
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {
             minWidth += 20;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
-            minWidth += 72;
+            minWidth += 80;
         } else {
             minWidth += 200;
         }

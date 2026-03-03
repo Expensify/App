@@ -88,6 +88,7 @@ function MoneyRequestReportTableHeader({
                 sortBy={sortBy}
                 sortOrder={sortOrder}
                 onSortPress={onSortPress}
+                shouldRemoveTotalColumnFlex
             />
         </View>
     );
