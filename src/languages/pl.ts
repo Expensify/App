@@ -726,7 +726,7 @@ const translations: TranslationDeepObject<typeof en> = {
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
             revoke: 'Unieważnij',
             confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
-            ctaAll: 'Odwołaj wszystkie',
+            ctaAll: 'Unieważnij wszystkie',
             thisDevice: 'To urządzenie',
             otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
