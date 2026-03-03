@@ -146,6 +146,13 @@ type TransactionItemRowProps = {
     onEditDescription?: (newDescription: string) => void;
     onEditCategory?: (newCategory: string) => void;
     onEditAmount?: (newAmount: number) => void;
+
+    /** Per-field edit permissions — controls whether the cell shows editable affordance */
+    canEditDate?: boolean;
+    canEditMerchant?: boolean;
+    canEditDescription?: boolean;
+    canEditCategory?: boolean;
+    canEditAmount?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -203,6 +210,11 @@ function TransactionItemRow({
     onEditDescription,
     onEditCategory,
     onEditAmount,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -212,10 +224,6 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-
-    // Whether this cell can currently be edited. EditableCell derives the layout gate (isLargeScreenWidth)
-    // internally, so this flag only needs to capture transient blockers such as receipt scanning.
-    const canEditCell = isLargeScreenWidth && !isScanning(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -334,7 +342,7 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                     >
                         <DateCell
-                            canEdit={canEditCell}
+                            canEdit={canEditDate}
                             date={createdAt}
                             onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
@@ -404,7 +412,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            canEdit={canEditCell}
+                            canEdit={canEditCategory}
                             onSave={onEditCategory}
                             policyID={report?.policyID ?? transactionItem.report?.policyID}
                         />
@@ -461,7 +469,7 @@ function TransactionItemRow({
                             merchantOrDescription={merchant ?? ''}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
-                            canEdit={canEditCell}
+                            canEdit={canEditMerchant}
                             onSave={onEditMerchant}
                         />
                     </View>
@@ -477,7 +485,7 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={false}
                             isDescription
-                            canEdit={canEditCell}
+                            canEdit={canEditDescription}
                             onSave={onEditDescription}
                         />
                     </View>
@@ -552,7 +560,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
-                            canEdit={canEditCell}
+                            canEdit={canEditAmount}
                             onSave={onEditAmount}
                         />
                     </View>

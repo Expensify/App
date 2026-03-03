@@ -121,12 +121,15 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
+    scrollViewStyle?: StyleProp<ViewStyle>;
+
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
 
 type Selection = {
     start: number;
@@ -163,6 +166,7 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -240,6 +244,7 @@ function MoneyRequestAmountInput({
             currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
+            symbolTextStyle={props.symbolTextStyle}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}
@@ -249,6 +254,7 @@ function MoneyRequestAmountInput({
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
+            scrollViewStyle={scrollViewStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}

@@ -1,16 +1,16 @@
 /**
- * Actions for editing transactions directly from the Search results table.
+ * Actions for inline editing of transactions from the Search results table and the Expense Report page.
  *
- * Each function optimistically updates the snapshot entry (so the row
- * reflects the new value immediately) then delegates to the corresponding
- * IOU action which owns the canonical Onyx record, the API write, and
- * failure rollback.
+ * Each function optionally updates the search snapshot entry (when a hash is provided) so the row
+ * reflects the new value immediately, then delegates to the corresponding IOU action which owns
+ * the canonical Onyx record, the API write, and failure rollback.
  */
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Permissions from '@libs/Permissions';
-import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isReportIDApproved, isSettled} from '@libs/ReportUtils';
+import {isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -167,10 +167,12 @@ function getIouParamsForTransaction(transactionID: string, transactionThreadRepo
     };
 }
 
-/** Updates the date of an expense from the Search results table. */
-function editTransactionDateOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
+/** Updates the date of an expense from the Search results table or the Expense Report page. */
+function editTransactionDateOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDate: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedCreated: newDate});
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedCreated: newDate});
+    }
     updateMoneyRequestDate({
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
@@ -182,15 +184,17 @@ function editTransactionDateOnSearch(hash: number, transactionID: string, transa
     });
 }
 
-/** Updates the merchant of an expense from the Search results table. */
-function editTransactionMerchantOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newMerchant: string) {
+/** Updates the merchant of an expense from the Search results table or the Expense Report page. */
+function editTransactionMerchantOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newMerchant: string) {
     // Merchant must be a non-empty string. An empty merchant is not a valid
     // state and the IOU action would save it as a blank row label.
     if (!newMerchant.trim()) {
         return;
     }
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedMerchant: newMerchant});
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedMerchant: newMerchant});
+    }
     updateMoneyRequestMerchant({
         ...iouParams,
         value: newMerchant,
@@ -198,10 +202,12 @@ function editTransactionMerchantOnSearch(hash: number, transactionID: string, tr
     });
 }
 
-/** Updates the description of an expense from the Search results table. */
-function editTransactionDescriptionOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
+/** Updates the description of an expense from the Search results table or the Expense Report page. */
+function editTransactionDescriptionOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newDescription: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    optimisticallyUpdateSnapshotTransaction(hash, transactionID, {comment: {comment: newDescription}});
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {comment: {comment: newDescription}});
+    }
     updateMoneyRequestDescription({
         ...iouParams,
         comment: newDescription,
@@ -209,10 +215,12 @@ function editTransactionDescriptionOnSearch(hash: number, transactionID: string,
     });
 }
 
-/** Updates the category of an expense from the Search results table. */
-function editTransactionCategoryOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
+/** Updates the category of an expense from the Search results table or the Expense Report page. */
+function editTransactionCategoryOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newCategory: string) {
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
-    optimisticallyUpdateSnapshotTransaction(hash, transactionID, {category: newCategory});
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {category: newCategory});
+    }
     updateMoneyRequestCategory({
         ...iouParams,
         category: newCategory,
@@ -220,15 +228,17 @@ function editTransactionCategoryOnSearch(hash: number, transactionID: string, tr
     });
 }
 
-/** Updates the amount and currency of an expense from the Search results table. */
-function editTransactionAmountOnSearch(hash: number, transactionID: string, transactionThreadReportID: string | undefined, newAmount: number) {
+/** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
+function editTransactionAmountOnSearch(hash: number | undefined, transactionID: string, transactionThreadReportID: string | undefined, newAmount: number) {
     if (newAmount <= 0) {
         return;
     }
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
-    optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedAmount: newAmount, modifiedCurrency: currency});
+    if (hash !== undefined) {
+        optimisticallyUpdateSnapshotTransaction(hash, transactionID, {modifiedAmount: newAmount, modifiedCurrency: currency});
+    }
     updateMoneyRequestAmountAndCurrency({
         ...iouParams,
         amount: newAmount,
@@ -245,18 +255,15 @@ function editTransactionAmountOnSearch(hash: number, transactionID: string, tran
     });
 }
 
-/** Returns per-field edit permissions for a transaction in the Search table. */
-function getSearchTransactionEditPermissions(
+/**
+ * Core inline-edit permission check, shared by the Search table and the Expense Report page.
+ * Does NOT apply the Search-tab guard (caller is responsible for context-specific filtering).
+ */
+function getTransactionEditPermissions(
     transactionID: string,
     parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
-    queryJSON: SearchQueryJSON | undefined,
 ): {canEditDate: boolean; canEditMerchant: boolean; canEditDescription: boolean; canEditCategory: boolean; canEditAmount: boolean} {
     const noEdit = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false};
-
-    const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON?.status as string) ?? '');
-    if (!isEditableTab) {
-        return noEdit;
-    }
 
     // parentReportAction may be undefined while the Onyx subscription is loading;
     // return noEdit until it arrives so permissions aren't prematurely granted.
@@ -265,22 +272,67 @@ function getSearchTransactionEditPermissions(
     }
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const reportID = transaction?.reportID;
+
+    // Receipt is still being scanned — field values are not yet reliable.
+    if (isScanning(transaction)) {
+        return noEdit;
+    }
+
+    // Cannot determine editing permissions without the transaction record.
+    if (!transaction) {
+        return noEdit;
+    }
+
+    const reportID = transaction.reportID;
     const parentReport = reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] : undefined;
     const policyID = parentReport?.policyID;
     const parentPolicy = policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
 
-    // Changing a split-parent amount would leave child splits inconsistent.
-    const isSplitTransaction = !!transaction?.comment?.originalTransactionID || !!(transaction?.comment?.splits && transaction.comment.splits.length > 0);
+    // Split transactions cannot be edited inline — editing the parent would leave
+    // the child splits inconsistent.
+    const isSplitTransaction = !!transaction.comment?.originalTransactionID || !!(transaction.comment?.splits && transaction.comment.splits.length > 0);
+    if (isSplitTransaction) {
+        return noEdit;
+    }
+
+    // Approved or settled reports are locked — inline editing is not supported.
+    const reportIsLocked = isSettled(String(parentReport?.reportID ?? '')) || !!isReportIDApproved(String(parentReport?.reportID ?? ''));
+    if (reportIsLocked) {
+        return noEdit;
+    }
 
     return {
         canEditDate: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditMerchant: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, false, false, undefined, transaction, parentReport, parentPolicy),
         canEditDescription: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DESCRIPTION, false, false, undefined, transaction, parentReport, parentPolicy),
-        canEditCategory: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
-        canEditAmount:
-            !isSplitTransaction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
+        // Only expenses tied to a real workspace policy that has categories enabled can have a category.
+        // Personal/DM expenses have policyID = undefined or '_FAKE_' and no workspace categories to pick from.
+        // Even when a real policyID is present we must confirm categories are enabled — the report page only
+        // shows the category field when policy.areCategoriesEnabled is true (see SplitExpenseEditPage).
+        canEditCategory:
+            !!policyID &&
+            policyID !== CONST.POLICY.ID_FAKE &&
+            !!parentPolicy?.areCategoriesEnabled &&
+            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.CATEGORY, false, false, undefined, transaction, parentReport, parentPolicy),
+        canEditAmount: canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, false, false, undefined, transaction, parentReport, parentPolicy),
     };
+}
+
+/** Returns per-field edit permissions for a transaction in the Search table. */
+function getSearchTransactionEditPermissions(
+    transactionID: string,
+    parentReportAction: OnyxInputOrEntry<ReportAction> | undefined,
+    queryJSON: SearchQueryJSON | undefined,
+): {canEditDate: boolean; canEditMerchant: boolean; canEditDescription: boolean; canEditCategory: boolean; canEditAmount: boolean} {
+    const noEdit = {canEditDate: false, canEditMerchant: false, canEditDescription: false, canEditCategory: false, canEditAmount: false};
+
+    // Only the Expense tab with an editable status supports inline editing.
+    const isEditableTab = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE && CONST.SEARCH.INLINE_EDITABLE_EXPENSE_STATUSES.has((queryJSON?.status as string) ?? '');
+    if (!isEditableTab) {
+        return noEdit;
+    }
+
+    return getTransactionEditPermissions(transactionID, parentReportAction);
 }
 
 export {
@@ -289,5 +341,6 @@ export {
     editTransactionDescriptionOnSearch,
     editTransactionCategoryOnSearch,
     editTransactionAmountOnSearch,
+    getTransactionEditPermissions,
     getSearchTransactionEditPermissions,
 };

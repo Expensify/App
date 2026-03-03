@@ -34,6 +34,10 @@ function MerchantOrDescriptionCell({
         save();
     }, [save]);
 
+    const handleSubmitEditing = useCallback(() => {
+        save();
+    }, [save]);
+
     return (
         <EditableCell
             canEdit={canEdit}
@@ -45,11 +49,12 @@ function MerchantOrDescriptionCell({
                     value={localValue}
                     onChangeText={setLocalValue}
                     onBlur={handleBlur}
+                    onSubmitEditing={handleSubmitEditing}
                     autoFocus
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress TextInput's own border and background to avoid visual conflicts.
-                    textInputContainerStyles={[styles.editableCellInputStyle]}
-                    touchableInputWrapperStyle={[styles.editableCellInputStyle]}
+                    textInputContainerStyles={styles.editableCellInputStyle}
+                    touchableInputWrapperStyle={styles.editableCellInputStyle}
                     hideFocusedState
                 />
             }
@@ -58,7 +63,7 @@ function MerchantOrDescriptionCell({
                 shouldShowTooltip={shouldShowTooltip}
                 text={localValue}
                 numberOfLines={2}
-                style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter, styles.flex1]}
+                style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.preWrap]}
             />
         </EditableCell>
     );

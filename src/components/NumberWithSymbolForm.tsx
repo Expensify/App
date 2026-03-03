@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -66,6 +66,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to wrap the input in a container */
     shouldWrapInputInContainer?: boolean;
+
+    /** Style applied to the outer ScrollView */
+    scrollViewStyle?: StyleProp<ViewStyle>;
 
     /** Whether the amount is negative */
     isNegative?: boolean;
@@ -145,6 +148,7 @@ function NumberWithSymbolForm({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
+    scrollViewStyle,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -473,7 +477,7 @@ function NumberWithSymbolForm({
 
     return (
         <ScrollView
-            contentContainerStyle={styles.flexGrow1}
+            contentContainerStyle={[styles.flexGrow1, scrollViewStyle]}
             style={!shouldWrapInputInContainer && styles.flexGrow0}
         >
             {shouldWrapInputInContainer ? (

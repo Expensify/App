@@ -20,16 +20,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
-import {
-    editTransactionAmountOnSearch,
-    editTransactionCategoryOnSearch,
-    editTransactionDateOnSearch,
-    editTransactionDescriptionOnSearch,
-    editTransactionMerchantOnSearch,
-    getSearchTransactionEditPermissions,
-} from '@libs/actions/SearchInlineEdit';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isInvoiceReport} from '@libs/ReportUtils';
@@ -159,35 +152,28 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    // Captures editing state at mousedown so onPress can guard correctly.
-    // getIsEditingCell() may already return false by the time onPress fires (blur resets it first).
-    const wasEditingOnMouseDownRef = useRef(false);
-
-    // Inline edit
-    const transactionThreadReportID = transactionItem.reportAction?.childReportID;
     const transactionID = transactionItem.transactionID;
 
-    const {canEditDate, canEditMerchant, canEditDescription, canEditCategory, canEditAmount} = getSearchTransactionEditPermissions(transactionID, parentReportAction, currentSearchQueryJSON);
-
-    const handleEditDate = (newDate: string) => {
-        editTransactionDateOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newDate);
-    };
-
-    const handleEditMerchant = (newMerchant: string) => {
-        editTransactionMerchantOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newMerchant);
-    };
-
-    const handleEditDescription = (newDescription: string) => {
-        editTransactionDescriptionOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newDescription);
-    };
-
-    const handleEditCategory = (newCategory: string) => {
-        editTransactionCategoryOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newCategory);
-    };
-
-    const handleEditAmount = (newAmount: number) => {
-        editTransactionAmountOnSearch(currentSearchHash, transactionID, transactionThreadReportID, newAmount);
-    };
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({
+        transactionID,
+        reportID: transactionItem.reportID,
+        reportActionID: transactionItem.reportAction?.reportActionID,
+        parentReportAction,
+        hash: currentSearchHash,
+        queryJSON: currentSearchQueryJSON,
+    });
 
     const handleOnPress = () => {
         // Consume the tap that dismissed an editing cell — a second tap will open the row.
@@ -287,11 +273,16 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
-                            onEditDate={canEditDate ? handleEditDate : undefined}
-                            onEditMerchant={canEditMerchant ? handleEditMerchant : undefined}
-                            onEditDescription={canEditDescription ? handleEditDescription : undefined}
-                            onEditCategory={canEditCategory ? handleEditCategory : undefined}
-                            onEditAmount={canEditAmount ? handleEditAmount : undefined}
+                            onEditDate={onEditDate}
+                            onEditMerchant={onEditMerchant}
+                            onEditDescription={onEditDescription}
+                            onEditCategory={onEditCategory}
+                            onEditAmount={onEditAmount}
+                            canEditDate={canEditDate}
+                            canEditMerchant={canEditMerchant}
+                            canEditDescription={canEditDescription}
+                            canEditCategory={canEditCategory}
+                            canEditAmount={canEditAmount}
                         />
                     </>
                 )}

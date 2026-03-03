@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
+import {getIsEditingCell} from '@components/Table/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {isMobileChrome} from '@libs/Browser';
@@ -81,6 +82,12 @@ function BaseSearchList({
     );
 
     const selectFocusedOption = useCallback(() => {
+        // Do not navigate while an inline cell edit is active — the Enter key is being
+        // used to confirm the edit, not to open the row.
+        if (getIsEditingCell()) {
+            return;
+        }
+
         const focusedItem = data.at(focusedIndex);
 
         if (!focusedItem) {

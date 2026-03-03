@@ -10,6 +10,7 @@ import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/Cur
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
@@ -71,12 +72,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
             editContent={
                 <MoneyRequestAmountInput
                     ref={focusOnMount}
-                    autoGrow={false}
                     amount={absoluteAmount}
                     currency={currency}
                     disableKeyboard={false}
                     isCurrencyPressable={false}
-                    hideCurrencySymbol
                     hideFocusedState
                     shouldShowBigNumberPad={false}
                     shouldWrapInputInContainer={false}
@@ -88,6 +87,8 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     containerStyle={[styles.editableCellInputStyle]}
                     inputStyle={[styles.textAlignRight]}
                     touchableInputWrapperStyle={[styles.editableCellInputStyle]}
+                    scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
+                    symbolTextStyle={[{fontSize: variables.fontSizeNormal}, styles.textSupporting]}
                 />
             }
         >

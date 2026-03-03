@@ -1121,6 +1121,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
             height: '100%',
             minHeight: 0,
+            fontSize: variables.fontSizeNormal,
         },
 
         borderColorFocus: {

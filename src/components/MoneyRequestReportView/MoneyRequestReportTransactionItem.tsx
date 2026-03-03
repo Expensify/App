@@ -5,6 +5,7 @@ import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import {getIsEditingCell} from '@components/Table/EditableCell';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
@@ -96,6 +98,20 @@ function MoneyRequestReportTransactionItem({
     // Filter violations based on user visibility and dismissal state at the row level.
     const filteredViolations = useTransactionViolations(transaction.transactionID);
 
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({transactionID: transaction.transactionID, reportID: transaction.reportID});
+
     const viewRef = useRef<View>(null);
 
     // This useEffect scrolls to this transaction when it is newly added to the report
@@ -120,6 +136,12 @@ function MoneyRequestReportTransactionItem({
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={() => {
+                    // If a cell was being edited when the user tapped the row, suppress navigation
+                    // so the second tap doesn't immediately open the transaction detail.
+                    if (wasEditingOnMouseDownRef.current) {
+                        wasEditingOnMouseDownRef.current = false;
+                        return;
+                    }
                     handleOnPress(transaction.transactionID);
                 }}
                 accessibilityLabel={translate('iou.viewDetails')}
@@ -130,7 +152,12 @@ function MoneyRequestReportTransactionItem({
                 style={[styles.transactionListItemStyle]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                onPressIn={() => {
+                    wasEditingOnMouseDownRef.current = getIsEditingCell();
+                    if (canUseTouchScreen()) {
+                        ControlSelection.block();
+                    }
+                }}
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={() => {
                     handleLongPress(transaction.transactionID);
@@ -161,6 +188,16 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        canEditDate={canEditDate}
+                        canEditMerchant={canEditMerchant}
+                        canEditDescription={canEditDescription}
+                        canEditCategory={canEditCategory}
+                        canEditAmount={canEditAmount}
+                        onEditDate={onEditDate}
+                        onEditMerchant={onEditMerchant}
+                        onEditDescription={onEditDescription}
+                        onEditCategory={onEditCategory}
+                        onEditAmount={onEditAmount}
                     />
                 )}
             </PressableWithFeedback>
