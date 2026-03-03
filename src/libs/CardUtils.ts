@@ -20,6 +20,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
@@ -1071,6 +1072,21 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    if (feedCountry) {
+        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
+        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
+            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+        }
+    }
+
+    return cardSettings;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1183,6 +1199,14 @@ type SplitMaskedCardNumberResult = {
  * @param maskChar the character used to mask the card number
  * @returns the first and last digits of the card number
  */
+function formatMaskedCardName(cardName: string): string {
+    if (!/^[0-9X]+$/.test(cardName)) {
+        return cardName;
+    }
+    const padded = cardName.padStart(16, 'X');
+    return padded.match(/.{1,4}/g)?.join('-') ?? padded;
+}
+
 function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
     if (!cardNumber) {
         return {
@@ -1368,6 +1392,7 @@ export {
     normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
+    getCardSettings,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
@@ -1393,6 +1418,7 @@ export {
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
+    formatMaskedCardName,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
     generateCardID,
