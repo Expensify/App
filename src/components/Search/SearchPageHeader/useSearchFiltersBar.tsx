@@ -88,7 +88,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(filterFormValues, queryJSON.hash);
+    useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
