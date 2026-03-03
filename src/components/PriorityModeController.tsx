@@ -1,14 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -16,6 +15,18 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import FocusModeNotification from './FocusModeNotification';
 
 const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>) => priorityMode === CONST.PRIORITY_MODE.GSD;
+
+/**
+ * Thin wrapper that reads the sidebar context and passes only the LHN report
+ * count to the memoized inner component. The sidebar context value changes
+ * frequently (new object reference on every provider re-render), so isolating
+ * the context read here prevents the heavier inner component from re-rendering
+ * unless the count actually changes.
+ */
+export default function PriorityModeController() {
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    return <PriorityModeControllerInner lhnReportCount={orderedReportIDs.length} />;
+}
 
 /**
  * This component is used to automatically switch a user into #focus mode when they exceed a certain number of reports.
@@ -28,26 +39,13 @@ const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIO
  *    user is eligible to be automatically switched.
  *
  */
-export default function PriorityModeController() {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+const PriorityModeControllerInner = React.memo(function PriorityModeControllerInner({lhnReportCount}: {lhnReportCount: number}) {
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const currentRouteName = useCurrentRouteName();
     const [shouldShowModal, setShouldShowModal] = useState(false);
     const closeModal = useCallback(() => setShouldShowModal(false), []);
-    const validReportCount = useMemo(() => {
-        let count = 0;
-        for (const report of Object.values(allReports ?? {})) {
-            if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                continue;
-            }
-
-            count++;
-        }
-        return count;
-    }, [accountID, allReports]);
 
     // We set this when we have finally auto-switched the user of #focus mode to prevent duplication.
     const hasSwitched = useRef(false);
@@ -57,7 +55,6 @@ export default function PriorityModeController() {
         // Wait for Onyx state to fully load
         if (
             isLoadingReportData !== false ||
-            !accountID ||
             isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata) ||
             typeof isInFocusMode !== 'boolean' ||
             typeof hasTriedFocusMode !== 'boolean'
@@ -70,25 +67,25 @@ export default function PriorityModeController() {
             return;
         }
 
-        if (validReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
-            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {validReportCount});
+        if (lhnReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
+            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {lhnReportCount});
             return;
         }
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
         if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
-            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
+            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {lhnReportCount, currentRouteName});
             return;
         }
 
-        Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
+        Log.info('[PriorityModeController] Switching user to focus mode', false, {lhnReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
         requestAnimationFrame(() => {
             setShouldShowModal(true);
         });
         hasSwitched.current = true;
-    }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
+    }, [currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
 
     useEffect(() => {
         if (!shouldShowModal) {
@@ -103,7 +100,7 @@ export default function PriorityModeController() {
     }, [currentRouteName, shouldShowModal]);
 
     return shouldShowModal ? <FocusModeNotification onClose={closeModal} /> : null;
-}
+});
 
 /**
  * A funky but reliable way to subscribe to screen changes.
