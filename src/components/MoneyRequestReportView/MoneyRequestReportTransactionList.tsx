@@ -54,7 +54,6 @@ import {
     isExpenseReport,
     isIOUReport,
     isSortableColumnName,
-    sortableColumnNames,
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
@@ -581,7 +580,6 @@ function MoneyRequestReportTransactionList({
                         sortBy={sortBy}
                         sortOrder={sortOrder}
                         columns={columnsToShow}
-                        sortableColumns={sortableColumnNames}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}

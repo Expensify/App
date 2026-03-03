@@ -13375,7 +13375,6 @@ export {
     getIconsForExpenseReport,
     getTransactionSortValue,
     isSortableColumnName,
-    sortableColumnNames,
 };
 
 export type {

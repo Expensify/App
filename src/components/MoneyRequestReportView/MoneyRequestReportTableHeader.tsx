@@ -5,6 +5,7 @@ import {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTab
 import SortableTableHeader from '@components/SelectionListWithSections/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isSortableColumnName} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type SearchTableHeaderProps = {
@@ -16,26 +17,15 @@ type SearchTableHeaderProps = {
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
-    sortableColumns?: readonly SearchColumnType[];
 };
-function MoneyRequestReportTableHeader({
-    sortBy,
-    sortOrder,
-    onSortPress,
-    dateColumnSize,
-    shouldShowSorting,
-    columns,
-    amountColumnSize,
-    taxAmountColumnSize,
-    sortableColumns,
-}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, columns, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const columnConfig = useMemo(
         () => [
             ...getExpenseHeaders().map((header) => ({
                 ...header,
-                isColumnSortable: sortableColumns ? sortableColumns.includes(header.columnName) : header.isColumnSortable,
+                isColumnSortable: isSortableColumnName(header.columnName),
             })),
             {
                 columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
@@ -43,7 +33,7 @@ function MoneyRequestReportTableHeader({
                 isColumnSortable: false,
             },
         ],
-        [sortableColumns],
+        [],
     );
 
     const orderedColumnConfig = useMemo(() => {
