@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +15,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
-import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -35,26 +34,19 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyList();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const {currencyList} = useCurrencyListState();
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const getCountry = useCallback(() => {
-        if (addNewCard?.data?.selectedCountry) {
-            return addNewCard.data.selectedCountry;
-        }
+    const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+    const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
 
-        return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-    }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
-
-    const initialCountryRef = useRef<string | undefined>(getCountry());
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(initialCountryRef.current);
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!currentCountry) {
             setHasError(true);
         } else {
@@ -70,15 +62,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 isEditing: false,
             });
         }
-    }, [addNewCard?.data.selectedCountry, currentCountry, doesCountrySupportPlaid]);
-
-    useEffect(() => {
-        setCurrentCountry(getCountry());
-        // Keep the initial ref stable so we only reorder once when the list opens
-        if (!initialCountryRef.current) {
-            initialCountryRef.current = getCountry();
-        }
-    }, [getCountry]);
+    };
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
@@ -88,72 +72,34 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         Navigation.goBack();
     };
 
-    const onSelectionChange = useCallback((country: Option) => {
-        setCurrentCountry(country.value);
-    }, []);
+    const countries = Object.keys(CONST.ALL_COUNTRIES)
+        .filter((countryISO) => !CONST.PLAID_EXCLUDED_COUNTRIES.includes(countryISO))
+        .map((countryISO) => {
+            const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
+            return {
+                value: countryISO,
+                keyForList: countryISO,
+                text: countryName,
+                isSelected: currentCountry === countryISO,
+                searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+            };
+        });
 
-    const initialCountry = initialCountryRef.current;
-
-    const allCountries = useMemo(() => {
-        const excludedCountriesSet = new Set(CONST.PLAID_EXCLUDED_COUNTRIES);
-        const countryKeys = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !excludedCountriesSet.has(countryISO));
-
-        if (!initialCountry || countryKeys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
-            return countryKeys;
-        }
-
-        const selectedOptions: string[] = [];
-        const unselectedOptions: string[] = [];
-
-        for (const countryISO of countryKeys) {
-            if (countryISO === initialCountry) {
-                selectedOptions.push(countryISO);
-            } else {
-                unselectedOptions.push(countryISO);
-            }
-        }
-
-        return [...selectedOptions, ...unselectedOptions];
-    }, [initialCountry]);
-
-    const countries = useMemo(
-        () =>
-            allCountries.map((countryISO) => {
-                const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
-                return {
-                    value: countryISO,
-                    keyForList: countryISO,
-                    text: countryName,
-                    isSelected: currentCountry === countryISO,
-                    searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
-                };
-            }),
-        [translate, currentCountry, allCountries],
-    );
-
-    const searchResults = useMemo(() => {
-        return searchOptions(debouncedSearchValue, countries);
-    }, [countries, debouncedSearchValue]);
+    const searchResults = searchOptions(debouncedSearchValue, countries);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage,
-            value: searchValue,
-            label: translate('common.search'),
-            onChangeText: setSearchValue,
-        }),
-        [headerMessage, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        headerMessage,
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            onConfirm: submit,
-            showButton: true,
-            text: translate('common.next'),
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        onConfirm: submit,
+        showButton: true,
+        text: translate('common.next'),
+    };
 
     return (
         <ScreenWrapper
@@ -171,11 +117,15 @@ function SelectCountryStep({policyID}: CountryStepProps) {
             <SelectionList
                 data={searchResults}
                 ListItem={RadioListItem}
-                onSelectRow={onSelectionChange}
+                onSelectRow={(countryOption) => {
+                    setSelectedCountry(countryOption.value ?? null);
+                }}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
+                initiallyFocusedItemKey={currentCountry}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
+                shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >

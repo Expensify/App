@@ -875,8 +875,16 @@ export default {
         minHeight: 128,
     },
 
+    minHeight42: {
+        minHeight: 168,
+    },
+
     minHeight65: {
         minHeight: 260,
+    },
+
+    minHeight55: {
+        minHeight: 220,
     },
 
     minWidth18: {

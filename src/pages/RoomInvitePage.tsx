@@ -20,7 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {inviteToRoom, inviteToRoomAction, searchInServer} from '@libs/actions/Report';
+import {inviteToRoom, inviteToRoomAction, searchUserInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -50,6 +50,7 @@ import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
+type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 function RoomInvitePage({
     betas,
     report,
@@ -60,19 +61,17 @@ function RoomInvitePage({
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    // Capture any initial pre-selected logins (currently none) so reordering happens only on reopen, not on toggle
-    const initialSelectedLoginsRef = useMemo(() => new Set<string>(), []);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     const {options, areOptionsInitialized} = useOptionsList();
     const allPersonalDetails = usePersonalDetails();
@@ -94,7 +93,18 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(
+            options.personalDetails,
+            nvpDismissedProductTraining,
+            loginList,
+            currentUserAccountID,
+            currentUserEmail,
+            allPersonalDetails,
+            betas ?? [],
+            excludedUsers,
+            false,
+            countryCode,
+        );
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {
@@ -150,6 +160,9 @@ function RoomInvitePage({
 
         // Filtering out selected users from the search results
         const selectedLogins = new Set(selectedOptions.map(({login}) => login));
+        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.has(login)) : [];
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.has(userToInvite.login);
 
         sections.push({
             title: translate('common.contacts'),
@@ -187,12 +200,12 @@ function RoomInvitePage({
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName({report});
 
     const ancestors = useAncestors(report);
 
     const inviteUsers = () => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
         if (selectedOptions.length === 0) {
             return;
@@ -238,7 +251,7 @@ function RoomInvitePage({
 
     useEffect(() => {
         updateUserSearchPhrase(debouncedSearchTerm);
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     let subtitleKey: '' | TranslationPaths | undefined;
@@ -280,7 +293,6 @@ function RoomInvitePage({
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     showLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    disableMaintainingScrollPosition
                     shouldShowTextInput
                     canSelectMultiple
                 />

@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -7,19 +6,13 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {
-    filterAndOrderOptions,
-    filterSelectedOptions,
-    formatSectionsFromSearchTerm,
-    getFilteredRecentAttendees,
-    getParticipantsOption,
-    getPolicyExpenseReportOption,
-    getValidOptions,
-} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
+import type {SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -83,26 +76,26 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, shouldAllowNameOnlyOptions = false}: SearchFiltersParticipantsSelectorProps) {
-    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const reportAttributesDerived = useReportAttributes();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -134,8 +127,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 recentAttendees: recentAttendeeLists,
                 includeRecentReports: !shouldAllowNameOnlyOptions,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
     }, [
         areOptionsInitialized,
@@ -152,22 +145,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         currentUserAccountID,
         currentUserEmail,
     ]);
-
-    const initialSelectedOptions = useMemo(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
-            return [];
-        }
-
-        const preSelectedOptions = initialAccountIDs.reduce<OptionData[]>((acc, accountID) => {
-            const participant = personalDetails[accountID];
-            if (participant) {
-                acc.push(getSelectedOptionData(participant));
-            }
-            return acc;
-        }, []);
-
-        return preSelectedOptions;
-    }, [initialAccountIDs, personalDetails]);
 
     const unselectedOptions = useMemo(() => {
         if (!shouldAllowNameOnlyOptions) {
@@ -197,6 +174,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
+            selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: shouldAllowNameOnlyOptions,
@@ -212,10 +190,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const sectionData: OptionData[] = [];
+        const newSections: SelectionListSections = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -240,10 +218,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             chatOptions.personalDetails = chatOptions.personalDetails.filter((detail) => detail.accountID !== selectedCurrentUser.accountID);
         }
 
-        const selectedIDsSet = new Set(initialSelectedOptions.map((option) => option.accountID));
-
         // If the current user is not selected, add them to the top of the list
-        if (!selectedCurrentUser && chatOptions.currentUserOption && !selectedIDsSet.has(chatOptions.currentUserOption?.accountID)) {
+        if (!selectedCurrentUser && chatOptions.currentUserOption) {
             const formattedName = getDisplayNameForParticipant({
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
@@ -251,68 +227,40 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 formatPhoneNumber,
             });
             chatOptions.currentUserOption.text = formattedName;
-            sectionData.push(chatOptions.currentUserOption);
+
+            newSections.push({
+                data: [chatOptions.currentUserOption],
+                sectionIndex: 0,
+            });
         }
 
-        const unselectedFormattedSectionData = formattedResults.section.data.filter((option) => !selectedIDsSet.has(option.accountID));
-        if (unselectedFormattedSectionData.length) {
-            sectionData.push(...(unselectedFormattedSectionData as OptionData[]));
-        }
+        newSections.push(formattedResults.section);
 
-        const unselectedRecentReports = chatOptions.recentReports.filter((report) => !selectedIDsSet.has(report.accountID));
-        if (unselectedRecentReports) {
-            sectionData.push(...unselectedRecentReports);
-        }
+        // Filter current user from recentReports to avoid duplicate with currentUserOption section
+        // Only filter if both the report and currentUserOption have valid accountIDs to avoid
+        // accidentally filtering out name-only attendees (which have accountID: undefined)
+        const filteredRecentReports = chatOptions.recentReports.filter(
+            (report) => !report.accountID || !chatOptions.currentUserOption?.accountID || report.accountID !== chatOptions.currentUserOption.accountID,
+        );
 
-        const unselectedPersonalDetails = chatOptions.personalDetails.filter((detail) => !selectedIDsSet.has(detail.accountID));
-        if (unselectedPersonalDetails) {
-            sectionData.push(...unselectedPersonalDetails);
-        }
+        newSections.push({
+            data: filteredRecentReports,
+            sectionIndex: 1,
+        });
+
+        newSections.push({
+            data: chatOptions.personalDetails,
+            sectionIndex: 2,
+        });
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-        let sortedSectionData = sectionData.sort((a, b) => localeCompare(a?.login?.toLowerCase() ?? '', b?.login?.toLowerCase() ?? ''));
-
-        if (initialSelectedOptions.length && cleanSearchTerm === '') {
-            const selectedAccountIDsSet = new Set(selectedOptions.map((option) => option.accountID));
-            sortedSectionData = [
-                ...(initialSelectedOptions.map((participant) => {
-                    const participantData = {
-                        ...participant,
-                        selected: selectedAccountIDsSet.has(participant.accountID),
-                    };
-                    const isReportPolicyExpenseChat = participant.isPolicyExpenseChat ?? false;
-                    return isReportPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participantData, personalDetails, reportAttributesDerived)
-                        : getParticipantsOption(participantData, personalDetails);
-                }) as OptionData[]),
-                ...sortedSectionData,
-            ];
-        }
 
         return {
-            sections: [
-                {
-                    title: '',
-                    data: sortedSectionData,
-                    shouldShow: sortedSectionData.length > 0,
-                },
-            ],
+            sections: newSections,
             headerMessage: message,
         };
-    }, [
-        areOptionsInitialized,
-        cleanSearchTerm,
-        selectedOptions,
-        chatOptions,
-        personalDetails,
-        reportAttributesDerived,
-        initialSelectedOptions,
-        translate,
-        formatPhoneNumber,
-        currentUserAccountID,
-        localeCompare,
-    ]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);

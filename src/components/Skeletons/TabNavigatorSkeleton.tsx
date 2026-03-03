@@ -1,15 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
-function TabNavigatorSkeleton() {
+type TabNavigatorSkeletonProps = {
+    reasonAttributes?: SkeletonSpanReasonAttributes;
+};
+
+function TabNavigatorSkeleton({reasonAttributes}: TabNavigatorSkeletonProps = {}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    useSkeletonSpan('TabNavigatorSkeleton');
+    useSkeletonSpan('TabNavigatorSkeleton', reasonAttributes);
 
     return (
         <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.h10]}>
@@ -20,7 +25,7 @@ function TabNavigatorSkeleton() {
                 foregroundColor={theme.skeletonLHNOut}
                 style={[styles.flex1, styles.ml4, styles.button, styles.highlightBG]}
             >
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: '20%'}, {translateY: 13}]}
                     width="60%"
                     height={14}
@@ -33,7 +38,7 @@ function TabNavigatorSkeleton() {
                 foregroundColor={theme.skeletonLHNOut}
                 style={[styles.flex1, styles.mr4, styles.button, styles.appBG]}
             >
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: '20%'}, {translateY: 13}]}
                     width="60%"
                     height={14}

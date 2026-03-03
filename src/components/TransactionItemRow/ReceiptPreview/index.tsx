@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import type {LayoutChangeEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -11,6 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import Image from '@src/components/Image';
@@ -93,12 +94,21 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
         setShouldShow(hovered);
     }, [hovered, setShouldShow]);
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'ReceiptPreview',
+            isLoading,
+        }),
+        [isLoading],
+    );
+
     if (shouldUseNarrowLayout || !debounceShouldShow || !shouldShow || (!source && !isEReceipt && !isDistanceEReceipt && !isPerDiemEReceipt)) {
         return null;
     }
 
     const shouldShowImage = source && !(isEReceipt || isDistanceEReceipt || isPerDiemEReceipt);
     const shouldShowDistanceEReceipt = isDistanceEReceipt && !isEReceipt && !isPerDiemEReceipt;
+    const sourceObject = typeof source === 'string' ? {uri: source} : source;
 
     return ReactDOM.createPortal(
         <Animated.View
@@ -110,17 +120,16 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                 <View style={[styles.w100]}>
                     {isLoading && (
                         <View style={[StyleSheet.absoluteFillObject, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={reasonAttributes}
+                            />
                         </View>
                     )}
 
                     <Image
-                        source={typeof source === 'string' ? {uri: source} : source}
-                        style={[
-                            styles.w100,
-                            {aspectRatio: imageAspectRatio ?? 1},
-                            isLoading && {opacity: 0}, // hide until loaded
-                        ]}
+                        source={sourceObject}
+                        style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}
                         onLoadStart={() => {
                             if (isLoading) {
                                 return;

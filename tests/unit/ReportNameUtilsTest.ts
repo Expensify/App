@@ -3,10 +3,12 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
+    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
     computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,
+    getMoneyRequestReportName,
     getPolicyExpenseChatName,
     getReportName as getSimpleReportName,
 } from '@libs/ReportNameUtils';
@@ -14,7 +16,8 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
+import createRandomPolicy from '../utils/collections/policies';
+import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -281,6 +284,64 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe('heading with link');
         });
+
+        test('Returns plain text title without HTML conversion', () => {
+            const plainTaskTitle = 'Fix the login bug on Android';
+            const report: Report = {
+                ...createRegularTaskReport(41, currentUserAccountID),
+                reportName: plainTaskTitle,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Fix the login bug on Android');
+        });
+
+        test('Trims whitespace from plain text title', () => {
+            const report: Report = {
+                ...createRegularTaskReport(42, currentUserAccountID),
+                reportName: '  Expense report review  ',
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Expense report review');
+        });
+
+        test('Returns empty string for undefined reportName', () => {
+            const report: Report = {
+                ...createRegularTaskReport(43, currentUserAccountID),
+                reportName: undefined,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('');
+        });
     });
 
     describe('computeReportName - Thread report action names', () => {
@@ -310,7 +371,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
+            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', 'via workflow');
             const name = computeReportName(
                 thread,
                 emptyCollections.reports,
@@ -348,6 +409,80 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('Hold parent action', () => {
+            const thread: Report = createWorkspaceThread(52);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.heldExpense');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('Unhold parent action', () => {
+            const thread: Report = createWorkspaceThread(53);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.unheldExpense');
             const name = computeReportName(
                 thread,
                 emptyCollections.reports,
@@ -637,6 +772,76 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+        });
+    });
+
+    describe('getMoneyRequestReportName', () => {
+        it('should return "New Report" when reportName is empty string, report is expense report, and policy has empty fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(200),
+                reportID: '200',
+                reportName: '',
+                policyID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with empty fieldList
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM),
+                id: '200',
+                fieldList: {},
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
+
+            // Then it should return "New Report"
+            expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
+
+        it('should not return empty string for expense report with empty reportName when policy has a normal fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(201),
+                reportID: '201',
+                reportName: '',
+                policyID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a normal (non-empty) fieldList
+            const policyWithFieldList: Policy = {
+                ...createRandomPolicy(201, CONST.POLICY.TYPE.TEAM),
+                id: '201',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList});
+
+            // Then it should NOT return empty string — it should fall through to dynamic name computation
+            expect(reportName).not.toBe('');
         });
     });
 });
