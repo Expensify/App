@@ -8,13 +8,13 @@ import type {Route} from '@src/ROUTES';
 /**
  * Handles navigation for wallet statement actions
  */
-function handleWalletStatementNavigation(conciergeReportID: string | undefined, type?: string, url?: string): void {
+function handleWalletStatementNavigation(conciergeReportID: string | undefined, currentUserAccountID: number | undefined, type?: string, url?: string): void {
     if (!type || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
         return;
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID);
+        navigateToConciergeChat(conciergeReportID, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         return;
     }
 

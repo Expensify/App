@@ -123,7 +123,7 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
