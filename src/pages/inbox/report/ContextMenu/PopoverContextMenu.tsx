@@ -1,7 +1,8 @@
 import type {RefObject} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-/* eslint-disable no-restricted-imports */
+// eslint-disable-next-line no-restricted-imports
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View as ViewType} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {Dimensions} from 'react-native';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import {ModalActions, useModal} from '@components/Modal/Global/ModalContext';

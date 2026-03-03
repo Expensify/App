@@ -144,8 +144,7 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
 
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const card = useGetExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
+    const card = useGetExpensifyCardFromReportAction({reportAction, policyID});
 
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
         if (isAnonymousUser() && !isAnonymousAction) {

@@ -80,8 +80,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         });
     };
 
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
     const {interceptAnonymousUser, translate, disabledActionIDs} = data;
 
@@ -149,195 +147,193 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         }) && !isDisabled(ACTION_IDS.DELETE);
 
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const replyInThreadAction = showReplyInThread
-        ? createReplyInThreadAction({
-              childReport: data.childReport,
-              reportAction,
-              originalReport: data.originalReport,
-              currentUserAccountID,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              chatBubbleReplyIcon: icons.ChatBubbleReply,
-          })
-        : undefined;
-    const markAsUnreadAction = showMarkAsUnread
-        ? createMarkAsUnreadAction({
-              reportID: data.reportID,
-              reportActions: data.reportActions,
-              reportAction,
-              currentUserAccountID,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-              checkmarkIcon: icons.Checkmark,
-          })
-        : undefined;
-    const explainActionItem = showExplain
-        ? createExplainAction({
-              childReport: data.childReport,
-              originalReport: data.originalReport,
-              reportAction,
-              currentUserPersonalDetails: data.currentUserPersonalDetails,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              conciergeIcon: icons.Concierge,
-          })
-        : undefined;
-    const editActionItem = showEdit
-        ? createEditAction({
-              reportID: data.reportID,
-              reportAction,
-              moneyRequestAction: data.moneyRequestAction,
-              draftMessage: data.draftMessage,
-              introSelected: data.introSelected,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              pencilIcon: icons.Pencil,
-          })
-        : undefined;
-    const unholdActionItem = showUnhold
-        ? createUnholdAction({
-              moneyRequestAction: data.moneyRequestAction,
-              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              stopwatchIcon: icons.Stopwatch,
-          })
-        : undefined;
-    const holdActionItem = showHold
-        ? createHoldAction({
-              moneyRequestAction: data.moneyRequestAction,
-              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              stopwatchIcon: icons.Stopwatch,
-          })
-        : undefined;
-    const joinThreadActionItem = showJoinThread
-        ? createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell})
-        : undefined;
-    const leaveThreadActionItem = showLeaveThread
-        ? createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit})
-        : undefined;
-    const copyMessageActionItem = showCopyMessage
-        ? createCopyMessageAction({
-              reportAction,
-              transaction: data.transaction,
-              selection: data.selection,
-              report: data.report,
-              card: data.card,
-              originalReport: data.originalReport,
-              isHarvestReport: data.isHarvestReport,
-              isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
-              movedFromReport: data.movedFromReport,
-              movedToReport: data.movedToReport,
-              childReport: data.childReport,
-              policy: data.policy,
-              getLocalDateFromDatetime: data.getLocalDateFromDatetime,
-              policyTags: data.policyTags,
-              translate,
-              harvestReport: data.harvestReport,
-              currentUserPersonalDetails: data.currentUserPersonalDetails,
-              interceptAnonymousUser,
-              copyIcon: icons.Copy,
-              checkmarkIcon: icons.Checkmark,
-          })
-        : undefined;
-    const copyLinkActionItem = showCopyLink
-        ? createCopyLinkAction({reportAction, originalReportID: data.originalReportID, interceptAnonymousUser, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark})
-        : undefined;
-    const flagAsOffensiveActionItem = showFlagAsOffensive ? createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}) : undefined;
-    const downloadActionItem = showDownload
-        ? createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download})
-        : undefined;
-    const debugActionItem = showDebug ? createDebugAction({reportID: data.reportID, reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}) : undefined;
-    const deleteActionItem = showDelete
-        ? createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan})
-        : undefined;
-
-    const overflowMenu = createOverflowMenuAction(
-        {
-            openOverflowMenu,
-            openContextMenu: () => setLocalShouldKeepOpen(true),
-            interceptAnonymousUser,
-            translate,
-            threeDotsIcon: icons.ThreeDots,
-        },
-        overflowMenuRef,
-    );
-    /* eslint-enable react-hooks/refs */
-
     const visibleActions = useMemo(() => {
+        if (!data.reportAction) {
+            return [
+                createOverflowMenuAction(
+                    {openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), interceptAnonymousUser, translate, threeDotsIcon: icons.ThreeDots},
+                    overflowMenuRef,
+                ),
+            ];
+        }
+        const reportAction = data.reportAction;
         const items: ContextMenuAction[] = [];
-        if (replyInThreadAction) {
-            items.push(replyInThreadAction);
+        if (showReplyInThread) {
+            items.push(
+                createReplyInThreadAction({
+                    childReport: data.childReport,
+                    reportAction,
+                    originalReport: data.originalReport,
+                    currentUserAccountID,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    chatBubbleReplyIcon: icons.ChatBubbleReply,
+                }),
+            );
         }
-        if (markAsUnreadAction) {
-            items.push(markAsUnreadAction);
+        if (showMarkAsUnread) {
+            items.push(
+                createMarkAsUnreadAction({
+                    reportID: data.reportID,
+                    reportActions: data.reportActions,
+                    reportAction,
+                    currentUserAccountID,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+                    checkmarkIcon: icons.Checkmark,
+                }),
+            );
         }
-        if (explainActionItem) {
-            items.push(explainActionItem);
+        if (showExplain) {
+            items.push(
+                createExplainAction({
+                    childReport: data.childReport,
+                    originalReport: data.originalReport,
+                    reportAction,
+                    currentUserPersonalDetails: data.currentUserPersonalDetails,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    conciergeIcon: icons.Concierge,
+                }),
+            );
         }
-        if (editActionItem) {
-            items.push(editActionItem);
+        if (showEdit) {
+            items.push(
+                createEditAction({
+                    reportID: data.reportID,
+                    reportAction,
+                    moneyRequestAction: data.moneyRequestAction,
+                    draftMessage: data.draftMessage,
+                    introSelected: data.introSelected,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    pencilIcon: icons.Pencil,
+                }),
+            );
         }
-        if (unholdActionItem) {
-            items.push(unholdActionItem);
+        if (showUnhold) {
+            items.push(
+                createUnholdAction({
+                    moneyRequestAction: data.moneyRequestAction,
+                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    stopwatchIcon: icons.Stopwatch,
+                }),
+            );
         }
-        if (holdActionItem) {
-            items.push(holdActionItem);
+        if (showHold) {
+            items.push(
+                createHoldAction({
+                    moneyRequestAction: data.moneyRequestAction,
+                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+                    interceptAnonymousUser,
+                    hideAndRun,
+                    translate,
+                    stopwatchIcon: icons.Stopwatch,
+                }),
+            );
         }
-        if (joinThreadActionItem) {
-            items.push(joinThreadActionItem);
+        if (showJoinThread) {
+            items.push(
+                createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell}),
+            );
         }
-        if (leaveThreadActionItem) {
-            items.push(leaveThreadActionItem);
+        if (showLeaveThread) {
+            items.push(
+                createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit}),
+            );
         }
-        if (copyMessageActionItem) {
-            items.push(copyMessageActionItem);
+        if (showCopyMessage) {
+            items.push(
+                createCopyMessageAction({
+                    reportAction,
+                    transaction: data.transaction,
+                    selection: data.selection,
+                    report: data.report,
+                    card: data.card,
+                    originalReport: data.originalReport,
+                    isHarvestReport: data.isHarvestReport,
+                    isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
+                    movedFromReport: data.movedFromReport,
+                    movedToReport: data.movedToReport,
+                    childReport: data.childReport,
+                    policy: data.policy,
+                    getLocalDateFromDatetime: data.getLocalDateFromDatetime,
+                    policyTags: data.policyTags,
+                    translate,
+                    harvestReport: data.harvestReport,
+                    currentUserPersonalDetails: data.currentUserPersonalDetails,
+                    interceptAnonymousUser,
+                    copyIcon: icons.Copy,
+                    checkmarkIcon: icons.Checkmark,
+                }),
+            );
         }
-        if (copyLinkActionItem) {
-            items.push(copyLinkActionItem);
+        if (showCopyLink) {
+            items.push(
+                createCopyLinkAction({
+                    reportAction,
+                    originalReportID: data.originalReportID,
+                    interceptAnonymousUser,
+                    translate,
+                    linkCopyIcon: icons.LinkCopy,
+                    checkmarkIcon: icons.Checkmark,
+                }),
+            );
         }
-        if (flagAsOffensiveActionItem) {
-            items.push(flagAsOffensiveActionItem);
+        if (showFlagAsOffensive) {
+            items.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
         }
-        if (downloadActionItem) {
-            items.push(downloadActionItem);
+        if (showDownload) {
+            items.push(
+                createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download}),
+            );
         }
-        if (debugActionItem) {
-            items.push(debugActionItem);
+        if (showDebug) {
+            items.push(createDebugAction({reportID: data.reportID, reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}));
         }
-        if (deleteActionItem) {
-            items.push(deleteActionItem);
+        if (showDelete) {
+            items.push(createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
         }
-        items.push(overflowMenu);
+        items.push(
+            createOverflowMenuAction(
+                {openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), interceptAnonymousUser, translate, threeDotsIcon: icons.ThreeDots},
+                overflowMenuRef,
+            ),
+        );
         return items;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        replyInThreadAction,
-        markAsUnreadAction,
-        explainActionItem,
-        editActionItem,
-        unholdActionItem,
-        holdActionItem,
-        joinThreadActionItem,
-        leaveThreadActionItem,
-        copyMessageActionItem,
-        copyLinkActionItem,
-        flagAsOffensiveActionItem,
-        downloadActionItem,
-        debugActionItem,
-        deleteActionItem,
-        overflowMenu,
+        showReplyInThread,
+        showMarkAsUnread,
+        showExplain,
+        showEdit,
+        showUnhold,
+        showHold,
+        showJoinThread,
+        showLeaveThread,
+        showCopyMessage,
+        showCopyLink,
+        showFlagAsOffensive,
+        showDownload,
+        showDebug,
+        showDelete,
+        data,
+        currentUserAccountID,
+        interceptAnonymousUser,
+        translate,
+        icons,
     ]);
+    /* eslint-enable react-hooks/refs */
 
     const emojiData = createEmojiReactionData({
         reportID: data.reportID,

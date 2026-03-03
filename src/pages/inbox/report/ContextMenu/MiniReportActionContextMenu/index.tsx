@@ -136,8 +136,6 @@ function MiniReportActionContextMenu() {
         });
     };
 
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
     const {interceptAnonymousUser, translate, disabledActionIDs} = data;
 
@@ -205,6 +203,10 @@ function MiniReportActionContextMenu() {
 
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
     const visibleActions = useMemo(() => {
+        if (!data.reportAction) {
+            return [];
+        }
+        const reportAction = data.reportAction;
         const items: ContextMenuAction[] = [];
         if (showReplyInThread) {
             items.push(
@@ -366,7 +368,6 @@ function MiniReportActionContextMenu() {
         showDownload,
         showDelete,
         data,
-        reportAction,
         currentUserAccountID,
         interceptAnonymousUser,
         translate,

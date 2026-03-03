@@ -37,8 +37,6 @@ function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableAr
         anchor: {current: menuState.contextMenuTargetNode ?? null},
     });
 
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
     const {interceptAnonymousUser, translate, disabledActionIDs} = data;
 
     const isDisabled = (id: string) => disabledActionIDs.has(id);
@@ -53,25 +51,27 @@ function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableAr
     const markAsReadActionItem = showMarkAsRead
         ? createMarkAsReadAction({reportID: data.reportID, interceptAnonymousUser, hideAndRun, translate, mailIcon: icons.Mail, checkmarkIcon: icons.Checkmark})
         : undefined;
-    const markAsUnreadActionItem = showMarkAsUnread
-        ? createMarkAsUnreadAction({
-              reportID: data.reportID,
-              reportActions: data.reportActions,
-              reportAction,
-              currentUserAccountID: 0,
-              interceptAnonymousUser,
-              hideAndRun,
-              translate,
-              chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-              checkmarkIcon: icons.Checkmark,
-          })
-        : undefined;
+    const markAsUnreadActionItem =
+        showMarkAsUnread && data.reportAction
+            ? createMarkAsUnreadAction({
+                  reportID: data.reportID,
+                  reportActions: data.reportActions,
+                  reportAction: data.reportAction,
+                  currentUserAccountID: 0,
+                  interceptAnonymousUser,
+                  hideAndRun,
+                  translate,
+                  chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+                  checkmarkIcon: icons.Checkmark,
+              })
+            : undefined;
     const pinActionItem = showPin ? createPinAction({reportID: data.reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
     const unpinActionItem = showUnpin ? createUnpinAction({reportID: data.reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
     const copyOnyxDataActionItem = showCopyOnyxData
         ? createCopyOnyxDataAction({report: data.report, interceptAnonymousUser, translate, copyIcon: icons.Copy, checkmarkIcon: icons.Checkmark})
         : undefined;
-    const debugActionItem = showDebug ? createDebugAction({reportID: data.reportID, reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}) : undefined;
+    const debugActionItem =
+        showDebug && data.reportAction ? createDebugAction({reportID: data.reportID, reportAction: data.reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}) : undefined;
 
     const visibleActions = useMemo(() => {
         const items: ContextMenuAction[] = [];
