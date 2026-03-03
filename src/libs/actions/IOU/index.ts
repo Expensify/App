@@ -13996,8 +13996,7 @@ function updateMultipleMoneyRequests(
         const clearedPendingFields = getClearedPendingFields(transactionChanges);
 
         const errorFields = Object.fromEntries(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            Object.keys(pendingFields).map((field) => [field, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]),
+            Object.keys(pendingFields).map((field) => [field, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]),
         );
 
         // Build updated transaction

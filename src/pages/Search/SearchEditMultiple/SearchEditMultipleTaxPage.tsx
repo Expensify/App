@@ -37,7 +37,7 @@ function SearchEditMultipleTaxPage() {
         // If the selected tax rate is the same as the current one, clear it
         if (nextTaxCode === currentTaxCode) {
             updateBulkEditDraftTransaction({
-                taxCode: undefined,
+                taxCode: null,
             });
             Navigation.goBack();
             return;
