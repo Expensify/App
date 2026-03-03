@@ -19,8 +19,6 @@ import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 
@@ -104,7 +102,7 @@ function AvatarWithImagePicker({
     name = '',
     sentryLabel,
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil', 'Upload']);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload'] as const);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -192,7 +190,7 @@ function AvatarWithImagePicker({
         // If current avatar isn't a default avatar, allow Remove Photo option
         if (!isUsingDefaultAvatar) {
             menuItems.push({
-                icon: Expensicons.Trashcan,
+                icon: icons.Trashcan,
                 text: translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
                     setError(null, {});
@@ -243,7 +241,7 @@ function AvatarWithImagePicker({
                         // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
                         if (onViewPhotoPress && !isUsingDefaultAvatar) {
                             menuItems.push({
-                                icon: Expensicons.Eye,
+                                icon: icons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
                                 onSelected: onViewPhotoPress,
                                 shouldCallAfterModalHide: true,
