@@ -128,10 +128,10 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
 
         expect(result).toBeDefined();
 
-        const nonDefaultOptions = result?.data?.filter((item) => item.value !== translateLocal('workspace.moreFeatures.companyCards.defaultCard'));
-        nonDefaultOptions?.forEach((option) => {
+        const nonDefaultOptions = result?.data?.filter((item) => item.value !== translateLocal('workspace.moreFeatures.companyCards.defaultCard')) ?? [];
+        for (const option of nonDefaultOptions) {
             const matchingAccount = QBD_CREDIT_CARD_ACCOUNTS.find((account) => account.id === option.value);
             expect(matchingAccount).toBeDefined();
-        });
+        }
     });
 });
