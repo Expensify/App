@@ -111,7 +111,8 @@ function OptionRowLHN({
     // delegate's avatar as primary instead of the report owner's.
     const icons = useMemo(() => {
         let result = optionItem?.icons ?? [];
-        if (delegateAccountID && personalDetails && result.length > 0) {
+        const skipDelegateForTask = optionItem?.isTaskReport && !report?.chatReportID;
+        if (delegateAccountID && personalDetails && result.length > 0 && !skipDelegateForTask) {
             const delegateDetails = personalDetails[delegateAccountID];
             if (delegateDetails) {
                 const updatedIcons = [...result];
@@ -129,7 +130,7 @@ function OptionRowLHN({
         }
 
         return result;
-    }, [optionItem?.icons, delegateAccountID, personalDetails]);
+    }, [optionItem?.icons, optionItem?.isTaskReport, report?.chatReportID, delegateAccountID, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 

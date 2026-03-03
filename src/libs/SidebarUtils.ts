@@ -180,6 +180,7 @@ import {
     isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isWorkspaceTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -761,7 +762,11 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
-    const taskSuppression = isTaskReport(report);
+    // For tasks, the header resolves the parent action via chatReportID (not parentReportID).
+    // When chatReportID is absent (offline/nested tasks), the action can't be resolved — treat as "no action".
+    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
+    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
     result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;

@@ -1832,7 +1832,14 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
         return false;
     }
     const parentReport = report?.parentReportID ? getReport(report?.parentReportID, allReports) : undefined;
-    return isPolicyExpenseChat(parentReport);
+    if (isPolicyExpenseChat(parentReport)) {
+        return true;
+    }
+    // Traverse through nested task reports to find a PEC ancestor
+    if (isTaskReport(parentReport)) {
+        return isWorkspaceTaskReport(parentReport);
+    }
+    return false;
 }
 
 /**

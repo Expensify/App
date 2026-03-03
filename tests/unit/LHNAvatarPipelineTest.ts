@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -50,6 +51,7 @@ const RECEIVER_POLICY_ID = 'receiverPolicy';
 // Parent reports for thread resolution
 const PARENT_PEC_REPORT_ID = 'parentPEC';
 const PARENT_EXPENSE_REPORT_ID = 'parentExpense';
+const INTERMEDIATE_TASK_REPORT_ID = 'intermediateTask';
 const B2B_INVOICE_ROOM_ID = 'b2bInvoiceRoom';
 const ACTION_PEC_ID = 'actionPEC';
 const ACTION_EXPENSE_REQ_ID = 'actionExpReq';
@@ -82,7 +84,10 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
     const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && !!policy);
-    const taskSuppression = isTaskReport(report);
+    const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
+    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
+    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
     const shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
 
     const formatPhoneNumber = (s: string) => s;
@@ -143,6 +148,15 @@ describe('LHN Avatar Pipeline', () => {
             policyID: POLICY_ID,
             ownerAccountID: 2,
             isOwnPolicyExpenseChat: false,
+        } as Report);
+
+        // Intermediate task report (for nested task cases: task → task → PEC)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${INTERMEDIATE_TASK_REPORT_ID}`, {
+            reportID: INTERMEDIATE_TASK_REPORT_ID,
+            type: CONST.REPORT.TYPE.TASK,
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+            parentReportID: PARENT_PEC_REPORT_ID,
         } as Report);
 
         // Parent expense report (for expense request cases)
@@ -364,18 +378,36 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.icons).toHaveLength(2);
     });
 
-    // ── Case 12: Task Report (workspace) ────────────────────────────────
-    it('Task Report (workspace) → single (task suppression)', () => {
+    // ── Case 12: Task Report (workspace, online with chatReportID) → single
+    // Once the server responds, chatReportID is set. The header resolves the
+    // parent action as ADDCOMMENT (not REPORT_PREVIEW) → shows single.
+    it('Task Report (workspace, online with chatReportID) → single', () => {
         const report = {
             ...createWorkspaceTaskReport(111, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
             policyID: POLICY_ID,
             ownerAccountID: 2,
+            parentReportActionID: ACTION_PEC_ID,
+            chatReportID: PARENT_PEC_REPORT_ID,
         };
         const result = computeAvatarResult({report});
 
         expect(result.shouldShowSubscript).toBe(false);
         expect(result.avatarType).toBe('single');
         expect(result.icons).toHaveLength(1);
+    });
+
+    // ── Case 12b: Nested workspace task (task → task → PEC) ─────────────
+    it('Nested workspace task (task → task → PEC) → subscript', () => {
+        const report = {
+            ...createWorkspaceTaskReport(122, [CURRENT_USER_ACCOUNT_ID, 2], INTERMEDIATE_TASK_REPORT_ID),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+        };
+        const result = computeAvatarResult({report});
+
+        expect(result.shouldShowSubscript).toBe(true);
+        expect(result.avatarType).toBe('subscript');
+        expect(result.icons).toHaveLength(2);
     });
 
     // ── Case 13: Trip Room ──────────────────────────────────────────────
