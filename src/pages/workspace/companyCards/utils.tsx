@@ -321,9 +321,7 @@ function getExportMenuItem(
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD: {
                     data = creditCardAccounts ?? [];
-                    selectedAccount = (creditCardAccounts ?? []).find(
-                        (account) => account.id === (companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit ?? defaultAccount)
-                    );
+                    selectedAccount = (creditCardAccounts ?? []).find((account) => account.id === (companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit ?? defaultAccount));
                     isDefaultTitle = !!(
                         companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
                         (defaultAccount && !companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit)
