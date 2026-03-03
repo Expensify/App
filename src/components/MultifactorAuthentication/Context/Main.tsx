@@ -113,7 +113,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             trackMfaFlowOutcome({
                 isSuccessful,
-                scenario: scenario.screen,
+                scenario: state.scenarioName,
                 httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
                 reason: scenarioResponse?.reason ?? error?.reason,
                 message: scenarioResponse?.message ?? error?.message,
