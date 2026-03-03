@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
@@ -507,9 +507,32 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Por favor, inicia sesión de nuevo.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Revisar transacción',
+            pleaseReview: 'Por favor revisa esta transacción',
+            requiresYourReview: 'Una transacción con la tarjeta Expensify requiere tu revisión a continuación.',
+            transactionDetails: 'Detalles de la transacción',
+            attemptedTransaction: 'Intento de transacción',
+            deny: 'Rechazar',
+            approve: 'Aprobar',
+            denyTransaction: 'Rechazar transacción',
+            transactionDenied: 'Transacción rechazada',
+            transactionApproved: '¡Transacción aprobada!',
+            areYouSureToDeny: '¿Estás seguro? La transacción será rechazada si cierras esta pantalla.',
+            youCanTryAgainAtMerchantOrReachOut: 'Puedes intentarlo de nuevo en el comercio. Si no realizaste esta transacción, comunícate con Concierge para reportar un posible fraude.',
+            youNeedToTryAgainAtMerchant: 'Esta transacción no fue verificada, por lo que la hemos rechazado. Necesitarás intentarlo de nuevo en el comercio.',
+            goBackToTheMerchant: 'Regresa al sitio del comercio para continuar la transacción.',
+            transactionFailed: 'Transacción fallida',
+            transactionCouldNotBeCompleted: 'Su transacción no pudo ser completada. Por favor, inténtelo de nuevo en el comercio.',
+            transactionCouldNotBeCompletedReachOut:
+                'Su transacción no pudo ser completada. Si usted no intentó esta transacción, <concierge-link>póngase en contacto con el Concierge</concierge-link> para reportar un posible fraude.',
+            reviewFailed: 'Revisión fallida',
+            alreadyReviewedSubtitle:
+                'Ya ha revisado esta transacción. Por favor, revise su <transaction-history-link>historial de transacciones</transaction-history-link> o contacte a <concierge-link>Concierge</concierge-link> para reportar cualquier problema.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo no compatible',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.`,
         },
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
@@ -807,6 +830,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Proporciona una dirección para recibir tu Tarjeta Expensify.',
                 cta: 'Añade dirección',
             },
+            addPaymentCard: {
+                title: 'Añade una tarjeta de pago para seguir usando Expensify',
+                subtitle: 'Cuenta > Suscripción',
+                cta: 'Añadir',
+            },
             activateCard: {
                 title: 'Activa tu Tarjeta Expensify',
                 subtitle: 'Valida tu tarjeta y empieza a gastar.',
@@ -819,7 +847,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 cta: 'Revisar',
             },
         },
-        assignedCards: 'Tarjetas asignadas',
+        assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
         announcements: 'Anuncios',
         discoverSection: {
@@ -835,11 +863,52 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `Exportar ${count} ${count === 1 ? 'informe' : 'informes'}`,
             begin: 'Comenzar',
             emptyStateMessages: {
-                nicelyDone: '¡Muy bien hecho!',
-                keepAnEyeOut: '¡Mantente atento a lo que viene a continuación!',
-                allCaughtUp: 'Ya estás al día',
-                upcomingTodos: 'Las tareas pendientes aparecerán aquí.',
+                thumbsUpStarsTitle: '¡Has terminado!',
+                thumbsUpStarsDescription: 'Pulgar arriba, mantente atento a más tareas.',
+                smallRocketTitle: 'Todo al día',
+                smallRocketDescription: 'Las próximas tareas se lanzarán aquí.',
+                cowboyHatTitle: '¡Has terminado!',
+                cowboyHatDescription: 'Todas las tareas están domadas, mantente atento a más.',
+                trophy1Title: 'Nada que mostrar',
+                trophy1Description: '¡Lo lograste! Mantente atento a más tareas.',
+                palmTreeTitle: 'Todo al día',
+                palmTreeDescription: 'Hora de relajarse, pero mantente atento a futuras tareas.',
+                fishbowlBlueTitle: '¡Has terminado!',
+                fishbowlBlueDescription: 'Aquí mostraremos las futuras tareas.',
+                targetTitle: 'Todo al día',
+                targetDescription: 'Justo en el blanco. ¡Vuelve a revisar para más tareas!',
+                chairTitle: 'Nada que mostrar',
+                chairDescription: 'Relájate, listaremos las próximas tareas aquí.',
+                broomTitle: '¡Has terminado!',
+                broomDescription: 'Las tareas están limpias, pero mantente atento a más tareas.',
+                houseTitle: 'Todo al día',
+                houseDescription: 'Esta es tu base para las próximas tareas.',
+                conciergeBotTitle: 'Nada que mostrar',
+                conciergeBotDescription: '¡Bip bup bip bup, vuelve a revisar para más tareas!',
+                checkboxTextTitle: 'Todo al día',
+                checkboxTextDescription: 'Marca tus próximas tareas aquí.',
+                flashTitle: '¡Has terminado!',
+                flashDescription: 'Aquí mostraremos tus futuras tareas.',
+                sunglassesTitle: 'Nada que mostrar',
+                sunglassesDescription: '¡Hora de relajarse, pero mantente atento a lo que viene!',
+                f1FlagsTitle: 'Todo al día',
+                f1FlagsDescription: 'Has completado todas las tareas pendientes.',
+                fireworksTitle: 'Todo al día',
+                fireworksDescription: 'Las próximas tareas aparecerán aquí.',
             },
+        },
+        upcomingTravel: 'Próximos viajes',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vuelo a ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Tren a ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel en ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Alquiler de coche en ${destination}`,
+            inOneWeek: 'En 1 semana',
+            inDays: () => ({
+                one: 'En 1 día',
+                other: (count: number) => `En ${count} días`,
+            }),
+            today: 'Hoy',
         },
     },
     allSettingsScreen: {
@@ -936,6 +1005,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
         scanFailed: 'El recibo no pudo ser escaneado, ya que falta el comerciante, la fecha o el monto.',
+        crop: 'Recortar',
         addAReceipt: {
             phrase1: 'Añade un recibo',
             phrase2: 'o arrastra y suelta uno aquí',
@@ -1111,6 +1181,11 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
+        failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `no ha podido enviar este informe. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `no ha podido aprobar mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `no ha podido aprobar. ${reason}`,
         queuedToApproveViaDEW: 'en cola para aprobar a través del flujo de aprobación personalizado',
         trackedAmount: (formattedAmount, comment) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: (amount) => `dividir ${amount}`,
@@ -1168,6 +1243,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
             invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin',
             negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
+            distanceAmountTooLarge: 'El importe total es demasiado alto. Reduce la distancia o disminuye la tarifa.',
+            distanceAmountTooLargeReduceDistance: 'El importe total es demasiado alto. Reduce la distancia.',
+            distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
+            odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: (amount) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
@@ -1236,6 +1315,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Algunos de estos duplicados ya han sido aprobados o pagados.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Mantener todos',
+        noDuplicatesTitle: '¡Todo listo!',
+        noDuplicatesDescription: 'No hay transacciones duplicadas para revisar aquí.',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1325,7 +1406,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
 
-        moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         changeApprover: {
             title: 'Cambiar aprobador',
@@ -1353,15 +1434,17 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrige el error de la tasa y vuelve a intentarlo.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcó el gasto como "reembolsable"' : 'marcó el gasto como "no reembolsable"'),
             billable: (value: boolean) => (value ? 'marcó el gasto como "facturable"' : 'marcó el gasto como "no facturable"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `estableció la tasa de impuesto a "${value}"` : `tasa de impuesto a "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `movió este gasto al informe "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `estableció el ${field} a "${value}"` : `${field} a "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} a través de <a href="${route}">reglas del espacio de trabajo</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas de gastos personales</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas del espacio de trabajo</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
     },
@@ -3751,6 +3834,7 @@ ${amount} para ${merchant} - ${date}`,
             clearFilter: 'Borrar filtro',
             workspaceName: 'Nombre del espacio de trabajo',
             workspaceOwner: 'Dueño',
+            keepMeAsAdmin: 'Mantenerme como administrador',
             workspaceType: 'Tipo de espacio de trabajo',
             workspaceAvatar: 'Espacio de trabajo avatar',
             clientID: 'ID del cliente',
@@ -4992,6 +5076,7 @@ ${amount} para ${merchant} - ${date}`,
                         confirm: 'Entendido',
                     },
                 },
+                personalDetailsDescription: 'Para poder reservar el viaje, por favor ingrese su nombre legal tal como aparece en su identificación oficial emitida por el gobierno.',
             },
             expensifyCard: {
                 title: 'Tarjeta Expensify',
@@ -7178,6 +7263,10 @@ ${amount} para ${merchant} - ${date}`,
                 unshare: ({to}) => `miembro eliminado ${to}`,
                 stripePaid: (amount, currency) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Abra la aplicación móvil de Expensify para revisar su transacción de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
                 integrationSyncFailed: (label, errorMessage, workspaceAccountingLink) =>
                     `hubo un problema al sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Por favor, soluciona el problema en la <a href="${workspaceAccountingLink}">configuración del espacio de trabajo</a>.`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
@@ -8725,7 +8814,6 @@ ${amount} para ${merchant} - ${date}`,
         },
     },
     gps: {
-        disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
         error: {
             failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
             failedToGetPermissions: 'No se pudieron obtener los permisos de ubicación necesarios.',

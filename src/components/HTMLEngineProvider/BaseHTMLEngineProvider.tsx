@@ -148,6 +148,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'user-details': HTMLElementModel.fromCustomModel({tagName: 'user-details', contentModel: HTMLContentModel.textual}),
             'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'transaction-history-link': HTMLElementModel.fromCustomModel({tagName: 'transaction-history-link', contentModel: HTMLContentModel.textual}),
             'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
