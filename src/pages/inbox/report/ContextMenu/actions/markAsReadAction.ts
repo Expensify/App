@@ -1,3 +1,4 @@
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -6,7 +7,6 @@ import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes
 
 type MarkAsReadActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;
-    interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     hideAndRun: (callback?: () => void) => void;
     mailIcon: IconAsset;
     checkmarkIcon: IconAsset;
@@ -16,7 +16,7 @@ function shouldShowMarkAsReadAction({isUnreadChat}: {isUnreadChat: boolean}): bo
     return isUnreadChat;
 }
 
-function createMarkAsReadAction({reportID, interceptAnonymousUser, hideAndRun, translate, mailIcon, checkmarkIcon}: MarkAsReadActionParams): ContextMenuAction {
+function createMarkAsReadAction({reportID, hideAndRun, translate, mailIcon, checkmarkIcon}: MarkAsReadActionParams): ContextMenuAction {
     return {
         id: 'markAsRead',
         icon: mailIcon,
