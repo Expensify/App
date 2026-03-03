@@ -56,15 +56,14 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
 
     if (savedSearches) {
         for (const [key, item] of Object.entries(savedSearches)) {
-            const tabKey = `saved_${key}`;
             tabItems.push({
-                key: tabKey,
+                key,
                 icon: expensifyIcons.Bookmark,
-                title: item.name ?? item.query ?? '',
+                title: item.name,
             });
-            queryMap.set(tabKey, {query: item.query ?? '', name: item.name});
+            queryMap.set(key, {query: item.query ?? '', name: item.name});
             if (queryJSON && Number(key) === queryJSON.hash) {
-                activeKey = tabKey;
+                activeKey = key;
             }
         }
     }

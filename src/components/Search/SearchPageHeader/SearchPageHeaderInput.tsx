@@ -41,7 +41,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import KeyboardUtils from '@src/utils/keyboard';
-import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
@@ -55,7 +54,6 @@ type SearchPageHeaderInputProps = {
 };
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageHeaderInputProps) {
-    const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -143,17 +141,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         setAutocompleteSubstitutions(substitutionsMap);
     }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate]);
 
-    useEffect(() => {
-        if (searchRouterListVisible) {
-            return;
-        }
-        setShowPopupButton(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchRouterListVisible]);
-
     const onFocus = useCallback(() => {
         onSearchRouterFocus?.();
-        setShowPopupButton(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -385,11 +374,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 onKeyPress={handleKeyPress}
                             />
                         </Animated.View>
-                        {showPopupButton && (
-                            <View style={[styles.pl3]}>
-                                <SearchTypeMenuPopover queryJSON={queryJSON} />
-                            </View>
-                        )}
                     </View>
                     {!!searchRouterListVisible && (
                         <View style={[styles.flex1]}>
