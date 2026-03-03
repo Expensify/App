@@ -13362,6 +13362,36 @@ describe('ReportUtils', () => {
             expect(getTransactionSortValue(nonBillable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(0);
         });
 
+        it('should return amount for TOTAL_AMOUNT column', () => {
+            const transaction = createMockTransaction({amount: 5000});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, mockReport, mockPolicy);
+            expect(result).toBe(-5000);
+        });
+
+        it('should return description for DESCRIPTION column', () => {
+            const transaction = createMockTransaction({comment: {comment: 'Test description'}});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
+            expect(result).toBe('Test description');
+        });
+
+        it('should return exchange rate string for EXCHANGE_RATE column', () => {
+            const transaction = createMockTransaction({groupExchangeRate: 1.5, groupCurrency: 'EUR', currency: 'USD'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, mockReport, mockPolicy);
+            expect(result).toBe('1.5 USD/EUR');
+        });
+
+        it('should return original amount for ORIGINAL_AMOUNT column', () => {
+            const transaction = createMockTransaction({amount: 1000, modifiedAmount: 900, currency: 'EUR'});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, mockReport, mockPolicy);
+            expect(typeof result).toBe('number');
+        });
+
+        it('should return tax amount for TAX_AMOUNT column', () => {
+            const transaction = createMockTransaction({taxAmount: 500});
+            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, mockReport, mockPolicy);
+            expect(result).toBe(-500);
+        });
+
         it('should return tax name for TAX_RATE when policy has tax rates', () => {
             const transaction = createMockTransaction({taxCode: 'TAX_CODE_1'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, mockPolicy);
