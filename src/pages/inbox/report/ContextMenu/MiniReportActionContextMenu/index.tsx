@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import {View} from 'react-native';
@@ -15,7 +15,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import getButtonState from '@libs/getButtonState';
 import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
-import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import createCopyLinkAction, {shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
 import createCopyMessageAction, {shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
 import createDeleteAction, {shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
@@ -28,7 +27,6 @@ import createHoldAction, {shouldShowHoldAction} from '@pages/inbox/report/Contex
 import createJoinThreadAction, {shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
 import createLeaveThreadAction, {shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
 import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
-import createOverflowMenuAction from '@pages/inbox/report/ContextMenu/actions/overflowMenuAction';
 import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
@@ -136,6 +134,7 @@ function MiniReportActionContextMenu() {
         });
     };
 
+    const reportAction = data.reportAction;
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
     const {interceptAnonymousUser, translate, disabledActionIDs} = data;
 
@@ -201,159 +200,7 @@ function MiniReportActionContextMenu() {
             childReportActions: data.childReportActions,
         }) && !isDisabled(ACTION_IDS.DELETE);
 
-    /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const visibleActions = useMemo(() => {
-        if (!data.reportAction) {
-            return [];
-        }
-        const reportAction = data.reportAction;
-        const items: ContextMenuAction[] = [];
-        if (showReplyInThread) {
-            items.push(
-                createReplyInThreadAction({
-                    childReport: data.childReport,
-                    reportAction,
-                    originalReport: data.originalReport,
-                    currentUserAccountID,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    chatBubbleReplyIcon: icons.ChatBubbleReply,
-                }),
-            );
-        }
-        if (showMarkAsUnread) {
-            items.push(
-                createMarkAsUnreadAction({
-                    reportID: data.reportID,
-                    reportActions: data.reportActions,
-                    reportAction,
-                    currentUserAccountID,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-                    checkmarkIcon: icons.Checkmark,
-                }),
-            );
-        }
-        if (showExplain) {
-            items.push(
-                createExplainAction({
-                    childReport: data.childReport,
-                    originalReport: data.originalReport,
-                    reportAction,
-                    currentUserPersonalDetails: data.currentUserPersonalDetails,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    conciergeIcon: icons.Concierge,
-                }),
-            );
-        }
-        if (showEdit) {
-            items.push(
-                createEditAction({
-                    reportID: data.reportID,
-                    reportAction,
-                    moneyRequestAction: data.moneyRequestAction,
-                    draftMessage: data.draftMessage,
-                    introSelected: data.introSelected,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    pencilIcon: icons.Pencil,
-                }),
-            );
-        }
-        if (showUnhold) {
-            items.push(
-                createUnholdAction({
-                    moneyRequestAction: data.moneyRequestAction,
-                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
-            );
-        }
-        if (showHold) {
-            items.push(
-                createHoldAction({
-                    moneyRequestAction: data.moneyRequestAction,
-                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-                    interceptAnonymousUser,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
-            );
-        }
-        if (showJoinThread) {
-            items.push(
-                createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell}),
-            );
-        }
-        if (showLeaveThread) {
-            items.push(
-                createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit}),
-            );
-        }
-        if (showCopyMessage) {
-            items.push(
-                createCopyMessageAction({
-                    reportAction,
-                    transaction: data.transaction,
-                    selection: data.selection,
-                    report: data.report,
-                    card: data.card,
-                    originalReport: data.originalReport,
-                    isHarvestReport: data.isHarvestReport,
-                    isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
-                    movedFromReport: data.movedFromReport,
-                    movedToReport: data.movedToReport,
-                    childReport: data.childReport,
-                    policy: data.policy,
-                    getLocalDateFromDatetime: data.getLocalDateFromDatetime,
-                    policyTags: data.policyTags,
-                    translate,
-                    harvestReport: data.harvestReport,
-                    currentUserPersonalDetails: data.currentUserPersonalDetails,
-                    interceptAnonymousUser,
-                    copyIcon: icons.Copy,
-                    checkmarkIcon: icons.Checkmark,
-                }),
-            );
-        }
-        if (showCopyLink) {
-            items.push(
-                createCopyLinkAction({
-                    reportAction,
-                    originalReportID: data.originalReportID,
-                    interceptAnonymousUser,
-                    translate,
-                    linkCopyIcon: icons.LinkCopy,
-                    checkmarkIcon: icons.Checkmark,
-                }),
-            );
-        }
-        if (showFlagAsOffensive) {
-            items.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
-        }
-        if (showDownload) {
-            items.push(
-                createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download}),
-            );
-        }
-        if (showDelete) {
-            items.push(createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
-        }
-        return items;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
+    const visibleCount = [
         showReplyInThread,
         showMarkAsUnread,
         showExplain,
@@ -367,12 +214,148 @@ function MiniReportActionContextMenu() {
         showFlagAsOffensive,
         showDownload,
         showDelete,
-        data,
-        currentUserAccountID,
-        interceptAnonymousUser,
-        translate,
-        icons,
-    ]);
+    ].filter(Boolean).length;
+    const needsOverflow = visibleCount > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
+    const displayLimit = needsOverflow ? CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1 : visibleCount;
+
+    let displayedCount = 0;
+    const displayReplyInThread = showReplyInThread && ++displayedCount <= displayLimit;
+    const displayMarkAsUnread = showMarkAsUnread && ++displayedCount <= displayLimit;
+    const displayExplain = showExplain && ++displayedCount <= displayLimit;
+    const displayEdit = showEdit && ++displayedCount <= displayLimit;
+    const displayUnhold = showUnhold && ++displayedCount <= displayLimit;
+    const displayHold = showHold && ++displayedCount <= displayLimit;
+    const displayJoinThread = showJoinThread && ++displayedCount <= displayLimit;
+    const displayLeaveThread = showLeaveThread && ++displayedCount <= displayLimit;
+    const displayCopyMessage = showCopyMessage && ++displayedCount <= displayLimit;
+    const displayCopyLink = showCopyLink && ++displayedCount <= displayLimit;
+    const displayFlagAsOffensive = showFlagAsOffensive && ++displayedCount <= displayLimit;
+    const displayDownload = showDownload && ++displayedCount <= displayLimit;
+    const displayDelete = showDelete && ++displayedCount <= displayLimit;
+
+    const replyInThreadAction =
+        displayReplyInThread && reportAction
+            ? createReplyInThreadAction({
+                  childReport: data.childReport,
+                  reportAction,
+                  originalReport: data.originalReport,
+                  currentUserAccountID,
+                  interceptAnonymousUser,
+                  hideAndRun,
+                  translate,
+                  chatBubbleReplyIcon: icons.ChatBubbleReply,
+              })
+            : null;
+    const markAsUnreadAction =
+        displayMarkAsUnread && reportAction
+            ? createMarkAsUnreadAction({
+                  reportID: data.reportID,
+                  reportActions: data.reportActions,
+                  reportAction,
+                  currentUserAccountID,
+                  interceptAnonymousUser,
+                  hideAndRun,
+                  translate,
+                  chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+                  checkmarkIcon: icons.Checkmark,
+              })
+            : null;
+    const explainAction =
+        displayExplain && reportAction
+            ? createExplainAction({
+                  childReport: data.childReport,
+                  originalReport: data.originalReport,
+                  reportAction,
+                  currentUserPersonalDetails: data.currentUserPersonalDetails,
+                  interceptAnonymousUser,
+                  hideAndRun,
+                  translate,
+                  conciergeIcon: icons.Concierge,
+              })
+            : null;
+    const editAction =
+        displayEdit && reportAction
+            ? createEditAction({
+                  reportID: data.reportID,
+                  reportAction,
+                  moneyRequestAction: data.moneyRequestAction,
+                  draftMessage: data.draftMessage,
+                  introSelected: data.introSelected,
+                  interceptAnonymousUser,
+                  hideAndRun,
+                  translate,
+                  pencilIcon: icons.Pencil,
+              })
+            : null;
+    const unholdAction = displayUnhold
+        ? createUnholdAction({
+              moneyRequestAction: data.moneyRequestAction,
+              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              stopwatchIcon: icons.Stopwatch,
+          })
+        : null;
+    const holdAction = displayHold
+        ? createHoldAction({
+              moneyRequestAction: data.moneyRequestAction,
+              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              stopwatchIcon: icons.Stopwatch,
+          })
+        : null;
+    const joinThreadAction =
+        displayJoinThread && reportAction
+            ? createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell})
+            : null;
+    const leaveThreadAction =
+        displayLeaveThread && reportAction
+            ? createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit})
+            : null;
+    const copyMessageAction =
+        displayCopyMessage && reportAction
+            ? createCopyMessageAction({
+                  reportAction,
+                  transaction: data.transaction,
+                  selection: data.selection,
+                  report: data.report,
+                  card: data.card,
+                  originalReport: data.originalReport,
+                  isHarvestReport: data.isHarvestReport,
+                  isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
+                  movedFromReport: data.movedFromReport,
+                  movedToReport: data.movedToReport,
+                  childReport: data.childReport,
+                  policy: data.policy,
+                  getLocalDateFromDatetime: data.getLocalDateFromDatetime,
+                  policyTags: data.policyTags,
+                  translate,
+                  harvestReport: data.harvestReport,
+                  currentUserPersonalDetails: data.currentUserPersonalDetails,
+                  interceptAnonymousUser,
+                  copyIcon: icons.Copy,
+                  checkmarkIcon: icons.Checkmark,
+              })
+            : null;
+    const copyLinkAction =
+        displayCopyLink && reportAction
+            ? createCopyLinkAction({reportAction, originalReportID: data.originalReportID, interceptAnonymousUser, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark})
+            : null;
+    const flagAsOffensiveAction =
+        displayFlagAsOffensive && reportAction ? createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}) : null;
+    const downloadAction =
+        displayDownload && reportAction
+            ? createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download})
+            : null;
+    const deleteAction =
+        displayDelete && reportAction
+            ? createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan})
+            : null;
 
     const emojiData = createEmojiReactionData({
         reportID: data.reportID,
@@ -383,21 +366,8 @@ function MiniReportActionContextMenu() {
         hideAndRun,
         interceptAnonymousUser,
     });
-    const overflowMenu = createOverflowMenuAction(
-        {
-            openOverflowMenu,
-            openContextMenu: () => miniActions.keepOpen(),
-            interceptAnonymousUser,
-            translate,
-            threeDotsIcon: icons.ThreeDots,
-        },
-        threeDotRef,
-    );
-    /* eslint-enable react-hooks/refs */
 
     const hasEmoji = shouldShowEmojiReaction({reportAction: data.reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
-    const needsOverflow = visibleActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
-    const displayedActions = needsOverflow ? visibleActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : visibleActions;
 
     if (!state) {
         return null;
@@ -436,45 +406,237 @@ function MiniReportActionContextMenu() {
                             reportAction={emojiData.reportAction}
                         />
                     )}
-                    {displayedActions.map((action: ContextMenuAction) => (
+                    {!!replyInThreadAction && (
                         <MiniContextMenuItem
-                            key={action.id}
                             isDelayButtonStateComplete
-                            tooltipText={action.text}
-                            onPress={action.onPress}
-                            sentryLabel={action.sentryLabel ?? ''}
+                            tooltipText={replyInThreadAction.text}
+                            onPress={replyInThreadAction.onPress}
+                            sentryLabel={replyInThreadAction.sentryLabel}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
                                     small
-                                    src={action.icon}
+                                    src={replyInThreadAction.icon}
                                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                 />
                             )}
                         </MiniContextMenuItem>
-                    ))}
-                    {!!(needsOverflow && overflowMenu) &&
-                        (() => {
-                            const {buttonRef, text, onPress, sentryLabel, icon} = overflowMenu;
-                            return (
-                                <MiniContextMenuItem
-                                    ref={buttonRef}
-                                    isDelayButtonStateComplete
-                                    tooltipText={text}
-                                    onPress={onPress}
-                                    shouldPreventDefaultFocusOnPress={false}
-                                    sentryLabel={sentryLabel ?? ''}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            small
-                                            src={icon}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
-                                </MiniContextMenuItem>
-                            );
-                        })()}
+                    )}
+                    {!!markAsUnreadAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={markAsUnreadAction.text}
+                            onPress={markAsUnreadAction.onPress}
+                            sentryLabel={markAsUnreadAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={markAsUnreadAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!explainAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={explainAction.text}
+                            onPress={explainAction.onPress}
+                            sentryLabel={explainAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={explainAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!editAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={editAction.text}
+                            onPress={editAction.onPress}
+                            sentryLabel={editAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={editAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!unholdAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={unholdAction.text}
+                            onPress={unholdAction.onPress}
+                            sentryLabel={unholdAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={unholdAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!holdAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={holdAction.text}
+                            onPress={holdAction.onPress}
+                            sentryLabel={holdAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={holdAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!joinThreadAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={joinThreadAction.text}
+                            onPress={joinThreadAction.onPress}
+                            sentryLabel={joinThreadAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={joinThreadAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!leaveThreadAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={leaveThreadAction.text}
+                            onPress={leaveThreadAction.onPress}
+                            sentryLabel={leaveThreadAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={leaveThreadAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!copyMessageAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={copyMessageAction.text}
+                            onPress={copyMessageAction.onPress}
+                            sentryLabel={copyMessageAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={copyMessageAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!copyLinkAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={copyLinkAction.text}
+                            onPress={copyLinkAction.onPress}
+                            sentryLabel={copyLinkAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={copyLinkAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!flagAsOffensiveAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={flagAsOffensiveAction.text}
+                            onPress={flagAsOffensiveAction.onPress}
+                            sentryLabel={flagAsOffensiveAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={flagAsOffensiveAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!downloadAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={downloadAction.text}
+                            onPress={downloadAction.onPress}
+                            sentryLabel={downloadAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={downloadAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {!!deleteAction && (
+                        <MiniContextMenuItem
+                            isDelayButtonStateComplete
+                            tooltipText={deleteAction.text}
+                            onPress={deleteAction.onPress}
+                            sentryLabel={deleteAction.sentryLabel}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={deleteAction.icon}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
+                    {needsOverflow && (
+                        <MiniContextMenuItem
+                            ref={threeDotRef}
+                            isDelayButtonStateComplete
+                            tooltipText={translate('reportActionContextMenu.menu')}
+                            onPress={() =>
+                                interceptAnonymousUser(() => {
+                                    openOverflowMenu(new MouseEvent('click'), threeDotRef);
+                                    miniActions.keepOpen();
+                                }, true)
+                            }
+                            shouldPreventDefaultFocusOnPress={false}
+                            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    small
+                                    src={icons.ThreeDots}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </MiniContextMenuItem>
+                    )}
                 </View>
             </Animated.View>
         </div>,
