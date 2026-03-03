@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓氏',
         scanning: '正在扫描',
         analyzing: '正在分析…',
+        thinking: 'Concierge 正在思考...',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
@@ -546,6 +547,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: '在Instagram上关注我们',
         facebook: '在Facebook上关注我们',
         linkedin: '在LinkedIn上关注我们',
+    },
+    concierge: {
+        collapseReasoning: '收起推理',
+        expandReasoning: '展开推理',
     },
     supportalNoAccess: {
         title: '先别急',

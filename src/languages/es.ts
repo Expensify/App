@@ -80,6 +80,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Apellidos',
         scanning: 'Escaneando',
         analyzing: 'Analizando...',
+        thinking: 'Concierge está pensando...',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -415,6 +416,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Síguenos en Instagram',
         facebook: 'Síguenos en Facebook',
         linkedin: 'Síguenos en LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Contraer razonamiento',
+        expandReasoning: 'Expandir razonamiento',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

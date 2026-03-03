@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓',
         scanning: 'スキャン中',
         analyzing: '分析中…',
+        thinking: 'Concierge が考えています...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話',
@@ -550,6 +551,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Instagramでフォロー',
         facebook: 'Facebookでフォロー',
         linkedin: 'LinkedInでフォロー',
+    },
+    concierge: {
+        collapseReasoning: '推論を折りたたむ',
+        expandReasoning: '推論を展開',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
