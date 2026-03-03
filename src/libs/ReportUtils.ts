@@ -190,6 +190,7 @@ import {
     getMostRecentActiveDEWApproveFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getRenamedAction,
@@ -285,6 +286,7 @@ import {
     getTaxAmount,
     getTaxCode,
     getAmount as getTransactionAmount,
+    getTransactionID,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
@@ -727,6 +729,7 @@ type OptimisticTaskReport = SetRequired<
     Pick<
         Report,
         | 'reportID'
+        | 'created'
         | 'reportName'
         | 'description'
         | 'ownerAccountID'
@@ -943,10 +946,15 @@ type GetReportNameParams = {
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>;
     personalDetails?: Partial<PersonalDetailsList>;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    /** Report attributes used to return a precomputed report name */
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
     transactions?: Transaction[];
     reports?: Report[];
     policies?: Policy[];
     isReportArchived?: boolean;
+    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
+    /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
+    conciergeReportID?: string;
 };
 
 type GetReportStatusParams = {
@@ -4857,15 +4865,15 @@ function canEditFieldOfMoneyRequest(
         );
     }
 
+    // Unreported transaction from OldDot can have the reportID as an empty string
+    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return isExpenseReport(moneyRequestReport) && isDistanceRequest(transaction);
+        return (isExpenseReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
         if (isUnreportedExpense) {
             return true;
         }
@@ -4917,7 +4925,6 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
-    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isUnreportedExpense && !isRequestor) {
         return false;
     }
@@ -5612,7 +5619,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
         if (match[1] !== childReportID) {
             // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
             // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-deprecated
-            reportIDToName[match[1]] = getReportName(getReportOrDraftReport(match[1])) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1])}) ?? '';
         }
     }
 
@@ -5704,20 +5711,9 @@ function getReportActionMessage({
  * Get the title for a report.
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
-// eslint-disable-next-line @typescript-eslint/max-params
-function getReportName(
-    report: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
-    personalDetails?: Partial<PersonalDetailsList>,
-    invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-    transactions?: Transaction[],
-    isReportArchived?: boolean,
-    reports?: Report[],
-    policies?: Policy[],
-    conciergeReportID?: string,
-): string {
+function getReportName(reportNameInformation: GetReportNameParams): string {
+    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, policies, conciergeReportID} =
+        reportNameInformation;
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
@@ -5751,13 +5747,14 @@ function getReportName(
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
-        const reportName = getReportName(originalReport);
+        const reportName = getReportName({report: originalReport});
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '').trim();
+        const taskName = report?.reportName ?? '';
+        return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
     if (isChatThread(report)) {
@@ -5931,18 +5928,17 @@ function getSearchReportName(props: GetReportNameParams): string {
 
             if (isExpenseReport(currentParent)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return getReportName(
-                    currentParent,
+                return getReportName({
+                    report: currentParent,
                     policy,
-                    props.parentReportActionParam,
-                    props.personalDetails,
-                    props.invoiceReceiverPolicy,
-                    undefined,
-                    props.transactions,
-                    props.isReportArchived,
-                    props.reports,
-                    props.policies,
-                );
+                    parentReportActionParam: props.parentReportActionParam,
+                    personalDetails: props.personalDetails,
+                    invoiceReceiverPolicy: props.invoiceReceiverPolicy,
+                    transactions: props.transactions,
+                    isReportArchived: props.isReportArchived,
+                    reports: props.reports,
+                    policies: props.policies,
+                });
             }
 
             // Continue traversing up the parent chain
@@ -5953,18 +5949,17 @@ function getSearchReportName(props: GetReportNameParams): string {
     }
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName(
+    return getReportName({
         report,
         policy,
-        props.parentReportActionParam,
-        props.personalDetails,
-        props.invoiceReceiverPolicy,
-        undefined,
-        props.transactions,
-        props.isReportArchived,
-        props.reports,
-        props.policies,
-    );
+        parentReportActionParam: props.parentReportActionParam,
+        personalDetails: props.personalDetails,
+        invoiceReceiverPolicy: props.invoiceReceiverPolicy,
+        transactions: props.transactions,
+        isReportArchived: props.isReportArchived,
+        reports: props.reports,
+        policies: props.policies,
+    });
 }
 
 /**
@@ -6107,7 +6102,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     return {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        reportName: getReportName(parentReport, undefined, undefined, undefined, undefined, reportAttributes),
+        reportName: getReportName({report: parentReport, reportAttributes}),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
 }
@@ -6854,7 +6849,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName(report) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName({report}) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
@@ -6870,7 +6865,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName(fromReport) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName({report: fromReport}) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -8556,6 +8551,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
+        created: DateUtils.getDBTime(),
         reportName: getParsedComment(title ?? '', undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]),
         description: getParsedComment(description ?? '', {}),
         ownerAccountID,
@@ -9256,11 +9252,34 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return allReportErrors;
 }
 
+function getReceiptUploadErrorReason(report: Report, chatReport: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, transactions: OnyxCollection<Transaction>) {
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionThreadReportAction = getOneTransactionThreadReportAction(report, chatReport, reportActions ?? []);
+    if (transactionThreadReportAction) {
+        const transactionID = isMoneyRequestAction(transactionThreadReportAction) ? getOriginalMessage(transactionThreadReportAction)?.IOUTransactionID : undefined;
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (hasReceiptError(transaction)) {
+            return {
+                reason: CONST.RBR_REASONS.HAS_ERRORS,
+            };
+        }
+    }
+    const transactionID = getTransactionID(report);
+    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
+        };
+    }
+    return null;
+}
+
 function hasReportErrorsOtherThanFailedReceipt(
     report: Report,
     chatReport: OnyxEntry<Report>,
     doesReportHaveViolations: boolean,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    transactions: OnyxCollection<Transaction>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
@@ -9275,7 +9294,8 @@ function hasReportErrorsOtherThanFailedReceipt(
         doesTransactionThreadReportHasViolations ||
         doesReportHaveViolations ||
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage'))
+        Object.values(allReportErrors).some((error) => error?.[0] !== translateLocal('iou.error.genericSmartscanFailureMessage')) ||
+        !!getReceiptUploadErrorReason(report, chatReport, transactionReportActions, transactions)
     );
 }
 
@@ -11397,6 +11417,7 @@ type PrepareOnboardingOnyxDataParams = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     isSelfTourViewed?: boolean;
+    betas?: OnyxEntry<Beta[]>;
 };
 
 function prepareOnboardingOnyxData({
@@ -11412,6 +11433,7 @@ function prepareOnboardingOnyxData({
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
+    betas,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11426,7 +11448,7 @@ function prepareOnboardingOnyxData({
     // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, allBetas, betaConfiguration);
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas ?? allBetas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -12487,12 +12509,12 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     if (report?.reportID) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName(getReport(report?.reportID, allReports));
+        return getReportName({report: getReport(report?.reportID, allReports)});
     }
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName(report);
+    return getReportName({report});
 }
 
 /**
@@ -13271,6 +13293,7 @@ export {
     getReportStatusColorStyle,
     getMovedActionMessage,
     excludeParticipantsForDisplay,
+    getReceiptUploadErrorReason,
     getAncestors,
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -13310,4 +13333,5 @@ export type {
     SelfDMParameters,
     OptimisticReportAction,
     OptimisticAnnounceChat,
+    GetReportNameParams,
 };

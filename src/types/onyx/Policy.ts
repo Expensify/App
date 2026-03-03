@@ -510,6 +510,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     autoCreateVendor: boolean;
 
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
+
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
 
