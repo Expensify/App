@@ -296,7 +296,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = true;
 
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
-        createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, undefined, transaction, violations);
+        createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID, report, undefined, transaction, violations);
     }, [
         allReportTransactions,
         allReportViolations,

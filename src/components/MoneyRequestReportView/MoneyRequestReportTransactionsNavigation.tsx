@@ -136,14 +136,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(
-                introSelected,
-                currentUserLogin ?? '',
-                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                parentReport,
-                nextParentReportAction,
-                nextTransaction,
-            );
+            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID, parentReport, nextParentReportAction, nextTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
