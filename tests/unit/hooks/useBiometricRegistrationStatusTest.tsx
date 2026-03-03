@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook, waitFor} from '@testing-library/react-native';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import useBiometricRegistrationStatus from '@hooks/useBiometricRegistrationStatus';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
@@ -43,9 +43,10 @@ describe('useBiometricRegistrationStatus', () => {
             resetMocks({haveCredentialsEverBeenConfigured: false});
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.NEVER_REGISTERED);
+            await waitFor(() => {
+                expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.NEVER_REGISTERED);
+            });
         });
 
         it('returns NOT_REGISTERED when credentials were configured but no devices exist', async () => {
@@ -55,9 +56,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.NOT_REGISTERED);
+            await waitFor(() => {
+                expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.NOT_REGISTERED);
+            });
         });
 
         it('returns REGISTERED_THIS_DEVICE when the local key is in the server list', async () => {
@@ -68,9 +70,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_THIS_DEVICE);
+            await waitFor(() => {
+                expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_THIS_DEVICE);
+            });
         });
 
         it('returns REGISTERED_OTHER_DEVICE when devices exist but local key is not among them', async () => {
@@ -81,9 +84,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE);
+            await waitFor(() => {
+                expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE);
+            });
         });
 
         it('returns REGISTERED_OTHER_DEVICE when local key is undefined and devices exist', async () => {
@@ -94,9 +98,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE);
+            await waitFor(() => {
+                expect(result.current.registrationStatus).toBe(REGISTRATION_STATUS.REGISTERED_OTHER_DEVICE);
+            });
         });
     });
 
@@ -109,9 +114,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.isCurrentDeviceRegistered).toBe(true);
+            await waitFor(() => {
+                expect(result.current.isCurrentDeviceRegistered).toBe(true);
+            });
             expect(result.current.totalDeviceCount).toBe(2);
             expect(result.current.otherDeviceCount).toBe(1);
         });
@@ -124,9 +130,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.isCurrentDeviceRegistered).toBe(false);
+            await waitFor(() => {
+                expect(result.current.isCurrentDeviceRegistered).toBe(false);
+            });
             expect(result.current.totalDeviceCount).toBe(1);
             expect(result.current.otherDeviceCount).toBe(1);
         });
@@ -139,9 +146,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.isCurrentDeviceRegistered).toBe(false);
+            await waitFor(() => {
+                expect(result.current.isCurrentDeviceRegistered).toBe(false);
+            });
             expect(result.current.otherDeviceCount).toBe(1);
         });
 
@@ -152,9 +160,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.totalDeviceCount).toBe(0);
+            await waitFor(() => {
+                expect(result.current.totalDeviceCount).toBe(0);
+            });
             expect(result.current.otherDeviceCount).toBe(0);
             expect(result.current.isCurrentDeviceRegistered).toBe(false);
         });
@@ -167,9 +176,10 @@ describe('useBiometricRegistrationStatus', () => {
             });
 
             const {result} = renderHook(() => useBiometricRegistrationStatus());
-            await act(async () => {});
 
-            expect(result.current.localPublicKey).toBe('resolved-key');
+            await waitFor(() => {
+                expect(result.current.localPublicKey).toBe('resolved-key');
+            });
         });
     });
 
