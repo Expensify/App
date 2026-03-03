@@ -2,13 +2,14 @@ import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
 import fileProgress from 'eslint-plugin-file-progress';
-import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
+import {fixupConfigRules, fixupPluginRules} from '@eslint/compat';
 import {defineConfig, globalIgnores} from 'eslint/config';
+import * as espree from 'espree';
 import globals from 'globals';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -160,11 +161,73 @@ const restrictedImportPatterns = [
     },
 ];
 
+const wrapLegacyContextPlugin = (plugin) => {
+    if (!plugin || typeof plugin !== 'object' || !plugin.rules) {
+        return plugin;
+    }
+
+    return {
+        ...plugin,
+        rules: Object.fromEntries(
+            Object.entries(plugin.rules).map(([ruleName, ruleDefinition]) => {
+                if (!ruleDefinition || typeof ruleDefinition.create !== 'function') {
+                    return [ruleName, ruleDefinition];
+                }
+
+                return [
+                    ruleName,
+                    {
+                        ...ruleDefinition,
+                        create(context) {
+                            const compatContext = Object.create(context);
+                            compatContext.getSourceCode = () => context.sourceCode;
+                            compatContext.getFilename = () => context.filename;
+                            return ruleDefinition.create(compatContext);
+                        },
+                    },
+                ];
+            }),
+        ),
+    };
+};
+
+const safelyFixupPluginRules = (plugin) => {
+    try {
+        return fixupPluginRules(plugin);
+    } catch {
+        return wrapLegacyContextPlugin(plugin);
+    }
+};
+
+const patchedExpensifyConfig = expensifyConfig.map((configEntry) => {
+    const patchedConfigEntry = {...configEntry};
+
+    if (configEntry?.plugins) {
+        patchedConfigEntry.plugins = Object.fromEntries(
+            Object.entries(configEntry.plugins).map(([pluginName, pluginImplementation]) => [pluginName, safelyFixupPluginRules(pluginImplementation)]),
+        );
+    }
+
+    if (configEntry?.languageOptions?.parser) {
+        patchedConfigEntry.languageOptions = {
+            ...configEntry.languageOptions,
+            parser: espree,
+        };
+    }
+
+    return patchedConfigEntry;
+});
+
+const patchedFileProgressConfig = {
+    ...fileProgress.configs['recommended-ci'],
+    plugins: {
+        progress: fixupPluginRules(fileProgress),
+    },
+};
+
 const config = defineConfig([
-    expensifyConfig,
-    typescriptEslint.configs.recommendedTypeChecked,
-    typescriptEslint.configs.stylisticTypeChecked,
-    fileProgress.configs['recommended-ci'],
+    ...patchedExpensifyConfig,
+    patchedFileProgressConfig,
 
     // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
     // The processor runs React Compiler on each file and filters out redundant lint messages.
@@ -174,21 +237,18 @@ const config = defineConfig([
     },
 
     {
-        extends: new FlatCompat({baseDirectory: dirname}).extends(
-            'airbnb-typescript',
-            'plugin:storybook/recommended',
-            'plugin:react-native-a11y/basic',
-            'plugin:@dword-design/import-alias/recommended',
-            'plugin:you-dont-need-lodash-underscore/all',
-            'prettier',
+        extends: fixupConfigRules(
+            new FlatCompat({baseDirectory: dirname}).extends(
+                'airbnb-typescript',
+                'plugin:storybook/recommended',
+                'plugin:react-native-a11y/basic',
+                'plugin:@dword-design/import-alias/recommended',
+                'plugin:you-dont-need-lodash-underscore/all',
+                'prettier',
+            ),
         ),
 
         plugins: {
-            jsdoc,
-            'you-dont-need-lodash-underscore': youDontNeedLodashUnderscore,
-            'react-native-a11y': reactNativeA11Y,
-            react,
-            'testing-library': testingLibrary,
             lodash,
         },
 
@@ -487,6 +547,9 @@ const config = defineConfig([
 
     {
         files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+        languageOptions: {
+            parser: espree,
+        },
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
@@ -561,6 +624,9 @@ const config = defineConfig([
 
     {
         files: ['tests/**/*'],
+        plugins: {
+            'testing-library': safelyFixupPluginRules(testingLibrary),
+        },
         rules: {
             'no-import-assign': 'off',
 

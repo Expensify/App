@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -35,7 +35,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const [selectedMembersOverride, setSelectedMembersOverride] = useState<SelectionListApprover[]>([]);
+    const [hasUpdatedSelection, setHasUpdatedSelection] = useState(false);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
@@ -43,34 +44,29 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
-    useEffect(() => {
-        if (!approvalWorkflow?.members) {
-            return;
-        }
+    const mapMemberToSelectionListApprover = (member: Member, isSelected: boolean): SelectionListApprover => {
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+        const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
 
-        setSelectedMembers(
-            approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+        return {
+            text: Str.removeSMSDomain(member.displayName),
+            alternateText: member.email,
+            keyForList: member.email,
+            isSelected,
+            login: member.email,
+            icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+            rightElement: (
+                <MemberRightIcon
+                    role={policy?.employeeList?.[member.email]?.role}
+                    owner={policy?.owner}
+                    login={member.email}
+                />
+            ),
+        };
+    };
 
-                return {
-                    text: Str.removeSMSDomain(member.displayName),
-                    alternateText: member.email,
-                    keyForList: member.email,
-                    isSelected: true,
-                    login: member.email,
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
-                    rightElement: (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={member.email}
-                        />
-                    ),
-                };
-            }),
-        );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, translate, icons.FallbackAvatar]);
+    const defaultSelectedMembers = approvalWorkflow?.members?.map((member) => mapMemberToSelectionListApprover(member, true)) ?? [];
+    const selectedMembers = hasUpdatedSelection ? selectedMembersOverride : defaultSelectedMembers;
 
     const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
     const allApprovers: SelectionListApprover[] = [...selectedMembers];
@@ -78,24 +74,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     if (approvalWorkflow?.availableMembers) {
         const availableMembers = approvalWorkflow.availableMembers
             .map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-
-                return {
-                    text: Str.removeSMSDomain(member.displayName),
-                    alternateText: member.email,
-                    keyForList: member.email,
-                    isSelected: false,
-                    login: member.email,
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
-                    rightElement: (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={member.email}
-                        />
-                    ),
-                };
+                return mapMemberToSelectionListApprover(member, false);
             })
             .filter(
                 (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
@@ -140,7 +119,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         />
     );
 
-    const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
+    const toggleMember = (members: SelectionListApprover[]) => {
+        setHasUpdatedSelection(true);
+        setSelectedMembersOverride(members);
+    };
 
     return (
         <AccessOrNotFoundWrapper
