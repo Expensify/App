@@ -1210,7 +1210,7 @@ function getWelcomeMessage(
         } else {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report}),
+                getPolicyName({report, policy}),
                 getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);

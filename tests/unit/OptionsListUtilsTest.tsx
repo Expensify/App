@@ -4323,6 +4323,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4347,6 +4348,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
@@ -4372,6 +4374,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
@@ -4397,6 +4400,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
@@ -4419,6 +4423,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
@@ -4440,6 +4445,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4460,6 +4466,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4480,6 +4487,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4500,6 +4508,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4520,6 +4529,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4540,6 +4550,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4564,6 +4575,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4590,6 +4602,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4607,6 +4620,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4636,6 +4650,7 @@ describe('OptionsListUtils', () => {
                 translate: translateLocal,
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4674,6 +4689,7 @@ describe('OptionsListUtils', () => {
                 report,
                 translate: translateLocal,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });
@@ -4757,6 +4773,7 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
@@ -4786,10 +4803,94 @@ describe('OptionsListUtils', () => {
                     translate: translateLocal,
                     report,
                     lastActorDetails: null,
+                    policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
+            });
+        });
+
+        describe('archived report with policy', () => {
+            it('should use the passed policy name for POLICY_DELETED archive reason', async () => {
+                const testPolicyID = 'archivePolicyTest';
+                const policy: Policy = {
+                    id: testPolicyID,
+                    name: 'Test Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                } as Policy;
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    policyID: testPolicyID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const closedAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    originalMessage: {
+                        policyName: policy.name,
+                        reason: CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED,
+                    },
+                } as ReportAction;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [closedAction.reportActionID]: closedAction,
+                });
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy,
+                    isReportArchived: true,
+                    chatReport: undefined,
+                });
+
+                expect(lastMessage).toBe(
+                    translateLocal('reportArchiveReasons.policyDeleted', {
+                        policyName: policy.name,
+                    }),
+                );
+            });
+
+            it('should use the passed policy name for REMOVED_FROM_POLICY archive reason', async () => {
+                const testPolicyID = 'archivePolicyTest2';
+                const policy: Policy = {
+                    id: testPolicyID,
+                    name: 'My Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                } as Policy;
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    policyID: testPolicyID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const closedAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
+                    originalMessage: {
+                        policyName: policy.name,
+                        reason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY,
+                    },
+                } as ReportAction;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [closedAction.reportActionID]: closedAction,
+                });
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    policy,
+                    isReportArchived: true,
+                    chatReport: undefined,
+                });
+
+                expect(lastMessage).toBe(
+                    translateLocal('reportArchiveReasons.removedFromPolicy', {
+                        displayName: 'Hidden',
+                        policyName: policy.name,
+                    }),
+                );
             });
         });
     });
@@ -6181,6 +6282,7 @@ describe('OptionsListUtils', () => {
                 translate: jest.fn().mockReturnValue(''),
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport,
             });
@@ -6199,6 +6301,7 @@ describe('OptionsListUtils', () => {
                 translate: jest.fn().mockReturnValue(''),
                 report,
                 lastActorDetails: null,
+                policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
             });

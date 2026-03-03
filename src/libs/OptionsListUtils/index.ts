@@ -430,6 +430,7 @@ function getAlternateText(
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
     currentUserAccountID: number,
+    policy?: OnyxEntry<Policy>,
     lastActorDetails: Partial<PersonalDetails> | null = {},
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     translate?: LocalizedTranslate,
@@ -450,6 +451,7 @@ function getAlternateText(
             translate: translateFn,
             report,
             lastActorDetails,
+            policy,
             isReportArchived,
             chatReport,
             visibleReportActionsDataParam: visibleReportActionsData,
@@ -1053,6 +1055,8 @@ function createOption(
                       {showChatPreviewLine, forcePolicyNamePreview},
                       !!result.private_isArchived,
                       currentUserAccountID,
+                      // TODO: Remove this in the next PR that will refactor prepareReportOptionsForDisplay. Ref: https://github.com/Expensify/App/issues/66415
+                      undefined,
                       lastActorDetails,
                       visibleReportActionsData,
                       translateFn,
@@ -2252,6 +2256,8 @@ function prepareReportOptionsForDisplay(
             {showChatPreviewLine, forcePolicyNamePreview},
             !!option.private_isArchived,
             currentUserAccountID,
+            // TODO: Remove this in the next PR that will refactor prepareReportOptionsForDisplay. Ref: https://github.com/Expensify/App/issues/66415
+            undefined,
             null,
             visibleReportActionsData,
             undefined,
