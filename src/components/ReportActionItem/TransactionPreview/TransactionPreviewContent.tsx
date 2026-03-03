@@ -321,13 +321,15 @@ function TransactionPreviewContent({
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription && (
-                                                    <Text
-                                                        fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
-                                                        numberOfLines={2}
-                                                    >
-                                                        {merchantOrDescription}
-                                                    </Text>
+                                                    <View style={[styles.flex1, styles.mnw0]}>
+                                                        <Text
+                                                            fontSize={variables.fontSizeNormal}
+                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
+                                                            numberOfLines={2}
+                                                        >
+                                                            {merchantOrDescription}
+                                                        </Text>
+                                                    </View>
                                                 )}
                                                 {!shouldWrapDisplayAmount && (
                                                     <Text
