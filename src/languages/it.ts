@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -647,6 +647,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Accedi di nuovo.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Verifica transazione',
+            pleaseReview: 'Esamina questa transazione',
+            requiresYourReview: 'Una transazione con Expensify Card richiede la tua revisione qui sotto.',
+            transactionDetails: 'Dettagli transazione',
+            deny: 'Nega',
+            approve: 'Approva',
+            denyTransaction: 'Rifiuta transazione',
+            transactionDenied: 'Transazione rifiutata',
+            transactionApproved: 'Transazione approvata!',
+            areYouSureToDeny: 'Sei sicuro? La transazione verrà rifiutata se chiudi questa schermata.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Puoi riprovare presso l’esercente. Se non hai effettuato tu questa transazione, <concierge-link>contatta Concierge</concierge-link> per segnalare un possibile uso fraudolento.',
+            youNeedToTryAgainAtMerchant: 'Questa transazione non è stata verificata, quindi l’abbiamo rifiutata. Dovrai riprovare direttamente presso l’esercente.',
+            goBackToTheMerchant: 'Torna al sito dell’esercente per continuare la transazione.',
+            attemptedTransaction: 'Transazione tentata',
+            transactionFailed: 'Transazione non riuscita',
+            transactionCouldNotBeCompleted: 'Impossibile completare la transazione. Riprova presso l’esercente.',
+            transactionCouldNotBeCompletedReachOut:
+                'La tua transazione non può essere completata. Se non hai tentato questa transazione, <concierge-link>contatta Concierge</concierge-link> per segnalare un possibile tentativo di frode.',
+            reviewFailed: 'Revisione non riuscita',
+            alreadyReviewedSubtitle:
+                'Hai già verificato questa transazione. Controlla la tua <transaction-history-link>cronologia transazioni</transaction-history-link> oppure contatta <concierge-link>Concierge</concierge-link> per segnalare eventuali problemi.',
+        },
         biometricsTest: {
             biometricsTest: 'Test biometrico',
             authenticationSuccessful: 'Autenticazione riuscita',
@@ -699,7 +723,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo non supportato',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Questa azione non è supportata sul tuo dispositivo. Scarica l'app Expensify dall'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o da <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e riprova.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Questa azione non è supportata sul tuo dispositivo. Scarica l'app Expensify dall'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o da <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e riprova.`,
         },
         verificationFailed: 'Verifica non riuscita',
     },
@@ -1017,6 +1041,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Tutto a posto',
                 fireworksDescription: 'Le prossime attività appariranno qui.',
             },
+        },
+        upcomingTravel: 'Prossimi viaggi',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Volo per ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Treno per ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel a ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Noleggio auto a ${destination}`,
+            inOneWeek: 'Tra 1 settimana',
+            inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
+            today: 'Oggi',
         },
     },
     allSettingsScreen: {
@@ -1346,6 +1380,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Inserisci una distanza valida prima di continuare',
             invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
+            distanceAmountTooLarge: "L'importo totale è troppo alto. Riduci la distanza o abbassa la tariffa.",
+            distanceAmountTooLargeReduceDistance: "L'importo totale è troppo alto. Riduci la distanza.",
+            distanceAmountTooLargeReduceRate: "L'importo totale è troppo alto. Abbassa la tariffa.",
+            odometerReadingTooLarge: (formattedMax: string) => `Le letture del contachilometri non possono superare ${formattedMax}.`,
             invalidIntegerAmount: 'Inserisci un importo in dollari intero prima di continuare',
             invalidTaxAmount: (amount: string) => `L’importo massimo dell’imposta è ${amount}`,
             invalidSplit: 'La somma delle suddivisioni deve essere uguale all’importo totale',
@@ -1416,8 +1454,10 @@ const translations: TranslationDeepObject<typeof en> = {
         expensesOnHold: 'Tutte le spese sono state messe in sospeso. Controlla i commenti per conoscere i prossimi passaggi.',
         expenseDuplicate: 'Questa spesa ha dettagli simili a un’altra. Controlla i duplicati per continuare.',
         someDuplicatesArePaid: 'Alcuni di questi duplicati sono già stati approvati o pagati.',
-        reviewDuplicates: 'Controlla i duplicati',
+        reviewDuplicates: 'Controlla duplicati',
         keepAll: 'Mantieni tutto',
+        noDuplicatesTitle: 'Tutto a posto!',
+        noDuplicatesDescription: 'Non ci sono transazioni duplicate da verificare qui.',
         confirmApprove: 'Conferma l’importo approvato',
         confirmApprovalAmount: 'Approva solo le spese conformi oppure approva l’intero rapporto.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1530,19 +1570,26 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / ora`,
             amountTooLargeError: 'L’importo totale è troppo alto. Riduci le ore o abbassa la tariffa.',
         },
-        correctRateError: 'Correggi l’errore di tariffa e riprova.',
+        correctRateError: "Correggi l'errore di tariffa e riprova.",
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Spiega</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "rimborsabile"' : 'ha contrassegnato la spesa come "non rimborsabile"'),
             billable: (value: boolean) => (value ? 'ha contrassegnato la spesa come "fatturabile"' : 'ha contrassegnato la spesa come "non fatturabile"'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `imposta l’aliquota fiscale su "${value}"` : `aliquota fiscale a "${value}"`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `ha spostato questa spesa nel report "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `imposta ${field} su "${value}"` : `${field} a "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} tramite le <a href="${route}">regole dello spazio di lavoro</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spese personali</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} tramite <a href="${route}">regole spazio di lavoro</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'Non puoi duplicare le spese di diaria tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse tra gli spazi di lavoro.',
+        failedToAutoSubmitViaDEW: (reason: string) => `invio del resoconto non riuscito tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">rimanda invii</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `invio del rapporto non riuscito. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3916,6 +3963,7 @@ ${
             clearFilter: 'Cancella filtro',
             workspaceName: 'Nome workspace',
             workspaceOwner: 'Proprietario',
+            keepMeAsAdmin: 'Mantienimi come amministratore',
             workspaceType: 'Tipo di workspace',
             workspaceAvatar: 'Avatar spazio di lavoro',
             clientID: 'ID cliente',
@@ -7424,6 +7472,10 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `il conto bancario aziendale ${maskedBankAccountNumber} è stato bloccato automaticamente a causa di un problema con il rimborso o con il regolamento della Carta Expensify. Risolvi il problema nelle <a href="${linkURL}">impostazioni dello spazio di lavoro</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} ha lasciato la chat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Apri l'app mobile di Expensify per esaminare la tua transazione di${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',
@@ -7602,7 +7654,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         },
     },
     gps: {
-        disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
         error: {
             failedToStart: 'Impossibile avviare il tracciamento della posizione.',
             failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di posizione richieste.',

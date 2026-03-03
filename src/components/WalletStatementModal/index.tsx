@@ -21,7 +21,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(conciergeReportID, introSelected, type, url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, type, url);
     };
 
     return (

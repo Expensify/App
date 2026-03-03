@@ -4,6 +4,7 @@ import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {CompanyCardsPendingState} = useMemoizedLazyIllustrations(['CompanyCardsPendingState']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     return (
         <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -33,7 +35,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
+                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>.
                 </Text>
             </EmptyStateComponent>
         </ScrollView>

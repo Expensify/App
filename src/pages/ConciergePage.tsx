@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -34,7 +35,7 @@ function ConciergePage() {
                         return;
                     }
 
-                    navigateToConciergeChat(conciergeReportID, introSelected, true, () => !isUnmounted.current);
+                    navigateToConciergeChat(conciergeReportID, introSelected, session.accountID ?? CONST.DEFAULT_NUMBER_ID, true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.INBOX);

@@ -45,11 +45,13 @@ Onyx.connectWithoutView({
 });
 
 let currentUserEmail = '';
+let currentUserAccountID = -1;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -333,7 +335,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, introSelected, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
                                     return;
                                 }
 

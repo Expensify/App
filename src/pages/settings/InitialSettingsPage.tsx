@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TopBar from '@components/Navigation/TopBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -542,6 +543,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldEnableKeyboardAvoidingView={false}
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            {shouldUseNarrowLayout && (
+                <TopBar
+                    breadcrumbLabel={translate('initialSettingsPage.account')}
+                    shouldDisplaySearch
+                    shouldDisplayHelpButton
+                />
+            )}
             {headerContent}
             <ScrollView
                 ref={scrollViewRef}

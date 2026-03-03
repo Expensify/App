@@ -31,12 +31,12 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     return;
                 }
 
-                handleWalletStatementNavigation(conciergeReportID, introSelected, type, url);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, type, url);
             } catch (error) {
                 console.error('Error parsing message from WebView:', error);
             }
         },
-        [conciergeReportID, introSelected],
+        [conciergeReportID, session?.accountID, introSelected],
     );
 
     return (

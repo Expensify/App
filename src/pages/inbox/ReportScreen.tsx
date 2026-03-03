@@ -1,8 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -168,7 +167,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`, {allowStaleData: true});
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {allowStaleData: true});
@@ -542,12 +540,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             return;
         }
 
-        // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
-            createOneTransactionThreadReport();
-            return;
-        }
-
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
@@ -563,20 +555,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
 
         openReport(reportIDFromRoute, introSelected, reportActionIDFromRoute);
-    }, [
-        reportMetadata.isOptimisticReport,
-        report,
-        isOffline,
-        transactionThreadReportID,
-        transactionThreadReport,
-        reportIDFromRoute,
-        reportActionIDFromRoute,
-        createOneTransactionThreadReport,
-        isLoadingApp,
-        introSelected,
-        isOnboardingCompleted,
-        isInviteOnboardingComplete,
-    ]);
+    }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -584,6 +563,15 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         }
         prevIsAnonymousUser.current = true;
     }, [isAnonymousUser]);
+
+    useEffect(() => {
+        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
+            return;
+        }
+
+        createOneTransactionThreadReport();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to run this useEffect when createOneTransactionThreadReport changes
+    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
@@ -764,7 +752,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, introSelected, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
             });
             return;
         }
@@ -816,9 +804,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
@@ -1060,10 +1048,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                         {isCurrentReportLoadedFromOnyx ? (
                                             <ReportFooter
                                                 report={report}
-                                                reportMetadata={reportMetadata}
-                                                policy={policy}
-                                                pendingAction={reportPendingAction}
-                                                isComposerFullSize={!!isComposerFullSize}
                                                 lastReportAction={lastReportAction}
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
@@ -1083,5 +1067,4 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
-export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));
+export default ReportScreen;
