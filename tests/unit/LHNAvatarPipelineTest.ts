@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -83,7 +83,7 @@ type AvatarResult = {
 function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID}: ComputeParams): AvatarResult {
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && !!policy);
+    const threadSuppression = isChatThread(report) && !isTripRoom(report);
     const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
     const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
     const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -105,7 +105,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    const skipDelegate = report.type === CONST.REPORT.TYPE.CHAT || (isTaskReport(report) && !report.chatReportID);
+    const skipDelegate = report.type === CONST.REPORT.TYPE.CHAT || report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
@@ -357,9 +357,9 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 11: Expense Request Thread (with policy) ───────────────────
-    it('Expense Request Thread (with policy) → subscript (not suppressed)', () => {
+    it('Expense Request Thread (with policy) → single (thread suppression)', () => {
         // A CHAT-type thread whose parent is an expense report with a transaction thread action.
-        // isExpenseRequest returns true, which cancels thread suppression.
+        // On main, all chat threads outside trip rooms suppress subscript, including expense requests.
         const report: Report = {
             reportID: '110',
             type: CONST.REPORT.TYPE.CHAT,
@@ -372,9 +372,9 @@ describe('LHN Avatar Pipeline', () => {
         } as Report;
         const result = computeAvatarResult({report});
 
-        expect(result.shouldShowSubscript).toBe(true);
-        expect(result.avatarType).toBe('subscript');
-        expect(result.icons).toHaveLength(2);
+        expect(result.shouldShowSubscript).toBe(false);
+        expect(result.avatarType).toBe('single');
+        expect(result.icons).toHaveLength(1);
     });
 
     // ── Case 12: Task Report (workspace, online with chatReportID) → single
@@ -581,5 +581,18 @@ describe('LHN Avatar Pipeline', () => {
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
         expect(result.icons.at(0)?.id).toBe(5);
+    });
+
+    // ── Case 23: Delegate skipped for invoice report ─────────────────
+    it('Delegate skipped for invoice report', () => {
+        const report = {
+            ...createInvoiceReport(127),
+            policyID: POLICY_ID,
+            chatReportID: 'invoiceRoom',
+            parentReportID: 'invoiceRoom',
+        } as Report;
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.icons.at(0)?.id).not.toBe(5);
     });
 });

@@ -761,7 +761,8 @@ function getOptionData({
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !(isExpenseRequest(report) && policy);
+    const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
     // For tasks, the header resolves the parent action via chatReportID (not parentReportID).
     // When chatReportID is absent (offline/nested tasks), the action can't be resolved — treat as "no action".
     const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
