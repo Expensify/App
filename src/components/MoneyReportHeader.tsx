@@ -578,6 +578,7 @@ function MoneyReportHeader({
     const isChatReportDM = isDM(chatReport);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+    const isSelectionModePaymentRef = useRef(false);
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
             if (!type || !chatReport) {
@@ -585,6 +586,7 @@ function MoneyReportHeader({
             }
             setPaymentType(type);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+            const isFromSelectionMode = isSelectionModePaymentRef.current;
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
@@ -594,8 +596,13 @@ function MoneyReportHeader({
                 } else {
                     setIsHoldMenuVisible(true);
                 }
+                if (isFromSelectionMode) {
+                    clearSelectedTransactions(true);
+                }
             } else if (isInvoiceReport) {
-                startAnimation();
+                if (!isFromSelectionMode) {
+                    startAnimation();
+                }
                 payInvoice({
                     paymentMethodType: type,
                     chatReport,
@@ -611,8 +618,13 @@ function MoneyReportHeader({
                     activePolicy,
                     betas,
                 });
+                if (isFromSelectionMode) {
+                    clearSelectedTransactions(true);
+                }
             } else {
-                startAnimation();
+                if (!isFromSelectionMode) {
+                    startAnimation();
+                }
                 payMoneyRequest({
                     paymentType: type,
                     chatReport,
@@ -634,6 +646,9 @@ function MoneyReportHeader({
                         isOffline,
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
+                }
+                if (isFromSelectionMode) {
+                    clearSelectedTransactions(true);
                 }
             }
         },
@@ -659,10 +674,18 @@ function MoneyReportHeader({
             currentSearchResults?.search?.isLoading,
             betas,
             userBillingGraceEndPeriods,
+            clearSelectedTransactions,
         ],
     );
 
-    const showDWEModal = async () => {
+    useEffect(() => {
+        if (selectedTransactionIDs.length !== 0) {
+            return;
+        }
+        isSelectionModePaymentRef.current = false;
+    }, [selectedTransactionIDs.length]);
+
+    const showDWEModal = useCallback(async () => {
         const result = await showConfirmModal({
             confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
             title: translate('customApprovalWorkflow.title'),
@@ -673,23 +696,97 @@ function MoneyReportHeader({
         if (result.action === ModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
-    };
+    }, [showConfirmModal, translate]);
 
-    const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-            showDWEModal();
-            return;
-        }
-        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-        } else if (isAnyTransactionOnHold) {
-            setIsHoldMenuVisible(true);
-        } else {
-            startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
-        }
-    };
+    const confirmApproval = useCallback(
+        (skipAnimation = false) => {
+            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                showDWEModal();
+                return;
+            }
+            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+            } else if (isAnyTransactionOnHold) {
+                setIsHoldMenuVisible(true);
+            } else {
+                if (!skipAnimation) {
+                    startApprovedAnimation();
+                }
+                approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
+            }
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+            }
+        },
+        [
+            policy,
+            isDEWBetaEnabled,
+            showDWEModal,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            isAnyTransactionOnHold,
+            startApprovedAnimation,
+            moneyRequestReport,
+            accountID,
+            email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            nextStep,
+            betas,
+            userBillingGraceEndPeriods,
+            clearSelectedTransactions,
+        ],
+    );
+
+    const handleSubmitReport = useCallback(
+        (skipAnimation = false) => {
+            if (!moneyRequestReport || shouldBlockSubmit) {
+                return;
+            }
+            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                showDWEModal();
+                return;
+            }
+            if (!skipAnimation) {
+                startSubmittingAnimation();
+            }
+            submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+            }
+        },
+        [
+            moneyRequestReport,
+            shouldBlockSubmit,
+            policy,
+            isDEWBetaEnabled,
+            showDWEModal,
+            startSubmittingAnimation,
+            accountID,
+            email,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            nextStep,
+            userBillingGraceEndPeriods,
+            currentSearchQueryJSON,
+            isOffline,
+            currentSearchKey,
+            shouldCalculateTotals,
+            currentSearchResults?.search?.isLoading,
+            clearSelectedTransactions,
+        ],
+    );
 
     const markAsCash = useCallback(() => {
         if (!requestParentReportAction) {
@@ -939,6 +1036,43 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = useMemo(() => {
+        if (!primaryAction) {
+            return [];
+        }
+        const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
+        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT) {
+            actions.push({
+                text: translate('common.submit'),
+                icon: expensifyIcons.Send,
+                value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                onSelected: () => handleSubmitReport(true),
+            });
+        }
+        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE) {
+            actions.push({
+                text: translate('iou.approve'),
+                icon: expensifyIcons.ThumbsUp,
+                value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                onSelected: () => confirmApproval(true),
+            });
+        }
+        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {
+            actions.push({
+                text: translate('iou.settlePayment', totalAmount),
+                icon: expensifyIcons.Cash,
+                value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
+                rightIcon: expensifyIcons.ArrowRight,
+                backButtonText: translate('iou.settlePayment', totalAmount),
+                subMenuItems: Object.values(paymentButtonOptions),
+                onSelected: () => {
+                    isSelectionModePaymentRef.current = true;
+                },
+            });
+        }
+        return actions;
+    }, [primaryAction, translate, expensifyIcons, handleSubmitReport, confirmApproval, totalAmount, paymentButtonOptions]);
+
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(translate, expensifyIcons, moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, undefined, undefined, lastDistanceExpenseType),
         [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, lastDistanceExpenseType, expensifyIcons, translate],
@@ -1042,27 +1176,7 @@ function MoneyReportHeader({
             <AnimatedSubmitButton
                 success
                 text={translate('common.submit')}
-                onPress={() => {
-                    if (!moneyRequestReport || shouldBlockSubmit) {
-                        return;
-                    }
-                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                        showDWEModal();
-                        return;
-                    }
-                    startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
-                    if (currentSearchQueryJSON && !isOffline) {
-                        search({
-                            searchKey: currentSearchKey,
-                            shouldCalculateTotals,
-                            offset: 0,
-                            queryJSON: currentSearchQueryJSON,
-                            isOffline,
-                            isLoading: !!currentSearchResults?.search?.isLoading,
-                        });
-                    }
-                }}
+                onPress={() => handleSubmitReport()}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
                 isDisabled={shouldBlockSubmit}
@@ -1071,7 +1185,7 @@ function MoneyReportHeader({
         [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
             <Button
                 success
-                onPress={confirmApproval}
+                onPress={() => confirmApproval()}
                 text={translate('iou.approve')}
                 isDisabled={isBlockSubmitDueToPreventSelfApproval}
             />
@@ -1739,8 +1853,10 @@ function MoneyReportHeader({
         showExportAgainModal();
     }, [exportModalStatus, showExportAgainModal]);
 
+    const allExpensesSelected = selectedTransactionIDs.length === transactions.length;
+
     const selectedTransactionsOptions = useMemo(() => {
-        return originalSelectedTransactionsOptions.map((option) => {
+        const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
                 return {
                     ...option,
@@ -1765,7 +1881,20 @@ function MoneyReportHeader({
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation]);
+
+        if (allExpensesSelected && selectionModeReportLevelActions.length) {
+            return [...selectionModeReportLevelActions, ...mappedOptions];
+        }
+        return mappedOptions;
+    }, [
+        originalSelectedTransactionsOptions,
+        showDeleteModal,
+        dismissedRejectUseExplanation,
+        allExpensesSelected,
+        selectionModeReportLevelActions,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -1798,12 +1927,35 @@ function MoneyReportHeader({
             hasViolations,
             isASAPSubmitBetaEnabled,
             isUserValidated,
-            confirmApproval,
+            confirmApproval: () => confirmApproval(),
             iouReport: moneyRequestReport,
             iouReportNextStep: nextStep,
             betas,
             userBillingGraceEndPeriods,
         });
+
+    const hasPayInSelectionMode = allExpensesSelected && primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY;
+
+    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        isSelectionModePaymentRef.current = true;
+        selectPaymentType({
+            event,
+            iouPaymentType,
+            triggerKYCFlow,
+            policy,
+            onPress: confirmPayment,
+            currentAccountID: accountID,
+            currentEmail: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            isUserValidated,
+            confirmApproval: () => confirmApproval(),
+            iouReport: moneyRequestReport,
+            iouReportNextStep: nextStep,
+            betas,
+            userBillingGraceEndPeriods,
+        });
+    };
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
@@ -1838,31 +1990,64 @@ function MoneyReportHeader({
                                 ref={kycWallRef}
                             />
                         )}
-                        {shouldShowSelectedTransactionsButton && (
-                            <View>
-                                <ButtonWithDropdownMenu
-                                    onPress={() => null}
-                                    options={selectedTransactionsOptions}
+                        {shouldShowSelectedTransactionsButton &&
+                            (hasPayInSelectionMode ? (
+                                <MoneyReportHeaderKYCDropdown
+                                    chatReportID={chatReport?.reportID}
+                                    iouReport={moneyRequestReport}
+                                    onPaymentSelect={onSelectionModePaymentSelect}
+                                    onSuccessfulKYC={(type) => {
+                                        isSelectionModePaymentRef.current = true;
+                                        confirmPayment({paymentType: type});
+                                    }}
+                                    primaryAction={primaryAction}
+                                    applicableSecondaryActions={selectedTransactionsOptions}
                                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                                    isSplitButton={false}
-                                    shouldAlwaysShowDropdownMenu
+                                    shouldShowSuccessStyle
+                                    ref={kycWallRef}
                                 />
-                            </View>
-                        )}
+                            ) : (
+                                <View>
+                                    <ButtonWithDropdownMenu
+                                        onPress={() => null}
+                                        options={selectedTransactionsOptions}
+                                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                        isSplitButton={false}
+                                        shouldAlwaysShowDropdownMenu
+                                    />
+                                </View>
+                            ))}
                     </View>
                 )}
             </HeaderWithBackButton>
             {!shouldDisplayNarrowMoreButton &&
                 (shouldShowSelectedTransactionsButton ? (
                     <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
-                        <ButtonWithDropdownMenu
-                            onPress={() => null}
-                            options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                            isSplitButton={false}
-                            shouldAlwaysShowDropdownMenu
-                            wrapperStyle={styles.w100}
-                        />
+                        {hasPayInSelectionMode ? (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onSelectionModePaymentSelect}
+                                onSuccessfulKYC={(type) => {
+                                    isSelectionModePaymentRef.current = true;
+                                    confirmPayment({paymentType: type});
+                                }}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={selectedTransactionsOptions}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                shouldShowSuccessStyle
+                                ref={kycWallRef}
+                            />
+                        ) : (
+                            <ButtonWithDropdownMenu
+                                onPress={() => null}
+                                options={selectedTransactionsOptions}
+                                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                isSplitButton={false}
+                                shouldAlwaysShowDropdownMenu
+                                wrapperStyle={styles.w100}
+                            />
+                        )}
                     </View>
                 ) : (
                     <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
