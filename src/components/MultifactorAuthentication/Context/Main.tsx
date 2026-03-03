@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import addMfaBreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
+import trackMfaFlowOutcome from '@components/MultifactorAuthentication/observability/trackMfaFlowOutcome';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
@@ -105,9 +106,21 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             addMfaBreadcrumb('Flow completed', {
                 isSuccessful,
                 callbackResponse: callbackResponse ?? 'none',
-                httpStatusCode: scenarioResponse?.httpStatusCode,
+                httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
                 reason: scenarioResponse?.reason ?? error?.reason,
                 message: scenarioResponse?.message ?? error?.message,
+            });
+
+            trackMfaFlowOutcome({
+                isSuccessful,
+                scenario: scenario.screen,
+                httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
+                reason: scenarioResponse?.reason ?? error?.reason,
+                message: scenarioResponse?.message ?? error?.message,
+                authenticationMethod: state.authenticationMethod?.name,
+                isRegistrationComplete: state.isRegistrationComplete,
+                isAuthorizationComplete: state.isAuthorizationComplete,
+                softPromptApproved: state.softPromptApproved,
             });
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
