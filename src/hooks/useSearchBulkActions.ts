@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -64,15 +65,13 @@ import usePermissions from './usePermissions';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
-import type {OnyxCollection} from 'react-native-onyx';
-
 
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
     deleteTransactionsOnSearch?: (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => void;
 };
 
-function useSearchBulkActions({queryJSON,deleteTransactionsOnSearch}: UseSearchBulkActionsParams) {
+function useSearchBulkActions({queryJSON, deleteTransactionsOnSearch}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -472,23 +471,19 @@ function useSearchBulkActions({queryJSON,deleteTransactionsOnSearch}: UseSearchB
                     const transactionsViolations = allTransactionViolations
                         ? Object.fromEntries(Object.entries(allTransactionViolations).filter((entry): entry is [string, TransactionViolations] => !!entry[1]))
                         : {};
-                    bulkDeleteReports(
-                        {
-                                reports:allReports,
-                                selfDMReport,
-                                hash,
-                                selectedTransactions,                               
-                                currentUserEmailParam:currentUserPersonalDetails.email ?? '',
-                                currentUserAccountIDParam:accountID,
-                                reportTransactions:validTransactions,
-                                transactionsViolations,
-                                bankAccountList,
-                                deleteTransactionsOnSearch,
-                                transactions,
-                        }
-
-
-                    );
+                    bulkDeleteReports({
+                        reports: allReports,
+                        selfDMReport,
+                        hash,
+                        selectedTransactions,
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                        currentUserAccountIDParam: accountID,
+                        reportTransactions: validTransactions,
+                        transactionsViolations,
+                        bankAccountList,
+                        deleteTransactionsOnSearch,
+                        transactions,
+                    });
                 }
 
                 clearSelectedTransactions();
