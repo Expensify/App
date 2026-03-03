@@ -704,6 +704,11 @@ function MoneyReportHeader({
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const targetPolicyTags = useMemo(
+        () => (defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {}),
+        [allPolicyTags, defaultExpensePolicy],
+    );
+
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
             if (!transactionList.length) {
@@ -737,7 +742,7 @@ function MoneyReportHeader({
                     betas,
                     personalDetails,
                     recentWaypoints,
-                    allPolicyTags,
+                    targetPolicyTags,
                 });
             }
         },
@@ -757,7 +762,7 @@ function MoneyReportHeader({
             betas,
             personalDetails,
             recentWaypoints,
-            allPolicyTags,
+            targetPolicyTags,
         ],
     );
 
