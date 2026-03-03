@@ -267,6 +267,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
+                            isFromGlobalCreate: skipConfirmation,
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,

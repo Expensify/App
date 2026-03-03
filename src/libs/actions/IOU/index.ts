@@ -6089,6 +6089,35 @@ type ConvertTrackedExpenseToRequestParams = {
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
+function addPendingNewTransactionIDs(
+    reportID: string,
+    transactionID: string,
+): {optimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>; failureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>} | undefined {
+    // We only need to set pending new transactionIDs when we navigate to the chat report
+    // from another route, so if the chat report is the current topmost report we omit.
+    if (Navigation.getTopmostReportId() === reportID) {
+        return;
+    }
+
+    return {
+        optimisticData: {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            // We are saving in object form so that consecutive onyx merge will not reset previous value.
+            value: {pendingNewTransactionIDs: {[transactionID]: transactionID}},
+        },
+
+        failureData: {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+            value: {pendingNewTransactionIDs: {[transactionID]: null}},
+        },
+    };
+}
+
+function clearPendingNewTransactionIDs(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: null});
+}
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
     const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams} = convertTrackedExpenseParams;
@@ -6135,21 +6164,11 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
 
     // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
     if (chatParams.reportID && transactionID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
-            value: {pendingNewTransactionIDs: [transactionID]},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatParams.reportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
+        const data = addPendingNewTransactionIDs(chatParams.reportID, transactionID);
+        if (data) {
+            optimisticData.push(data.optimisticData);
+            failureData.push(data.failureData);
+        }
     }
 
     if (transactionThreadReportID) {
@@ -6450,21 +6469,11 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
     if (reportInformation.chatReportID && transactionID) {
-        optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
-            value: {pendingNewTransactionIDs: [transactionID]},
-        });
-        successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
-        failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportInformation.chatReportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
+        const data = addPendingNewTransactionIDs(reportInformation.chatReportID, transactionID);
+        if (data) {
+            optimisticData?.push(data.optimisticData);
+            failureData?.push(data.failureData);
+        }
     }
 
     const parameters: CategorizeTrackedExpenseApiParams = {
@@ -6586,21 +6595,11 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 
     // Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
     if (chatReportID && transactionParams.transactionID) {
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
-            value: {pendingNewTransactionIDs: [transactionParams.transactionID]},
-        });
-        onyxData.successData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`,
-            value: {pendingNewTransactionIDs: null},
-        });
+        const data = addPendingNewTransactionIDs(chatReportID, transactionParams.transactionID);
+        if (data) {
+            onyxData.optimisticData?.push(data.optimisticData);
+            onyxData.failureData?.push(data.failureData);
+        }
     }
 
     const parameters: ShareTrackedExpenseParams = {
@@ -6880,6 +6879,14 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : {}),
             };
+
+            if (chatReport.reportID && isFromGlobalCreate) {
+                const data = addPendingNewTransactionIDs(chatReport.reportID, transaction.transactionID);
+                if (data) {
+                    onyxData.optimisticData?.push(data.optimisticData);
+                    onyxData.failureData?.push(data.failureData);
+                }
+            }
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -7018,6 +7025,14 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         attendees: attendees ? JSON.stringify(attendees) : undefined,
         customUnitPolicyID,
     };
+
+    if (chatReport.reportID && isFromGlobalCreate) {
+        const data = addPendingNewTransactionIDs(chatReport.reportID, transaction.transactionID);
+        if (data) {
+            onyxData.optimisticData?.push(data.optimisticData);
+            onyxData.failureData?.push(data.failureData);
+        }
+    }
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
@@ -8613,6 +8628,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     playSound(SOUNDS.DONE);
 
+    if (iouType !== CONST.IOU.TYPE.SPLIT && isFromGlobalCreate) {
+        const data = addPendingNewTransactionIDs(parameters.chatReportID, parameters.transactionID);
+        if (data) {
+            onyxData?.optimisticData?.push(data.optimisticData);
+            onyxData?.failureData?.push(data.failureData);
+        }
+    }
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
@@ -13984,6 +14006,7 @@ export {
     getDeleteTrackExpenseInformation,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
+    clearPendingNewTransactionIDs,
 };
 export type {
     GPSPoint as GpsPoint,

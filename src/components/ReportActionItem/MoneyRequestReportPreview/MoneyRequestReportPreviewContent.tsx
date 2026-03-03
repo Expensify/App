@@ -505,7 +505,7 @@ function MoneyRequestReportPreviewContent({
                 }
 
                 carouselRef.current?.scrollToIndex({index, viewOffset: -2 * styles.gap2.gap, animated: true});
-            }, CONST.ANIMATED_TRANSITION);
+            }, 1000);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [newTransactionIDs]),

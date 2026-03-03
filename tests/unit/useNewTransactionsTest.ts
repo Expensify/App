@@ -305,23 +305,25 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // Simulates: user submitted expense from Self DM to workspace, then navigated to workspace chat.
         // The transaction is already in the transactions list by the time the component mounts.
         // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}>(
-            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs),
-            {
-                initialProps: {
-                    hasOnceLoadedReportActions: false,
-                    transactions: [],
-                    pendingNewTransactionIDs: [newTransaction.transactionID],
-                },
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, string> | undefined; isFocused?: boolean}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isFocused), {
+            initialProps: {
+                hasOnceLoadedReportActions: false,
+                transactions: [],
+                pendingNewTransactionIDs: {[newTransaction.transactionID]: newTransaction.transactionID},
+                isFocused: true,
             },
-        );
+        });
         expect(result.current).toEqual([]);
 
         // 2. Report loads, transactions arrive (including the new one that was submitted cross-navigation)
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [...transactionsAlreadyInReport, newTransaction],
-            pendingNewTransactionIDs: [newTransaction.transactionID],
+            pendingNewTransactionIDs: {[newTransaction.transactionID]: newTransaction.transactionID},
+            isFocused: true,
         });
         // The pending transaction should be detected even though it was present from the first load
         expect(result.current).toEqual([newTransaction]);
@@ -330,23 +332,24 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         rerender({
             hasOnceLoadedReportActions: true,
             transactions: [...transactionsAlreadyInReport, newTransaction],
-            pendingNewTransactionIDs: undefined, // cleared by success data
+            pendingNewTransactionIDs: undefined,
+            isFocused: true,
         });
         expect(result.current).toEqual([]);
     });
 
     it('does not highlight transactions without pendingNewTransactionIDs', () => {
         // Normal navigation to a report (no cross-navigation pending IDs)
-        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: string[] | undefined}>(
-            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs),
-            {
-                initialProps: {
-                    hasOnceLoadedReportActions: false,
-                    transactions: [],
-                    pendingNewTransactionIDs: undefined,
-                },
+        const {rerender, result} = renderHook<
+            Transaction[],
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, string> | undefined}
+        >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
+            initialProps: {
+                hasOnceLoadedReportActions: false,
+                transactions: [],
+                pendingNewTransactionIDs: undefined,
             },
-        );
+        });
 
         rerender({
             hasOnceLoadedReportActions: true,

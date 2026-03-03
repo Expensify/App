@@ -1,6 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import {pendingNewTransactionIDsSelector} from '@selectors/ReportMetaData';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
@@ -171,9 +170,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {allowStaleData: true});
-    const [pendingNewTransactionIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
-        selector: pendingNewTransactionIDsSelector,
-    });
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {allowStaleData: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -339,7 +335,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
 
-    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     const {closeSidePanel} = useSidePanelActions();
 
