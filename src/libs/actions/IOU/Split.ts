@@ -1,4 +1,4 @@
-import {eachDayOfInterval, format} from 'date-fns';
+import {eachDayOfInterval, format, parse} from 'date-fns';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -2191,8 +2191,8 @@ function resetSplitExpensesByDateRange(
 
     // Generate all dates in the range
     const dates = eachDayOfInterval({
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: parse(startDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
+        end: parse(endDate, CONST.DATE.FNS_FORMAT_STRING, new Date()),
     });
 
     const transactionDetails = getTransactionDetails(transaction);
