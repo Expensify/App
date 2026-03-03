@@ -1,15 +1,23 @@
 import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+// ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
+// eslint-disable-next-line no-restricted-imports
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import type {SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchCustomColumnIds, SortOrder} from '@components/Search/types';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -23,10 +31,12 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
-import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
+import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
@@ -45,7 +55,7 @@ import {
     isExpenseReport,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -107,7 +117,7 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-];
+] as const satisfies readonly SearchColumnType[];
 
 type ReportScreenNavigationProps = ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
@@ -151,9 +161,10 @@ function MoneyRequestReportTransactionList({
     isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus', 'Columns']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -179,6 +190,7 @@ function MoneyRequestReportTransactionList({
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
+    const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
@@ -251,7 +263,7 @@ function MoneyRequestReportTransactionList({
         return getColumnsToShow(
             currentUserDetails?.accountID,
             transactions,
-            [],
+            (reportDetailsColumns ?? []) as SearchCustomColumnIds[],
             true,
             undefined,
             undefined,
@@ -259,7 +271,25 @@ function MoneyRequestReportTransactionList({
             shouldShowBillableColumn,
             hasNonReimbursableTransactions(transactions),
         );
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn]);
+    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, reportDetailsColumns]);
+
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const minTableWidth = getTableMinWidth(columnsToShow);
+    const shouldScrollHorizontally = !shouldUseNarrowLayout && minTableWidth > windowWidth;
+    const horizontalScrollViewRef = useRef<RNScrollView>(null);
+    const horizontalScrollOffsetRef = useRef(0);
+
+    const handleHorizontalScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        horizontalScrollOffsetRef.current = event.nativeEvent.contentOffset.x;
+    }, []);
+
+    // Restore horizontal scroll position synchronously before paint when transactions change
+    useLayoutEffect(() => {
+        if (!shouldScrollHorizontally || horizontalScrollOffsetRef.current <= 0) {
+            return;
+        }
+        horizontalScrollViewRef.current?.scrollTo({x: horizontalScrollOffsetRef.current, animated: false});
+    }, [sortedTransactions, shouldScrollHorizontally]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -427,6 +457,172 @@ function MoneyRequestReportTransactionList({
 
     const listHorizontalPadding = styles.ph5;
 
+    const groupByItems = useMemo(
+        () => [
+            {
+                text: translate('reportLayout.groupBy.category'),
+                value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            },
+            {
+                text: translate('reportLayout.groupBy.tag'),
+                value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+            },
+        ],
+        [translate],
+    );
+
+    const selectedGroupByItem = useMemo(() => groupByItems.find((item) => item.value === currentGroupBy) ?? groupByItems.at(0), [groupByItems, currentGroupBy]);
+
+    const groupByOptions = useMemo(
+        () =>
+            groupByItems.map((item) => ({
+                text: item.text,
+                keyForList: item.value,
+                isSelected: item.value === currentGroupBy,
+            })),
+        [groupByItems, currentGroupBy],
+    );
+
+    const openColumnsPage = useCallback(() => {
+        Navigation.navigate(ROUTES.REPORT_SETTINGS_COLUMNS.getRoute(report.reportID));
+    }, [report.reportID]);
+
+    const groupByPopoverComponent = useCallback(
+        (props: {closeOverlay: () => void}) => (
+            <View style={[styles.pt4, styles.pb1]}>
+                <View style={styles.getSelectionListPopoverHeight(groupByOptions.length || 1, windowHeight, false)}>
+                    <SelectionList
+                        data={groupByOptions}
+                        shouldSingleExecuteRowSelect
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={(item) => {
+                            if (!item.keyForList) {
+                                return;
+                            }
+                            setReportLayoutGroupBy(item.keyForList, reportLayoutGroupBy);
+                            props.closeOverlay();
+                        }}
+                    />
+                </View>
+            </View>
+        ),
+        [groupByOptions, reportLayoutGroupBy, styles, windowHeight],
+    );
+
+    const transactionListContent = (
+        <View style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}>
+            {shouldShowGroupedTransactions
+                ? groupedTransactions.map((group) => {
+                      const selectionState = groupSelectionState.get(group.groupKey) ?? {
+                          isSelected: false,
+                          isIndeterminate: false,
+                          isDisabled: false,
+                          pendingAction: undefined,
+                      };
+
+                      return (
+                          <View
+                              key={group.groupKey}
+                              style={styles.gap2}
+                          >
+                              <MoneyRequestReportGroupHeader
+                                  group={group}
+                                  groupKey={group.groupKey}
+                                  currency={report?.currency ?? ''}
+                                  isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
+                                  isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                  isSelected={selectionState.isSelected}
+                                  isIndeterminate={selectionState.isIndeterminate}
+                                  isDisabled={selectionState.isDisabled}
+                                  onToggleSelection={toggleGroupSelection}
+                                  pendingAction={selectionState.pendingAction}
+                              />
+                              {group.transactions.map((transaction) => {
+                                  return (
+                                      <MoneyRequestReportTransactionItem
+                                          key={transaction.transactionID}
+                                          transaction={transaction}
+                                          shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+                                          columns={columnsToShow}
+                                          report={report}
+                                          isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                          toggleTransaction={toggleTransaction}
+                                          isSelected={isTransactionSelected(transaction.transactionID)}
+                                          handleOnPress={handleOnPress}
+                                          handleLongPress={handleLongPress}
+                                          dateColumnSize={dateColumnSize}
+                                          amountColumnSize={amountColumnSize}
+                                          taxAmountColumnSize={taxAmountColumnSize}
+                                          scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                                          onArrowRightPress={handleArrowRightPress}
+                                      />
+                                  );
+                              })}
+                          </View>
+                      );
+                  })
+                : sortedTransactions.map((transaction) => (
+                      <MoneyRequestReportTransactionItem
+                          key={transaction.transactionID}
+                          transaction={transaction}
+                          shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
+                          columns={columnsToShow}
+                          report={report}
+                          isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                          toggleTransaction={toggleTransaction}
+                          isSelected={isTransactionSelected(transaction.transactionID)}
+                          handleOnPress={handleOnPress}
+                          handleLongPress={handleLongPress}
+                          dateColumnSize={dateColumnSize}
+                          amountColumnSize={amountColumnSize}
+                          taxAmountColumnSize={taxAmountColumnSize}
+                          scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                          onArrowRightPress={handleArrowRightPress}
+                      />
+                  ))}
+        </View>
+    );
+
+    const tableHeaderContent = (
+        <OfflineWithFeedback pendingAction={reportPendingAction}>
+            <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+                    <Checkbox
+                        onPress={() => {
+                            if (selectedTransactionIDs.length !== 0) {
+                                clearSelectedTransactions(true);
+                            } else {
+                                setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                            }
+                        }}
+                        accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
+                        isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                        isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                    />
+                    {isMediumScreenWidth && !shouldScrollHorizontally && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
+                </View>
+                {(!isMediumScreenWidth || shouldScrollHorizontally) && (
+                    <MoneyRequestReportTableHeader
+                        shouldShowSorting
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        columns={columnsToShow}
+                        sortableColumns={sortableColumnNames}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        onSortPress={(selectedSortBy, selectedSortOrder) => {
+                            if (!isSortableColumnName(selectedSortBy)) {
+                                return;
+                            }
+                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                        }}
+                    />
+                )}
+            </View>
+        </OfflineWithFeedback>
+    );
+
     if (isEmptyTransactions) {
         return (
             <>
@@ -448,113 +644,47 @@ function MoneyRequestReportTransactionList({
 
     return (
         <>
-            {!shouldUseNarrowLayout && (
-                <OfflineWithFeedback pendingAction={reportPendingAction}>
-                    <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
-                        <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
-                            <Checkbox
-                                onPress={() => {
-                                    if (selectedTransactionIDs.length !== 0) {
-                                        clearSelectedTransactions(true);
-                                    } else {
-                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                    }
-                                }}
-                                accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
-                                isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                                isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
-                            />
-                            {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
-                        </View>
-                        {!isMediumScreenWidth && (
-                            <MoneyRequestReportTableHeader
-                                shouldShowSorting
-                                sortBy={sortBy}
-                                sortOrder={sortOrder}
-                                columns={columnsToShow}
-                                dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnSize}
-                                taxAmountColumnSize={taxAmountColumnSize}
-                                onSortPress={(selectedSortBy, selectedSortOrder) => {
-                                    if (!isSortableColumnName(selectedSortBy)) {
-                                        return;
-                                    }
-
-                                    setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                                }}
-                            />
-                        )}
-                    </View>
-                </OfflineWithFeedback>
-            )}
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
-                {shouldShowGroupedTransactions
-                    ? groupedTransactions.map((group) => {
-                          const selectionState = groupSelectionState.get(group.groupKey) ?? {isSelected: false, isIndeterminate: false, isDisabled: false, pendingAction: undefined};
-
-                          return (
-                              <View
-                                  key={group.groupKey}
-                                  style={styles.gap2}
-                              >
-                                  <MoneyRequestReportGroupHeader
-                                      group={group}
-                                      groupKey={group.groupKey}
-                                      currency={report?.currency ?? ''}
-                                      isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
-                                      isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                      isSelected={selectionState.isSelected}
-                                      isIndeterminate={selectionState.isIndeterminate}
-                                      isDisabled={selectionState.isDisabled}
-                                      onToggleSelection={toggleGroupSelection}
-                                      pendingAction={selectionState.pendingAction}
-                                  />
-                                  {group.transactions.map((transaction) => {
-                                      return (
-                                          <MoneyRequestReportTransactionItem
-                                              key={transaction.transactionID}
-                                              transaction={transaction}
-                                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
-                                              columns={columnsToShow}
-                                              report={report}
-                                              policy={policy}
-                                              isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                              toggleTransaction={toggleTransaction}
-                                              isSelected={isTransactionSelected(transaction.transactionID)}
-                                              handleOnPress={handleOnPress}
-                                              handleLongPress={handleLongPress}
-                                              dateColumnSize={dateColumnSize}
-                                              amountColumnSize={amountColumnSize}
-                                              taxAmountColumnSize={taxAmountColumnSize}
-                                              scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                                              onArrowRightPress={handleArrowRightPress}
-                                          />
-                                      );
-                                  })}
-                              </View>
-                          );
-                      })
-                    : sortedTransactions.map((transaction) => (
-                          <MoneyRequestReportTransactionItem
-                              key={transaction.transactionID}
-                              transaction={transaction}
-                              shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
-                              columns={columnsToShow}
-                              report={report}
-                              policy={policy}
-                              isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                              toggleTransaction={toggleTransaction}
-                              isSelected={isTransactionSelected(transaction.transactionID)}
-                              handleOnPress={handleOnPress}
-                              handleLongPress={handleLongPress}
-                              dateColumnSize={dateColumnSize}
-                              amountColumnSize={amountColumnSize}
-                              taxAmountColumnSize={taxAmountColumnSize}
-                              scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                              onArrowRightPress={handleArrowRightPress}
-                          />
-                      ))}
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.ph5, styles.pb2]}>
+                {shouldShowGroupedTransactions && (
+                    <DropdownButton
+                        label={translate('search.groupBy')}
+                        value={selectedGroupByItem?.text ?? ''}
+                        PopoverComponent={groupByPopoverComponent}
+                    />
+                )}
+                {!shouldUseNarrowLayout && (
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.columns')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Columns}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openColumnsPage}
+                    />
+                )}
             </View>
+            {!shouldUseNarrowLayout && !shouldScrollHorizontally && tableHeaderContent}
+            {shouldScrollHorizontally ? (
+                <ScrollView
+                    ref={horizontalScrollViewRef}
+                    horizontal
+                    showsHorizontalScrollIndicator
+                    style={styles.flex1}
+                    contentContainerStyle={{width: minTableWidth}}
+                    onScroll={handleHorizontalScroll}
+                    scrollEventThrottle={16}
+                >
+                    <View style={[styles.flex1]}>
+                        {tableHeaderContent}
+                        {transactionListContent}
+                    </View>
+                </ScrollView>
+            ) : (
+                transactionListContent
+            )}
             <View
                 style={[
                     styles.dFlex,
@@ -562,7 +692,7 @@ function MoneyRequestReportTransactionList({
                     shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
                     styles.gap6,
                     listHorizontalPadding,
-                    styles.mb2,
+                    styles.mv2,
                     styles.alignItemsStart,
                     styles.minHeight7,
                     shouldUseNarrowLayout && styles.flexColumn,

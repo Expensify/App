@@ -7,7 +7,6 @@ import type {ListItem, ListItemProps, TransactionListItemType} from '@components
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +20,6 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
     const transactionItem = item as unknown as TransactionListItemType;
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`);
-    const policy = usePolicy(report?.policyID);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -60,7 +58,6 @@ function MergeTransactionItem<TItem extends ListItem>({item, isFocused, showTool
                 <TransactionItemRow
                     transactionItem={transactionItem}
                     report={report}
-                    policy={policy}
                     shouldUseNarrowLayout
                     isSelected={!!item.isSelected}
                     shouldShowTooltip={showTooltip}
