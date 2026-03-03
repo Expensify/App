@@ -1,8 +1,8 @@
 import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
-import * as Sentry from '@sentry/react-native';
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
+import reportModuleInitTimes from './reportModuleInitTimes';
 import setupSentry from './setupSentry';
 
 export default function (): void {
@@ -24,26 +24,6 @@ export default function (): void {
     });
 
     requestAnimationFrame(() => {
-        if (typeof __moduleInitTimes === 'undefined' || typeof __moduleNames === 'undefined') {
-            return;
-        }
-        const topModules = Object.entries(__moduleInitTimes as Record<string, number>)
-            .map(([id, ms]) => ({
-                name: (__moduleNames as Record<string, string>)[id] ?? id,
-                ms: Math.round(ms),
-            }))
-            .filter(({ms}) => ms >= 100)
-            .sort((a, b) => b.ms - a.ms)
-            .slice(0, 50);
-        console.debug(`[Telemetry] Modules taking ≥100ms to init (all, incl. 3rd party) — count: ${topModules.length}`);
-        for (const {name, ms} of topModules) {
-            console.debug(`[Module]  ${ms}ms — ${name}`);
-        }
-
-        Sentry.addBreadcrumb({
-            category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_MODULE_INIT,
-            level: 'info',
-            data: {modules: topModules},
-        });
+        reportModuleInitTimes(__moduleInitTimes as Record<string, number> | undefined, __moduleNames as Record<string, string> | undefined, 100);
     });
 }
