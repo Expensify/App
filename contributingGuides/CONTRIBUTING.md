@@ -150,7 +150,7 @@ This helps future investigators understand the history and current status of err
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 ### Propose a solution for the job
-4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed.
+4. Proposals must only be posted after the `Help Wanted` label is added. Any proposals submitted beforehand will be ignored and not reviewed. Do not post proposals in Slack.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
