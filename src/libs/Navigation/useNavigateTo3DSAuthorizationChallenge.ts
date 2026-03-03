@@ -1,4 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import type {SeverityLevel} from '@sentry/react-native';
+import * as Sentry from '@sentry/react-native';
 import {useEffect, useMemo} from 'react';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
@@ -11,6 +13,15 @@ import ROUTES from '@src/ROUTES';
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Navigation, {isMFAFlowScreen} from './Navigation';
+
+function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {
+    Sentry.addBreadcrumb({
+        message: `[3DS Navigation] ${message}`,
+        category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_3DS_NAVIGATION,
+        level,
+        data,
+    });
+}
 
 // We want predictable, stable ordering for transaction challenges to ensure we don't
 // accidentally navigate the user while they're in the middle of acting on a challenge.
@@ -93,9 +104,11 @@ function useNavigateTo3DSAuthorizationChallenge() {
         }
 
         Log.info('[useNavigateTo3DSAuthorizationChallenge] Effect triggered for transaction', undefined, {transactionID: transactionPending3DSReview.transactionID});
+        addBreadcrumb('Transaction detected in queue', {transactionID: transactionPending3DSReview.transactionID});
 
         if (isCurrentlyActingOn3DSChallenge) {
             Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - user is still acting on a challenge');
+            addBreadcrumb('Skipped - user in MFA flow', {transactionID: transactionPending3DSReview.transactionID});
             return;
         }
 
@@ -116,6 +129,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         // Do not navigate the user to the 3DS challenge if we can tell that they won't be able to complete it on this device
         if (!doesDeviceSupportAnAllowedAuthenticationMethod) {
             Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - device does not support an allowed authentication method');
+            addBreadcrumb('Skipped - device unsupported', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
             return;
         }
 
@@ -138,15 +152,18 @@ function useNavigateTo3DSAuthorizationChallenge() {
             // If we know that a challenge is no longer pending review, bail rather than showing the user the "already reviewed" outcome screen
             if (!challengeStillPendingReview) {
                 Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - challenge is no longer pending review');
+                addBreadcrumb('Skipped - already reviewed on another device', {transactionID: transactionPending3DSReview.transactionID}, 'warning');
                 return;
             }
 
             if (cancel) {
                 Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - effect was cleaned up while GetTransactionsPending3DSReview was in-flight');
+                addBreadcrumb('Skipped - effect cancelled', {transactionID: transactionPending3DSReview.transactionID});
                 return;
             }
 
             Log.info('[useNavigateTo3DSAuthorizationChallenge] Navigating!', undefined, {transactionID: transactionPending3DSReview.transactionID});
+            addBreadcrumb('Navigating to authorize transaction', {transactionID: transactionPending3DSReview.transactionID});
 
             // If the challenge is still valid, navigate the user to the AuthorizePage
             Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION.getRoute(transactionPending3DSReview.transactionID));
