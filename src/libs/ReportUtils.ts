@@ -4446,7 +4446,9 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
+    const shouldDisableTitleFieldForSubmitterInForwardedApproval =
+        isTitleField && isExpenseReport(report) && isReportOwner(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+    if (!isAdmin && (isReportSettled || isReportClosed || isApproved || shouldDisableTitleFieldForSubmitterInForwardedApproval)) {
         return true;
     }
 
