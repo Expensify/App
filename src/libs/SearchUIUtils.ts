@@ -1385,6 +1385,24 @@ function buildLastExportedActionByReportIDMap(data: OnyxTypes.SearchResults['dat
 }
 
 /**
+ * @private
+ * Checks which year flags should be shown for a single report entry.
+ * Shared by shouldShowYear and getReportSections to avoid duplicating the report date checking logic.
+ */
+function getReportYearFlags(
+    report: OnyxTypes.Report,
+    lastExportedActionByReportID: Map<string, OnyxTypes.ReportAction>,
+): {shouldShowYearCreated: boolean; shouldShowYearSubmitted: boolean; shouldShowYearApproved: boolean; shouldShowYearExported: boolean} {
+    const exportedAction = lastExportedActionByReportID.get(report.reportID);
+    return {
+        shouldShowYearCreated: !!report.created && DateUtils.doesDateBelongToAPastYear(report.created),
+        shouldShowYearSubmitted: !!report.submitted && DateUtils.doesDateBelongToAPastYear(report.submitted),
+        shouldShowYearApproved: !!report.approved && DateUtils.doesDateBelongToAPastYear(report.approved),
+        shouldShowYearExported: !!exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created),
+    };
+}
+
+/**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  * @param data - The search results data (array or object)
  * @param checkOnlyReports - When true and data is an object, only check report dates (skip transactions and report actions)
@@ -1487,22 +1505,11 @@ function shouldShowYear(
                 }
             }
         } else if (isReportEntry(key)) {
-            const item = data[key];
-
-            if (item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
-                result.shouldShowYearCreated = true;
-            }
-            if (item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
-                result.shouldShowYearSubmitted = true;
-            }
-            if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
-                result.shouldShowYearApproved = true;
-            }
-
-            const exportedAction = lastExportedActionByReportID.get(item.reportID);
-            if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
-                result.shouldShowYearExported = true;
-            }
+            const reportFlags = getReportYearFlags(data[key], lastExportedActionByReportID);
+            result.shouldShowYearCreated ||= reportFlags.shouldShowYearCreated;
+            result.shouldShowYearSubmitted ||= reportFlags.shouldShowYearSubmitted;
+            result.shouldShowYearApproved ||= reportFlags.shouldShowYearApproved;
+            result.shouldShowYearExported ||= reportFlags.shouldShowYearExported;
         }
 
         // Early exit if all flags are true
@@ -2189,29 +2196,23 @@ function getReportSections({
     // Build transactionsByReportID map and compute report-level year flags in a single pass,
     // eliminating the separate shouldShowYear(data, true) call and getTransactionsForReport O(R*N) scans.
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
-    let shouldShowYearCreatedReport = false;
-    let shouldShowYearSubmittedReport = false;
-    let shouldShowYearApprovedReport = false;
-    let shouldShowYearExportedReport = false;
+    const reportYearFlags: ShouldShowYearResult = {
+        shouldShowYearCreated: false,
+        shouldShowYearSubmitted: false,
+        shouldShowYearApproved: false,
+        shouldShowYearPosted: false,
+        shouldShowYearExported: false,
+    };
 
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
         (acc, key) => {
             if (isReportEntry(key)) {
                 acc.reportKeys.push(key);
-                const item = data[key];
-                if (!shouldShowYearCreatedReport && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
-                    shouldShowYearCreatedReport = true;
-                }
-                if (!shouldShowYearSubmittedReport && item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
-                    shouldShowYearSubmittedReport = true;
-                }
-                if (!shouldShowYearApprovedReport && item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
-                    shouldShowYearApprovedReport = true;
-                }
-                const exportedAction = lastExportedActionByReportID.get(item.reportID);
-                if (!shouldShowYearExportedReport && exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
-                    shouldShowYearExportedReport = true;
-                }
+                const reportFlags = getReportYearFlags(data[key], lastExportedActionByReportID);
+                reportYearFlags.shouldShowYearCreated ||= reportFlags.shouldShowYearCreated;
+                reportYearFlags.shouldShowYearSubmitted ||= reportFlags.shouldShowYearSubmitted;
+                reportYearFlags.shouldShowYearApproved ||= reportFlags.shouldShowYearApproved;
+                reportYearFlags.shouldShowYearExported ||= reportFlags.shouldShowYearExported;
             } else if (isTransactionEntry(key)) {
                 acc.transactionKeys.push(key);
                 const transaction = data[key];
@@ -2313,10 +2314,10 @@ function getReportSections({
                     transactions,
                     shouldShowStatusAsPending,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
-                    shouldShowYear: shouldShowYearCreatedReport,
-                    shouldShowYearSubmitted: shouldShowYearSubmittedReport,
-                    shouldShowYearApproved: shouldShowYearApprovedReport,
-                    shouldShowYearExported: shouldShowYearExportedReport,
+                    shouldShowYear: reportYearFlags.shouldShowYearCreated,
+                    shouldShowYearSubmitted: reportYearFlags.shouldShowYearSubmitted,
+                    shouldShowYearApproved: reportYearFlags.shouldShowYearApproved,
+                    shouldShowYearExported: reportYearFlags.shouldShowYearExported,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
