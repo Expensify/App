@@ -1,5 +1,5 @@
 type DeactivateTravelInvoicingParams = {
-    policyID: string;
+    readonly policyID: string;
 };
 
 export default DeactivateTravelInvoicingParams;

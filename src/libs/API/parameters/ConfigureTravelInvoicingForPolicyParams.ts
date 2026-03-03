@@ -1,6 +1,6 @@
 type ConfigureTravelInvoicingForPolicyParams = {
-    policyID: string;
-    settlementBankAccountID: number;
+    readonly policyID: string;
+    readonly settlementBankAccountID: number;
 };
 
 export default ConfigureTravelInvoicingForPolicyParams;

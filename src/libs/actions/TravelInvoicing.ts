@@ -251,7 +251,6 @@ function clearTravelInvoicingSettlementFrequencyErrors(workspaceAccountID: numbe
 
 /**
  * Enables Travel Invoicing for a policy with a settlement bank account.
- * Single API call that configures both the settlement account and enables the feature.
  */
 function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID: number, settlementBankAccountID: number) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
@@ -314,10 +313,6 @@ function configureTravelInvoicingForPolicy(policyID: string, workspaceAccountID:
     API.write(WRITE_COMMANDS.CONFIGURE_TRAVEL_INVOICING_FOR_POLICY, params, {optimisticData, successData, failureData});
 }
 
-/**
- * Disables Travel Invoicing for a workspace.
- * Sets isEnabled flag to false optimistically, backend confirms via onyx data.
- */
 function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number) {
     const cardSettingsKey = getTravelInvoicingCardSettingsKey(workspaceAccountID);
 
