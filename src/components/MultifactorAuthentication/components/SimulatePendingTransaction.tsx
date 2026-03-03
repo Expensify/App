@@ -87,7 +87,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
 
     const [merchant, setMerchant] = useState(() => MERCHANTS[generateRandomInt(0, MERCHANTS.length - 1)]);
     const [amount, setAmount] = useState(() => generateRandomInt(500, 100000));
-    const [currency, setCurrency] = useState<string>(CONST.CURRENCY.USD);
+    const [currency, setCurrency] = useState<string>(CONST.CURRENCY.GBP);
     const [delayMinutesText, setDelayMinutesText] = useState('0');
     const [expiryMinutesText, setExpiryMinutesText] = useState('8');
     const [simulatedOutcome, setSimulatedOutcome] = useState('');
@@ -135,6 +135,9 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     const displayAmount = convertToDisplayString(amount, currency);
 
     const simulateTransaction = () => {
+        if (effectiveCardID === undefined) {
+            return;
+        }
         const delaySeconds = Math.max(0, Math.round((parseFloat(delayMinutesText) || 0) * 60));
         const maxResponseTime = parseInt(expiryMinutesText, 10) || 8;
         simulateMarqeta3DSChallenge({
@@ -150,6 +153,9 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     };
 
     const runAllFlows = () => {
+        if (effectiveCardID === undefined) {
+            return;
+        }
         simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID});
         onClose();
     };
@@ -288,6 +294,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
 
                 <View style={styles.mv2}>
                     <Button
+                        isDisabled={effectiveCardID === undefined}
                         text="Run all flows"
                         onPress={runAllFlows}
                     />
@@ -300,6 +307,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         <FixedFooter style={[styles.flexRow, styles.gap4, styles.w100]}>
             <Button
                 success
+                isDisabled={effectiveCardID === undefined}
                 style={[styles.flex1]}
                 text="Simulate"
                 onPress={simulateTransaction}

@@ -4,7 +4,7 @@ type SimulateMarqeta3DSChallengeParams = {
     currency?: string;
     deliverAfterSeconds?: number;
     shouldRunAllFlows?: boolean;
-    cardID?: number;
+    cardID: number;
     simulatedOutcome?: string;
     maxResponseTime?: number;
 };
