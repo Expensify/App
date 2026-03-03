@@ -16,7 +16,7 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     const delegatorEmail = params.get('delegatorEmail');
 
     // If the email param matches what is stored in the session then we are
-    // definitely not logging in as a new user. If delegator email matches session email 
+    // definitely not logging in as a new user. If delegator email matches session email
     // it means that we are login in to another account as supportal user.
     if (paramsEmail === sessionEmail || delegatorEmail === sessionEmail) {
         return false;
@@ -31,7 +31,7 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
     if (linkedEmail === sessionEmail) {
         return false;
     }
-    
+
     // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
     // mangles the first query-param key), fall back to regex
     const linkedDelegatorEmail = getDelegatorEmailFromURL(transitionURL) ?? null;
