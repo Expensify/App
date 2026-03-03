@@ -6,7 +6,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
@@ -25,7 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal, translate as translateWithLocale} from './Localize';
+import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
@@ -851,7 +850,6 @@ function computeReportName(
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList, currentUserAccountID});
     }
 
-
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant({
             accountID: report?.ownerAccountID,
@@ -885,14 +883,11 @@ function computeReportName(
  * @param report
  * @param reportAttributesDerivedValue
  */
-function getReportName(
-    report?: Report,
-    reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports'],
-): string {
+function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
     if (!report || !report.reportID) {
         return '';
     }
-    return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? ''
+    return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
 }
 
 export {
