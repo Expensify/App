@@ -17,12 +17,13 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
     const isConfirmed = useRef(false);
+    const [discardConfirmed, setDiscardConfirmed] = useState(false);
 
     usePreventRemove(
-        hasUnsavedChanges || shouldNavigateBack,
+        (hasUnsavedChanges || shouldNavigateBack) && !discardConfirmed,
         useCallback((e) => {
             blockedNavigationAction.current = e.data.action;
-            navigateAfterInteraction(() => setIsVisible((prev) => !prev));
+            navigateAfterInteraction(() => setIsVisible(true));
         }, []),
     );
 
@@ -33,7 +34,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
      */
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
-            if (!hasUnsavedChanges) {
+            if (!hasUnsavedChanges || isConfirmed.current) {
                 return;
             }
             setShouldNavigateBack(true);
@@ -43,7 +44,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             }
             // Navigation.navigate() rerenders the current page and resets its states
             window.history.go(1);
-            navigateAfterInteraction(() => setIsVisible((prev) => !prev));
+            navigateAfterInteraction(() => setIsVisible(true));
         });
 
         return unsubscribe;
@@ -70,6 +71,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 isConfirmed.current = true;
+                setDiscardConfirmed(true);
                 setIsVisible(false);
             }}
             onCancel={() => {
@@ -79,7 +81,6 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
             }}
             onModalHide={() => {
                 if (isConfirmed.current) {
-                    isConfirmed.current = false;
                     setNavigationActionToMicrotaskQueue(navigateBack);
                 } else {
                     setShouldNavigateBack(false);
