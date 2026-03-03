@@ -787,7 +787,10 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const isWaitingForInitialLoad = !isOffline && !reportMetadata?.hasOnceLoadedReportActions;
+    // Using isLoadingInitialReportActions so that if the OpenReport API fails
+    // (which clears isLoadingInitialReportActions but never sets hasOnceLoadedReportActions),
+    // the skeleton resolves instead of being stuck forever.
+    const isWaitingForInitialLoad = !isOffline && !!reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions;
     const isOfflineWithIncompleteData = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
     const shouldShowSkeleton = isWaitingForInitialLoad || isOfflineWithIncompleteData;
 
