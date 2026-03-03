@@ -365,7 +365,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rate = customUnitRate?.rate ?? CONST.DEFAULT_NUMBER_ID;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 1;
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID;
     return amount * taxClaimablePercentage;
 }
 
