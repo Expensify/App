@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
@@ -354,7 +355,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
 
     // Certain filters' values are significant in deciding which search we are on, so we want to include
     // their value when computing the similarSearchHash
-    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
+    const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE]);
 
     const flatFilters = query.flatFilters
         .map((filter) => {
@@ -403,10 +404,17 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
-    return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => {
-        const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
-        return supportedFilter === filter || isReportFieldSupported;
-    });
+    const supportedTypeFilters = ALLOWED_TYPE_FILTERS[type];
+    if (!supportedTypeFilters) {
+        return false;
+    }
+    if (supportedTypeFilters.has(filter)) {
+        return true;
+    }
+    if (filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return supportedTypeFilters.has(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
+    }
+    return false;
 }
 
 /**
@@ -773,6 +781,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.HAS ||
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
+                    filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
@@ -837,6 +846,7 @@ function buildFilterFormValuesFromQuery(
     cardList: OnyxTypes.CardList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
+    exportedToFilterOptions?: string[],
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
@@ -903,6 +913,10 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE) {
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
             filtersForm[key as typeof filterKey] = filterValues;
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+            const allowedValues = new Set<string>(exportedToFilterOptions ?? []);
+            filtersForm[key as typeof filterKey] = filterValues.filter((value) => allowedValues.has(value));
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
@@ -1142,7 +1156,7 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1157,6 +1171,15 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return getPolicyNameWithFallback(filterValue, policies, reports);
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
+        }
+        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
+            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
+        }
+        return filterValue;
     }
     return filterValue;
 }
@@ -1195,9 +1218,9 @@ function getDisplayQueryFiltersForKey(
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1219,14 +1242,9 @@ function getDisplayQueryFiltersForKey(
         return queryFilter.reduce((acc, filter) => {
             const cardValue = filter.value.toString();
             const cardID = parseInt(cardValue, 10);
-
-            if (cardList?.[cardID]) {
-                if (Number.isNaN(cardID)) {
-                    acc.push({operator: filter.operator, value: cardID});
-                } else {
-                    acc.push({operator: filter.operator, value: getCardDescription(cardList?.[cardID], translate) || cardID});
-                }
-            }
+            const descriptionCandidate = Number.isNaN(cardID) ? undefined : getCardDescription(cardList?.[cardID], translate);
+            const cardDescription = descriptionCandidate === '' ? undefined : descriptionCandidate;
+            acc.push({operator: filter.operator, value: cardDescription ?? cardValue});
             return acc;
         }, [] as QueryFilter[]);
     }
@@ -1628,6 +1646,25 @@ function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
     return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
 }
 
+/**
+ * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
+ */
+function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+    const searchQuery = buildCannedSearchQuery({type});
+    const searchQueryJSON = buildSearchQueryJSON(searchQuery);
+    if (!searchQueryJSON) {
+        return;
+    }
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
+        value: {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            data,
+        },
+    };
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1652,4 +1689,5 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldSkipSuggestedSearchNavigation,
+    buildOptimisticSnapshotData,
 };
