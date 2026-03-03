@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import Navigation, {isMFAFlowScreen} from './Navigation';
 
 // We want predictable, stable ordering for transaction challenges to ensure we don't
@@ -99,12 +100,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        // Note: Importing AuthorizeTransaction in this file causes the browser to get stuck in an infinite reload loop
-        // Issue to fix this: https://github.com/Expensify/App/issues/83021
-        // TODO: when adding Passkey support, update this list and the switch below.
+        // TODO: when adding Passkey support, update the switch-case below.
         // Passkey issue: https://github.com/expensify/app/issues/79470
-        const allowedAuthenticationMethods = [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS];
-        const doesDeviceSupportAnAllowedAuthenticationMethod = allowedAuthenticationMethods.some((method) => {
+        const doesDeviceSupportAnAllowedAuthenticationMethod = AuthorizeTransaction.allowedAuthenticationMethods.some((method) => {
             switch (method) {
                 case CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS:
                     return doesDeviceSupportBiometrics();
