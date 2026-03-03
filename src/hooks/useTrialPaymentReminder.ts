@@ -72,7 +72,8 @@ function computeCurrentVariation(firstDayFreeTrial: string | undefined, lastDayF
         return null;
     }
 
-    for (const variation of TRIAL_REMINDER_VARIATIONS) {
+    for (let i = TRIAL_REMINDER_VARIATIONS.length - 1; i >= 0; i--) {
+        const variation = TRIAL_REMINDER_VARIATIONS[i];
         if (variation.dayOfTrial > 0 && variation.dayOfTrial <= currentTrialDay) {
             if (variation.variant === CONST.TRIAL_REMINDER_VARIANT.NEAR_END) {
                 const daysRemaining = Math.ceil(remainingSeconds / TWENTY_FOUR_HOURS_IN_SECONDS);
