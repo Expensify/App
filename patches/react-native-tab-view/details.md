@@ -34,3 +34,14 @@
 - Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
 - E/App issue: https://github.com/Expensify/App/issues/71913#issuecomment-3584103273
 - PR Introducing Patch: [#76586](https://github.com/Expensify/App/pull/76586)
+
+### [react-native-tab-view+4.1.0+004+fix-native-onTabSelect-on-mount.patch](react-native-tab-view+4.1.0+004+fix-native-onTabSelect-on-mount.patch)
+
+- Reason:
+    ```
+    This patch fixes an issue on iOS native where the `onTabSelect` callback was not being called on initial mount
+    in the PagerViewAdapter. This mirrors the web fix from patch 003 (PanResponderAdapter) and ensures the input
+    field is auto-focused when opening the Start Chat screen on iOS.
+    ```
+- Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
+- E/App issue: https://github.com/Expensify/App/issues/83010
