@@ -6184,6 +6184,36 @@ describe('SearchUIUtils', () => {
             // Should not show tag column because it's the empty tag value
             expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
         });
+
+        test('Should include COMMENTS column at the end in expense report view', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            // COMMENTS should be at the end
+            expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)).toBe(columns.length - 1);
+        });
+
+        test('Should not duplicate COMMENTS column when it would be auto-added', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
+
+            // COMMENTS should appear only once
+            const commentsCount = columns.filter((col) => col === CONST.SEARCH.TABLE_COLUMNS.COMMENTS).length;
+            expect(commentsCount).toBe(1);
+        });
     });
 
     describe('Test getCustomColumns', () => {
