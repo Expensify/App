@@ -139,7 +139,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
@@ -491,6 +491,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                                 ancestors,
                                                                 attachments: files,
                                                                 currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                                                                timezone: currentUserTimezone,
                                                             });
                                                         },
                                                     });
