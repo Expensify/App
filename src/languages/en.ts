@@ -1067,6 +1067,19 @@ const translations = {
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
+        upcomingTravel: 'Upcoming travel',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Flight to ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train to ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Car rental in ${destination}`,
+            inOneWeek: 'In 1 week',
+            inDays: () => ({
+                one: 'In 1 day',
+                other: (count: number) => `In ${count} days`,
+            }),
+            today: 'Today',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',

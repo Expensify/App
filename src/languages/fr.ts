@@ -1046,6 +1046,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
         },
+        upcomingTravel: 'Voyages à venir',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vol vers ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train pour ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hôtel à ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Location de voiture à ${destination}`,
+            inOneWeek: 'Dans 1 semaine',
+            inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
+            today: 'Aujourd’hui',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

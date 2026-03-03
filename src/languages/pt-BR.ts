@@ -1040,6 +1040,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
+        upcomingTravel: 'Próximas viagens',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Voo para ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trem para ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel em ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Aluguel de carro em ${destination}`,
+            inOneWeek: 'Em 1 semana',
+            inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
+            today: 'Hoje',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
