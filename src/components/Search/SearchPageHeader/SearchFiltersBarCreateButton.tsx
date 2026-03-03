@@ -5,7 +5,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,12 +22,14 @@ import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
+import {openOldDotLink} from '@libs/actions/Link';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -40,6 +46,7 @@ function SearchFiltersBarCreateButton() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const groupPaidPoliciesWithChatEnabledSelector = useCallback((policies: OnyxCollection<OnyxTypes.Policy>) => groupPaidPoliciesWithExpenseChatEnabledSelector(policies, email), [email]);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPaidPoliciesWithChatEnabledSelector}, [email]);
@@ -51,6 +58,11 @@ function SearchFiltersBarCreateButton() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
+    const {showConfirmModal} = useConfirmModal();
+
+    const shouldRedirectToExpensifyClassic = useMemo(() => {
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+    }, [allPolicies]);
 
     const defaultChatEnabledPolicy = useMemo(
         () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
@@ -58,8 +70,53 @@ function SearchFiltersBarCreateButton() {
     );
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const reportID = useMemo(() => generateReportID(), []);
-    const transactionID = useMemo(() => generateReportID(), []);
+    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
+    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
+
+    const showRedirectToExpensifyClassicModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
+            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action === ModalActions.CONFIRM) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        }
+    }, [showConfirmModal, translate]);
+
+    const handleCreateWorkspaceReport = useCallback(
+        (shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!defaultChatEnabledPolicy?.id) {
+                return;
+            }
+
+            const {reportID: createdReportID} = createNewReport(
+                currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                defaultChatEnabledPolicy,
+                allBetas,
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(
+                    isSearchTopmostFullScreenRoute()
+                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
+                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                );
+            });
+        },
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+    );
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
+    });
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
     const showCreateMenu = useCallback(() => {
@@ -98,14 +155,21 @@ function SearchFiltersBarCreateButton() {
                 text: translate('report.newReport.createReport'),
                 onSelected: () =>
                     interceptAnonymousUser(() => {
+                        if (shouldRedirectToExpensifyClassic) {
+                            showRedirectToExpensifyClassicModal();
+                            return;
+                        }
+
                         // No valid policy at all → upgrade + create workspace flow
                         if (shouldNavigateToUpgradePath) {
+                            const freshReportID = generateReportID();
+                            const freshTransactionID = generateReportID();
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action: CONST.IOU.ACTION.CREATE,
                                     iouType: CONST.IOU.TYPE.CREATE,
-                                    transactionID,
-                                    reportID,
+                                    transactionID: freshTransactionID,
+                                    reportID: freshReportID,
                                     upgradePath: CONST.UPGRADE_PATHS.REPORTS,
                                 }),
                             );
@@ -122,10 +186,12 @@ function SearchFiltersBarCreateButton() {
 
                         // Default workspace is not restricted → create report directly
                         if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                            const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicy, allBetas);
-                            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                            });
+                            // Check if empty report confirmation should be shown
+                            if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
+                                openCreateReportConfirmation();
+                            } else {
+                                handleCreateWorkspaceReport(false);
+                            }
                             return;
                         }
 
@@ -133,25 +199,23 @@ function SearchFiltersBarCreateButton() {
                     }),
             },
         ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             translate,
             expensifyIcons,
+            shouldRedirectToExpensifyClassic,
+            showRedirectToExpensifyClassicModal,
             shouldNavigateToUpgradePath,
             groupPoliciesWithChatEnabled.length,
-            transactionID,
-            reportID,
             defaultChatEnabledPolicyID,
-            defaultChatEnabledPolicy,
-            currentUserPersonalDetails,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            allBetas,
+            shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
+            openCreateReportConfirmation,
+            handleCreateWorkspaceReport,
         ],
     );
 
     return (
         <View style={[styles.pr5, styles.searchFiltersBarCreateButton]}>
+            {CreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 isVisible={isCreateMenuActive}
