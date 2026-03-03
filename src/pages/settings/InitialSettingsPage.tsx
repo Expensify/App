@@ -89,9 +89,9 @@ type MenuData = WithSentryLabel & {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
-    badgeSuccess?: boolean;
-    badgeStrong?: boolean;
-    badgeCondensed?: boolean;
+    isBadgeSuccess?: boolean;
+    isBadgeStrong?: boolean;
+    isBadgeCondensed?: boolean;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -296,8 +296,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,
-            badgeSuccess: !!freeTrialText,
-            badgeCondensed: !!freeTrialText,
+            isBadgeSuccess: !!freeTrialText,
+            isBadgeCondensed: !!freeTrialText,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
         });
@@ -460,9 +460,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             iconStyles={item.iconStyles}
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
-                            badgeSuccess={item.badgeSuccess}
-                            badgeStrong={item.badgeStrong}
-                            badgeCondensed={item.badgeCondensed}
+                            isBadgeSuccess={item.isBadgeSuccess}
+                            isBadgeStrong={item.isBadgeStrong}
+                            isBadgeCondensed={item.isBadgeCondensed}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
                             shouldStackHorizontally={item.shouldStackHorizontally}

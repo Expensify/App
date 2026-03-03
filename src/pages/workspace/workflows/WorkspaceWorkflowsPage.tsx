@@ -410,7 +410,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
                                     badgeIcon={isAccountInSetupState ? expensifyIcons.DotIndicator : undefined}
-                                    badgeSuccess={isAccountInSetupState ? true : undefined}
+                                    isBadgeSuccess={isAccountInSetupState ? true : undefined}
                                     shouldShowRightIcon
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}

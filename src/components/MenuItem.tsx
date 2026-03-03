@@ -85,13 +85,13 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         badgeIcon?: IconAsset;
 
         /** Whether the badge should be shown as success */
-        badgeSuccess?: boolean;
+        isBadgeSuccess?: boolean;
 
         /** Whether the badge should use strong (filled) variant */
-        badgeStrong?: boolean;
+        isBadgeStrong?: boolean;
 
         /** Whether the badge should use condensed (smaller) sizing */
-        badgeCondensed?: boolean;
+        isBadgeCondensed?: boolean;
 
         /** Callback to fire when the badge is pressed */
         onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
@@ -457,9 +457,9 @@ function MenuItem({
     onPress,
     badgeText,
     badgeIcon,
-    badgeSuccess,
-    badgeStrong,
-    badgeCondensed,
+    isBadgeSuccess,
+    isBadgeStrong,
+    isBadgeCondensed,
     onBadgePress,
     shouldShowBadgeInSeparateRow = false,
     shouldShowBadgeBelow = false,
@@ -993,11 +993,11 @@ function MenuItem({
                                                                     styles.alignSelfStart,
                                                                     styles.ml3,
                                                                     styles.mt2,
-                                                                    focused && !badgeSuccess && styles.badgeDefaultActive,
+                                                                    focused && !isBadgeSuccess && styles.badgeDefaultActive,
                                                                 ]}
-                                                                success={badgeSuccess}
-                                                                isStrong={badgeStrong}
-                                                                isCondensed={badgeCondensed}
+                                                                success={isBadgeSuccess}
+                                                                isStrong={isBadgeStrong}
+                                                                isCondensed={isBadgeCondensed}
                                                                 onPress={onBadgePress}
                                                                 pressable={!!onBadgePress}
                                                             />
@@ -1012,10 +1012,10 @@ function MenuItem({
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
-                                                        badgeStyles={[badgeStyle, focused && !badgeSuccess && styles.badgeDefaultActive]}
-                                                        success={badgeSuccess}
-                                                        isStrong={badgeStrong}
-                                                        isCondensed={badgeCondensed}
+                                                        badgeStyles={[badgeStyle, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                        success={isBadgeSuccess}
+                                                        isStrong={isBadgeStrong}
+                                                        isCondensed={isBadgeCondensed}
                                                         onPress={onBadgePress}
                                                         pressable={!!onBadgePress}
                                                     />
@@ -1112,10 +1112,10 @@ function MenuItem({
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
-                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && !badgeSuccess && styles.badgeDefaultActive]}
-                                                success={badgeSuccess}
-                                                isStrong={badgeStrong}
-                                                isCondensed={badgeCondensed}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2, focused && !isBadgeSuccess && styles.badgeDefaultActive]}
+                                                success={isBadgeSuccess}
+                                                isStrong={isBadgeStrong}
+                                                isCondensed={isBadgeCondensed}
                                                 onPress={onBadgePress}
                                                 pressable={!!onBadgePress}
                                             />
