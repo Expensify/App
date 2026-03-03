@@ -20,6 +20,7 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import DateUtils from '@libs/DateUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
@@ -130,6 +131,12 @@ function useReceiptScan({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
+        startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
+            name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
+            op: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
+        });
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
