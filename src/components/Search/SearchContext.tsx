@@ -9,7 +9,7 @@ import useTodos from '@hooks/useTodos';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
@@ -81,11 +81,10 @@ const SearchActionsContext = React.createContext<SearchActionsContextValue>(defa
 function SearchContextProvider({children, params}: SearchContextProps) {
     const queryParam = params?.q;
     const rawQueryParam = params?.rawQuery;
-    const queryJSON = queryParam != null ? buildSearchQueryJSON(queryParam, rawQueryParam) : undefined;
+    const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
+    const currentSearchQueryJSON = useMemo(() => buildSearchQueryJSON(definedQueryParam, rawQueryParam), [definedQueryParam, rawQueryParam]);
 
     const areTransactionsEmpty = useRef(true);
-    const currentSearchQueryJSON = usePreviousDefined(queryJSON);
-
     const [lastSearchType, setLastSearchType] = useState<string>();
     const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
