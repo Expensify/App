@@ -1,5 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {useEffect, useMemo} from 'react';
+import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -10,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import Navigation, {isMFAFlowScreen} from './Navigation';
 
 // We want predictable, stable ordering for transaction challenges to ensure we don't
@@ -126,7 +126,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
             // the old value and react will run a second effect with the new value. Typescript doesn't know that Onyx treats the object as
             // immutable, so we must guard against transactionID becoming undefined again, even though we know it won't be.
             if (!transactionPending3DSReview?.transactionID) {
-                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - typeguard bail-out (should be impossible to reach)');
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - type guard bail-out (should be impossible to reach)');
                 return;
             }
 
