@@ -158,7 +158,7 @@ const restrictedImportPatterns = [
 ];
 
 const config = defineConfig([
-    expensifyConfig,
+    ...fixupConfigRules(expensifyConfig),
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
     ...fixupConfigRules(fileProgress.configs['recommended-ci']),
