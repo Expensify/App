@@ -12,22 +12,11 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type BankAccountVerificationViewProps = {
-    /** Current verification state from CONST.EXPENSIFY_CARD.VERIFICATION_STATE */
     verificationState: string;
-
-    /** Content to render when not in a verification state */
     children: React.ReactNode;
-
-    /** Callback for the VERIFIED state CTA button */
     onVerifiedButtonPress?: () => void;
-
-    /** Custom text for the VERIFIED state CTA button */
     verifiedButtonText?: string;
-
-    /** Custom title for the VERIFIED state */
     verifiedTitle?: string;
-
-    /** Custom subtitle for the VERIFIED state */
     verifiedSubtitle?: string;
 };
 
