@@ -11,8 +11,14 @@ import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports,
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
-import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, GetECardStatementPDFParams, OpenSearchPageParams, ReportExportParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import * as Browser from '@libs/Browser';
+import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
+import type EnvironmentType from '@libs/Environment/getEnvironment/types';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getCommandURL} from '@libs/ApiUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -73,6 +79,11 @@ import type {RejectMoneyRequestData} from './IOU';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {deleteAppReport, setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
+
+let searchEnvironment: EnvironmentType;
+getEnvironment().then((env) => {
+    searchEnvironment = env;
+});
 
 type OnyxSearchResponse = {
     data: [];
@@ -1480,6 +1491,53 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     Onyx.update(onyxUpdates);
 }
 
+function generateECardStatementPDF({startDate, endDate, policyID}: GetECardStatementPDFParams) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: true,
+            },
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.EXPENSIFY_CARD_STATEMENT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.EXPENSIFY_CARD_STATEMENT,
+            value: {
+                isGenerating: false,
+            },
+        },
+    ];
+
+    const parameters: GetECardStatementPDFParams = {startDate, endDate, policyID};
+
+    API.read(READ_COMMANDS.GET_ECARD_STATEMENT_PDF, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function downloadECardStatementPDF(fileName: string, startDate: string, endDate: string, translate: LocalizedTranslate, currentUserLogin: string, encryptedAuthToken: string) {
+    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(searchEnvironment));
+    const downloadFileName = `Expensify Card Statement ${startDate} to ${endDate}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=statement&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
+        currentUserLogin,
+    )}`;
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari());
+}
+
 export {
     saveSearch,
     search,
@@ -1508,6 +1566,8 @@ export {
     handleBulkPayItemSelected,
     isCurrencySupportWalletBulkPay,
     getExportTemplates,
+    generateECardStatementPDF,
+    downloadECardStatementPDF,
     getReportType,
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,

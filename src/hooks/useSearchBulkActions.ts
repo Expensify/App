@@ -14,7 +14,9 @@ import {deleteAppReport, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSu
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
+    downloadECardStatementPDF,
     exportSearchItemsToCSV,
+    generateECardStatementPDF,
     getExportTemplates,
     getLastPolicyBankAccountID,
     getLastPolicyPaymentMethod,
@@ -60,6 +62,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePrevious from './usePrevious';
 import usePermissions from './usePermissions';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
@@ -118,10 +121,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
+    // Expensify Card statement PDF generation
+    const [expensifyCardStatement] = useOnyx(ONYXKEYS.EXPENSIFY_CARD_STATEMENT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isCardStatementGenerating = expensifyCardStatement?.isGenerating ?? false;
+    const prevIsCardStatementGenerating = usePrevious(isCardStatementGenerating);
+    const pendingCardStatementRef = useRef<{startDate: string; endDate: string} | null>(null);
+
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Export',
         'Table',
+        'Download',
         'DocumentMerge',
         'Send',
         'Trashcan',
@@ -343,6 +354,49 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectAllMatchingItems,
     ]);
+
+    const handleDownloadECardStatementPDF = useCallback(() => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const withdrawnFilters = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN)?.filters;
+        const startDate = withdrawnFilters?.find((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO)?.value;
+        const endDate = withdrawnFilters?.find((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO)?.value;
+
+        if (!startDate || !endDate) {
+            return;
+        }
+
+        const policyID = selectedPolicyIDs.at(0) ?? '';
+
+        pendingCardStatementRef.current = {startDate: String(startDate), endDate: String(endDate)};
+        generateECardStatementPDF({startDate: String(startDate), endDate: String(endDate), policyID});
+    }, [isOffline, queryJSON, selectedPolicyIDs]);
+
+    // Auto-download the card statement PDF when generation completes
+    useEffect(() => {
+        if (!prevIsCardStatementGenerating || isCardStatementGenerating) {
+            return;
+        }
+
+        if (!pendingCardStatementRef.current) {
+            return;
+        }
+
+        const {startDate, endDate} = pendingCardStatementRef.current;
+
+        // Find the filename in the Onyx data by matching the date suffix
+        const matchingKey = Object.keys(expensifyCardStatement ?? {}).find((key) => key !== 'isGenerating' && key.endsWith(`_${startDate}_${endDate}`));
+
+        if (matchingKey && typeof expensifyCardStatement?.[matchingKey] === 'string') {
+            const fileName = expensifyCardStatement[matchingKey] as string;
+            downloadECardStatementPDF(fileName, startDate, endDate, translate, session?.email ?? '', session?.encryptedAuthToken ?? '');
+        }
+
+        pendingCardStatementRef.current = null;
+    }, [prevIsCardStatementGenerating, isCardStatementGenerating, expensifyCardStatement, translate, session]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
@@ -703,6 +757,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     description: template.description,
                     onSelected: () => {
                         beginExportWithTemplate(template.templateName, template.type, template.policyID);
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
+            }
+
+            // Show "Download as PDF" option for Expensify Card reconciliation (withdrawal-id grouped, expensify-card type)
+            const isWithdrawalIDGrouped = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+            const withdrawalTypeFilter = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE)?.filters;
+            const isExpensifyCardWithdrawal = withdrawalTypeFilter?.some((f) => f.value === CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD);
+
+            if (isWithdrawalIDGrouped && isExpensifyCardWithdrawal) {
+                exportOptions.push({
+                    text: translate('common.downloadAsPDF'),
+                    icon: expensifyIcons.Download,
+                    onSelected: () => {
+                        handleDownloadECardStatementPDF();
                     },
                     shouldCloseModalOnSelect: true,
                     shouldCallAfterModalHide: true,

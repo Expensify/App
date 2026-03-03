@@ -48,6 +48,7 @@ export type {default as GetReportPrivateNoteParams} from './GetReportPrivateNote
 export type {default as GetRouteParams} from './GetRouteParams';
 export type {default as CreateAppReportParams} from './CreateAppReportParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
+export type {default as GetECardStatementPDFParams} from './GetECardStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
 export type {default as LogOutParams} from './LogOutParams';
 export type {default as MakeDefaultPaymentMethodParams} from './MakeDefaultPaymentMethodParams';
