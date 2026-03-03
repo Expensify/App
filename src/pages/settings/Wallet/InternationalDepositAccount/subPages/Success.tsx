@@ -3,9 +3,9 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
-function Confirmation({onNext}: CustomSubStepProps) {
+function Confirmation({onNext}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
