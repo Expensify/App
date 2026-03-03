@@ -9,4 +9,5 @@ function enhanceStateWithHistory(state: PlatformStackNavigationState<ParamListBa
     };
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {enhanceStateWithHistory};
