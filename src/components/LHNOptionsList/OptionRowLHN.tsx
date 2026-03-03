@@ -109,10 +109,10 @@ function OptionRowLHN({
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
     // delegate's avatar as primary instead of the report owner's.
+    const skipDelegate = report?.type === CONST.REPORT.TYPE.CHAT || (optionItem?.isTaskReport && !report?.chatReportID);
     const icons = useMemo(() => {
         let result = optionItem?.icons ?? [];
-        const skipDelegateForTask = optionItem?.isTaskReport && !report?.chatReportID;
-        if (delegateAccountID && personalDetails && result.length > 0 && !skipDelegateForTask) {
+        if (!skipDelegate && delegateAccountID && personalDetails && result.length > 0) {
             const delegateDetails = personalDetails[delegateAccountID];
             if (delegateDetails) {
                 const updatedIcons = [...result];
@@ -130,7 +130,7 @@ function OptionRowLHN({
         }
 
         return result;
-    }, [optionItem?.icons, optionItem?.isTaskReport, report?.chatReportID, delegateAccountID, personalDetails]);
+    }, [optionItem?.icons, skipDelegate, delegateAccountID, personalDetails]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 

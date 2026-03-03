@@ -1835,7 +1835,6 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
     if (isPolicyExpenseChat(parentReport)) {
         return true;
     }
-    // Traverse through nested task reports to find a PEC ancestor
     if (isTaskReport(parentReport)) {
         return isWorkspaceTaskReport(parentReport);
     }

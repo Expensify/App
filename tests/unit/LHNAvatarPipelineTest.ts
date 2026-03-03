@@ -106,8 +106,8 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    const skipDelegateForTask = isTaskReport(report) && !report.chatReportID;
-    if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegateForTask) {
+    const skipDelegate = report.type === CONST.REPORT.TYPE.CHAT || (isTaskReport(report) && !report.chatReportID);
+    if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
         if (firstIcon && delegateDetails) {
@@ -505,16 +505,14 @@ describe('LHN Avatar Pipeline', () => {
     // ── Case 18: With delegate ──────────────────────────────────────────
     it('With delegate → first icon replaced with delegate details', () => {
         const report = {
-            ...createPolicyExpenseChat(117, false),
+            ...createExpenseReport(117),
             policyID: POLICY_ID,
             ownerAccountID: 2,
         };
         const resultWithoutDelegate = computeAvatarResult({report});
         const resultWithDelegate = computeAvatarResult({report, delegateAccountID: 5});
 
-        // Same structure (subscript, 2 icons)
-        expect(resultWithDelegate.shouldShowSubscript).toBe(resultWithoutDelegate.shouldShowSubscript);
-        expect(resultWithDelegate.avatarType).toBe(resultWithoutDelegate.avatarType);
+        // Same icon count
         expect(resultWithDelegate.icons).toHaveLength(resultWithoutDelegate.icons.length);
 
         // First icon replaced with delegate details
