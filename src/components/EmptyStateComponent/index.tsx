@@ -128,7 +128,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={[styles.flex1, style, singleButtonStyle]}
+                                            style={[styles.flex1, singleButtonStyle, style]}
                                         />
                                     ) : (
                                         <Button
@@ -139,7 +139,7 @@ function EmptyStateComponent({
                                             icon={icon}
                                             large
                                             isDisabled={isDisabled}
-                                            style={[styles.flex1, style, singleButtonStyle]}
+                                            style={[styles.flex1, singleButtonStyle, style]}
                                         />
                                     ),
                                 )}
