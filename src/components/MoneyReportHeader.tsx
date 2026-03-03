@@ -709,14 +709,17 @@ function MoneyReportHeader({
                 showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
+                if (skipAnimation) {
+                    clearSelectedTransactions(true);
+                }
             } else {
                 if (!skipAnimation) {
                     startApprovedAnimation();
                 }
                 approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
-            }
-            if (skipAnimation) {
-                clearSelectedTransactions(true);
+                if (skipAnimation) {
+                    clearSelectedTransactions(true);
+                }
             }
         },
         [
