@@ -347,6 +347,8 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
     );
 }
 
+export type {ConnectionNameExceptNetSuite};
+
 export {
     removePolicyConnection,
     updateManyPolicyConnectionConfigs,

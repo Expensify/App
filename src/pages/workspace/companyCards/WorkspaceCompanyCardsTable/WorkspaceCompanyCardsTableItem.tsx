@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
+import {formatMaskedCardName, getCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
@@ -184,7 +184,7 @@ function WorkspaceCompanyCardTableItem({
                                         numberOfLines={1}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre, !isAssigned && styles.cursorText]}
                                     >
-                                        {cardName}
+                                        {formatMaskedCardName(cardName)}
                                     </Text>
                                 </View>
                             )}
