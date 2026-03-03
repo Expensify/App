@@ -5,10 +5,12 @@ import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
-import {CartesianChart, Line, Scatter} from 'victory-native';
+import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
+import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
@@ -46,7 +48,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
 
     const yAxisDomain = useDynamicYDomain(data);
-
     const chartData = useMemo(() => {
         return data.map((point, index) => ({
             x: index,
@@ -283,65 +284,80 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     // Custom x-axis labels with hybrid positioning:
     // - At 0° (horizontal): center label under the point (like bar chart)
     // - At 45° (rotated): right-align so the last character is under the point
-    const renderCustomXLabels = useCallback(
+    const renderOutsideComponents = useCallback(
         (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-            if (!font) {
-                return null;
-            }
+            const fontMetrics = font?.getMetrics();
+            const ascent = fontMetrics ? Math.abs(fontMetrics.ascent) : 0;
+            const descent = fontMetrics ? Math.abs(fontMetrics.descent) : 0;
+            const labelY = fontMetrics ? args.chartBounds.bottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) : 0;
 
-            const fontMetrics = font.getMetrics();
-            const ascent = Math.abs(fontMetrics.ascent);
-            const descent = Math.abs(fontMetrics.descent);
-            const labelY = args.chartBounds.bottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
+            const xLabels = font
+                ? truncatedLabels.map((label, i) => {
+                      if (i % labelSkipInterval !== 0) {
+                          return null;
+                      }
 
-            return truncatedLabels.map((label, i) => {
-                if (i % labelSkipInterval !== 0) {
-                    return null;
-                }
+                      const tickX = args.xScale(i);
+                      const labelWidth = labelWidths.at(i) ?? 0;
 
-                const tickX = args.xScale(i);
-                const labelWidth = labelWidths.at(i) ?? 0;
+                      // At 0°: center the label under the point (like bar chart)
+                      // At 45°: right-align so the last character is under the point
+                      if (angleRad === 0) {
+                          return (
+                              <SkiaText
+                                  key={`x-label-${label}`}
+                                  x={tickX - labelWidth / 2}
+                                  y={labelY}
+                                  text={label}
+                                  font={font}
+                                  color={theme.textSupporting}
+                              />
+                          );
+                      }
 
-                // At 0°: center the label under the point (like bar chart)
-                // At 45°: right-align so the last character is under the point
-                if (angleRad === 0) {
-                    return (
-                        <SkiaText
-                            key={`x-label-${label}`}
-                            x={tickX - labelWidth / 2}
-                            y={labelY}
-                            text={label}
-                            font={font}
-                            color={theme.textSupporting}
-                        />
-                    );
-                }
+                      const textX = tickX - labelWidth; // right-aligned for rotated labels
+                      const origin = vec(tickX, labelY);
 
-                const textX = tickX - labelWidth; // right-aligned for rotated labels
-                const origin = vec(tickX, labelY);
+                      // Rotate around the anchor, then translate to correct for ascent/descent
+                      // asymmetry (ascent > descent shifts the visual center left of the anchor).
+                      const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
 
-                // Rotate around the anchor, then translate to correct for ascent/descent
-                // asymmetry (ascent > descent shifts the visual center left of the anchor).
-                const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
+                      return (
+                          <Group
+                              key={`x-label-${label}`}
+                              origin={origin}
+                              transform={[{translateX: correction}, {rotate: -angleRad}]}
+                          >
+                              <SkiaText
+                                  x={textX}
+                                  y={labelY}
+                                  text={label}
+                                  font={font}
+                                  color={theme.textSupporting}
+                              />
+                          </Group>
+                      );
+                  })
+                : null;
 
-                return (
-                    <Group
-                        key={`x-label-${label}`}
-                        origin={origin}
-                        transform={[{translateX: correction}, {rotate: -angleRad}]}
-                    >
-                        <SkiaText
-                            x={textX}
-                            y={labelY}
-                            text={label}
-                            font={font}
-                            color={theme.textSupporting}
-                        />
-                    </Group>
-                );
-            });
+            return (
+                <>
+                    <LeftFrameLine
+                        chartBounds={args.chartBounds}
+                        yTicks={args.yTicks}
+                        yScale={args.yScale}
+                        color={theme.border}
+                    />
+                    <ScatterPoints
+                        points={args.points.y}
+                        radius={DOT_RADIUS}
+                        color={DEFAULT_CHART_COLOR}
+                    />
+                    {xLabels}
+                </>
+            );
         },
-        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting],
+        [font, truncatedLabels, labelSkipInterval, labelWidths, angleRad, theme.textSupporting, theme.border],
     );
 
     const dynamicChartStyle = useMemo(
@@ -369,69 +385,59 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 title={title}
                 titleIcon={titleIcon}
             />
-            <GestureDetector gesture={hoverGesture}>
-                <View
-                    style={[styles.lineChartChartContainer, dynamicChartStyle]}
-                    onLayout={handleLayout}
-                >
-                    {chartWidth > 0 && (
-                        <CartesianChart
-                            xKey="x"
-                            padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
-                            yKeys={['y']}
-                            domainPadding={domainPadding}
-                            actionsRef={actionsRef}
-                            customGestures={customGestures}
-                            onChartBoundsChange={handleChartBoundsChange}
-                            onScaleChange={handleScaleChange}
-                            renderOutside={renderCustomXLabels}
-                            xAxis={{
-                                tickCount: data.length,
-                                lineWidth: X_AXIS_LINE_WIDTH,
-                            }}
-                            yAxis={[
-                                {
-                                    font,
-                                    labelColor: theme.textSupporting,
-                                    formatYLabel: formatValue,
-                                    tickCount: Y_AXIS_TICK_COUNT,
-                                    lineWidth: Y_AXIS_LINE_WIDTH,
-                                    lineColor: theme.border,
-                                    labelOffset: AXIS_LABEL_GAP,
-                                    domain: yAxisDomain,
-                                },
-                            ]}
-                            frame={{lineWidth: {left: 1, bottom: 1, top: 0, right: 0}, lineColor: theme.border}}
-                            data={chartData}
-                        >
-                            {({points}) => (
-                                <>
-                                    <Line
-                                        points={points.y}
-                                        color={DEFAULT_CHART_COLOR}
-                                        strokeWidth={2}
-                                        curveType="linear"
-                                    />
-                                    <Scatter
-                                        points={points.y}
-                                        radius={DOT_RADIUS}
-                                        color={DEFAULT_CHART_COLOR}
-                                    />
-                                </>
-                            )}
-                        </CartesianChart>
-                    )}
-                    {isTooltipActive && !!tooltipData && (
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                            chartWidth={chartWidth}
-                            initialTooltipPosition={initialTooltipPosition}
-                        />
-                    )}
-                </View>
-            </GestureDetector>
+            <View
+                style={[styles.lineChartChartContainer, dynamicChartStyle]}
+                onLayout={handleLayout}
+            >
+                {chartWidth > 0 && (
+                    <CartesianChart
+                        xKey="x"
+                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
+                        yKeys={['y']}
+                        domainPadding={domainPadding}
+                        actionsRef={actionsRef}
+                        customGestures={customGestures}
+                        onChartBoundsChange={handleChartBoundsChange}
+                        renderOutside={renderOutsideComponents}
+                        xAxis={{
+                            tickCount: data.length,
+                            lineWidth: X_AXIS_LINE_WIDTH,
+                        }}
+                        yAxis={[
+                            {
+                                font,
+                                labelColor: theme.textSupporting,
+                                formatYLabel: formatValue,
+                                tickCount: Y_AXIS_TICK_COUNT,
+                                lineWidth: Y_AXIS_LINE_WIDTH,
+                                lineColor: theme.border,
+                                labelOffset: AXIS_LABEL_GAP,
+                                domain: yAxisDomain,
+                            },
+                        ]}
+                        frame={{lineWidth: 0}}
+                        data={chartData}
+                    >
+                        {({points}) => (
+                            <Line
+                                points={points.y}
+                                color={DEFAULT_CHART_COLOR}
+                                strokeWidth={2}
+                                curveType="linear"
+                            />
+                        )}
+                    </CartesianChart>
+                )}
+                {isTooltipActive && !!tooltipData && (
+                    <ChartTooltip
+                        label={tooltipData.label}
+                        amount={tooltipData.amount}
+                        percentage={tooltipData.percentage}
+                        chartWidth={chartWidth}
+                        initialTooltipPosition={initialTooltipPosition}
+                    />
+                )}
+            </View>
         </View>
     );
 }
