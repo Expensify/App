@@ -71,7 +71,7 @@ type UseTransactionInlineEditReturn = {
      * Ref that should be written in onPressIn and checked in onPress to suppress
      * row navigation when a cell edit is being dismissed.
      */
-    wasEditingOnMouseDownRef: React.MutableRefObject<boolean>;
+    wasEditingOnMouseDownRef: React.RefObject<boolean>;
 };
 
 function useTransactionInlineEdit({

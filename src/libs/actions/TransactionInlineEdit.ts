@@ -296,7 +296,7 @@ function getTransactionEditPermissions(
     }
 
     // Approved or settled reports are locked — inline editing is not supported.
-    const reportIsLocked = isSettled(String(parentReport?.reportID ?? '')) || !!isReportIDApproved(String(parentReport?.reportID ?? ''));
+    const reportIsLocked = isSettled(parentReport?.reportID) || !!isReportIDApproved(parentReport?.reportID);
     if (reportIsLocked) {
         return noEdit;
     }
