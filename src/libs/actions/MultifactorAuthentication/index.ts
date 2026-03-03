@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
-import type {DenyTransactionParams} from '@libs/API/parameters';
+import type {DenyTransactionParams, RevokeMultifactorAuthenticationCredentialsParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
@@ -189,7 +189,7 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
     }
 }
 
-async function revokeMultifactorAuthenticationCredentials(params?: {onlyKeyID?: string; exceptKeyID?: string}) {
+async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

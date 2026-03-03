@@ -279,6 +279,13 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     /**
      * Used to determine the action for a particular transaction under LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS Onyx key.
      */
+    REGISTRATION_STATUS: {
+        NEVER_REGISTERED: 'never',
+        NOT_REGISTERED: 'not_registered',
+        REGISTERED_OTHER_DEVICE: 'other_device',
+        REGISTERED_THIS_DEVICE: 'this_device',
+    },
+
     LOCALLY_PROCESSED_TRANSACTION_ACTION: {
         APPROVE: 'Approve',
         DENY: 'Deny',

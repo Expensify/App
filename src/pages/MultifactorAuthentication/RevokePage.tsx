@@ -18,6 +18,13 @@ import {openMultifactorAuthenticationRevokePage} from '@userActions/User';
 
 type ConfirmMode = 'thisDevice' | 'single' | 'multiple' | 'all';
 
+const confirmPromptKeys = {
+    thisDevice: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
+    single: 'multifactorAuthentication.revoke.confirmationPrompt',
+    multiple: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
+    all: 'multifactorAuthentication.revoke.confirmationPromptAll',
+} as const;
+
 /**
  * Revoke page for multifactor authentication (biometric/passkey) credentials.
  *
@@ -116,15 +123,9 @@ function MultifactorAuthenticationRevokePage() {
             setIsThisDeviceLoading(loading);
             setIsOtherDevicesLoading(loading);
         };
-        await executeRevoke(undefined, setLoading);
+        await executeRevoke({}, setLoading);
     }, [executeRevoke]);
 
-    const confirmPromptKeys = {
-        thisDevice: 'multifactorAuthentication.revoke.confirmationPromptThisDevice',
-        single: 'multifactorAuthentication.revoke.confirmationPrompt',
-        multiple: 'multifactorAuthentication.revoke.confirmationPromptMultiple',
-        all: 'multifactorAuthentication.revoke.confirmationPromptAll',
-    } as const;
     const confirmPromptKey = confirmPromptKeys[confirmMode];
 
     const otherDevicesConfirmMode = (): ConfirmMode => {

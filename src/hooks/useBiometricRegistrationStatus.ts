@@ -3,16 +3,13 @@
  * the server-known credential list.
  */
 import {useEffect, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
-const REGISTRATION_STATUS = {
-    NEVER_REGISTERED: 'never',
-    NOT_REGISTERED: 'not_registered',
-    REGISTERED_OTHER_DEVICE: 'other_device',
-    REGISTERED_THIS_DEVICE: 'this_device',
-} as const;
+const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
-type RegistrationStatus = (typeof REGISTRATION_STATUS)[keyof typeof REGISTRATION_STATUS];
+type RegistrationStatus = ValueOf<typeof REGISTRATION_STATUS>;
 
 type BiometricRegistrationStatus = {
     /** Public key stored locally on this device, or undefined if none exists */
@@ -37,22 +34,12 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
 
     useEffect(() => {
         let cancelled = false;
-
-        (async () => {
-            try {
-                const key = await getLocalPublicKey();
-                if (cancelled) {
-                    return;
-                }
-                setLocalPublicKey(key);
-            } catch {
-                if (cancelled) {
-                    return;
-                }
-                setLocalPublicKey(undefined);
+        getLocalPublicKey().then((key) => {
+            if (cancelled) {
+                return;
             }
-        })();
-
+            setLocalPublicKey(key);
+        });
         return () => {
             cancelled = true;
         };
