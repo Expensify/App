@@ -1,7 +1,7 @@
 import {CommonActions} from '@react-navigation/native';
 import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import addPushParamsRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension';
-import type {CustomHistoryEntry, HistoryStackNavigatorAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
+import type {CustomHistoryEntry, PushParamsRouterAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
 
@@ -30,9 +30,9 @@ const CONFIG_OPTIONS: RouterConfigOptions = {
     routeGetIdList: {},
 };
 
-function createMockRouterFactory(actionHandler?: (state: TestState, action: HistoryStackNavigatorAction) => TestState | null) {
+function createMockRouterFactory(actionHandler?: (state: TestState, action: PushParamsRouterAction) => TestState | null) {
     const mockRouterFactory = jest.fn((routerOptions: PlatformStackRouterOptions) => {
-        const baseRouter: Router<TestState, HistoryStackNavigatorAction> = {
+        const baseRouter: Router<TestState, PushParamsRouterAction> = {
             type: 'stack',
 
             getInitialState(configOptions: RouterConfigOptions): TestState {
@@ -59,7 +59,7 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Hist
                 return state;
             },
 
-            getStateForAction(state: TestState, action: HistoryStackNavigatorAction): TestState | null {
+            getStateForAction(state: TestState, action: PushParamsRouterAction): TestState | null {
                 if (actionHandler) {
                     return actionHandler(state, action);
                 }
@@ -128,7 +128,7 @@ describe('addPushParamsRouterExtension', () => {
             history: [{...route}] as CustomHistoryEntry[],
         });
 
-        const pushParamsAction: HistoryStackNavigatorAction = {
+        const pushParamsAction: PushParamsRouterAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {params: {q: 'updated'}},
         };
@@ -223,7 +223,7 @@ describe('addPushParamsRouterExtension', () => {
             ],
         });
 
-        const popAction: HistoryStackNavigatorAction = {type: 'POP', payload: {count: 1}};
+        const popAction: PushParamsRouterAction = {type: 'POP', payload: {count: 1}};
 
         const newState = enhancedRouter.getStateForAction(state, popAction, CONFIG_OPTIONS);
 
@@ -244,7 +244,7 @@ describe('addPushParamsRouterExtension', () => {
         ];
         const state = makeState([route], {history: originalHistory});
 
-        const setParamsAction: HistoryStackNavigatorAction = {
+        const setParamsAction: PushParamsRouterAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.SET_PARAMS,
             payload: {params: {q: 'v3'}},
         };
@@ -270,7 +270,7 @@ describe('addPushParamsRouterExtension', () => {
         ];
         const state = makeState([routeA, routeB], {history: originalHistory});
 
-        const resetAction: HistoryStackNavigatorAction = {
+        const resetAction: PushParamsRouterAction = {
             type: 'RESET',
             payload: {
                 routes: [{name: 'ScreenA', key: 'a-1'}],
@@ -297,7 +297,7 @@ describe('addPushParamsRouterExtension', () => {
             history: [{key: 'a-1', name: 'ScreenA'} as NavigationRoute<ParamListBase, string>],
         });
 
-        const navigateAction: HistoryStackNavigatorAction = {
+        const navigateAction: PushParamsRouterAction = {
             type: 'NAVIGATE',
             payload: {name: 'ScreenB'},
         };
@@ -321,7 +321,7 @@ describe('addPushParamsRouterExtension', () => {
             history: [{key: 'a-1', name: 'ScreenA'} as NavigationRoute<ParamListBase, string>],
         });
 
-        const navigateAction: HistoryStackNavigatorAction = {
+        const navigateAction: PushParamsRouterAction = {
             type: 'NAVIGATE',
             payload: {name: 'ScreenC'},
         };
@@ -353,7 +353,7 @@ describe('addPushParamsRouterExtension', () => {
             history: [{...route}] as CustomHistoryEntry[],
         });
 
-        const pushParamsAction: HistoryStackNavigatorAction = {
+        const pushParamsAction: PushParamsRouterAction = {
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {params: {q: 'updated'}},
         };

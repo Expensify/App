@@ -3,7 +3,7 @@ import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigO
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import type {CustomHistoryEntry, HistoryStackNavigatorAction, PushParamsActionType} from './types';
+import type {CustomHistoryEntry, PushParamsActionType, PushParamsRouterAction} from './types';
 import {enhanceStateWithHistory} from './utils';
 
 function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Array<{key?: string}>): CustomHistoryEntry[] {
@@ -11,19 +11,19 @@ function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Arra
     return oldHistory.filter((entry) => typeof entry === 'string' || remainingKeys.has(entry.key));
 }
 
-function isSetParamsAction(action: HistoryStackNavigatorAction): action is SetParamsAction {
+function isSetParamsAction(action: PushParamsRouterAction): action is SetParamsAction {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.SET_PARAMS;
 }
 
-function isPushParamsAction(action: HistoryStackNavigatorAction): action is PushParamsActionType {
+function isPushParamsAction(action: PushParamsRouterAction): action is PushParamsActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS;
 }
 
-function isGoBackAction(action: HistoryStackNavigatorAction): action is GoBackAction {
+function isGoBackAction(action: PushParamsRouterAction): action is GoBackAction {
     return action.type === 'GO_BACK';
 }
 
-function isPopAction(action: HistoryStackNavigatorAction): boolean {
+function isPopAction(action: PushParamsRouterAction): boolean {
     return action.type === 'POP';
 }
 
@@ -48,7 +48,7 @@ function isPopAction(action: HistoryStackNavigatorAction): boolean {
 function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
-    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, HistoryStackNavigatorAction> => {
+    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, PushParamsRouterAction> => {
         const router = originalRouter(options);
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
@@ -63,7 +63,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
 
         const getStateForAction = (
             state: PlatformStackNavigationState<ParamListBase>,
-            action: CommonActions.Action | StackActionType | HistoryStackNavigatorAction,
+            action: CommonActions.Action | StackActionType | PushParamsRouterAction,
             configOptions: RouterConfigOptions,
         ) => {
             if (isPushParamsAction(action)) {

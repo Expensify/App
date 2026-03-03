@@ -1,7 +1,6 @@
 import type {CommonActions, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType} from '@react-navigation/native';
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
-import type {HistoryStackNavigatorAction} from './types';
 import {enhanceStateWithHistory} from './utils';
 
 /**
@@ -12,7 +11,7 @@ import {enhanceStateWithHistory} from './utils';
  * This extension is intended only for the root stack navigator.
  */
 function addSidebarRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>) {
-    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, HistoryStackNavigatorAction> => {
+    return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, CommonActions.Action | StackActionType> => {
         const router = originalRouter(options);
 
         const getInitialState = (configOptions: RouterConfigOptions) => {
@@ -32,11 +31,7 @@ function addSidebarRouterExtension<RouterOptions extends PlatformStackRouterOpti
             return stateWithInitialHistory;
         };
 
-        const getStateForAction = (
-            state: PlatformStackNavigationState<ParamListBase>,
-            action: CommonActions.Action | StackActionType | HistoryStackNavigatorAction,
-            configOptions: RouterConfigOptions,
-        ) => {
+        const getStateForAction = (state: PlatformStackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) => {
             const newState = router.getStateForAction(state, action, configOptions);
 
             if (!newState) {

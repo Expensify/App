@@ -1,6 +1,6 @@
-import type {NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {CommonActions, NavigationRoute, ParamListBase, PartialState, Router, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import addSidebarRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addSidebarRouterExtension';
-import type {CustomHistoryEntry, HistoryStackNavigatorAction} from '@libs/Navigation/AppNavigator/routerExtensions/types';
+import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import CONST from '@src/CONST';
 
@@ -31,9 +31,11 @@ const CONFIG_OPTIONS: RouterConfigOptions = {
     routeGetIdList: {},
 };
 
-function createMockRouterFactory(actionHandler?: (state: TestState, action: HistoryStackNavigatorAction) => TestState | null) {
+type StackRouterAction = CommonActions.Action | StackActionType;
+
+function createMockRouterFactory(actionHandler?: (state: TestState, action: StackRouterAction) => TestState | null) {
     const mockRouterFactory = jest.fn((routerOptions: PlatformStackRouterOptions) => {
-        const baseRouter: Router<TestState, HistoryStackNavigatorAction> = {
+        const baseRouter: Router<TestState, StackRouterAction> = {
             type: 'stack',
 
             getInitialState(configOptions: RouterConfigOptions): TestState {
@@ -60,7 +62,7 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Hist
                 return state;
             },
 
-            getStateForAction(state: TestState, action: HistoryStackNavigatorAction): TestState | null {
+            getStateForAction(state: TestState, action: StackRouterAction): TestState | null {
                 if (actionHandler) {
                     return actionHandler(state, action);
                 }
@@ -164,7 +166,7 @@ describe('addSidebarRouterExtension', () => {
 
         const initialState = enhancedRouter.getInitialState(CONFIG_OPTIONS);
 
-        const navigateAction: HistoryStackNavigatorAction = {
+        const navigateAction: StackRouterAction = {
             type: 'NAVIGATE',
             payload: {name: 'ScreenB'},
         };
