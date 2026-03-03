@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Achternaam',
         scanning: 'Scannen',
         analyzing: 'Analyseren...',
+        thinking: 'Concierge denkt na...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
         phone: 'Telefoon',
@@ -550,6 +551,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Volg ons op Instagram',
         facebook: 'Volg ons op Facebook',
         linkedin: 'Volg ons op LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Redenering inklappen',
+        expandReasoning: 'Redenering uitklappen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
