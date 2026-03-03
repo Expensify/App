@@ -1,8 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
+import StatusBadge from '@components/StatusBadge';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportStatusColorStyle, getReportStatusTranslation} from '@libs/ReportUtils';
@@ -21,18 +20,10 @@ type StatusCellProps = {
 function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
-
-    const badgeStyles = useMemo(
-        () => [styles.ml0, styles.borderNone, StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent)],
-        [styles.ml0, styles.borderNone, StyleUtils, reportStatusColorStyle?.backgroundColor, theme.transparent],
-    );
-
-    const textStyles = useMemo(() => [StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)], [StyleUtils, reportStatusColorStyle?.textColor, theme.text]);
 
     if (!statusText || !reportStatusColorStyle) {
         return null;
@@ -40,11 +31,10 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
 
     return (
         <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
-            <Badge
+            <StatusBadge
                 text={statusText}
-                isCondensed
-                badgeStyles={badgeStyles}
-                textStyles={textStyles}
+                backgroundColor={reportStatusColorStyle.backgroundColor}
+                textColor={reportStatusColorStyle.textColor}
             />
         </View>
     );

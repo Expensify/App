@@ -8,7 +8,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
-import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -25,6 +24,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -851,16 +851,11 @@ function MoneyRequestReportPreviewContent({
                                                     (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                             {shouldShowReportStatus && (
-                                                                <Badge
+                                                                <StatusBadge
                                                                     text={reportStatus}
-                                                                    isCondensed
-                                                                    badgeStyles={[
-                                                                        styles.ml0,
-                                                                        styles.mr1,
-                                                                        styles.borderNone,
-                                                                        StyleUtils.getBackgroundColorStyle(reportStatusColorStyle?.backgroundColor ?? theme.transparent),
-                                                                    ]}
-                                                                    textStyles={[StyleUtils.getColorStyle((reportStatusColorStyle?.textColor ?? theme.text) as string)]}
+                                                                    backgroundColor={reportStatusColorStyle?.backgroundColor}
+                                                                    textColor={reportStatusColorStyle?.textColor}
+                                                                    badgeStyles={styles.mr1}
                                                                 />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}

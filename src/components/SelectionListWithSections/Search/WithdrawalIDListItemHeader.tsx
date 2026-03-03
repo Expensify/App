@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
+import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -84,11 +84,10 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
-        <Badge
+        <StatusBadge
             text={badgeProps.text}
-            isCondensed
-            badgeStyles={[styles.ml0, styles.borderNone, badgeProps.badgeStyles]}
-            textStyles={[badgeProps.textStyles]}
+            backgroundColor={badgeProps.badgeStyles.backgroundColor}
+            textColor={badgeProps.textStyles.color}
         />
     );
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
