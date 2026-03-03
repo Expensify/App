@@ -594,18 +594,13 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
         return cached;
     }
 
+    let result: string;
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
-        const result = CONST.COMPANY_CARDS.CARD_TYPE.CSV;
-        if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
-            getBankNameCache.clear();
-        }
-        getBankNameCache.set(cacheKey, result);
-        return result;
+        result = CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+    } else {
+        const feedKey = feedNamesMappingKeysByLength.find((feed) => feedType?.startsWith(feed));
+        result = feedKey ? feedNamesMapping[feedKey] : '';
     }
-
-    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = feedNamesMappingKeysByLength.find((feed) => feedType?.startsWith(feed));
-    const result = feedKey ? feedNamesMapping[feedKey] : '';
 
     if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
         getBankNameCache.clear();
