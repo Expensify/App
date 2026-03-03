@@ -262,9 +262,6 @@ import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<OnyxTypes.Policy>;
-
     /** The personal policy ID */
     personalPolicyID: string | undefined;
 
@@ -491,7 +488,6 @@ const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
 
 function PureReportActionItem({
-    policies,
     personalPolicyID,
     introSelected,
     allTransactionDrafts,
@@ -1232,7 +1228,6 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
-                    policies={policies}
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}

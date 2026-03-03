@@ -22,18 +22,15 @@ const maintainVisibleContentPosition: ScrollViewProps['maintainVisibleContentPos
 function DuplicateTransactionsList({transactions, onPreviewPressed}: DuplicateTransactionsListProps) {
     const styles = useThemeStyles();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
             <DuplicateTransactionItem
                 transaction={item}
                 index={index}
-                policies={policies}
                 onPreviewPressed={onPreviewPressed}
             />
         ),
-        [onPreviewPressed, policies],
+        [onPreviewPressed],
     );
 
     return (

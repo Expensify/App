@@ -18,14 +18,12 @@ import type {Policy, Transaction} from '@src/types/onyx';
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
     index: number;
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
     onPreviewPressed: (reportID: string) => void;
 };
 
 const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
 
-function DuplicateTransactionItem({transaction, index, policies, onPreviewPressed}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, index, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -69,7 +67,6 @@ function DuplicateTransactionItem({transaction, index, policies, onPreviewPresse
         <View style={styles.pb2}>
             <ReportActionItemContext.Provider value={contextValue}>
                 <ReportActionItem
-                    policies={policies}
                     action={action}
                     report={report}
                     parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}

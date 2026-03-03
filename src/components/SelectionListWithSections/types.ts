@@ -756,9 +756,6 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
-    /** The policies which the user has access to */
-    policies?: OnyxCollection<Policy>;
-
     /** The report data */
     report?: Report;
 

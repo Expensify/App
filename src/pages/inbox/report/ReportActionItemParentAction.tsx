@@ -28,8 +28,6 @@ import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
 
     /** All the data of the action item */
     action: ReportAction;
@@ -88,7 +86,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    policies,
     report,
     action,
     transactionThreadReport,
@@ -204,7 +201,6 @@ function ReportActionItemParentAction({
                                 />
                             )}
                             <ReportActionItem
-                                policies={policies}
                                 onPress={
                                     canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
