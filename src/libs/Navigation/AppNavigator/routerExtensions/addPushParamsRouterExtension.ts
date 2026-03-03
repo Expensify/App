@@ -4,6 +4,7 @@ import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformS
 import type {GoBackAction, SetParamsAction} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type {CustomHistoryEntry, HistoryStackNavigatorAction, PushParamsActionType} from './types';
+import {enhanceStateWithHistory} from './utils';
 
 function preserveHistoryForRoutes(oldHistory: CustomHistoryEntry[], routes: Array<{key?: string}>): CustomHistoryEntry[] {
     const remainingKeys = new Set(routes.map((r) => r.key));
@@ -27,9 +28,15 @@ function isPopAction(action: HistoryStackNavigatorAction): boolean {
 }
 
 /**
- * Higher-order function that extends the React Navigation stack router with custom history functionality.
+ * Higher-order function that extends a stack router with push-params history functionality.
  * It maintains a separate history stack of route snapshots that can diverge from the routes array,
  * enabling back-navigation through param changes (via PUSH_PARAMS) without requiring additional routes.
+ *
+ * This extension handles:
+ * - PUSH_PARAMS: sets params on the focused route and appends a snapshot to history
+ * - GO_BACK/POP: reverts params to the previous snapshot when surplus history exists for the same route
+ * - SET_PARAMS: preserves existing history unchanged
+ * - RESET: preserves history entries for routes that survive the reset
  *
  * TODO: Remove this custom history extension after upgrading to React Navigation 8,
  * which has built-in support for a PUSH_PARAMS-like action.
@@ -37,25 +44,13 @@ function isPopAction(action: HistoryStackNavigatorAction): boolean {
  * NOTE: The PUSH_PARAMS approach is heuristic and only works in the current setup for the
  * SearchFullscreenNavigator. It may break if new screens are added to that navigator or if
  * other structural changes are made to the navigation hierarchy.
- *
- * @param originalRouter - The original stack router function to be extended
- * @returns Enhanced router with custom history functionality
  */
-
-function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
+function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     originalRouter: PlatformStackRouterFactory<ParamListBase, RouterOptions>,
 ) {
     return (options: RouterOptions): Router<PlatformStackNavigationState<ParamListBase>, HistoryStackNavigatorAction> => {
         const router = originalRouter(options);
 
-        const enhanceStateWithHistory = (state: PlatformStackNavigationState<ParamListBase>) => {
-            return {
-                ...state,
-                history: state.routes.map((route) => ({...route})) as CustomHistoryEntry[],
-            };
-        };
-
-        // Override router methods to attach a history array (route snapshots) alongside routes.
         const getInitialState = (configOptions: RouterConfigOptions) => {
             const state = router.getInitialState(configOptions);
             return enhanceStateWithHistory(state);
@@ -63,15 +58,7 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
 
         const getRehydratedState = (partialState: PartialState<PlatformStackNavigationState<ParamListBase>>, configOptions: RouterConfigOptions) => {
             const state = router.getRehydratedState(partialState, configOptions);
-            const stateWithInitialHistory = enhanceStateWithHistory(state);
-
-            // Preserve the side panel custom history entry if it was present in the partial state.
-            if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
-                return stateWithInitialHistory;
-            }
-
-            return stateWithInitialHistory;
+            return enhanceStateWithHistory(state);
         };
 
         const getStateForAction = (
@@ -147,7 +134,6 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
 
             const newState = router.getStateForAction(state, action, configOptions);
 
-            // Action was not handled by the underlying router.
             if (!newState) {
                 return null;
             }
@@ -187,4 +173,4 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
     };
 }
 
-export default addCustomHistoryRouterExtension;
+export default addPushParamsRouterExtension;
