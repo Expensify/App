@@ -125,11 +125,22 @@ function MoneyRequestReportPreview({
     const isFocused = useIsFocused();
     // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
+    const transactionActionsByID = useMemo(() => {
+        const actionsByID = new Map<string, ReturnType<typeof getIOUActionForReportID>>();
+        transactions.forEach((transaction) => {
+            actionsByID.set(transaction.transactionID, getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+        });
+        return actionsByID;
+    }, [transactions, hasOnceLoadedReportActions]);
+    const transactionPreviewContainerStyles = useMemo(
+        () => [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
+        [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
+    );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
-            action={getIOUActionForReportID(item.reportID, item.transactionID)}
+            action={transactionActionsByID.get(item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
             isBillSplit={isSplitBillAction}
@@ -138,14 +149,13 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
+            containerStyles={transactionPreviewContainerStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
         />
     );
