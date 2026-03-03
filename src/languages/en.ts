@@ -212,6 +212,7 @@ const translations = {
         lastName: 'Last name',
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
+        thinking: 'Concierge is thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -570,6 +571,10 @@ const translations = {
         instagram: 'Follow us on Instagram',
         facebook: 'Follow us on Facebook',
         linkedin: 'Follow us on LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Collapse reasoning',
+        expandReasoning: 'Expand reasoning',
     },
     supportalNoAccess: {
         title: 'Not so fast',
