@@ -417,7 +417,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!replyInThreadAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={replyInThreadAction.text}
                             onPress={replyInThreadAction.onPress}
                             sentryLabel={replyInThreadAction.sentryLabel}
@@ -433,7 +432,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!markAsUnreadAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={markAsUnreadAction.text}
                             onPress={markAsUnreadAction.onPress}
                             sentryLabel={markAsUnreadAction.sentryLabel}
@@ -449,7 +447,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!explainAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={explainAction.text}
                             onPress={explainAction.onPress}
                             sentryLabel={explainAction.sentryLabel}
@@ -465,7 +462,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!editAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={editAction.text}
                             onPress={editAction.onPress}
                             sentryLabel={editAction.sentryLabel}
@@ -481,7 +477,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!unholdAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={unholdAction.text}
                             onPress={unholdAction.onPress}
                             sentryLabel={unholdAction.sentryLabel}
@@ -497,7 +492,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!holdAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={holdAction.text}
                             onPress={holdAction.onPress}
                             sentryLabel={holdAction.sentryLabel}
@@ -513,7 +507,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!joinThreadAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={joinThreadAction.text}
                             onPress={joinThreadAction.onPress}
                             sentryLabel={joinThreadAction.sentryLabel}
@@ -529,7 +522,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!leaveThreadAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={leaveThreadAction.text}
                             onPress={leaveThreadAction.onPress}
                             sentryLabel={leaveThreadAction.sentryLabel}
@@ -545,7 +537,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!copyMessageAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={copyMessageAction.text}
                             onPress={copyMessageAction.onPress}
                             sentryLabel={copyMessageAction.sentryLabel}
@@ -561,7 +552,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!copyLinkAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={copyLinkAction.text}
                             onPress={copyLinkAction.onPress}
                             sentryLabel={copyLinkAction.sentryLabel}
@@ -577,7 +567,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!flagAsOffensiveAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={flagAsOffensiveAction.text}
                             onPress={flagAsOffensiveAction.onPress}
                             sentryLabel={flagAsOffensiveAction.sentryLabel}
@@ -593,7 +582,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!downloadAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={downloadAction.text}
                             onPress={downloadAction.onPress}
                             sentryLabel={downloadAction.sentryLabel}
@@ -609,7 +597,6 @@ function MiniReportActionContextMenu() {
                     )}
                     {!!deleteAction && (
                         <MiniContextMenuItem
-                            isDelayButtonStateComplete
                             tooltipText={deleteAction.text}
                             onPress={deleteAction.onPress}
                             sentryLabel={deleteAction.sentryLabel}
@@ -626,7 +613,6 @@ function MiniReportActionContextMenu() {
                     {needsOverflow && (
                         <MiniContextMenuItem
                             ref={threeDotRef}
-                            isDelayButtonStateComplete
                             tooltipText={translate('reportActionContextMenu.menu')}
                             onPress={() =>
                                 interceptAnonymousUser(() => {

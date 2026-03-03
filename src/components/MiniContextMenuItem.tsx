@@ -32,7 +32,7 @@ type MiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Whether the button should be in the active state
      */
-    isDelayButtonStateComplete: boolean;
+    isDelayButtonStateComplete?: boolean;
     /**
      * Can be used to control the click event, and for example whether or not to lose focus from the composer when pressing the item
      */
