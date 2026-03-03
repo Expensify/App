@@ -2,7 +2,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as UserActions from '../../src/libs/actions/User';
@@ -576,6 +576,16 @@ describe('actions/User', () => {
                 isLoading: true,
                 errorFields: {},
             });
+        });
+    });
+
+    describe('openMultifactorAuthenticationRevokePage', () => {
+        it('should call API.read with the correct command', () => {
+            // When the function is called
+            UserActions.openMultifactorAuthenticationRevokePage();
+
+            // Then it should issue a read API call with the correct command
+            expect(mockAPI.read).toHaveBeenCalledWith(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
         });
     });
 });

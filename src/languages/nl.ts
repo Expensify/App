@@ -692,8 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nooit geregistreerd',
             statusNotRegistered: 'Niet geregistreerd',
-            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) =>
-                otherDeviceCount === 1 ? 'Een ander apparaat geregistreerd' : 'Andere apparaten geregistreerd',
+            statusRegisteredOtherDevice: () => ({one: 'Een ander apparaat geregistreerd', other: 'Andere apparaten geregistreerd'}),
             statusRegisteredThisDevice: 'Geregistreerd',
         },
         pleaseEnableInSystemSettings: {

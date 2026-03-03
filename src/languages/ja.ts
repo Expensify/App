@@ -692,7 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
-            statusRegisteredOtherDevice: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => (otherDeviceCount === 1 ? '他のデバイスが登録済み' : '他のデバイスが登録済み'),
+            statusRegisteredOtherDevice: () => ({one: '他のデバイスが登録済み', other: '他のデバイスが登録済み'}),
             statusRegisteredThisDevice: '登録済み',
         },
         pleaseEnableInSystemSettings: {
