@@ -62,8 +62,8 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePrevious from './usePrevious';
 import usePermissions from './usePermissions';
+import usePrevious from './usePrevious';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -391,12 +391,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const matchingKey = Object.keys(expensifyCardStatement ?? {}).find((key) => key !== 'isGenerating' && key.endsWith(`_${startDate}_${endDate}`));
 
         if (matchingKey && typeof expensifyCardStatement?.[matchingKey] === 'string') {
-            const fileName = expensifyCardStatement[matchingKey] as string;
+            const fileName = expensifyCardStatement[matchingKey];
             downloadECardStatementPDF(fileName, startDate, endDate, translate, session?.email ?? '', session?.encryptedAuthToken ?? '');
         }
 
         pendingCardStatementRef.current = null;
-    }, [prevIsCardStatementGenerating, isCardStatementGenerating, expensifyCardStatement, translate, session]);
+    }, [prevIsCardStatementGenerating, isCardStatementGenerating, expensifyCardStatement, translate, session?.email, session?.encryptedAuthToken]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
@@ -692,7 +692,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     );
 
     const onBulkPaySelectedRef = useRef(onBulkPaySelected);
-    onBulkPaySelectedRef.current = onBulkPaySelected;
+    useEffect(() => {
+        onBulkPaySelectedRef.current = onBulkPaySelected;
+    }, [onBulkPaySelected]);
     const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: Record<string, unknown>) => {
         onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
     }, []);
@@ -1070,6 +1072,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectedTransactions,
         queryJSON?.type,
+        queryJSON?.flatFilters,
+        queryJSON?.groupBy,
+        expensifyIcons.Download,
         expensifyIcons.Export,
         expensifyIcons.ArrowRight,
         expensifyIcons.Table,
@@ -1100,6 +1105,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleBasicExport,
         beginExportWithTemplate,
         handleApproveWithDEWCheck,
+        handleDownloadECardStatementPDF,
         allTransactionViolations,
         isDelegateAccessRestricted,
         dismissedRejectUseExplanation,

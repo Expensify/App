@@ -200,6 +200,7 @@
         "durationMillis",
         "e2edelta",
         "ecash",
+        "ECARD",
         "ecconnrefused",
         "econn",
         "EDIFACT",
