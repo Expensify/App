@@ -43,7 +43,6 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
@@ -128,6 +127,18 @@ type TranslationPathOrText = {
 };
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+
+/**
+ * Normalize the last four digits to always return 4 characters.
+ * If the number is shorter than 4 digits, it will be padded with X's.
+ */
+function formatLastFourPAN(lastFourPAN?: string): string {
+    if (lastFourPAN === undefined || lastFourPAN.length === 0) {
+        return '';
+    }
+    const digitsOnly = lastFourPAN.replaceAll(/\D/g, '');
+    return digitsOnly ? digitsOnly.slice(-4).padStart(4, 'X') : '';
+}
 
 function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
     return violations?.reduce((acc, violation) => {
@@ -289,11 +300,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -409,9 +416,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&
@@ -456,5 +461,6 @@ export {
     createTransactionPreviewConditionals,
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
+    formatLastFourPAN,
 };
 export type {TranslationPathOrText};
