@@ -67,6 +67,10 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+                if (!accountID) {
+                    return null;
+                }
+
                 const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
                 return {
@@ -118,6 +122,12 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
         }
 
         if (!selectedApprover?.login) {
+            return;
+        }
+
+        const policyMemberEmailsToAccountIDs = employeeList ? getMemberAccountIDsForWorkspace(employeeList) : {};
+        const selectedAccountID = Number(policyMemberEmailsToAccountIDs[selectedApprover.login] ?? '');
+        if (!selectedAccountID) {
             return;
         }
 
