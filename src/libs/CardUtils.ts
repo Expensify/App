@@ -20,6 +20,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
@@ -1071,6 +1072,21 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    if (feedCountry) {
+        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
+        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
+            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+        }
+    }
+
+    return cardSettings;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1376,6 +1392,7 @@ export {
     normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
+    getCardSettings,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
