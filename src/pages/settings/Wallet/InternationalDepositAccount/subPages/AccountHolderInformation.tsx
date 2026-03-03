@@ -10,7 +10,7 @@ import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
@@ -41,19 +41,19 @@ function getItems(field: CorpayFormField) {
     return (field.links?.[0]?.content.regions ?? []).map(({name, code}) => ({value: code, label: name}));
 }
 
-function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubStepProps) {
+function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]),
         onNext,
         shouldSaveDraft: isEditing,
     });
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION], translate);
+            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS], translate);
         },
         [fieldsMap, translate],
     );
@@ -89,7 +89,7 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION])
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS])
                     .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
                     .map((field, index) => (
                         <View
@@ -108,11 +108,11 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
                                 shouldSaveDraft={!isEditing}
                                 renamedInputKeys={{
-                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
-                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
-                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderCity) ? '' : 'accountHolderCity',
+                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
+                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
+                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderCity) ? '' : 'accountHolderCity',
                                     state: '',
-                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderPostal) ? '' : 'accountHolderPostal',
+                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderPostal) ? '' : 'accountHolderPostal',
                                     country: '',
                                     lat: '',
                                     lng: '',
