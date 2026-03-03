@@ -3343,6 +3343,7 @@ describe('SidebarUtils', () => {
         function callGetOptionData(report: Report, lastAction: ReportAction, policy?: Policy) {
             return SidebarUtils.getOptionData({
                 report,
+                chatReport: undefined,
                 reportAttributes: undefined,
                 reportNameValuePairs: {},
                 personalDetails: {},
