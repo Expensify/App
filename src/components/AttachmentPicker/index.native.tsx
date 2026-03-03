@@ -450,22 +450,26 @@ function AttachmentPicker({
     const selectItem = useCallback(
         (item: Item) => {
             onOpenPicker?.();
+            /* setTimeout delays execution to the frame after the modal closes
+             * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
-                item.pickAttachment()
-                    .catch((error: Error) => {
-                        if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
-                            return;
-                        }
+                setTimeout(() => {
+                    item.pickAttachment()
+                        .catch((error: Error) => {
+                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                                return;
+                            }
 
-                        showGeneralAlert(error.message);
-                        throw error;
-                    })
-                    .then((result) => pickAttachment(result))
-                    .catch(console.error)
-                    .finally(() => {
-                        onClosed.current();
-                        delete onModalHide.current;
-                    });
+                            showGeneralAlert(error.message);
+                            throw error;
+                        })
+                        .then((result) => pickAttachment(result))
+                        .catch(console.error)
+                        .finally(() => {
+                            onClosed.current();
+                            delete onModalHide.current;
+                        });
+                }, 200);
             };
             close();
         },
