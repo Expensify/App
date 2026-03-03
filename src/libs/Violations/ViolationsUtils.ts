@@ -129,6 +129,11 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
+        const tags = policyTagList[policyTagKeys[i]].tags;
+        const listHasEnabledTags = Object.values(tags).some((tag) => !!tag.enabled);
+        if (!listHasEnabledTags) {
+            continue;
+        }
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
         const isTagSelected = !!selectedTags.at(i);
         if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags.at(0) === ''))) {
@@ -145,13 +150,16 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
             },
         });
     } else {
-        const hasEnabledTagsInPolicy = Object.values(policyTagList).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.enabled));
         let hasInvalidTag = false;
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
+            const listHasEnabledTags = Object.values(tags).some((tag) => !!tag.enabled);
+            if (!listHasEnabledTags) {
+                continue;
+            }
             const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
-            if (!isTagInPolicy && selectedTag && hasEnabledTagsInPolicy) {
+            if (!isTagInPolicy && selectedTag) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
                     type: CONST.VIOLATION_TYPES.VIOLATION,
