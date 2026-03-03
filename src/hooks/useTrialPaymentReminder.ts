@@ -5,6 +5,7 @@ import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePay
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -97,7 +98,7 @@ function useTrialPaymentReminder() {
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [dismissedVariation] = useOnyx(ONYXKEYS.NVP_TRIAL_PAYMENT_REMINDER_DISMISSED);
+    const [dismissedVariation, dismissedVariationResult] = useOnyx(ONYXKEYS.NVP_TRIAL_PAYMENT_REMINDER_DISMISSED);
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -171,17 +172,17 @@ function useTrialPaymentReminder() {
         if (delayState !== DELAY_STATE.NO_DELAY) {
             return false;
         }
-        if (!currentVariation) {
+        if (isLoadingOnyxValue(dismissedVariationResult)) {
             return false;
         }
-        if (!dismissedVariation) {
+        if (!currentVariation) {
             return false;
         }
         if (dismissedVariation === currentVariation.id) {
             return false;
         }
         return true;
-    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, delayState, currentVariation, dismissedVariation]);
+    }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, delayState, currentVariation, dismissedVariation, dismissedVariationResult]);
 
     const dismiss = useCallback(() => {
         if (!currentVariation) {
