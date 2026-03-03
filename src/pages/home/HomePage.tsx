@@ -24,6 +24,7 @@ import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
+import UpcomingTravelSection from './UpcomingTravelSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -78,6 +79,7 @@ function HomePage() {
                             <DiscoverSection />
                         </View>
                         <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                            <UpcomingTravelSection />
                             <AssignedCardsSection />
                             <AnnouncementSection />
                         </View>
