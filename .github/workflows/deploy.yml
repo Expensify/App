@@ -156,6 +156,24 @@ jobs:
           VERSION: ${{ needs.prep.outputs.VERSION_CODE }}
           ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
 
+      - name: Warn deployers if Google Play upload failed
+        if: ${{ failure() }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                text: `⚠️ Android upload to Google Play <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|failed>. The signed build will be available on the <https://github.com/${{ github.repository }}/releases|GitHub release> for manual upload if needed.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   androidSubmit:
     name: Submit Android for production rollout
     needs: [prep, androidBuild, androidUploadGooglePlay]
@@ -664,8 +682,11 @@ jobs:
       - name: Determine platform results
         id: platformResults
         run: |
-          # Android: use submit result for production, upload result for staging.
+          # Android: use submit result for production, build result for staging.
           # On production cherry-picks, propagate build/upload failures that caused submit to be skipped.
+          # On staging, base the result on the build only — a Google Play upload failure should not
+          # prevent the GitHub release from being created or the build artifact from being uploaded.
+          # Google Play upload failures are reported separately via Slack notification.
           if [ "${{ github.ref }}" == "refs/heads/production" ]; then
             if [ "${{ needs.androidBuild.result }}" == "failure" ] || [ "${{ needs.androidUploadGooglePlay.result }}" == "failure" ]; then
               echo "ANDROID_RESULT=failure" >> "$GITHUB_OUTPUT"
@@ -675,7 +696,7 @@ jobs:
           elif [ "${{ needs.androidBuild.result }}" == "failure" ]; then
             echo "ANDROID_RESULT=failure" >> "$GITHUB_OUTPUT"
           else
-            echo "ANDROID_RESULT=${{ needs.androidUploadGooglePlay.result }}" >> "$GITHUB_OUTPUT"
+            echo "ANDROID_RESULT=${{ needs.androidBuild.result }}" >> "$GITHUB_OUTPUT"
           fi
 
           # iOS: use submit result for production, upload result for staging.
