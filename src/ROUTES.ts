@@ -282,20 +282,17 @@ const ROUTES = {
             page,
             subPage,
             action,
-            isComingFromExpensifyCard,
         }: {
             policyID?: string;
             page?: string;
             subPage?: string;
             action?: 'edit';
-            isComingFromExpensifyCard?: boolean;
         }) => {
             const base = 'bank-account/new/global';
             const pagePart = page ? `/${page}` : '';
             const subPagePart = subPage ? `/${subPage}` : '';
             const actionPart = action ? `/${action}` : '';
-            const queryParams = [policyID ? `policyID=${policyID}` : '', isComingFromExpensifyCard ? `isComingFromExpensifyCard=${isComingFromExpensifyCard}` : ''].filter(Boolean).join('&');
-            const queryString = queryParams ? `?${queryParams}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
             return `${base}${pagePart}${subPagePart}${actionPart}${queryString}` as const;
         },
     },

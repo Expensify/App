@@ -45,10 +45,11 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const policyID = route.params?.policyID;
     const currentPage = route.params?.page;
     const currentSubPage = route.params?.subPage;
-    const isComingFromExpensifyCard = route.params?.isComingFromExpensifyCard;
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const isComingFromExpensifyCard = reimbursementAccountDraft?.isComingFromExpensifyCard;
+
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''] ?? '';
     const isDocusignStepRequired = requiresDocusignStep(currency);
@@ -70,8 +71,8 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
             Navigation.goBack();
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName, isComingFromExpensifyCard}));
-    }, [currentPageIndex, isComingFromExpensifyCard, pages, policyID]);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName}));
+    }, [currentPageIndex, pages, policyID]);
 
     const onBackButtonPress = useCallback(() => {
         Navigation.goBack();

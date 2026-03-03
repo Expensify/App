@@ -56,6 +56,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {setDraftValues} from '@userActions/FormActions';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import getStartPageForContinueSetup from './NonUSD/utils/getStartPageForContinueSetup';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
@@ -351,7 +352,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
         const startPage = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage, isComingFromExpensifyCard}));
+        if (isComingFromExpensifyCard) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
+        }
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyIDParam ?? '', page: startPage}));
     };
 
     const goBack = useCallback(() => {
