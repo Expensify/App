@@ -221,6 +221,7 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
+import deleteReport from './DeleteReport';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportAction: ReportAction | undefined) => void;
 
@@ -3635,46 +3636,6 @@ function addPolicyReport(policyReport: OptimisticChatReport) {
     Navigation.dismissModalWithReport({reportID: policyReport.reportID});
 }
 
-/** Deletes a report, along with its reportActions, any linked reports, and any linked IOU report. */
-function deleteReport(reportID: string | undefined, shouldDeleteChildReports = false) {
-    if (!reportID) {
-        Log.warn('[Report] deleteReport called with no reportID');
-        return;
-    }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const onyxData: Record<string, null> = {
-        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    };
-
-    // Delete linked transactions
-    const reportActionsForReport = allReportActions?.[reportID];
-
-    const transactionIDs = Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
-        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
-
-    for (const transactionID of [...new Set(transactionIDs)]) {
-        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
-    }
-
-    Onyx.multiSet(onyxData);
-
-    if (shouldDeleteChildReports) {
-        for (const reportAction of Object.values(reportActionsForReport ?? {})) {
-            if (!reportAction.childReportID) {
-                continue;
-            }
-            deleteReport(reportAction.childReportID, shouldDeleteChildReports);
-        }
-    }
-
-    // Delete linked IOU report
-    if (report?.iouReportID) {
-        deleteReport(report.iouReportID, shouldDeleteChildReports);
-    }
-}
-
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
@@ -6951,7 +6912,6 @@ export {
     clearReportFieldKeyErrors,
     completeOnboarding,
     createNewReport,
-    deleteReport,
     deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
