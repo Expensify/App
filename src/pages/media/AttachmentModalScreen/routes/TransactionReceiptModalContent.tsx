@@ -45,7 +45,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -154,6 +154,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // When reloading during the creation flow, the draft transaction is not persisted.
+    // Instead of showing a not-found page, dismiss the modal and navigate home.
+    useEffect(() => {
+        if (!isDraftTransaction || transactionDraftResult.status !== 'loaded' || transactionDraft) {
+            return;
+        }
+        Navigation.dismissModal();
+    }, [isDraftTransaction, transactionDraft, transactionDraftResult.status]);
 
     useEffect(() => {
         if (!source || !isImage) {
