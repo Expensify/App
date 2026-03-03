@@ -1,5 +1,6 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,30 +29,26 @@ function SkeletonViewLines({numberOfRows, shouldAnimate = true}: SkeletonViewLin
                 cy="26"
                 r="20"
             />
-            <Rect
-                x="72"
-                y="11"
+            <SkeletonRect
+                transform={[{translateX: 72}, {translateY: 11}]}
                 width="20%"
                 height="8"
             />
-            <Rect
-                x="72"
-                y="31"
+            <SkeletonRect
+                transform={[{translateX: 72}, {translateY: 31}]}
                 width="100%"
                 height="8"
             />
             {numberOfRows > 1 && (
-                <Rect
-                    x="72"
-                    y="51"
+                <SkeletonRect
+                    transform={[{translateX: 72}, {translateY: 51}]}
                     width="50%"
                     height="8"
                 />
             )}
             {numberOfRows > 2 && (
-                <Rect
-                    x="72"
-                    y="71"
+                <SkeletonRect
+                    transform={[{translateX: 72}, {translateY: 71}]}
                     width="50%"
                     height="8"
                 />
