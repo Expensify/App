@@ -106,7 +106,6 @@ export default {
     CAPTURE_METRICS: get(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: get(Config, 'ONYX_METRICS', 'false') === 'true',
     DEV_PORT: process.env.PORT ?? 8082,
-    E2E_TESTING: get(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: get(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
     APPLE_SIGN_IN: {
@@ -128,11 +127,6 @@ export default {
                 ANDROID: '240677659774-86pov3adub93cv4b8uj13g7varolmk2l.apps.googleusercontent.com',
             },
         },
-    },
-    FIREBASE_WEB_CONFIG: {
-        apiKey: get(Config, 'FB_API_KEY', 'AIzaSyBrLKgCuo6Vem6Xi5RPokdumssW8HaWBow'),
-        appId: get(Config, 'FB_APP_ID', '1:1008697809946:web:ca25268d2645fc285445a3'),
-        projectId: get(Config, 'FB_PROJECT_ID', 'expensify-mobile-app'),
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,

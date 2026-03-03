@@ -30,12 +30,13 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [environmentUrl, setEnvironmentUrl] = useState<string | null>(null);
 
-    const currency = policy?.outputCurrency ?? '';
-    const country = mapCurrencyToCountry(currency);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const isPDSandFSGDownloaded = enterSignerInfoFormDraft?.[INPUT_IDS.DOWNLOADED_PDS_AND_FSG] ?? false;
     const [isPDSandFSGDownloadedTouched, setIsPDSandFSGDownloadedTouched] = useState<boolean>(false);

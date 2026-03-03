@@ -1,8 +1,8 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
 
 jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 400}));
 jest.mock('react-native-render-html', () => {

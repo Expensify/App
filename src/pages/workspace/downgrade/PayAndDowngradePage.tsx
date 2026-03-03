@@ -32,7 +32,7 @@ function PayAndDowngradePage() {
 
     const {translate} = useLocalize();
 
-    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS, {canBeMissing: true});
+    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
     const prevIsLoading = usePrevious(billingDetails?.isLoading);
 
     const errorMessage = billingDetails?.errors;
