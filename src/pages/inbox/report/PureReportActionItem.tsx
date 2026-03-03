@@ -2041,7 +2041,7 @@ function PureReportActionItem({
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
-                accessibilityRole={Platform.OS !== 'web' ? CONST.ROLE.BUTTON : undefined}
+                accessibilityRole={Platform.OS !== CONST.PLATFORM.WEB ? CONST.ROLE.BUTTON : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
