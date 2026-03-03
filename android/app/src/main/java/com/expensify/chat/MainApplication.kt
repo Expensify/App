@@ -26,6 +26,9 @@ import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
+    companion object {
+        private const val APP_START_TIME_PREFERENCES = "AppStartTime"
+    }
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
@@ -53,6 +56,10 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
+            .edit()
+            .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
+            .apply()
         ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)

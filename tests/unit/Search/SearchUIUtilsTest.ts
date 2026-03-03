@@ -1096,6 +1096,10 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: -5000,
+        totalDisplaySpend: 5000,
+        nonReimbursableSpend: -0,
+        reimbursableSpend: 5000,
+        isAllScanning: false,
         transactionCount: 1,
         transactions: [
             {
@@ -1202,6 +1206,10 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        totalDisplaySpend: 5000,
+        nonReimbursableSpend: -0,
+        reimbursableSpend: 5000,
+        isAllScanning: false,
         transactionCount: 1,
         transactions: [
             {
@@ -1307,6 +1315,10 @@ const transactionReportGroupListItems = [
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        totalDisplaySpend: 4400,
+        nonReimbursableSpend: 0,
+        reimbursableSpend: 4400,
+        isAllScanning: false,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1487,6 +1499,10 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: 0,
+        totalDisplaySpend: 0,
+        nonReimbursableSpend: 0,
+        reimbursableSpend: 0,
+        isAllScanning: false,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -3124,58 +3140,71 @@ describe('SearchUIUtils', () => {
             expect(result.end).toBe('2025-06-20');
         });
 
-        it('should intersect date preset with additional constraints instead of overwriting', () => {
-            // Test that when combining a date preset (EQUAL_TO) with additional constraints,
-            // we intersect the ranges (take max for start, min for end) rather than overwriting
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
-                        value: '2025-04-01', // Earlier than preset start
-                    },
-                ],
-            };
+        // These tests use LAST_MONTH date preset which resolves relative to the current date,
+        // so we freeze the clock to February 2026 to ensure LAST_MONTH always means January 2026.
+        describe('date preset intersection with frozen clock', () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-02-15T12:00:00Z'));
+            });
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+            afterEach(() => {
+                jest.useRealTimers();
+            });
 
-            // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
-            // The preset start should be preserved, not overwritten by the earlier constraint
-            expect(result.start).toBe('2026-01-01');
-            // End should remain the preset end (2026-01-31)
-            expect(result.end).toBe('2026-01-31');
-        });
+            it('should intersect date preset with additional constraints instead of overwriting', () => {
+                // Test that when combining a date preset (EQUAL_TO) with additional constraints,
+                // we intersect the ranges (take max for start, min for end) rather than overwriting
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                            value: '2025-04-01', // Earlier than preset start
+                        },
+                    ],
+                };
 
-        it('should intersect date preset end limit with additional constraints', () => {
-            // Test that when combining a date preset with an end constraint,
-            // we take the minimum (earliest) end date to intersect ranges
-            const yearDateRange = DateUtils.getYearDateRange(2026);
-            const dateFilter = {
-                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                filters: [
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // e.g., January 2026: 2026-01-01 to 2026-01-31
-                    },
-                    {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
-                        value: '2026-01-15', // Earlier than preset end
-                    },
-                ],
-            };
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
 
-            const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+                // Should intersect: max(preset start, constraint start) = max(2026-01-01, 2025-04-01) = 2026-01-01
+                // The preset start should be preserved, not overwritten by the earlier constraint
+                expect(result.start).toBe('2026-01-01');
+                // End should remain the preset end (2026-01-31)
+                expect(result.end).toBe('2026-01-31');
+            });
 
-            // Start should remain the preset start (2026-01-01)
-            expect(result.start).toBe('2026-01-01');
-            // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
-            // The constraint end should be used (earlier date)
-            expect(result.end).toBe('2026-01-15');
+            it('should intersect date preset end limit with additional constraints', () => {
+                // Test that when combining a date preset with an end constraint,
+                // we take the minimum (earliest) end date to intersect ranges
+                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const dateFilter = {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    filters: [
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            value: CONST.SEARCH.DATE_PRESETS.LAST_MONTH, // January 2026: 2026-01-01 to 2026-01-31
+                        },
+                        {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            value: '2026-01-15', // Earlier than preset end
+                        },
+                    ],
+                };
+
+                const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, [dateFilter]);
+
+                // Start should remain the preset start (2026-01-01)
+                expect(result.start).toBe('2026-01-01');
+                // Should intersect: min(preset end, constraint end) = min(2026-01-31, 2026-01-15) = 2026-01-15
+                // The constraint end should be used (earlier date)
+                expect(result.end).toBe('2026-01-15');
+            });
         });
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
@@ -4228,6 +4257,126 @@ describe('SearchUIUtils', () => {
                 expect(item.transactionsQueryJSON?.hash).toBeDefined();
                 expect(typeof item.transactionsQueryJSON?.hash).toBe('number');
             }
+        });
+
+        describe('getReportSections computed fields (totalDisplaySpend, nonReimbursableSpend, reimbursableSpend, isAllScanning)', () => {
+            const testReportID = 'spend-test-report';
+            const testTxID1 = 'spend-tx-1';
+            const testTxID2 = 'spend-tx-2';
+
+            function makeSpendTestData(reportOverrides: Partial<OnyxTypes.Report>, transactionOverrides: Array<{transactionID: string; overrides?: Partial<OnyxTypes.Transaction>}>) {
+                const baseData = {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${testReportID}`]: {
+                        ...report1,
+                        reportID: testReportID,
+                        transactionCount: transactionOverrides.length,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testReportID}`]: {},
+                };
+
+                for (const tx of transactionOverrides) {
+                    Object.assign(baseData, {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`]: {
+                            ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                            transactionID: tx.transactionID,
+                            reportID: testReportID,
+                            ...tx.overrides,
+                        },
+                    });
+                }
+
+                return baseData;
+            }
+
+            function getComputedFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === testReportID);
+                expect(item).toBeDefined();
+                return {
+                    totalDisplaySpend: item?.totalDisplaySpend,
+                    nonReimbursableSpend: item?.nonReimbursableSpend,
+                    reimbursableSpend: item?.reimbursableSpend,
+                    isAllScanning: item?.isAllScanning,
+                };
+            }
+
+            it('should compute spend breakdown for expense report with only reimbursable spend', () => {
+                const data = makeSpendTestData({total: -3000, nonReimbursableTotal: 0, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(3000);
+                expect(fields.reimbursableSpend).toBe(3000);
+                expect(fields.nonReimbursableSpend).toBe(-0);
+            });
+
+            it('should compute spend breakdown for expense report with mixed reimbursable and non-reimbursable spend', () => {
+                const data = makeSpendTestData({total: -5000, nonReimbursableTotal: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}, {transactionID: testTxID2}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(5000);
+                expect(fields.nonReimbursableSpend).toBe(2000);
+                expect(fields.reimbursableSpend).toBe(3000);
+            });
+
+            it('should compute spend breakdown for expense report with only non-reimbursable spend', () => {
+                const data = makeSpendTestData({total: -4000, nonReimbursableTotal: -4000, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(4000);
+                expect(fields.nonReimbursableSpend).toBe(4000);
+                expect(fields.reimbursableSpend).toBe(0);
+            });
+
+            it('should compute spend breakdown for IOU report (non-expense type)', () => {
+                const data = makeSpendTestData({total: 7500, nonReimbursableTotal: 2500, type: CONST.REPORT.TYPE.IOU}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(7500);
+                expect(fields.nonReimbursableSpend).toBe(2500);
+                expect(fields.reimbursableSpend).toBe(5000);
+            });
+
+            it('should return zero spend breakdown when total and nonReimbursableTotal are both 0', () => {
+                const data = makeSpendTestData({total: 0, nonReimbursableTotal: 0, type: CONST.REPORT.TYPE.EXPENSE}, [{transactionID: testTxID1}]);
+                const fields = getComputedFields(data);
+                expect(fields.totalDisplaySpend).toBe(0);
+                expect(fields.nonReimbursableSpend).toBe(0);
+                expect(fields.reimbursableSpend).toBe(0);
+            });
+
+            it('should set isAllScanning=true when all transactions are scanning', () => {
+                const scanningReceipt = {state: CONST.IOU.RECEIPT_STATE.SCANNING};
+                const data = makeSpendTestData({total: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [
+                    {transactionID: testTxID1, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                    {transactionID: testTxID2, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                ]);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(true);
+            });
+
+            it('should set isAllScanning=false when some transactions are not scanning', () => {
+                const scanningReceipt = {state: CONST.IOU.RECEIPT_STATE.SCANNING};
+                const data = makeSpendTestData({total: -2000, type: CONST.REPORT.TYPE.EXPENSE}, [
+                    {transactionID: testTxID1, overrides: {receipt: scanningReceipt, merchant: '', modifiedMerchant: ''}},
+                    {transactionID: testTxID2},
+                ]);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(false);
+            });
+
+            it('should set isAllScanning=false when there are no transactions', () => {
+                const data = makeSpendTestData({total: 0, transactionCount: 0, type: CONST.REPORT.TYPE.EXPENSE}, []);
+                const fields = getComputedFields(data);
+                expect(fields.isAllScanning).toBe(false);
+            });
         });
     });
 
@@ -5718,6 +5867,43 @@ describe('SearchUIUtils', () => {
             expect(searchQuery).toContain(`sortBy:${CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH}`);
             expect(searchQuery).toContain(`sortOrder:${CONST.SEARCH.SORT_ORDER.ASC}`);
         });
+
+        test('Should return Top Merchants search query with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQueryJSON = topMerchantsSearch.searchQueryJSON;
+
+            expect(searchQueryJSON).toBeDefined();
+            expect(searchQueryJSON?.view).toBe(CONST.SEARCH.VIEW.PIE);
+        });
+
+        test('Should return Top Merchants search query string with pie view', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+
+            expect(topMerchantsSearch).toBeDefined();
+            const searchQuery = topMerchantsSearch.searchQuery;
+
+            expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
+        });
+    });
+
+    describe('Test getSuggestedSearches sort defaults', () => {
+        test('Should default Top Categories to sortBy groupCategory and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topCategories = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES];
+            expect(topCategories.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(topCategories.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('Should default Top Merchants to sortBy groupMerchant and sortOrder asc', () => {
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID);
+            const topMerchants = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
+            expect(topMerchants.searchQueryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
+            expect(topMerchants.searchQueryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
     });
 
     describe('Test getColumnsToShow', () => {
@@ -6120,6 +6306,25 @@ describe('SearchUIUtils', () => {
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
+        });
+
+        test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            const childReportID = 'child-thread-456';
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
+            const iouActionWithChild = {
+                ...reportAction3,
+                childReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`, {
+                [iouActionWithChild.reportActionID]: iouActionWithChild,
+            });
+            await waitForBatchedUpdates();
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
 
         test('Should pass introSelected to createTransactionThreadReport when creating thread', () => {
@@ -6865,6 +7070,242 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
             expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+        });
+    });
+
+    describe('applySelectionToItem', () => {
+        // Minimal factories — only fields the function actually reads are required.
+        function makeTxn(key: string, opts: {isSelected?: boolean; pendingAction?: string} = {}): TransactionListItemType {
+            return {
+                keyForList: key,
+                isSelected: opts.isSelected,
+                pendingAction: opts.pendingAction,
+            } as unknown as TransactionListItemType;
+        }
+
+        function makeGroupItem(key: string, transactions: TransactionListItemType[], opts: {isSelected?: boolean; groupedBy?: string} = {}): TransactionGroupListItemType {
+            return {
+                keyForList: key,
+                isSelected: opts.isSelected,
+                transactions,
+                groupedBy: opts.groupedBy ?? CONST.SEARCH.DATA_TYPES.EXPENSE,
+            } as unknown as TransactionGroupListItemType;
+        }
+
+        function makeReportGroupItem(key: string, transactions: TransactionListItemType[], opts: {isSelected?: boolean} = {}): TransactionReportGroupListItemType {
+            return {
+                keyForList: key,
+                isSelected: opts.isSelected,
+                transactions,
+                groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            } as unknown as TransactionReportGroupListItemType;
+        }
+
+        function selectedMap(...keys: string[]): Record<string, SelectedTransactionInfo> {
+            return Object.fromEntries(keys.map((k) => [k, {isSelected: true} as SelectedTransactionInfo]));
+        }
+
+        // ─── Non-transaction items ────────────────────────────────────────────────
+
+        describe('non-transaction items (no transactions field)', () => {
+            test('canSelectMultiple=false: isSelected is always false', () => {
+                const item = makeTxn('t1', {isSelected: true}) as unknown as TransactionListItemType;
+                const result = SearchUIUtils.applySelectionToItem(item, false, selectedMap('t1'));
+                expect(result.isSelected).toBe(false);
+                expect(result.originalItem).toBe(item);
+                // item.isSelected was true → needs to flip, so a new object is created
+                expect(result.itemWithSelection).not.toBe(item);
+                expect(result.itemWithSelection.isSelected).toBe(false);
+            });
+
+            test('canSelectMultiple=false: already not selected → same reference returned', () => {
+                const item = makeTxn('t1', {isSelected: false}) as unknown as TransactionListItemType;
+                const result = SearchUIUtils.applySelectionToItem(item, false, selectedMap('t1'));
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('canSelectMultiple=true, key selected: isSelected=true and new object is returned', () => {
+                const item = makeTxn('t1');
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1'));
+                expect(result.isSelected).toBe(true);
+                expect(result.itemWithSelection).not.toBe(item);
+                expect(result.itemWithSelection.isSelected).toBe(true);
+                expect(result.originalItem).toBe(item);
+            });
+
+            test('canSelectMultiple=true, key not selected: isSelected=false and original reference is returned', () => {
+                const item = makeTxn('t1');
+                const result = SearchUIUtils.applySelectionToItem(item, true, {});
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('canSelectMultiple=true, already correctly marked: same reference returned (no unnecessary spread)', () => {
+                const item = makeTxn('t1', {isSelected: true});
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1'));
+                expect(result.isSelected).toBe(true);
+                expect(result.itemWithSelection).toBe(item);
+            });
+        });
+
+        // ─── Transaction group items — !canSelectMultiple ─────────────────────────
+
+        describe('transaction group items — canSelectMultiple=false', () => {
+            test('item.isSelected=false: same reference returned', () => {
+                const item = makeGroupItem('r1', [makeTxn('t1')], {isSelected: false});
+                const result = SearchUIUtils.applySelectionToItem(item, false, selectedMap('t1'));
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('item.isSelected=true: new object with isSelected:false is returned', () => {
+                const item = makeGroupItem('r1', [makeTxn('t1')], {isSelected: true});
+                const result = SearchUIUtils.applySelectionToItem(item, false, {});
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).not.toBe(item);
+                expect(result.itemWithSelection.isSelected).toBe(false);
+            });
+        });
+
+        // ─── Transaction group items — canSelectMultiple=true, empty transactions ─
+
+        describe('transaction group items — canSelectMultiple=true, empty transactions', () => {
+            test('non-report-grouped empty item: isSelected=false, same reference', () => {
+                const item = makeGroupItem('r1', [], {groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE});
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('r1'));
+                // isEmptyReportSelected is false (not EXPENSE_REPORT type), hasAnySelected=false
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('report-grouped empty item with key in selectedTransactions: isSelected=true, new object', () => {
+                const item = makeReportGroupItem('r1', [], {isSelected: false});
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('r1'));
+                expect(result.isSelected).toBe(true);
+                expect(result.itemWithSelection).not.toBe(item);
+                expect(result.itemWithSelection.isSelected).toBe(true);
+            });
+
+            test('report-grouped empty item already marked selected: same reference returned', () => {
+                const item = makeReportGroupItem('r1', [], {isSelected: true});
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('r1'));
+                expect(result.isSelected).toBe(true);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('report-grouped empty item with key NOT in selectedTransactions: isSelected=false, same reference', () => {
+                const item = makeReportGroupItem('r1', [], {isSelected: false});
+                const result = SearchUIUtils.applySelectionToItem(item, true, {});
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+        });
+
+        // ─── Transaction group items — canSelectMultiple=true, non-empty transactions
+
+        describe('transaction group items — canSelectMultiple=true, non-empty transactions', () => {
+            test('no transactions selected: isSelected=false, same item reference', () => {
+                const t1 = makeTxn('t1');
+                const t2 = makeTxn('t2');
+                const item = makeGroupItem('r1', [t1, t2]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, {});
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('partial selection (not all selected): isSelected=false, new item with updated transactions', () => {
+                const t1 = makeTxn('t1');
+                const t2 = makeTxn('t2');
+                const item = makeGroupItem('r1', [t1, t2]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1'));
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).not.toBe(item);
+                const withSel = result.itemWithSelection as TransactionGroupListItemType;
+                expect(withSel.transactions.at(0)?.isSelected).toBe(true);
+                // t2 unchanged — same reference kept, isSelected remains undefined (not explicitly false)
+                expect(withSel.transactions.at(1)).toBe(t2);
+                expect(withSel.transactions.at(1)?.isSelected).toBeFalsy();
+            });
+
+            test('all non-deleted selected: isSelected=true', () => {
+                const t1 = makeTxn('t1');
+                const t2 = makeTxn('t2');
+                const item = makeGroupItem('r1', [t1, t2]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1', 't2'));
+                expect(result.isSelected).toBe(true);
+                expect(result.itemWithSelection).not.toBe(item);
+                expect(result.itemWithSelection.isSelected).toBe(true);
+            });
+
+            test('all transactions have DELETE pending action: isSelected=false (no non-deleted transactions)', () => {
+                const t1 = makeTxn('t1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                const t2 = makeTxn('t2', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                const item = makeGroupItem('r1', [t1, t2]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1', 't2'));
+                expect(result.isSelected).toBe(false);
+            });
+
+            test('report isSelected flips but no transaction selection changed: original transactions array reference is preserved', () => {
+                // All transactions become delete-pending → hasNonDeletedTransactions=false → isSelected flips false
+                // but no individual transaction.isSelected changed → hasTransactionSelectionChanged=false
+                // The fix: transactions reference must NOT be the new mappedTransactions array
+                const t1 = makeTxn('t1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                const item = makeGroupItem('r1', [t1], {isSelected: true});
+                const result = SearchUIUtils.applySelectionToItem(item, true, {});
+                expect(result.isSelected).toBe(false);
+                expect(result.itemWithSelection).not.toBe(item);
+                const withSel = result.itemWithSelection as TransactionGroupListItemType;
+                expect(withSel.transactions).toBe(item.transactions);
+            });
+
+            test('mix of deleted and non-deleted — all non-deleted selected: isSelected=true', () => {
+                const deleted = makeTxn('t1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                const active = makeTxn('t2');
+                const item = makeGroupItem('r1', [deleted, active]);
+                // Only t2 selected — the only non-deleted one
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t2'));
+                expect(result.isSelected).toBe(true);
+            });
+
+            test('mix of deleted and non-deleted — non-deleted NOT selected: isSelected=false', () => {
+                const deleted = makeTxn('t1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+                const active = makeTxn('t2');
+                const item = makeGroupItem('r1', [deleted, active]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, {});
+                expect(result.isSelected).toBe(false);
+            });
+        });
+
+        // ─── Preserving reference identity ───────────────────────────
+
+        describe('reference identity — avoids unnecessary object creation', () => {
+            test('unchanged transaction keeps its original reference inside mappedTransactions', () => {
+                const t1 = makeTxn('t1', {isSelected: true});
+                const t2 = makeTxn('t2');
+                const item = makeGroupItem('r1', [t1, t2], {isSelected: false});
+                // t1 already selected, t2 newly selected → only t2 gets a spread
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1', 't2'));
+                const withSel = result.itemWithSelection as TransactionGroupListItemType;
+                expect(withSel.transactions.at(0)).toBe(t1); // unchanged — same reference
+                expect(withSel.transactions.at(1)).not.toBe(t2); // changed — new object
+            });
+
+            test('when selection state is already correct, originalItem reference is returned unchanged', () => {
+                const t1 = makeTxn('t1', {isSelected: true});
+                const t2 = makeTxn('t2', {isSelected: true});
+                const item = makeGroupItem('r1', [t1, t2], {isSelected: true});
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1', 't2'));
+                expect(result.itemWithSelection).toBe(item);
+            });
+
+            test('originalItem is always the unchanged input regardless of selection changes', () => {
+                const t1 = makeTxn('t1');
+                const item = makeGroupItem('r1', [t1]);
+                const result = SearchUIUtils.applySelectionToItem(item, true, selectedMap('t1'));
+                expect(result.originalItem).toBe(item);
+                expect(result.itemWithSelection).not.toBe(item);
+            });
         });
     });
 });
