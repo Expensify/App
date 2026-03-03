@@ -19,6 +19,7 @@ import PopoverLinkContent from './PopoverLinkContent';
 import PopoverReportActionContent from './PopoverReportActionContent';
 import PopoverReportContent from './PopoverReportContent';
 import PopoverTextContent from './PopoverTextContent';
+import {hideContextMenu} from './ReportActionContextMenu';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
@@ -334,9 +335,7 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     }));
 
     const hideAndRun = (callback?: () => void) => {
-        import('@pages/inbox/report/ContextMenu/ReportActionContextMenu').then(({hideContextMenu: hideCtx}) => {
-            hideCtx(false, callback);
-        });
+        hideContextMenu(false, callback);
     };
 
     const shouldKeepOpen = localShouldKeepOpen;
