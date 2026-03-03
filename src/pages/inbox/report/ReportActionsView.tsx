@@ -305,6 +305,7 @@ function ReportActionsView({
         isConciergeSidePanel,
         hasUserSentMessage,
         hasOlderActions,
+        isLoadingInitialReportActions,
         sessionStartTime,
         currentUserAccountID,
         greetingText: translate('common.concierge.sidePanelGreeting'),

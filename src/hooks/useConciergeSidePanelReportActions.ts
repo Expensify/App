@@ -11,6 +11,7 @@ type UseConciergeSidePanelReportActionsParams = {
     isConciergeSidePanel: boolean;
     hasUserSentMessage: boolean;
     hasOlderActions: boolean;
+    isLoadingInitialReportActions?: boolean;
     sessionStartTime: string | null;
     currentUserAccountID: number;
     greetingText: string;
@@ -24,6 +25,7 @@ function useConciergeSidePanelReportActions({
     isConciergeSidePanel,
     hasUserSentMessage,
     hasOlderActions,
+    isLoadingInitialReportActions,
     sessionStartTime,
     currentUserAccountID,
     greetingText,
@@ -46,13 +48,11 @@ function useConciergeSidePanelReportActions({
     // Check if the user had sent any message BEFORE this session started.
     // Uses sessionStartTime as the boundary — any user message created before the
     // panel opened is a pre-session message, regardless of when it was loaded.
-    // This avoids the race condition where action IDs are locked before
-    // all actions (including user messages) have loaded.
     //
-    // When no user message is found in the loaded set, hasOlderActions indicates
-    // whether there is unloaded history. On a new account all onboarding messages
-    // fit in a single page (hasOlderActions=false). On an existing account with
-    // prior interactions the history spans multiple pages (hasOlderActions=true).
+    // When the report data is still loading (isLoadingInitialReportActions !== false),
+    // we default to true to avoid briefly flashing the full chat history while
+    // metadata (hasOlderActions) hasn't arrived yet. Once loading completes, the
+    // actual value is computed from the loaded actions and hasOlderActions.
     const hadUserMessageAtSessionStart = useMemo(() => {
         if (!isConciergeSidePanel || !sessionStartTime) {
             return false;
@@ -60,8 +60,8 @@ function useConciergeSidePanelReportActions({
         const hasUserMessageInLoadedSet = visibleReportActions.some(
             (action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created < sessionStartTime,
         );
-        return hasUserMessageInLoadedSet || hasOlderActions;
-    }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions]);
+        return hasUserMessageInLoadedSet || hasOlderActions || isLoadingInitialReportActions !== false;
+    }, [isConciergeSidePanel, visibleReportActions, currentUserAccountID, sessionStartTime, hasOlderActions, isLoadingInitialReportActions]);
 
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeSidePanel || !hadUserMessageAtSessionStart || !sessionStartTime) {
