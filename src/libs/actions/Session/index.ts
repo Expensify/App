@@ -619,6 +619,11 @@ function signUpUser(preferredLocale: Locale | undefined) {
 }
 
 function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettings, tryNewDot?: TryNewDot) {
+    Log.info('[QuickAction] setupNewDotAfterTransitionFromOldDot called', false, {
+        useNewDotSignInPage: hybridAppSettings.hybridApp.useNewDotSignInPage,
+        loggedOutFromOldDot: hybridAppSettings.hybridApp.loggedOutFromOldDot,
+        isSingleNewDotEntry: hybridAppSettings.hybridApp.isSingleNewDotEntry,
+    });
     const {hybridApp, ...newDotOnyxValues} = hybridAppSettings;
 
     const clearOnyxIfSigningIn = () => {
@@ -755,6 +760,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
         })
         .catch((error) => {
             Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
+            Log.alert('[QuickAction] setupNewDotAfterTransitionFromOldDot FAILED - this may cause splash screen to get stuck', {error}, false);
         });
 }
 

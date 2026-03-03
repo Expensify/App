@@ -95,7 +95,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(transactionItem, introSelected, backTo, transactionItem?.reportAction?.childReportID);
+                createAndOpenSearchTransactionThread(
+                    transactionItem,
+                    introSelected,
+                    backTo,
+                    currentUserDetails.login ?? '',
+                    currentUserDetails.accountID,
+                    transactionItem?.reportAction?.childReportID,
+                );
                 return;
             }
             markReportIDAsExpense(reportID);

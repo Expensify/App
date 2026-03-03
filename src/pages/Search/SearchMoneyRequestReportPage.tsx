@@ -11,6 +11,7 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -76,7 +77,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const parentReportAction = useParentReportAction(report);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {allowStaleData: true});
     const prevReport = usePrevious(report);
-
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
 
     // Dismiss modal when the money request report is removed (e.g. deleted or merged).
@@ -233,7 +234,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
-            createTransactionThreadReport(introSelected, report, iouAction);
+            createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID, report, iouAction);
             return;
         }
 
@@ -295,11 +296,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = true;
 
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
-        createTransactionThreadReport(introSelected, report, undefined, transaction, violations);
+        createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report, undefined, transaction, violations);
     }, [
         allReportTransactions,
         allReportViolations,
         introSelected,
+        currentUserLogin,
+        currentUserAccountID,
         report,
         reportActions,
         reportIDFromRoute,

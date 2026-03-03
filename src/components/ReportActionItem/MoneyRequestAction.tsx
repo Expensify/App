@@ -3,6 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useContext, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -92,6 +93,7 @@ function MoneyRequestAction({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
@@ -121,7 +123,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserLogin ?? '', currentUserAccountID, iouReport, action);
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;

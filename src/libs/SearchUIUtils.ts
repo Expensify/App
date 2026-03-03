@@ -2031,6 +2031,8 @@ function createAndOpenSearchTransactionThread(
     item: TransactionListItemType,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     backTo: string,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
@@ -2060,7 +2062,15 @@ function createAndOpenSearchTransactionThread(
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(introSelected, item.report, reportActionToPass, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(
+            introSelected,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            item.report,
+            reportActionToPass,
+            transaction,
+            transactionViolations,
+        );
     }
 
     if (shouldNavigate) {
