@@ -1,5 +1,5 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
@@ -163,7 +163,7 @@ function SearchAutocompleteList({
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
-    const searchOptions = (() => {
+    const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
@@ -189,7 +189,8 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
         });
-    })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData, currentUserAccountID, currentUserEmail, policies, personalDetails]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
@@ -290,7 +291,7 @@ function SearchAutocompleteList({
         };
     });
 
-    const recentReportsOptions = (() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports;
         }
@@ -306,7 +307,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    })();
+    }, [autocompleteQueryValue, searchOptions]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
