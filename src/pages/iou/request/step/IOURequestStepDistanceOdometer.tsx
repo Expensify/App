@@ -378,8 +378,14 @@ function IOURequestStepDistanceOdometer({
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         const stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
-        if (stitchedImage) {
-            setMoneyRequestReceipt(transactionID, stitchedImage.uri, stitchedImage.name, isTransactionDraft);
+        if (stitchedImage ?? odometerStartImage ?? odometerEndImage) {
+            const uri = stitchedImage?.uri ?? startImageSource ?? endImageSource ?? '';
+            const name =
+                stitchedImage?.name ??
+                (typeof odometerStartImage !== 'string' ? odometerStartImage?.name : odometerStartImage?.split('/').pop()) ??
+                (typeof odometerEndImage !== 'string' ? odometerEndImage?.name : odometerEndImage?.split('/').pop()) ??
+                '';
+            setMoneyRequestReceipt(transactionID, uri, name, isTransactionDraft);
         }
 
         if (isEditing) {
