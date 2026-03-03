@@ -6,6 +6,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -27,6 +28,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
+    const {translate, toLocaleDigit} = useLocalize();
     const {selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -46,6 +48,7 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -112,6 +115,8 @@ function SearchTransactionsChangeReport() {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
+                translate,
+                toLocaleDigit,
             });
             clearSelectedTransactions();
         });
@@ -154,6 +159,8 @@ function SearchTransactionsChangeReport() {
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
+            translate,
+            toLocaleDigit,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -172,7 +179,10 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
+            translate,
+            toLocaleDigit,
         });
         clearSelectedTransactions();
         Navigation.goBack();

@@ -644,6 +644,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
                     icon={!selectionModeHeader ? illustrations.FolderOpen : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedCategories([]);

@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -647,6 +647,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Bitte melde dich erneut an.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Transaktion prüfen',
+            pleaseReview: 'Bitte überprüfe diese Transaktion',
+            requiresYourReview: 'Eine Expensify Card-Transaktion erfordert unten Ihre Überprüfung.',
+            transactionDetails: 'Transaktionsdetails',
+            deny: 'Ablehnen',
+            approve: 'Genehmigen',
+            denyTransaction: 'Transaktion ablehnen',
+            transactionDenied: 'Transaktion abgelehnt',
+            transactionApproved: 'Transaktion genehmigt!',
+            areYouSureToDeny: 'Bist du sicher? Die Transaktion wird abgelehnt, wenn du diesen Bildschirm schließt.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Du kannst es erneut beim Händler versuchen. Wenn du diese Transaktion nicht versucht hast, <concierge-link>wende dich an Concierge</concierge-link>, um möglichen Betrug zu melden.',
+            youNeedToTryAgainAtMerchant: 'Diese Transaktion wurde nicht verifiziert, daher haben wir sie abgelehnt. Bitte versuch es erneut direkt beim Händler.',
+            goBackToTheMerchant: 'Gehe zurück zur Händlerseite, um die Transaktion fortzusetzen.',
+            attemptedTransaction: 'Versuchte Transaktion',
+            transactionFailed: 'Transaktion fehlgeschlagen',
+            transactionCouldNotBeCompleted: 'Ihre Transaktion konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut beim Händler.',
+            transactionCouldNotBeCompletedReachOut:
+                'Ihre Transaktion konnte nicht abgeschlossen werden. Wenn Sie diese Transaktion nicht versucht haben, <concierge-link>wenden Sie sich an Concierge</concierge-link>, um möglichen Betrug zu melden.',
+            reviewFailed: 'Überprüfung fehlgeschlagen',
+            alreadyReviewedSubtitle:
+                'Sie haben diese Transaktion bereits überprüft. Bitte prüfen Sie Ihren <transaction-history-link>Transaktionsverlauf</transaction-history-link> oder kontaktieren Sie <concierge-link>Concierge</concierge-link>, um Probleme zu melden.',
+        },
         biometricsTest: {
             biometricsTest: 'Biometrie-Test',
             authenticationSuccessful: 'Authentifizierung erfolgreich',
@@ -698,7 +722,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Diese Aktion wird auf deinem Gerät nicht unterstützt. Bitte lade die Expensify-App aus dem <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> oder dem <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> herunter und versuche es erneut.`,
         },
         verificationFailed: 'Überprüfung fehlgeschlagen',
     },
@@ -714,7 +738,7 @@ const translations: TranslationDeepObject<typeof en> = {
             auf dem er ursprünglich angefordert wurde
         `),
         doNotShare: dedent(`
-            Gib deinen Code an niemanden weiter.  
+            Gib deinen Code an niemanden weiter.
             Expensify wird niemals danach fragen!
         `),
         or: 'oder',
@@ -969,7 +993,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Wallet',
             },
         },
-        assignedCards: 'Zugewiesene Karten',
+        assignedCards: 'Ihre Expensify Karten',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} verbleibend`,
         announcements: 'Ankündigungen',
         discoverSection: {
@@ -1018,6 +1042,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Alles erledigt',
                 fireworksDescription: 'Anstehende Aufgaben erscheinen hier.',
             },
+        },
+        upcomingTravel: 'Bevorstehende Reisen',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Flug nach ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Zug nach ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Mietwagen in ${destination}`,
+            inOneWeek: 'In 1 Woche',
+            inDays: () => ({one: 'In 1 Tag', other: (count: number) => `In ${count} Tagen`}),
+            today: 'Heute',
         },
     },
     allSettingsScreen: {
@@ -1349,6 +1383,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Bitte gib eine gültige Entfernung ein, bevor du fortfährst',
             invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
             negativeDistanceNotAllowed: 'Endstand muss größer als Anfangsstand sein',
+            distanceAmountTooLarge: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung oder reduziere den Satz.',
+            distanceAmountTooLargeReduceDistance: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung.',
+            distanceAmountTooLargeReduceRate: 'Der Gesamtbetrag ist zu hoch. Reduziere den Satz.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometerstände dürfen ${formattedMax} nicht überschreiten.`,
             invalidIntegerAmount: 'Bitte gib einen vollen Dollarbetrag ein, bevor du fortfährst',
             invalidTaxAmount: (amount: string) => `Der maximale Steuerbetrag ist ${amount}`,
             invalidSplit: 'Die Summe der Aufteilungen muss dem Gesamtbetrag entsprechen',
@@ -1421,6 +1459,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate prüfen',
         keepAll: 'Alle behalten',
+        noDuplicatesTitle: 'Alles erledigt!',
+        noDuplicatesDescription: 'Es gibt hier keine doppelten Transaktionen zur Überprüfung.',
         confirmApprove: 'Genehmigungsbetrag bestätigen',
         confirmApprovalAmount: 'Nur regelkonforme Ausgaben genehmigen oder den gesamten Bericht genehmigen.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1533,20 +1573,26 @@ const translations: TranslationDeepObject<typeof en> = {
             ratePreview: (rate: string) => `${rate} / Stunde`,
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
-        correctRateError: 'Behebe den Kursfehler und versuche es erneut.',
+        correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'hat die Ausgabe als „erstattungsfähig“ markiert' : 'hat die Ausgabe als „nicht erstattungsfähig“ markiert'),
             billable: (value: boolean) => (value ? 'hat die Ausgabe als „verrechenbar“ markiert' : 'hat die Ausgabe als „nicht abrechenbar“ markiert'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `Steuersatz auf „${value}“ festlegen` : `Steuersatz auf „${value}“`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `hat diese Ausgabe in den Bericht „${value}“ verschoben`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `setze ${field} auf „${value}“` : `${field} zu „${value}“`;
             },
-            format: (fragments: string, route: string) => `${fragments} über <a href="${route}">Workspace-Regeln</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Regeln für persönliche Ausgaben</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Workspace-Regeln</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError:
-            'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
+        failedToAutoSubmitViaDEW: (reason: string) => `Senden des Berichts über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Übermittlungen verzögern</a> fehlgeschlagen. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3931,6 +3977,7 @@ ${
             clearFilter: 'Filter zurücksetzen',
             workspaceName: 'Arbeitsbereichsname',
             workspaceOwner: 'Inhaber',
+            keepMeAsAdmin: 'Behalte mich als Administrator',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
             clientID: 'Kunden-ID',
@@ -7437,6 +7484,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `Das Geschäftskonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit entweder der Erstattung oder dem Ausgleich der Expensify Karte automatisch gesperrt. Bitte beheben Sie das Problem in Ihren <a href="${linkURL}">Workspace-Einstellungen</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} hat den Chat verlassen`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Öffne die Expensify Mobile-App, um deine${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}Transaktion zu prüfen`;
+                },
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
@@ -7615,7 +7666,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
     },
     gps: {
-        disclaimer: 'Verwende GPS, um aus deiner Fahrt eine Ausgabe zu erstellen. Tippe unten auf „Start“, um die Aufzeichnung zu beginnen.',
         error: {
             failedToStart: 'Standortverfolgung konnte nicht gestartet werden.',
             failedToGetPermissions: 'Erforderliche Standortberechtigungen konnten nicht abgerufen werden.',
@@ -8336,6 +8386,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         outstandingFilter: '<tooltip>Nach Ausgaben filtern,\ndie <strong>genehmigt werden müssen</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Sende diese Quittung, um\n<strong>die Probefahrt abzuschließen!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-Tracking läuft! Wenn du fertig bist, stoppe die Aufzeichnung unten.</tooltip>',
+        hasFilterNegation: '<tooltip>Suchen Sie nach Ausgaben ohne Belege mit <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',
