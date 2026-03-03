@@ -3,6 +3,7 @@ title: AgentZero Reference – Upcoming Features (New Expensify)
 description: Internal reference of planned and coming-soon features for AgentZero. Not for public search indexing.
 keywords: upcoming features, roadmap, coming soon, AgentZero reference
 noindex: true
+sitemap: false
 internalScope: For AgentZero and internal tooling only. Use this page to give accurate, forward-looking answers about features that are planned but not yet generally available. Do not expose this URL in end-user-facing help.
 ---
 
