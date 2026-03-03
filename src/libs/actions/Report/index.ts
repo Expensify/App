@@ -311,6 +311,7 @@ type AddAttachmentWithCommentParams = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
 /** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
 let deprecatedCurrentUserLogin: string | undefined;
@@ -320,12 +321,18 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
+            conciergeReportIDOnyxConnect = undefined;
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin = value.email;
         deprecatedCurrentUserAccountID = value.accountID;
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    callback: (value) => (conciergeReportIDOnyxConnect = value),
 });
 
 // map of reportID to all reportActions for that report
@@ -4065,9 +4072,9 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
+function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
-    return lastAccessedReportID ?? conciergeReportID;
+    return lastAccessedReportID ?? conciergeReportIDOnyxConnect;
 }
 
 function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {

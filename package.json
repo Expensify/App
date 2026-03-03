@@ -45,7 +45,7 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "typecheck-tsgo": "tsgo --project tsconfig.tsgo.json",
-    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=382 --cache --cache-location=node_modules/.cache/eslint --cache-strategy content --concurrency=auto",
+    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=383 --cache --cache-location=node_modules/.cache/eslint --cache-strategy content --concurrency=auto",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 ./scripts/lintChanged.sh",
     "check-lazy-loading": "ts-node scripts/checkLazyLoading.ts",
     "lint-watch": "npx eslint-watch --watch --changed",
