@@ -220,6 +220,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
@@ -689,6 +691,8 @@ type SettingsNavigatorParamList = {
         policyID: string;
         transactionID?: string;
         reportID?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
@@ -766,18 +770,12 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
@@ -1292,6 +1290,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
     };
@@ -1700,6 +1701,9 @@ type ReportSettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+        reportID: string;
+    };
+    [SCREENS.REPORT_SETTINGS.COLUMNS]: {
         reportID: string;
     };
 };
@@ -2143,6 +2147,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
     [SCREENS.CURRENCY.SELECTION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
@@ -2712,9 +2717,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
     };
@@ -3135,6 +3137,9 @@ type MultifactorAuthenticationParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: MultifactorAuthenticationPromptType;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: {
+        transactionID: string;
     };
 };
 

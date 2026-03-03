@@ -849,6 +849,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
+                            path: ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.route,
                         },
@@ -1399,6 +1402,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
                             path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
                         },
+                        [SCREENS.REPORT_SETTINGS.COLUMNS]: {
+                            path: ROUTES.REPORT_SETTINGS_COLUMNS.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
@@ -1550,6 +1556,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                        [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR,
                         [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },
@@ -2086,6 +2093,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.route,
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND,
                         [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE,
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION.route,
                     },
                 },
             },

@@ -1,4 +1,4 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
@@ -7,11 +7,11 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlatList from '@components/InvertedFlatList';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
