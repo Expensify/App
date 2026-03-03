@@ -1,8 +1,9 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [Expensify Home, Home, Home tab, For you, Discover, Expensify announcements, product changes]
-internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Discover, and Announcements sections. Does not cover how to-dos are generated, what qualifies as a to-do, what “blocked on you” means, or how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards. Expensify Card limit, available limit, available balance]
+internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Discover, Announcements, Time-sensitive, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
+
 ---
 
 # Expensify Home Overview
@@ -10,6 +11,8 @@ internalScope: Audience is all Expensify members. Covers what Home is and what a
 **Home** is the starting point you see when you sign in to Expensify.
 
 It gives you a quick way to see whether anything needs attention, get oriented, and check what’s new, without having to dig through menus or reports.
+
+![Home on New Expensify]({{site.url}}/assets/images/home.png){:width="100%"}
 
 ---
 
@@ -27,11 +30,26 @@ Home is the default view when you sign in.
 Home is made up of a small set of sections that summarize what’s happening in your account.
 
 Home includes:
+- **Time-sensitive alerts** (when applicable)
 - **For you**
 - **Discover**
 - **Announcements**
+- **Assigned cards** (when applicable)
 
 Each section provides context so you know where to go next.
+
+---
+
+## How Time-sensitive section works on Home
+
+The **Time-sensitive alerts** section appears only when there is something that requires immediate attention.
+
+These alerts appear when:
+- A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
+- There is potential risk, such as suspected Expensify Card fraud
+- An action must be taken within a short window, such as a limited-time offer or early adoption discount
+
+If there are no urgent issues, this section will not appear.
 
 ---
 
@@ -45,6 +63,8 @@ The **For you** section highlights items that may need your attention like:
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
 If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
+
+![Home > For You on New Expensify]({{site.url}}/assets/images/home-2.png){:width="100%"}
 
 ---
 
@@ -61,6 +81,14 @@ This section includes a short demo that introduces key areas of the app and show
 The **Announcements** section shows recent Expensify product updates.
 
 This section helps you stay informed about what’s new or recently changed in New Expensify. 
+
+---
+
+## How the Assigned cards section works on Home
+
+The **Assigned cards** section shows all Expensify Cards assigned to you, along with the available spending limit for each card.
+
+Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
 
 ---
 
@@ -81,3 +109,14 @@ Not directly. Home links you to other parts of Expensify where actions are compl
 ## Why does the For you section sometimes appear empty?
 
 If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
+
+## Why don’t I see the Time-sensitive section?
+
+The **Time-sensitive** section only appears when there is an urgent issue or limited-time action that requires attention. If everything is up to date, this section will not be visible.
+
+## Why don’t I see the Assigned cards section?
+
+The **Assigned cards** section only appears if you have an active **Expensify Card** assigned to you.
+
+If you don’t have an Expensify Card assigned, or your assigned card isn’t active, the **Assigned cards** section won’t be visible.
+

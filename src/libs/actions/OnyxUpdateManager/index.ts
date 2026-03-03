@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
@@ -84,7 +84,7 @@ function finalizeUpdatesAndResumeQueue() {
  *
  * @returns a promise that resolves when all Onyx updates are done being processed
  */
-function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number): Promise<void> {
+function handleMissingOnyxUpdates<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>, clientLastUpdateID?: number): Promise<void> {
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc.) setup. If we apply this update,
     // we'll only have them overwritten by the openApp response. So let's skip it and return.
@@ -201,12 +201,12 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
     return Promise.resolve();
 }
 
-function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
+function updateAuthTokenIfNecessary<TKey extends OnyxKey>(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer<TKey>>): void {
     // Consolidate all of the given Onyx updates
-    const onyxUpdates: OnyxUpdate[] = [];
+    const onyxUpdates: Array<OnyxUpdate<TKey>> = [];
     if (onyxUpdatesFromServer?.updates) {
         for (const updateEvent of onyxUpdatesFromServer.updates) {
-            onyxUpdates.push(...updateEvent.data);
+            onyxUpdates.push(...(updateEvent.data as Array<OnyxUpdate<TKey>>));
         }
     }
     onyxUpdates.push(...(onyxUpdatesFromServer?.response?.onyxData ?? []));

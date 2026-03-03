@@ -64,8 +64,7 @@ fi
 # Check if the argument is one of the desired values
 case "$BUILD" in
     --ios)
-        OUTPUT=$(npx rock build:ios --configuration $IOS_MODE --scheme "$SCHEME" --destination "simulator"  "${ROCK_FLAGS[@]}"  2>&1)
-        echo "$OUTPUT"
+        OUTPUT=$(npx rock build:ios --configuration $IOS_MODE --scheme "$SCHEME" --destination "simulator" --verbose "${ROCK_FLAGS[@]}"  2>&1 | tee /dev/stderr)
         APP_PATH=$(echo "$OUTPUT" | grep "Build available at: " | sed 's/.*Build available at: //')
         if [ -n "$APP_PATH" ]; then
             # Convert relative paths to absolute paths
@@ -88,8 +87,7 @@ case "$BUILD" in
         fi
 
         # OUTPUT=$(SENTRY_DISABLE_AUTO_UPLOAD=true npx rock build:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose "${ROCK_FLAGS[@]}" 2>&1)
-        OUTPUT=$(SENTRY_DISABLE_AUTO_UPLOAD=true npx rock build:android --variant $ANDROID_MODE --active-arch-only --verbose "${ROCK_FLAGS[@]}" 2>&1)
-        echo "$OUTPUT"
+        OUTPUT=$(SENTRY_DISABLE_AUTO_UPLOAD=true npx rock build:android --variant $ANDROID_MODE --active-arch-only --verbose "${ROCK_FLAGS[@]}" 2>&1 | tee /dev/stderr)
         APP_PATH=$(echo "$OUTPUT" | grep "Build available at: " | sed 's/.*Build available at: //')
         if [ -n "$APP_PATH" ]; then
             # Convert relative paths to absolute paths

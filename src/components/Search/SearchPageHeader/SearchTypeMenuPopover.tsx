@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -28,6 +29,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                 icon={expensifyIcons.Menu}
                 onPress={openMenu}
                 accessibilityLabel={translate('search.filtersHeader')}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_BUTTON}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu

@@ -49,18 +49,23 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const shouldAllowChange = currency === CONST.CURRENCY.EUR;
+    const currency =
+        reimbursementAccountDraft?.currency ??
+        policy?.outputCurrency ??
+        reimbursementAccount?.achData?.currency ??
+        CONST.BBA_COUNTRY_CURRENCY_MAP[reimbursementAccount?.achData?.country ?? ''];
+
+    const shouldAllowChange = currency === CONST.CURRENCY.EUR && !reimbursementAccount?.achData?.accountNumber;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
-    const currencyMappedToCountry = mapCurrencyToCountry(currency);
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    const currencyMappedToCountry = mapCurrencyToCountry(currency) || countryDefaultValue;
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [userSelectedCountry, setUserSelectedCountry] = useState<string>(countryDefaultValue);
     const selectedCountry = shouldAllowChange ? userSelectedCountry : currencyMappedToCountry;
     const disableSubmit = !(currency in CONST.CURRENCY);
@@ -75,7 +80,9 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     };
 
     const handleSubmit = () => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        if (selectedCountry !== countryDefaultValue) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        }
         onSubmit();
     };
 
@@ -94,6 +101,14 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         onBackButtonPress();
     };
+
+    useEffect(() => {
+        if (selectedCountry || !countryDefaultValue) {
+            return;
+        }
+
+        setUserSelectedCountry(countryDefaultValue);
+    }, [selectedCountry, countryDefaultValue]);
 
     return (
         <InteractiveStepWrapper
@@ -119,18 +134,20 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                     title={currency}
                     interactive={false}
                 />
-                <View style={styles.ph5}>
-                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                        <TextLink
-                            style={[styles.label]}
-                            onPress={handleSettingsPress}
-                        >
-                            {translate('common.settings').toLowerCase()}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
+                {!!policyID && (
+                    <View style={styles.ph5}>
+                        <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                            {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                            <TextLink
+                                style={[styles.label]}
+                                onPress={handleSettingsPress}
+                            >
+                                {translate('common.settings').toLowerCase()}
+                            </TextLink>
+                            .
+                        </Text>
+                    </View>
+                )}
                 <InputWrapper
                     InputComponent={PushRowWithModal}
                     optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}

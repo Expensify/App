@@ -1,8 +1,7 @@
 import type {OnyxKey} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {AnyOnyxUpdatesFromServer, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
 import Pusher from './Pusher';
@@ -35,10 +34,10 @@ function triggerMultiEventHandler<TKey extends OnyxKey>(eventType: string, data:
 /**
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
-function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: OnyxUpdatesFromServer | PingPongEvent) => void) {
+function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) => void) {
     const pusherChannelName = getUserChannelName(accountID);
 
-    function logPusherEvent(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function logPusherEvent(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);
     }
 
@@ -46,7 +45,7 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
         NetworkConnection.triggerReconnectionCallbacks('Pusher re-subscribed to private user channel');
     }
 
-    function onEventPush(pushJSON: OnyxUpdatesFromServer | PingPongEvent) {
+    function onEventPush(pushJSON: AnyOnyxUpdatesFromServer | PingPongEvent) {
         logPusherEvent(pushJSON);
         onEvent(pushJSON);
     }
