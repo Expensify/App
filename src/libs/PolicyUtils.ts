@@ -309,8 +309,8 @@ function getCustomUnitsForDuplication(
     isDistanceRatesOptionSelected: boolean,
     isPerDiemOptionSelected: boolean,
     customUnit: {
-        distanceCustomUnitID: string,
-        perDiemCustomUnitID: string
+        distanceCustomUnitID: string;
+        perDiemCustomUnitID: string;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
