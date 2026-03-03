@@ -104,7 +104,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 

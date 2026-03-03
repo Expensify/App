@@ -35,7 +35,7 @@ describe('OnyxDerived', () => {
         beforeEach(async () => {
             // The reportAttributes locale connection uses initWithStoredValues: false,
             // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
-            await Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
         });
 

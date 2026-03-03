@@ -16,7 +16,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {

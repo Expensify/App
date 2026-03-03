@@ -33,8 +33,8 @@ function HomePage() {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
 
     // This hook signals that the app is ready to be opened after HomePage mounts

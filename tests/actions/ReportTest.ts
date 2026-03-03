@@ -3661,7 +3661,7 @@ describe('actions/Report', () => {
 
         it('should handle undefined conciergeReportID gracefully', async () => {
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             // When conciergeReportID is undefined, the function uses onServerDataReady()
@@ -3822,7 +3822,7 @@ describe('actions/Report', () => {
         });
 
         it('should handle undefined conciergeReportID by using fallback navigation', async () => {
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             expect(() => {

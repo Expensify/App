@@ -140,7 +140,7 @@ describe('SidebarLinksData', () => {
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.BETAS]: betas,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                 ...(reportData ?? {}),
                 ...(otherData ?? {}),
             });

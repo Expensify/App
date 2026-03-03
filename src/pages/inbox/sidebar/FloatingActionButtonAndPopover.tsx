@@ -133,7 +133,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoading = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);

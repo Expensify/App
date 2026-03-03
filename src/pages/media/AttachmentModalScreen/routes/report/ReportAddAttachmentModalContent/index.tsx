@@ -47,7 +47,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
     const submitRef = useRef<View | HTMLElement>(null);

@@ -89,7 +89,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
     defaultLastName,
 }: BaseLegalNamePageProps<TFormID>) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

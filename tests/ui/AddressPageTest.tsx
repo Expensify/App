@@ -66,7 +66,7 @@ describe('AddressPageTest', () => {
                     },
                 ],
             });
-            await Onyx.merge(`${ONYXKEYS.IS_LOADING_APP}`, false);
+            await Onyx.merge(`${ONYXKEYS.RAM_ONLY_IS_LOADING_APP}`, false);
         });
 
         await waitForBatchedUpdatesWithAct();

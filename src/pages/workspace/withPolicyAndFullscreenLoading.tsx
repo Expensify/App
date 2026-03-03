@@ -32,7 +32,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
         isLoadingPolicy = policyDefaultProps.isLoadingPolicy,
         ...rest
     }: Omit<TProps, keyof WithPolicyAndFullscreenLoadingOnyxProps>) {
-        const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+        const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
         if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {

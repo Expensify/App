@@ -83,7 +83,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
 
     const {isBetaEnabled} = usePermissions();

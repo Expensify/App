@@ -22,7 +22,7 @@ function DelegateAccessHandler() {
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {isOffline} = useNetwork();

@@ -56,7 +56,7 @@ describe('ReportActionItemSingle', () => {
                 await act(async () => {
                     await Onyx.multiSet({
                         [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                        [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: false,
                         [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
                                 [fakeReportAction.reportActionID]: fakeReportAction,

@@ -22,7 +22,7 @@ function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useFocusEffect(
