@@ -1,5 +1,6 @@
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ValueOf} from 'type-fest';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -25,8 +26,8 @@ const DELAY_STATE = {
     NO_DELAY: DELAY_NO_DELAY,
 } as const;
 
-type TrialReminderVariant = (typeof CONST.TRIAL_REMINDER_VARIANT)[keyof typeof CONST.TRIAL_REMINDER_VARIANT];
-type DelayState = (typeof DELAY_STATE)[keyof typeof DELAY_STATE];
+type TrialReminderVariant = ValueOf<typeof CONST.TRIAL_REMINDER_VARIANT>;
+type DelayState = ValueOf<typeof DELAY_STATE>;
 
 type TrialReminderVariation = {
     id: string;
@@ -50,6 +51,46 @@ const TRIAL_REMINDER_VARIATIONS = [
     {id: 'day29', dayOfTrial: 29, variant: CONST.TRIAL_REMINDER_VARIANT.NEAR_END},
     {id: 'last24h', dayOfTrial: -1, variant: CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN},
 ] as const;
+
+function computeCurrentVariation(firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): TrialReminderVariation | null {
+    if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return null;
+    }
+
+    const remainingSeconds = calculateRemainingTrialSeconds(lastDayFreeTrial);
+
+    // Last 24 hours takes priority
+    if (remainingSeconds <= TWENTY_FOUR_HOURS_IN_SECONDS && remainingSeconds > 0) {
+        return {
+            id: 'last24h',
+            variant: CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN,
+        };
+    }
+
+    const currentTrialDay = calculateTrialDayNumber(firstDayFreeTrial);
+    if (currentTrialDay <= 0) {
+        return null;
+    }
+
+    for (const variation of TRIAL_REMINDER_VARIATIONS) {
+        if (variation.dayOfTrial > 0 && variation.dayOfTrial <= currentTrialDay) {
+            if (variation.variant === CONST.TRIAL_REMINDER_VARIANT.NEAR_END) {
+                const daysRemaining = Math.ceil(remainingSeconds / TWENTY_FOUR_HOURS_IN_SECONDS);
+                return {
+                    id: variation.id,
+                    variant: variation.variant,
+                    daysRemaining,
+                };
+            }
+            return {
+                id: variation.id,
+                variant: variation.variant,
+            };
+        }
+    }
+
+    return null;
+}
 
 function useTrialPaymentReminder() {
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -90,46 +131,7 @@ function useTrialPaymentReminder() {
 
     const [countdownTime, setCountdownTime] = useState<CountdownTime>({hours: 0, minutes: 0, seconds: 0});
 
-    const currentVariation = useMemo((): TrialReminderVariation | null => {
-        if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-            return null;
-        }
-
-        const remainingSeconds = calculateRemainingTrialSeconds(lastDayFreeTrial);
-
-        // Last 24 hours takes priority
-        if (remainingSeconds <= TWENTY_FOUR_HOURS_IN_SECONDS && remainingSeconds > 0) {
-            return {
-                id: 'last24h',
-                variant: CONST.TRIAL_REMINDER_VARIANT.COUNTDOWN,
-            };
-        }
-
-        const currentTrialDay = calculateTrialDayNumber(firstDayFreeTrial);
-        if (currentTrialDay <= 0) {
-            return null;
-        }
-
-        for (const variation of TRIAL_REMINDER_VARIATIONS) {
-            if (variation.dayOfTrial > 0 && variation.dayOfTrial <= currentTrialDay) {
-                if (variation.variant === CONST.TRIAL_REMINDER_VARIANT.NEAR_END) {
-                    const daysRemaining = Math.ceil(remainingSeconds / TWENTY_FOUR_HOURS_IN_SECONDS);
-                    return {
-                        id: variation.id,
-                        variant: variation.variant,
-                        daysRemaining,
-                    };
-                } else {
-                    return {
-                        id: variation.id,
-                        variant: variation.variant,
-                    };
-                }
-            }
-        }
-
-        return null;
-    }, [firstDayFreeTrial, lastDayFreeTrial]);
+    const currentVariation = useMemo(() => computeCurrentVariation(firstDayFreeTrial, lastDayFreeTrial), [firstDayFreeTrial, lastDayFreeTrial]);
 
     // Run countdown timer when variant is 'countdown'
     useEffect(() => {
