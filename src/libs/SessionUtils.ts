@@ -52,8 +52,8 @@ function isLoggingInAsDelegate(transitionURL?: string): boolean {
 
     // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
     // mangles the first query-param key), fall back to regex
-    const delegaotrEmail = getDelegatorEmailFromURL(transitionURL);
-    return !!delegaotrEmail;
+    const delegatorEmail = getDelegatorEmailFromURL(transitionURL);
+    return !!delegatorEmail;
 }
 
 /**
