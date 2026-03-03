@@ -1419,7 +1419,7 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
             }
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED || action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER) {
             children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;

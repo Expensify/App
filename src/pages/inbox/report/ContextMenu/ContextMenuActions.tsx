@@ -939,7 +939,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     } else {
                         Clipboard.setString(translate('iou.forwarded'));
                     }
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER) {
                     Clipboard.setString(translate('iou.rejectedThisReport'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     const displayMessage = translate('workspaceActions.upgradedWorkspace');

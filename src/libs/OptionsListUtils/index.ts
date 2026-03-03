@@ -794,7 +794,7 @@ function getLastMessageTextForReport({
         } else {
             lastMessageTextFromReport = translate('iou.forwarded');
         }
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED || lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER) {
         lastMessageTextFromReport = translate('iou.rejectedThisReport');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         lastMessageTextFromReport = translate('workspaceActions.upgradedWorkspace');

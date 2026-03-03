@@ -413,7 +413,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED || parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER) {
         return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
