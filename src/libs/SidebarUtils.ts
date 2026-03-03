@@ -9,6 +9,7 @@ import type {
     Card,
     PersonalDetails,
     PersonalDetailsList,
+    PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
@@ -420,7 +421,7 @@ function categorizeReportsForLHN(
 
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
+        const displayName = getReportName({report, conciergeReportID});
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -672,6 +673,8 @@ function getOptionData({
     currentUserAccountID,
     visibleReportActionsData,
     reportAttributesDerived,
+    policyTags,
+    currentUserLogin,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -694,6 +697,8 @@ function getOptionData({
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    currentUserLogin?: string;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -834,6 +839,8 @@ function getOptionData({
             isReportArchived,
             reportMetadata,
             reportAttributesDerived,
+            policyTags,
+            currentUserLogin,
             lastAction,
         });
     }
@@ -880,7 +887,7 @@ function getOptionData({
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1127,7 +1134,7 @@ function getOptionData({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived, undefined, undefined, conciergeReportID);
+    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1237,7 +1244,7 @@ function getRoomWelcomeMessage(
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
