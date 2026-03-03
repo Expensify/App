@@ -27,7 +27,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getDateRangeDisplayValueFromFormValue, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
@@ -159,11 +159,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const isOptions = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
-    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
+    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
+            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
         };
 
         const displayText: string[] = [];
@@ -176,6 +177,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         if (value.Before) {
             displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
         }
+        if (value.Range) {
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range);
+            if (rangeDisplay) {
+                displayText.push(`${translate('common.range')}: ${rangeDisplay}`);
+            }
+        }
 
         return [value, displayText];
     };
@@ -184,18 +191,21 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         on: searchAdvancedFiltersForm.dateOn,
         after: searchAdvancedFiltersForm.dateAfter,
         before: searchAdvancedFiltersForm.dateBefore,
+        range: searchAdvancedFiltersForm.dateRange,
     });
 
     const [posted, displayPosted] = createDateDisplayValue({
         on: searchAdvancedFiltersForm.postedOn,
         after: searchAdvancedFiltersForm.postedAfter,
         before: searchAdvancedFiltersForm.postedBefore,
+        range: searchAdvancedFiltersForm.postedRange,
     });
 
     const [withdrawn, displayWithdrawn] = createDateDisplayValue({
         on: searchAdvancedFiltersForm.withdrawnOn,
         after: searchAdvancedFiltersForm.withdrawnAfter,
         before: searchAdvancedFiltersForm.withdrawnBefore,
+        range: searchAdvancedFiltersForm.withdrawnRange,
     });
 
     const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
@@ -309,6 +319,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const datePickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
+            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             value={date}
             translationKey="common.date"
@@ -319,6 +330,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const postedPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
+            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             value={posted}
             translationKey="search.filters.posted"
@@ -329,6 +341,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const withdrawnPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
+            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
             value={withdrawn}
             translationKey="search.filters.withdrawn"
@@ -421,9 +434,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
     const shouldDisplayFeedFilter = feedOptions.length > 1 && !!searchAdvancedFiltersForm.feed;
     const shouldDisplayPostedFilter =
-        !!searchAdvancedFiltersForm.feed && (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore);
+        !!searchAdvancedFiltersForm.feed &&
+        (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore || !!searchAdvancedFiltersForm.postedRange);
     const shouldDisplayWithdrawalTypeFilter = !!searchAdvancedFiltersForm.withdrawalType;
-    const shouldDisplayWithdrawnFilter = !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore;
+    const shouldDisplayWithdrawnFilter =
+        !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore || !!searchAdvancedFiltersForm.withdrawnRange;
 
     const filters: FilterItem[] = [
         {
@@ -584,7 +599,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
+                return (
+                    filterFormValues[`${dateFilterKey}On`] ??
+                    filterFormValues[`${dateFilterKey}After`] ??
+                    filterFormValues[`${dateFilterKey}Before`] ??
+                    filterFormValues[`${dateFilterKey}Range`]
+                );
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
