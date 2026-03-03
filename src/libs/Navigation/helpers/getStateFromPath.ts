@@ -8,9 +8,9 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
+import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import getRedirectedPath from './getRedirectedPath';
 import getStateForDynamicRoute from './getStateForDynamicRoute';
-import removeDynamicSuffixFromPath from './removeDynamicSuffixFromPath';
 
 /**
  * @param path - The path to parse
@@ -23,7 +23,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
 
     const dynamicRouteSuffix = findMatchingDynamicSuffix(normalizedPathAfterRedirection);
     if (dynamicRouteSuffix) {
-        const pathWithoutDynamicSuffix = removeDynamicSuffixFromPath(normalizedPathAfterRedirection, dynamicRouteSuffix);
+        const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(normalizedPathAfterRedirection, dynamicRouteSuffix);
 
         type DynamicRouteKey = keyof typeof DYNAMIC_ROUTES;
         const dynamicRouteKeys = Object.keys(DYNAMIC_ROUTES) as DynamicRouteKey[];

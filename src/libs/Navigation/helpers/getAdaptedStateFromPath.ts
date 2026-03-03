@@ -14,11 +14,11 @@ import SCREENS from '@src/SCREENS';
 import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
-import removeDynamicSuffixFromPath from './removeDynamicSuffixFromPath';
 import replacePathInNestedState from './replacePathInNestedState';
 
 type GetAdaptedStateReturnType = ReturnType<typeof getStateFromPath>;
@@ -201,7 +201,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (route.path) {
         const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
         if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = removeDynamicSuffixFromPath(route.path, dynamicRouteSuffix);
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
 
             // Get navigation state for the base path without dynamic suffix
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
