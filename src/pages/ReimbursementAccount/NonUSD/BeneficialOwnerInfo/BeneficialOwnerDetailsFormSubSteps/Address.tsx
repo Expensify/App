@@ -16,7 +16,7 @@ const {STREET, CITY, STATE, ZIP_CODE, COUNTRY, NATIONALITY, PREFIX} = CONST.NON_
 
 function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingModifiedID}: NameProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const nationalityInputKey = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const nationality = reimbursementAccountDraft?.[nationalityInputKey] ?? '';

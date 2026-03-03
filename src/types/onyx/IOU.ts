@@ -175,6 +175,8 @@ type SplitExpense = {
 
     /** Existing routes */
     routes?: Routes;
+    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
+    isManuallyEdited?: boolean;
 };
 
 /** Model of IOU request */

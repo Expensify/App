@@ -1,24 +1,20 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    getIOURequestPolicyID,
-    setDraftSplitTransaction,
-    setMoneyRequestDistanceRate,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-    updateMoneyRequestDistanceRate,
-} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -57,19 +53,17 @@ function IOURequestStepDistanceRate({
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
@@ -77,7 +71,7 @@ function IOURequestStepDistanceRate({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
-    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyList();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
 
@@ -88,6 +82,11 @@ function IOURequestStepDistanceRate({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [formError, setFormError] = useState('');
+
+    // Track the rate the user last selected visually, even if it failed validation.
+    // This keeps the problematic rate shown as selected so the user understands what they need to change.
+    const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
@@ -98,8 +97,9 @@ function IOURequestStepDistanceRate({
 
     const options = sortedRates.map((rate) => {
         const unit = currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate) : rate.unit;
-        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
+        const effectiveRateID = pendingRateID ?? currentRateID;
+        const isSelected = effectiveRateID ? effectiveRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const rateForDisplay = DistanceRequestUtils.getFormattedRateValue(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit, getCurrencySymbol);
         return {
             text: rate.name ?? rateForDisplay,
             alternateText: rate.name ? rateForDisplay : '',
@@ -115,6 +115,28 @@ function IOURequestStepDistanceRate({
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
+        // Validate that the new rate combined with the existing distance doesn't exceed the backend limit.
+        // This check runs before any state updates so that an invalid rate doesn't modify tax or rate state.
+        const newRate = rates[customUnitRateID]?.rate ?? 0;
+
+        // Use the newly selected rate's unit directly rather than getDistanceUnit(), which
+        // prefers the transaction's stored unit.  When a user switches from a miles-based
+        // rate to a km-based rate, validation must use the *new* rate's unit so the
+        // distance-to-amount calculation is correct.
+        const selectedRateUnit = rates[customUnitRateID]?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+
+        // Read distance in meters using the *transaction's current* unit (so the raw
+        // quantity stored on the transaction is interpreted correctly), then convert to
+        // the selected rate's unit for the limit check.
+        const currentUnit = DistanceRequestUtils.getDistanceUnit(currentTransaction, rates[customUnitRateID]);
+        const distanceInMeters = getDistanceInMeters(currentTransaction, currentUnit);
+        const distanceInUnits = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, selectedRateUnit);
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distanceInUnits, newRate)) {
+            setPendingRateID(customUnitRateID);
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceRate'));
+            return;
+        }
+
         let taxAmount;
         let taxRateExternalID;
         if (shouldShowTax) {
@@ -122,8 +144,7 @@ function IOURequestStepDistanceRate({
             const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
-            const unit = DistanceRequestUtils.getDistanceUnit(currentTransaction, rates[customUnitRateID]);
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, unit));
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
@@ -159,6 +180,8 @@ function IOURequestStepDistanceRate({
             }
         }
 
+        setPendingRateID(undefined);
+        setFormError('');
         navigateBack();
     }
 
@@ -171,6 +194,12 @@ function IOURequestStepDistanceRate({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
+            {!!formError && (
+                <FormHelpMessage
+                    style={[styles.mh5, styles.mb4]}
+                    message={formError}
+                />
+            )}
 
             <SelectionList
                 data={options}

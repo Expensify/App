@@ -38,7 +38,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {isBetaEnabled} = usePermissions();
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -156,7 +156,6 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                 shouldHideFixErrorsAlert
                 onSubmit={submit}
                 style={[styles.flex1]}
-                disablePressOnEnter={false}
                 submitButtonStyles={[styles.mh5]}
                 validate={validate}
                 enabledWhenOffline
@@ -175,6 +174,8 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                     }}
                     shouldShowModal={false}
                     addBottomSafeAreaPadding={false}
+                    disableKeyboardShortcuts
+                    alternateNumberOfSupportedLines={2}
                 />
 
                 <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />

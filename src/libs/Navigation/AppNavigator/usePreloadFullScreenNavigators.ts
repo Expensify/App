@@ -111,7 +111,7 @@ function usePreloadFullScreenNavigators() {
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
     const hasSubscriptionPlanTurnedOff = useMemo(() => {
         return !subscriptionPlan && preloadedRoutes.some(isPreloadedRouteSubscriptionScreen);
@@ -134,6 +134,7 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
+                const currentRoutes = navigation.getState().routes;
                 for (const tabName of TABS_TO_PRELOAD) {
                     // Don't preload the current tab
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
@@ -144,6 +145,13 @@ function usePreloadFullScreenNavigators() {
                     // Don't preload tabs that are already preloaded
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     if (isRouteAlreadyPreloaded) {
+                        continue;
+                    }
+
+                    // Don't preload tabs whose navigator is already in the regular routes stack
+                    const isRouteInStack = currentRoutes.some((r) => TAB_TO_FULLSCREEN[tabName].includes(r.name as FullScreenName));
+
+                    if (isRouteInStack) {
                         continue;
                     }
 

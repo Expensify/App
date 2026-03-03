@@ -2,13 +2,13 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
@@ -38,6 +38,7 @@ function WorkspaceEditTaxPage({
     const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const canEditTaxRate = policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections(policy);
@@ -90,7 +91,12 @@ function WorkspaceEditTaxPage({
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text>{translate('workspace.taxes.actions.enable')}</Text>
+                                <Text
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.taxes.actions.enable')}
+                                </Text>
                                 <Switch
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
@@ -159,7 +165,7 @@ function WorkspaceEditTaxPage({
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />

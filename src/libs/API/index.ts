@@ -6,6 +6,7 @@ import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
+import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -41,6 +42,9 @@ addMiddleware(SupportalPermission);
 addMiddleware(HandleUnusedOptimisticID);
 
 addMiddleware(Pagination);
+
+// SentryServerTiming - Tracks server round-trip time for configured command groups via Sentry spans.
+addMiddleware(SentryServerTiming);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
@@ -143,12 +147,12 @@ function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: 
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
  */
-function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response>;
+function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
 
 function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
-    onyxData: OnyxData<TKey>,
+    onyxData?: OnyxData<TKey>,
     conflictResolver?: RequestConflictResolver<TKey>,
 ): Promise<void | Response<TKey>>;
 
@@ -255,7 +259,7 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUES
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey>,
     config: PaginationConfig,
-): Promise<Response | void>;
+): Promise<Response<TKey> | void>;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TCommand extends CommandOfType<TRequestType>, TKey extends OnyxKey>(
     type: TRequestType,
     command: TCommand,
