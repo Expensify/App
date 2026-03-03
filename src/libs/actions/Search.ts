@@ -51,6 +51,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {
     BankAccountList,
     Beta,
+    BillingGraceEndPeriod,
     ExportTemplate,
     LastPaymentMethod,
     LastPaymentMethodType,
@@ -1310,6 +1311,7 @@ function handleBulkPayItemSelected(params: {
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     showDelegateNoAccessModal: () => void;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
 }) {
@@ -1323,6 +1325,7 @@ function handleBulkPayItemSelected(params: {
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
+        userBillingGraceEndPeriods,
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
@@ -1342,7 +1345,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
