@@ -104,6 +104,11 @@ const baseFilterConfig = {
         description: 'search.filters.exported' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED),
     },
+    exportedTo: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.exportedTo' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORTED_TO),
+    },
     posted: {
         getTitle: getFilterDisplayTitle,
         description: 'search.filters.posted' as const,
@@ -487,6 +492,14 @@ function getFilterDisplayTitle(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
         const filterValue = filters[key];
         return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
+        const filterValue = filters[key];
+        if (!filterValue) {
+            return undefined;
+        }
+        return (Array.isArray(filterValue) ? filterValue : [filterValue]).join(', ');
     }
 
     const filterValue = filters[key];

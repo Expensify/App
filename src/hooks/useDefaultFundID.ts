@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {getFundIdFromSettingsKey} from '@libs/CardUtils';
+import {getCardSettings, getFundIdFromSettingsKey} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
@@ -15,6 +15,7 @@ function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
     const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`);
+    const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
@@ -36,7 +37,7 @@ function useDefaultFundID(policyID: string | undefined) {
         [getDomainFundID],
     );
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedCardSettings?.paymentBankAccountID) {
+    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID) {
         return lastSelectedExpensifyCardFeed;
     }
 

@@ -1,12 +1,14 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,7 +26,13 @@ type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; currentUserAccountID: number}) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
+        reportID?: string;
+        accountID?: number;
+        login?: string;
+        currentUserAccountID: number;
+        introSelected: OnyxEntry<IntroSelected>;
+    }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
 };
@@ -55,7 +63,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, introSelected}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -67,7 +75,7 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], false);
+                navigateToAndOpenReport([login], currentUserAccountID, introSelected, false);
                 return;
             }
             if (accountID) {
