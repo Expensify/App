@@ -543,7 +543,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         duplicateReport: 'レポートを複製',
-        explain: '説明',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1372,6 +1371,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: '続行する前に有効な距離を入力してください',
             invalidReadings: '開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
+            distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
+            distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
+            distanceAmountTooLargeReduceRate: '合計金額が大きすぎます。レートを下げてください。',
+            odometerReadingTooLarge: (formattedMax: string) => `オドメーターの読み取り値は${formattedMax}を超えることはできません。`,
             invalidIntegerAmount: '続行する前にドルの整数金額を入力してください',
             invalidTaxAmount: (amount: string) => `最大税額は${amount}です`,
             invalidSplit: '分割した金額の合計は合計金額と一致している必要があります',
@@ -1558,6 +1561,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
+        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
@@ -1571,6 +1575,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">個人経費ルール</a> 経由)`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">ワークスペースルール</a> 経由)`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を使ったレポートの送信に失敗しました。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `レポートの送信に失敗しました。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3932,6 +3940,7 @@ ${
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
             workspaceOwner: 'オーナー',
+            keepMeAsAdmin: '管理者のままにする',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
             clientID: 'クライアントID',
@@ -7558,7 +7567,6 @@ ${reportName}
         },
     },
     gps: {
-        disclaimer: 'GPSを使用して移動履歴から経費を作成しましょう。追跡を開始するには、下の「開始」をタップしてください。',
         error: {
             failedToStart: '位置情報の追跡を開始できませんでした。',
             failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。',

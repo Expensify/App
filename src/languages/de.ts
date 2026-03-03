@@ -544,7 +544,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
         duplicateReport: 'Duplizierten Bericht',
-        explain: 'Erklären',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -1389,6 +1388,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Bitte gib eine gültige Entfernung ein, bevor du fortfährst',
             invalidReadings: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
             negativeDistanceNotAllowed: 'Endstand muss größer als Anfangsstand sein',
+            distanceAmountTooLarge: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung oder reduziere den Satz.',
+            distanceAmountTooLargeReduceDistance: 'Der Gesamtbetrag ist zu hoch. Verringere die Entfernung.',
+            distanceAmountTooLargeReduceRate: 'Der Gesamtbetrag ist zu hoch. Reduziere den Satz.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometerstände dürfen ${formattedMax} nicht überschreiten.`,
             invalidIntegerAmount: 'Bitte gib einen vollen Dollarbetrag ein, bevor du fortfährst',
             invalidTaxAmount: (amount: string) => `Der maximale Steuerbetrag ist ${amount}`,
             invalidSplit: 'Die Summe der Aufteilungen muss dem Gesamtbetrag entsprechen',
@@ -1576,6 +1579,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Der Gesamtbetrag ist zu hoch. Verringere die Stunden oder reduziere den Satz.',
         },
         correctRateError: 'Beheben Sie den Kursfehler und versuchen Sie es erneut.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Erklären</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Sie können Per-Diem-Ausgaben nicht über mehrere Workspaces hinweg duplizieren, da sich die Sätze zwischen den Workspaces unterscheiden können.',
         rulesModifiedFields: {
@@ -1590,6 +1594,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Regeln für persönliche Ausgaben</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} über <a href="${route}">Workspace-Regeln</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `Senden des Berichts über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Übermittlungen verzögern</a> fehlgeschlagen. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -3974,6 +3982,7 @@ ${
             clearFilter: 'Filter zurücksetzen',
             workspaceName: 'Arbeitsbereichsname',
             workspaceOwner: 'Inhaber',
+            keepMeAsAdmin: 'Behalte mich als Administrator',
             workspaceType: 'Arbeitsbereichstyp',
             workspaceAvatar: 'Workspace-Avatar',
             clientID: 'Kunden-ID',
@@ -7662,7 +7671,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
     },
     gps: {
-        disclaimer: 'Verwende GPS, um aus deiner Fahrt eine Ausgabe zu erstellen. Tippe unten auf „Start“, um die Aufzeichnung zu beginnen.',
         error: {
             failedToStart: 'Standortverfolgung konnte nicht gestartet werden.',
             failedToGetPermissions: 'Erforderliche Standortberechtigungen konnten nicht abgerufen werden.',
