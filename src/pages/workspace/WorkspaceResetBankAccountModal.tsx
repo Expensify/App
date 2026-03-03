@@ -28,6 +28,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
+
+    /** Method to navigate after resetting bank account */
+    navigateAfterReset?: () => void;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -36,6 +39,7 @@ function WorkspaceResetBankAccountModal({
     setUSDBankAccountStep,
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
+    navigateAfterReset,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -86,6 +90,9 @@ function WorkspaceResetBankAccountModal({
             if (setUSDBankAccountStep) {
                 setUSDBankAccountStep(null);
             }
+        }
+        if (navigateAfterReset) {
+            navigateAfterReset();
         }
     };
 

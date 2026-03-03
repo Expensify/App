@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,6 +23,7 @@ function Finish() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield', 'ChatBubble']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -30,7 +32,7 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, currentUserAccountID, true);
 
     return (
         <ScreenWrapper
