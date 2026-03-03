@@ -2907,9 +2907,8 @@ describe('SidebarUtils', () => {
             it('should categorize reports into correct groups', () => {
                 const {reports, reportNameValuePairs} = createSidebarTestData();
 
-                // Given reportsDrafts contains a draft comment for report '2'
-                const reportsDrafts = {
-                    [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}2`]: 'test',
+                const reportsDrafts: Record<string, boolean> = {
+                    '2': true,
                 };
 
                 // When the reports are categorized
@@ -3252,6 +3251,53 @@ describe('SidebarUtils', () => {
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)
                 expect(gsdResult).toEqual(['0', '1']); // Alphabetical (Alpha comes before Beta)
+            });
+        });
+
+        describe('updateReportsToDisplayInLHN', () => {
+            it('should return the same reference when no entries actually change', () => {
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1, undefined),
+                };
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
+                    currentReportId: '1',
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                });
+
+                expect(result).toBe(displayedReports);
+            });
+
+            it('should return a new reference when a report is removed', () => {
+                const reports: OnyxCollection<Report> = {};
+                const displayedReports = createSidebarReportsCollection([{reportName: 'Report 1', isPinned: false, hasErrorsOtherThanFailedReceipt: false}]);
+
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: ['0'],
+                    currentReportId: undefined,
+                    isInFocusMode: false,
+                    betas: [],
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                });
+
+                expect(result).not.toBe(displayedReports);
+                expect(result['0']).toBeUndefined();
             });
         });
     });
