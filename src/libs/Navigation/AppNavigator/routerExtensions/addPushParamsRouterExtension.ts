@@ -20,11 +20,11 @@ function isPushParamsAction(action: PushParamsRouterAction): action is PushParam
 }
 
 function isGoBackAction(action: PushParamsRouterAction): action is GoBackAction {
-    return action.type === 'GO_BACK';
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.GO_BACK;
 }
 
 function isPopAction(action: PushParamsRouterAction): boolean {
-    return action.type === 'POP';
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.POP;
 }
 
 /**
@@ -149,7 +149,7 @@ function addPushParamsRouterExtension<RouterOptions extends PlatformStackRouterO
             // RESET actions (fired by web URL sync after PUSH_PARAMS changes the URL) would
             // normally rebuild history 1:1 from routes via getRehydratedState, wiping all
             // PUSH_PARAMS snapshots. Preserve history entries for routes that still exist.
-            if (action.type === 'RESET' && state.history) {
+            if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && state.history) {
                 const preservedHistory = preserveHistoryForRoutes(state.history as CustomHistoryEntry[], newState.routes);
                 if (preservedHistory.length > 0) {
                     return {
