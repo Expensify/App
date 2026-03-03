@@ -60,6 +60,14 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [
+            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.MOBILE_SELECTION_MODE,
+            ONYXKEYS.IS_SIDEBAR_LOADED,
+            ONYXKEYS.IS_LOADING_REPORT_DATA,
+            ONYXKEYS.IS_LOADING_APP,
+            ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD,
+        ],
     });
 
     initOnyxDerivedValues();
