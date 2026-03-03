@@ -7,6 +7,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchContextProvider} from '@components/Search/SearchContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
@@ -58,27 +59,30 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
 }
 
 const renderPage = () => {
+    const searchParams = {q: SearchQueryUtils.buildSearchQueryString()};
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
-                <TestNavigationContainer
-                    initialState={{
-                        index: 0,
-                        routes: [
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                        },
-                                    ],
+                <SearchContextProvider params={searchParams}>
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {
+                                        index: 0,
+                                        routes: [
+                                            {
+                                                name: SCREENS.SEARCH.ROOT,
+                                            },
+                                        ],
+                                    },
                                 },
-                            },
-                        ],
-                    }}
-                />
+                            ],
+                        }}
+                    />
+                </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
