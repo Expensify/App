@@ -50,6 +50,7 @@ const RECEIVER_POLICY_ID = 'receiverPolicy';
 
 // Parent reports for thread resolution
 const PARENT_PEC_REPORT_ID = 'parentPEC';
+const PARENT_DM_REPORT_ID = 'parentDM';
 const PARENT_EXPENSE_REPORT_ID = 'parentExpense';
 const INTERMEDIATE_TASK_REPORT_ID = 'intermediateTask';
 const B2B_INVOICE_ROOM_ID = 'b2bInvoiceRoom';
@@ -105,7 +106,8 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0) {
+    const skipDelegateForTask = isTaskReport(report) && !report.chatReportID;
+    if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegateForTask) {
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
         if (firstIcon && delegateDetails) {
@@ -139,6 +141,13 @@ describe('LHN Avatar Pipeline', () => {
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user1@test.com'});
         await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, TEST_POLICY);
+
+        // Parent DM chat (for personal task cases)
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_DM_REPORT_ID}`, {
+            reportID: PARENT_DM_REPORT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: undefined,
+        } as Report);
 
         // Parent policy expense chat (for thread cases)
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_PEC_REPORT_ID}`, {
@@ -543,5 +552,60 @@ describe('LHN Avatar Pipeline', () => {
 
         expect(result.icons.at(0)?.name).toBe('Test Workspace');
         expect(result.icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+    });
+
+    // ── Case 12c: Personal task (parent is DM) → SINGLE ──────────────
+    it('Task Report (personal, parent is DM) → single', () => {
+        const report = {
+            ...createWorkspaceTaskReport(123, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_DM_REPORT_ID),
+            policyID: undefined,
+            ownerAccountID: 2,
+        } as unknown as Report;
+        const result = computeAvatarResult({report, policy: null});
+
+        expect(result.shouldShowSubscript).toBe(false);
+        expect(result.avatarType).toBe('single');
+        expect(result.icons).toHaveLength(1);
+    });
+
+    // ── Case 12d: Direct workspace task offline (no chatReportID) → SUBSCRIPT
+    it('Task Report (workspace, offline without chatReportID) → subscript', () => {
+        const report = {
+            ...createWorkspaceTaskReport(124, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+            parentReportActionID: ACTION_PEC_ID,
+        };
+        const result = computeAvatarResult({report});
+
+        expect(result.shouldShowSubscript).toBe(true);
+        expect(result.avatarType).toBe('subscript');
+        expect(result.icons).toHaveLength(2);
+    });
+
+    // ── Case 21: Delegate skipped for task without chatReportID ──────
+    it('Delegate skipped for task without chatReportID', () => {
+        const report = {
+            ...createWorkspaceTaskReport(125, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+        };
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.icons.at(0)?.id).not.toBe(5);
+    });
+
+    // ── Case 22: Delegate applied for task WITH chatReportID ─────────
+    it('Delegate applied for task with chatReportID', () => {
+        const report = {
+            ...createWorkspaceTaskReport(126, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_PEC_REPORT_ID),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+            parentReportActionID: ACTION_PEC_ID,
+            chatReportID: PARENT_PEC_REPORT_ID,
+        };
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.icons.at(0)?.id).toBe(5);
     });
 });
