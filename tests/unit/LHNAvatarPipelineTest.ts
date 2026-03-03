@@ -52,7 +52,6 @@ const RECEIVER_POLICY_ID = 'receiverPolicy';
 const PARENT_PEC_REPORT_ID = 'parentPEC';
 const PARENT_DM_REPORT_ID = 'parentDM';
 const PARENT_EXPENSE_REPORT_ID = 'parentExpense';
-const INTERMEDIATE_TASK_REPORT_ID = 'intermediateTask';
 const B2B_INVOICE_ROOM_ID = 'b2bInvoiceRoom';
 const ACTION_PEC_ID = 'actionPEC';
 const ACTION_EXPENSE_REQ_ID = 'actionExpReq';
@@ -157,15 +156,6 @@ describe('LHN Avatar Pipeline', () => {
             policyID: POLICY_ID,
             ownerAccountID: 2,
             isOwnPolicyExpenseChat: false,
-        } as Report);
-
-        // Intermediate task report (for nested task cases: task → task → PEC)
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${INTERMEDIATE_TASK_REPORT_ID}`, {
-            reportID: INTERMEDIATE_TASK_REPORT_ID,
-            type: CONST.REPORT.TYPE.TASK,
-            policyID: POLICY_ID,
-            ownerAccountID: 2,
-            parentReportID: PARENT_PEC_REPORT_ID,
         } as Report);
 
         // Parent expense report (for expense request cases)
@@ -403,20 +393,6 @@ describe('LHN Avatar Pipeline', () => {
         expect(result.shouldShowSubscript).toBe(false);
         expect(result.avatarType).toBe('single');
         expect(result.icons).toHaveLength(1);
-    });
-
-    // ── Case 12b: Nested workspace task (task → task → PEC) ─────────────
-    it('Nested workspace task (task → task → PEC) → subscript', () => {
-        const report = {
-            ...createWorkspaceTaskReport(122, [CURRENT_USER_ACCOUNT_ID, 2], INTERMEDIATE_TASK_REPORT_ID),
-            policyID: POLICY_ID,
-            ownerAccountID: 2,
-        };
-        const result = computeAvatarResult({report});
-
-        expect(result.shouldShowSubscript).toBe(true);
-        expect(result.avatarType).toBe('subscript');
-        expect(result.icons).toHaveLength(2);
     });
 
     // ── Case 13: Trip Room ──────────────────────────────────────────────

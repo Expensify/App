@@ -1832,13 +1832,7 @@ function isWorkspaceTaskReport(report: OnyxEntry<Report>): boolean {
         return false;
     }
     const parentReport = report?.parentReportID ? getReport(report?.parentReportID, allReports) : undefined;
-    if (isPolicyExpenseChat(parentReport)) {
-        return true;
-    }
-    if (isTaskReport(parentReport)) {
-        return isWorkspaceTaskReport(parentReport);
-    }
-    return false;
+    return isPolicyExpenseChat(parentReport);
 }
 
 /**
