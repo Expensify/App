@@ -312,12 +312,11 @@ function IOURequestStepScan({
     });
 
     const maybeCancelShutterSpan = useCallback(() => {
-        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-
         if (isMultiScanEnabled) {
             return;
         }
 
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     }, [isMultiScanEnabled]);
 
