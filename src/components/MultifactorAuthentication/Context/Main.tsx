@@ -496,6 +496,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             addMfaBreadcrumb('Flow started', {
                 scenario,
                 hasPayload: params !== undefined && Object.keys(params).length > 0,
+                platform,
+                isOffline,
+                hasAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
+                serverHasAnyCredentials: biometrics.serverHasAnyCredentials,
             });
             dispatch({
                 type: 'INIT',
@@ -505,7 +509,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [dispatch],
+        [biometrics.serverHasAnyCredentials, dispatch, isOffline, platform],
     );
 
     /**
