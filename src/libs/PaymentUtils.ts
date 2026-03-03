@@ -191,7 +191,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (!isUserValidated) {
             return handleUnvalidatedAccount(iouReport);
         }
-        triggerKYCFlow({event, iouPaymentType});
+        triggerKYCFlow({event, iouPaymentType, policy});
         setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
         return;
     }
