@@ -273,6 +273,7 @@ function shouldDisplayReportInLHN(
         draftComment,
         includeSelfDM: true,
         isReportArchived,
+        requiresAttention: reportAttributes?.[report?.reportID]?.requiresAttention,
     });
 
     return {shouldDisplay};
