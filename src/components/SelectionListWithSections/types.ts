@@ -491,6 +491,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Pre-computed total display spend amount */
+        totalDisplaySpend?: number;
+
+        /** Pre-computed non-reimbursable spend amount */
+        nonReimbursableSpend?: number;
+
+        /** Pre-computed reimbursable spend amount */
+        reimbursableSpend?: number;
+
+        /** Pre-computed flag indicating whether all transactions are scanning */
+        isAllScanning?: boolean;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
