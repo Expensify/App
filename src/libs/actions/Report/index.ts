@@ -1097,7 +1097,12 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
     // Some cases we can have two open report requests with guide setup data because isInviteOnboardingComplete is not updated completely.
     // Then we need to check the list request and prevent the guided setup data from being duplicated.
     const allPersistedRequests = getAll();
-    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.guidedSetupData);
+    const hasOpenReportWithGuidedSetupData = allPersistedRequests.some(
+        (request) =>
+            (request.command === WRITE_COMMANDS.OPEN_REPORT && !!request.data?.guidedSetupData) ||
+            request.command === WRITE_COMMANDS.COMPLETE_GUIDED_SETUP ||
+            request.command === SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP,
+    );
 
     // Prepare guided setup data only when nvp_introSelected is set and onboarding is not completed
     // OldDot users will never have nvp_introSelected set, so they will not see guided setup messages

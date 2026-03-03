@@ -11837,7 +11837,13 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    if (!wasInvited) {
+    if (wasInvited) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {isInviteOnboardingComplete: true},
+        });
+    } else {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
@@ -11910,7 +11916,13 @@ function prepareOnboardingOnyxData({
         },
     });
 
-    if (!wasInvited) {
+    if (wasInvited) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {isInviteOnboardingComplete: introSelected?.isInviteOnboardingComplete ?? null},
+        });
+    } else {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
