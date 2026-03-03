@@ -6,7 +6,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -20,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
@@ -144,6 +144,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const isTouchScreen = canUseTouchScreen();
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Fullscreen', 'Plus']);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -468,7 +469,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                         role={CONST.ROLE.BUTTON}
                                     >
                                         <Icon
-                                            src={Expensicons.Fullscreen}
+                                            src={lazyIcons.Fullscreen}
                                             height={16}
                                             width={16}
                                             fill={theme.icon}
@@ -498,7 +499,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                 role={CONST.ROLE.BUTTON}
                                             >
                                                 <Icon
-                                                    src={Expensicons.Plus}
+                                                    src={lazyIcons.Plus}
                                                     height={16}
                                                     width={16}
                                                     fill={theme.icon}
