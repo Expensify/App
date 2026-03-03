@@ -125,8 +125,9 @@ function handlePushFullscreenAction(
 
     // If the target navigator already exists in the stack, pop back to it instead of pushing
     // a duplicate. This preserves the route key and avoids remounting heavy component trees.
+    // Never pop to the very first route (index 0) as that would destroy all navigators above it.
     const existingIndex = state.routes.findLastIndex((route) => route.name === navigatorName);
-    if (existingIndex !== -1 && existingIndex !== state.routes.length - 1) {
+    if (existingIndex > 0 && existingIndex !== state.routes.length - 1) {
         const popAction = StackActions.pop(state.routes.length - 1 - existingIndex);
         return stackRouter.getStateForAction(state, popAction, configOptions);
     }
