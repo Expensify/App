@@ -4248,6 +4248,10 @@ function getColumnsToShow(
                     result.unshift(CONST.SEARCH.TABLE_COLUMNS.TYPE);
                 }
             }
+
+            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
+                result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            }
         } else {
             // Search page: prepend AVATAR, TYPE
             result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
