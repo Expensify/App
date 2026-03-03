@@ -11,7 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -65,7 +65,7 @@ function AboutPage() {
     const {restoreFocusOnReturn, setFocusTarget} = useAccessibilityFocusOnReturn();
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    useDocumentTitle(`${translate('common.settings')} - ${translate('initialSettingsPage.about')}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -109,8 +109,9 @@ function AboutPage() {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: icons.Bug,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
-                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, false)),
+                action: waitForNavigate(() => navigateToConciergeChat(conciergeReportID, currentUserAccountID, false)),
                 shouldRestoreFocusOnReturn: true,
+
             },
         ];
 
@@ -141,7 +142,7 @@ function AboutPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel,
         }));
-    }, [icons, styles, translate, waitForNavigate, conciergeReportID, setFocusTarget]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, currentUserAccountID, setFocusTarget]);
 
     const overlayContent = useCallback(
         () => (
@@ -170,6 +171,7 @@ function AboutPage() {
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
                 icon={illustrations.PalmTree}
                 shouldUseHeadlineHeader

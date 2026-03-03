@@ -1624,6 +1624,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
         await waitForBatchedUpdates();
@@ -1660,6 +1661,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             isSelfTourViewed: false,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             personalDetails: {},
         });
         await waitForBatchedUpdates();
@@ -1827,6 +1830,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -1861,6 +1865,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -1989,6 +1995,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2023,6 +2030,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -2155,6 +2164,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -2190,6 +2200,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -2330,6 +2342,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
+            isSelfTourViewed: false,
         });
 
         // Change the approval mode for the policy since default is Submit and Close
@@ -2367,6 +2380,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionViolations: {},
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
+            existingTransactionDraft: undefined,
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
             personalDetails: {},
@@ -3922,6 +3937,45 @@ describe('resetSplitExpensesByDateRange', () => {
         expect(splitExpenses?.[0].merchant).toContain('100');
         expect(splitExpenses?.[1].merchant).toBeTruthy();
         expect(splitExpenses?.[1].merchant).toContain('100');
+    });
+
+    it('should produce dates matching the input range without timezone-induced shifts', async () => {
+        const transactionID = 'trans-tz';
+        const startDate = '2024-01-16';
+        const endDate = '2024-01-18';
+
+        const transaction: Transaction = {
+            transactionID,
+            amount: -20000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {
+                comment: '',
+                splitExpenses: [],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Food',
+            created: DateUtils.getDBTime(),
+            reportID: '789',
+        };
+
+        const transactionReport: Report = {
+            reportID: '789',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        resetSplitExpensesByDateRange(transaction, transactionReport, startDate, endDate);
+        await waitForBatchedUpdates();
+
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        const splitExpenses = draftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses).toHaveLength(3);
+        expect(splitExpenses?.[0].created).toBe('2024-01-16');
+        expect(splitExpenses?.[1].created).toBe('2024-01-17');
+        expect(splitExpenses?.[2].created).toBe('2024-01-18');
     });
 
     it('should not reset if transaction, startDate, or endDate is missing', async () => {
