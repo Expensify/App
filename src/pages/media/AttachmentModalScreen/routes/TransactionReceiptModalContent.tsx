@@ -517,13 +517,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                           Navigation.getActiveRoute(),
                                       );
                             };
-                            if (isNative) {
-                                Navigation.goBack();
-                                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                    Navigation.navigate(getDestinationRoute());
-                                });
-                                return;
-                            }
 
                             Navigation.dismissModal({
                                 afterTransition: () => Navigation.navigate(getDestinationRoute()),

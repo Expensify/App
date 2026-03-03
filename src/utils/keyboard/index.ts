@@ -25,6 +25,7 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
 const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
+            options?.afterTransition?.();
             resolve();
 
             return;
