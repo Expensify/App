@@ -162,7 +162,9 @@ function TransactionPreviewContent({
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = Parser.truncateHTML(requestComment ?? '', 32);
+    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH);
+    const isDescriptionHTML = !!description && Parser.isHTML(description);
+    const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
@@ -320,16 +322,18 @@ function TransactionPreviewContent({
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription &&
-                                                    (shouldShowMerchant ? (
+                                                    ((shouldShowMerchant || !isDescriptionHTML) ? (
                                                         <Text
                                                             fontSize={variables.fontSizeNormal}
                                                             style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
                                                             numberOfLines={2}
                                                         >
-                                                            {requestMerchant}
+                                                            {shouldShowMerchant ? requestMerchant : requestDescription}
                                                         </Text>
                                                     ) : (
-                                                        <View style={[isDeleted && styles.lineThrough, styles.flexShrink1]}>
+                                                        <View
+                                                            style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.renderHTML]}
+                                                        >
                                                             <RenderHTML html={description} />
                                                         </View>
                                                     ))}
