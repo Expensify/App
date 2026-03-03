@@ -467,6 +467,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                         style={styles.primaryMediumIcon}
                                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                         role={CONST.ROLE.BUTTON}
+                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
                                     >
                                         <Icon
                                             src={lazyIcons.Fullscreen}
@@ -497,6 +498,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                 style={styles.primaryMediumIcon}
                                                 accessibilityLabel={translate('reportActionCompose.addAttachment')}
                                                 role={CONST.ROLE.BUTTON}
+                                                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
                                             >
                                                 <Icon
                                                     src={lazyIcons.Plus}
