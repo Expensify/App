@@ -16,24 +16,22 @@ import getButtonState from '@libs/getButtonState';
 import type {ActionID} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
-import {
-    createCopyLinkAction,
-    createCopyMessageAction,
-    createDeleteAction,
-    createDownloadAction,
-    createEditAction,
-    createEmojiReactionData,
-    createExplainAction,
-    createFlagAsOffensiveAction,
-    createHoldAction,
-    createJoinThreadAction,
-    createLeaveThreadAction,
-    createMarkAsReadAction,
-    createMarkAsUnreadAction,
-    createOverflowMenuAction,
-    createReplyInThreadAction,
-    createUnholdAction,
-} from '@pages/inbox/report/ContextMenu/actions/ContextMenuAction';
+import createCopyLinkAction from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
+import createCopyMessageAction from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
+import createDeleteAction from '@pages/inbox/report/ContextMenu/actions/deleteAction';
+import createDownloadAction from '@pages/inbox/report/ContextMenu/actions/downloadAction';
+import createEditAction from '@pages/inbox/report/ContextMenu/actions/editAction';
+import createEmojiReactionData from '@pages/inbox/report/ContextMenu/actions/emojiReactionAction';
+import createExplainAction from '@pages/inbox/report/ContextMenu/actions/explainAction';
+import createFlagAsOffensiveAction from '@pages/inbox/report/ContextMenu/actions/flagAsOffensiveAction';
+import createHoldAction from '@pages/inbox/report/ContextMenu/actions/holdAction';
+import createJoinThreadAction from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
+import createLeaveThreadAction from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
+import createMarkAsReadAction from '@pages/inbox/report/ContextMenu/actions/markAsReadAction';
+import createMarkAsUnreadAction from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
+import createOverflowMenuAction from '@pages/inbox/report/ContextMenu/actions/overflowMenuAction';
+import createReplyInThreadAction from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
+import createUnholdAction from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';

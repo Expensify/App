@@ -11,7 +11,12 @@ import CONST from '@src/CONST';
 import type {ActionID} from './actions/actionConfig';
 import type {ContextMenuAction} from './actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import {createCopyOnyxDataAction, createDebugAction, createMarkAsReadAction, createMarkAsUnreadAction, createPinAction, createUnpinAction} from './actions/ContextMenuAction';
+import createCopyOnyxDataAction from './actions/copyOnyxDataAction';
+import createDebugAction from './actions/debugAction';
+import createMarkAsReadAction from './actions/markAsReadAction';
+import createMarkAsUnreadAction from './actions/markAsUnreadAction';
+import createPinAction from './actions/pinAction';
+import createUnpinAction from './actions/unpinAction';
 import type {PopoverContentProps} from './PopoverContextMenu';
 import useReportContextMenuData from './useReportContextMenuData';
 

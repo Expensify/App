@@ -17,31 +17,29 @@ import type {ActionID} from './actions/actionConfig';
 import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
 import type {ContextMenuAction} from './actions/actionTypes';
 import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import {
-    createCopyEmailAction,
-    createCopyLinkAction,
-    createCopyMessageAction,
-    createCopyOnyxDataAction,
-    createCopyToClipboardAction,
-    createCopyURLAction,
-    createDebugAction,
-    createDeleteAction,
-    createDownloadAction,
-    createEditAction,
-    createEmojiReactionData,
-    createExplainAction,
-    createFlagAsOffensiveAction,
-    createHoldAction,
-    createJoinThreadAction,
-    createLeaveThreadAction,
-    createMarkAsReadAction,
-    createMarkAsUnreadAction,
-    createOverflowMenuAction,
-    createPinAction,
-    createReplyInThreadAction,
-    createUnholdAction,
-    createUnpinAction,
-} from './actions/ContextMenuAction';
+import createCopyEmailAction from './actions/copyEmailAction';
+import createCopyLinkAction from './actions/copyLinkAction';
+import createCopyMessageAction from './actions/copyMessageAction';
+import createCopyOnyxDataAction from './actions/copyOnyxDataAction';
+import createCopyToClipboardAction from './actions/copyToClipboardAction';
+import createCopyURLAction from './actions/copyURLAction';
+import createDebugAction from './actions/debugAction';
+import createDeleteAction from './actions/deleteAction';
+import createDownloadAction from './actions/downloadAction';
+import createEditAction from './actions/editAction';
+import createEmojiReactionData from './actions/emojiReactionAction';
+import createExplainAction from './actions/explainAction';
+import createFlagAsOffensiveAction from './actions/flagAsOffensiveAction';
+import createHoldAction from './actions/holdAction';
+import createJoinThreadAction from './actions/joinThreadAction';
+import createLeaveThreadAction from './actions/leaveThreadAction';
+import createMarkAsReadAction from './actions/markAsReadAction';
+import createMarkAsUnreadAction from './actions/markAsUnreadAction';
+import createOverflowMenuAction from './actions/overflowMenuAction';
+import createPinAction from './actions/pinAction';
+import createReplyInThreadAction from './actions/replyInThreadAction';
+import createUnholdAction from './actions/unholdAction';
+import createUnpinAction from './actions/unpinAction';
 import type {PopoverContentProps} from './PopoverContextMenu';
 import {showContextMenu} from './ReportActionContextMenu';
 import useReportActionContextMenuData from './useReportActionContextMenuData';
