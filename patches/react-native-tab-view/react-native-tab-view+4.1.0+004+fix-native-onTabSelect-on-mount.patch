@@ -2,21 +2,18 @@ diff --git a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx b/node_
 index d66b0cb..a1b2c3d 100644
 --- a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
 +++ b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
-@@ -57,13 +57,25 @@ export function PagerViewAdapter<T extends Route>({
+@@ -57,3 +57,5 @@ export function PagerViewAdapter<T extends Route>({
    const pagerRef = React.useRef<ViewPager>(null);
    const indexRef = React.useRef<number>(index);
    const navigationStateRef = React.useRef(navigationState);
 +  const onTabSelectRef = React.useRef(onTabSelect);
 +  const hasCalledInitialTabSelectRef = React.useRef(false);
-
-   const position = useAnimatedValue(index);
-   const offset = useAnimatedValue(0);
-
+@@ -64,3 +66,15 @@ export function PagerViewAdapter<T extends Route>({
    React.useEffect(() => {
      navigationStateRef.current = navigationState;
 +    onTabSelectRef.current = onTabSelect;
    });
-
++
 +  React.useEffect(() => {
 +    if (hasCalledInitialTabSelectRef.current) {
 +      return;
@@ -27,7 +24,3 @@ index d66b0cb..a1b2c3d 100644
 +      onTabSelectRef.current?.({index: navigationStateRef.current.index});
 +    });
 +  }, []);
-+
-   const jumpTo = useLatestCallback((key: string) => {
-     const index = navigationStateRef.current.routes.findIndex(
-       (route: { key: string }) => route.key === key
