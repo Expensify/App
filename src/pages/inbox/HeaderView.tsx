@@ -151,7 +151,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, reportAttributes, reports, parentReportAction);
+    const title = getReportName(reportHeaderData, reportAttributes);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     // This is used to get the status badge for invoice report subtitle.
     const statusTextForInvoiceReport = isParentInvoiceAndIsChatThread
