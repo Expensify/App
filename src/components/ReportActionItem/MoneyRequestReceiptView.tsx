@@ -4,24 +4,32 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -47,7 +55,7 @@ import {
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
-import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -132,6 +140,10 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const theme = useTheme();
+    const ancestors = useAncestors(report);
+    const {hovered, bind: hoverBind} = useHover();
+    const isTouchScreen = canUseTouchScreen();
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -322,6 +334,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
+    const canShowReceiptActions = hasReceipt && isEditable && !isTransactionScanning && !isMapDistanceRequest && !mergeTransactionID;
+
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -423,6 +437,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 showBorderlessLoading && styles.flex1,
                                 fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
                             ]}
+                            onMouseEnter={hoverBind.onMouseEnter}
+                            onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
@@ -441,6 +457,57 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 onLoad={() => setIsLoading(false)}
                                 onLoadFailure={() => setIsLoading(false)}
                             />
+                            {canShowReceiptActions && (
+                                <View style={[styles.receiptActionButtonsContainer, !hovered && !isTouchScreen && styles.opacity0]}>
+                                    <PressableWithFeedback
+                                        onPress={() =>
+                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly))
+                                        }
+                                        style={styles.primaryMediumIcon}
+                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                        role={CONST.ROLE.BUTTON}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Fullscreen}
+                                            height={16}
+                                            width={16}
+                                            fill={theme.icon}
+                                        />
+                                    </PressableWithFeedback>
+                                    <AttachmentPicker>
+                                        {({openPicker}) => (
+                                            <PressableWithFeedback
+                                                onPress={() => {
+                                                    openPicker({
+                                                        onPicked: (files) => {
+                                                            if (!report?.reportID) {
+                                                                return;
+                                                            }
+                                                            addAttachmentWithComment({
+                                                                report,
+                                                                notifyReportID: report.reportID,
+                                                                ancestors,
+                                                                attachments: files,
+                                                                currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                                                            });
+                                                        },
+                                                    });
+                                                }}
+                                                style={styles.primaryMediumIcon}
+                                                accessibilityLabel={translate('reportActionCompose.addAttachment')}
+                                                role={CONST.ROLE.BUTTON}
+                                            >
+                                                <Icon
+                                                    src={Expensicons.Plus}
+                                                    height={16}
+                                                    width={16}
+                                                    fill={theme.icon}
+                                                />
+                                            </PressableWithFeedback>
+                                        )}
+                                    </AttachmentPicker>
+                                </View>
+                            )}
                         </View>
                     )}
                     {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.
