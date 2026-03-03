@@ -11,12 +11,14 @@ import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AnnouncementSection from './AnnouncementSection';
 import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
@@ -30,7 +32,10 @@ function HomePage() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
-    const {initScanRequest, PDFValidationComponent, ErrorModal} = useReceiptScanDrop();
+    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
 
     // This hook signals that the app is ready to be opened after HomePage mounts
     // to make sure everything loads properly
@@ -40,7 +45,7 @@ function HomePage() {
     usePreloadFullScreenNavigators();
 
     return (
-        <DragAndDropProvider>
+        <DragAndDropProvider isDisabled={isDragDisabled}>
             {PDFValidationComponent}
             <ScreenWrapper
                 shouldEnablePickerAvoiding={false}
@@ -58,7 +63,8 @@ function HomePage() {
             >
                 <TopBar
                     breadcrumbLabel={translate('common.home')}
-                    shouldShowLoadingBar={false}
+                    shouldShowLoadingBar={isForYouLoading}
+                    shouldDisplayHelpButton
                 />
                 <ScrollView
                     contentContainerStyle={styles.homePageContentContainer}
