@@ -22,7 +22,6 @@ type CustomCodeProps<
     descriptors: PlatformNavigationBuilderDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
     parentRoute?: RouteProp<ParamListBase>;
-    persistentScreens?: string[];
 };
 
 // Props for the custom state hook.

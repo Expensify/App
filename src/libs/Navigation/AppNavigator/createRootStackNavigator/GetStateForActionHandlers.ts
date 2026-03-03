@@ -123,14 +123,6 @@ function handlePushFullscreenAction(
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
-    // If the target navigator already exists in the stack, pop back to it instead of pushing
-    // a duplicate. This preserves the route key and avoids remounting heavy component trees.
-    const existingIndex = state.routes.findLastIndex((route) => route.name === navigatorName);
-    if (existingIndex !== -1 && existingIndex !== state.routes.length - 1) {
-        const popAction = StackActions.pop(state.routes.length - 1 - existingIndex);
-        return stackRouter.getStateForAction(state, popAction, configOptions);
-    }
-
     // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&

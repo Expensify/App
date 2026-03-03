@@ -73,9 +73,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 descriptors,
                 displayName,
                 parentRoute,
-                persistentScreens,
             }),
-            [originalState, navigation, descriptors, parentRoute, persistentScreens],
+            [originalState, navigation, descriptors, parentRoute],
         );
 
         const stateToRender = useCustomState(customCodeProps);
