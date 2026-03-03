@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
@@ -197,21 +198,23 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                         />
                     </View>
                 </View>
-
+                <View style={styles.mv2}>
+                    <Button
+                        isDisabled={effectiveCardID === undefined}
+                        text="Run scripted QA flows"
+                        onPress={runAllFlows}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt2]}>
+                        Press to queue 6 transactions staggered 30s apart: Approval, Denial, Expiry (expires after 1 minute), Marqeta Error, Already Approved, Already Denied.
+                    </Text>
+                </View>
                 <View>
                     <Text>Outcome</Text>
-                    <View style={styles.mv2}>
-                        {OUTCOME_ITEMS.map((item) => (
-                            <Button
-                                key={item.value}
-                                small
-                                success={simulatedOutcome === item.value}
-                                text={item.label}
-                                onPress={() => setSimulatedOutcome(item.value)}
-                                style={styles.mb2}
-                            />
-                        ))}
-                    </View>
+                    <RadioButtons
+                        items={OUTCOME_ITEMS}
+                        value={simulatedOutcome}
+                        onPress={setSimulatedOutcome}
+                    />
                 </View>
 
                 <View>
@@ -291,14 +294,6 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                         onChangeText={setExpiryMinutesText}
                         keyboardType="decimal-pad"
                         accessibilityLabel="Challenge expiry in minutes"
-                    />
-                </View>
-
-                <View style={styles.mv2}>
-                    <Button
-                        isDisabled={effectiveCardID === undefined}
-                        text="Run all flows"
-                        onPress={runAllFlows}
                     />
                 </View>
             </View>
