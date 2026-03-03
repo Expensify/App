@@ -14,8 +14,8 @@ import type ImportOnyxStateProps from './types';
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -49,7 +49,7 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .then(() => {
                 setIsUsingImportedState(true);
-                Navigation.navigate(ROUTES.INBOX);
+                Navigation.navigate(ROUTES.HOME);
             })
             .catch((error) => {
                 console.error('Error importing state:', error);

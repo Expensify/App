@@ -1,7 +1,9 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
+import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -13,49 +15,42 @@ const shortBarWidth = 40;
 type MergeExpensesSkeletonProps = {
     fixedNumItems?: number;
     speed?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProps) {
-    const containerRef = useRef<View>(null);
+function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeExpensesSkeletonProps) {
+    const {onLayout, containerWidth: pageWidth} = useContainerWidth(24);
     const styles = useThemeStyles();
-    const [pageWidth, setPageWidth] = React.useState(0);
-    useSkeletonSpan('MergeExpensesSkeleton');
-    useLayoutEffect(() => {
-        containerRef.current?.measure((x, y, width) => {
-            setPageWidth(width - 24);
-        });
-    }, []);
+    useSkeletonSpan('MergeExpensesSkeleton', reasonAttributes);
 
     const skeletonItem = useCallback(() => {
         return (
             <>
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 12}, {translateY: 12}]}
                     width={36}
                     height={40}
-                    rx={4}
-                    ry={4}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 66}, {translateY: 22}]}
                     width={longBarWidth}
                     height={barHeight}
                 />
 
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: 66}, {translateY: 36}]}
                     width={mediumBarWidth}
                     height={barHeight}
                 />
 
-                <Rect
+                <SkeletonRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
                     transform={[{translateX: pageWidth - 12 - mediumBarWidth}, {translateY: 22}]}
                     width={mediumBarWidth}
                     height={barHeight}
                 />
 
-                <Rect
+                <SkeletonRect
                     // We have to calculate this value to make sure the element is aligned to the right border.
                     transform={[{translateX: pageWidth - 12 - shortBarWidth}, {translateY: 36}]}
                     width={shortBarWidth}
@@ -68,7 +63,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
     return (
         <View
             style={styles.flex1}
-            ref={containerRef}
+            onLayout={onLayout}
         >
             <ItemListSkeletonView
                 itemViewHeight={64}
