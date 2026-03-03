@@ -190,7 +190,21 @@ function SearchAutocompleteList({
             personalDetails,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList, visibleReportActionsData, currentUserAccountID, currentUserEmail, policies, personalDetails]);
+    }, [
+        areOptionsInitialized,
+        options,
+        draftComments,
+        nvpDismissedProductTraining,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
