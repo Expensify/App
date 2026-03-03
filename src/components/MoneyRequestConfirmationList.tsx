@@ -855,8 +855,8 @@ function MoneyRequestConfirmationList({
                 ...participant,
                 isSelected: false,
                 keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt,
+                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt,
             }));
 
             options.push({

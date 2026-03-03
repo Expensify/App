@@ -2563,7 +2563,7 @@ function getValidOptions(
         current: undefined as SearchOptionData | undefined,
     };
 
-    if (includeP2P) {
+    if (includeP2P && !config.isRestrictedToPreferredPolicy) {
         let personalDetailLoginsToExclude = loginsToExcludeFromSuggestions;
         if (currentUserEmail) {
             personalDetailLoginsToExclude = {
