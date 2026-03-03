@@ -9,6 +9,7 @@ import {
     canSendInvoiceFromWorkspace,
     getActivePolicies,
     getAllTaxRatesNamesAndValues,
+    getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
     getEligibleBankAccountShareRecipients,
@@ -22,7 +23,9 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDependentTags,
     hasDynamicExternalWorkflow,
+    hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
@@ -36,7 +39,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
@@ -2008,6 +2011,220 @@ describe('PolicyUtils', () => {
             const result = sortPoliciesByName(policies, localeCompare);
             expect(result).toHaveLength(1);
             expect(result.at(0)?.name).toBe('Only');
+        });
+    });
+
+    describe('getConnectedIntegrationNamesForPolicies', () => {
+        it('returns empty Set when policies is undefined', () => {
+            expect(getConnectedIntegrationNamesForPolicies(undefined)).toEqual(new Set());
+        });
+
+        it('returns empty Set when policies is empty object', () => {
+            expect(getConnectedIntegrationNamesForPolicies({})).toEqual(new Set());
+        });
+
+        it('returns Set with connection name when policy has verified connection', () => {
+            const policyWithXero = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                        lastSync: {isConnected: true},
+                    },
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policyWithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies)).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.XERO]));
+        });
+
+        it('filters by policyIDs when provided', () => {
+            const policy1WithQBO = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policy2WithXero = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1WithQBO,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2WithXero,
+            };
+            expect(getConnectedIntegrationNamesForPolicies(policies, ['1'])).toEqual(new Set([CONST.POLICY.CONNECTIONS.NAME.QBO]));
+        });
+
+        it('returns all connection names when policies have different connections', () => {
+            const policy1 = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policy2 = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.XERO]: {lastSync: {isConnected: true}},
+                } as Connections,
+            } as Policy;
+
+            const policies: OnyxCollection<Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: policy1,
+                [`${ONYXKEYS.COLLECTION.POLICY}2`]: policy2,
+            };
+            const result = getConnectedIntegrationNamesForPolicies(policies);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
+            expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
+            expect(result.size).toBe(2);
+        });
+    });
+
+    describe('hasDependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasDependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags have no parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when a tag has rules.parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when a tag has parentTagsFilter at the top level', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+    });
+
+    describe('hasIndependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasIndependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags are dependent (have parentTagsFilter)', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when all tag lists are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {},
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when tags are independent and at least one tag exists', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when at least one tag list has tags and others are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {
+                        'New York': {name: 'New York', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when policyTagList is undefined', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            expect(hasIndependentTags(policy, undefined)).toBe(false);
         });
     });
 });
