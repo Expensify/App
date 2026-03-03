@@ -3761,6 +3761,14 @@ ${amount} para ${merchant} - ${date}`,
         positiveButton: '¡Sí!',
         negativeButton: 'No mucho',
     },
+    trialPaymentReminder: {
+        title: 'Adelántate al plazo',
+        subtitle: 'No esperes hasta el último momento, añade tu método de pago hoy para asegurar el acceso continuo a tus gastos en Expensify.',
+        trialEndsInDays: ({days}: {days: number}) => `La prueba termina en ${days} ${days === 1 ? 'día' : 'días'}`,
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `La prueba termina en ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Cerrar',
+        addPaymentCardButton: 'Añadir tarjeta de pago',
+    },
     workspace: {
         common: {
             card: 'Tarjetas',

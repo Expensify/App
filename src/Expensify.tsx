@@ -12,6 +12,7 @@ import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModal
 import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
+import TrialPaymentReminderModalManager from './components/TrialPaymentReminderModalManager';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -299,6 +300,7 @@ function Expensify() {
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
                     {/* Proactive app review modal shown when user has completed a trigger action */}
                     <ProactiveAppReviewModalManager />
+                    <TrialPaymentReminderModalManager />
                     <ScreenShareRequestModal />
                 </>
             )}

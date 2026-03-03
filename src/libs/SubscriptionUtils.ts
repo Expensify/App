@@ -631,6 +631,36 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
     return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
 }
 
+/**
+ * Calculates the current day number of the trial (1-indexed).
+ * Returns 0 if firstDayFreeTrial is undefined or trial hasn't started yet.
+ */
+function calculateTrialDayNumber(firstDayFreeTrial: string | undefined): number {
+    if (!firstDayFreeTrial) {
+        return 0;
+    }
+    const currentDate = new Date();
+    const firstDayDate = new Date(`${firstDayFreeTrial}Z`);
+    const diffInMs = currentDate.getTime() - firstDayDate.getTime();
+    if (diffInMs < 0) {
+        return 0;
+    }
+    return Math.floor(diffInMs / (24 * 60 * 60 * 1000)) + 1;
+}
+
+/**
+ * Calculates the remaining time in seconds until the trial ends.
+ */
+function calculateRemainingTrialSeconds(lastDayFreeTrial: string | undefined): number {
+    if (!lastDayFreeTrial) {
+        return 0;
+    }
+    const currentDate = new Date();
+    const lastDayDate = new Date(`${lastDayFreeTrial}Z`);
+    const diffInSeconds = differenceInSeconds(lastDayDate, currentDate);
+    return diffInSeconds < 0 ? 0 : diffInSeconds;
+}
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -656,6 +686,8 @@ export {
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
     isSubscriptionTypeOfInvoicing,
+    calculateTrialDayNumber,
+    calculateRemainingTrialSeconds,
 };
 
 export type {SubscriptionPlanIllustrations};

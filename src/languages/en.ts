@@ -3937,6 +3937,14 @@ const translations = {
         positiveButton: 'Yeah!',
         negativeButton: 'Not really',
     },
+    trialPaymentReminder: {
+        title: 'Stay ahead of the deadline',
+        subtitle: "Don't wait until the last minute, add your payment method today to ensure continuous access to your expenses on Expensify.",
+        trialEndsInDays: ({days}: {days: number}) => `Trial ends in ${days} ${days === 1 ? 'day' : 'days'}`,
+        trialEndsCountdown: ({hours, minutes, seconds}: {hours: string; minutes: string; seconds: string}) => `Trial ends in ${hours}h : ${minutes}m : ${seconds}s`,
+        closeButton: 'Close',
+        addPaymentCardButton: 'Add payment card',
+    },
     workspace: {
         common: {
             card: 'Cards',
