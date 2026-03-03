@@ -78,6 +78,37 @@ function injectFooterCopyright() {
 const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
 const ASK_AI_API_URL = 'https://www.expensify.com/api/AskHelpsiteAI';
 
+let allowedDomains = [];
+fetch('/assets/js/allowedExternalUrls.json')
+    .then((response) => response.json())
+    .then((urls) => {
+        allowedDomains = urls
+            .map((url) => {
+                try {
+                    return new URL(url).hostname;
+                } catch {
+                    return null;
+                }
+            })
+            .filter(Boolean);
+    })
+    .catch(() => {});
+
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (node.tagName === 'A' && node.hasAttribute('href')) {
+        const href = node.getAttribute('href');
+        try {
+            const hostname = new URL(href).hostname;
+            const isExpensifyLink = hostname === 'expensify.com' || hostname.endsWith('.expensify.com');
+            if (!isExpensifyLink && allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
+                node.remove();
+            }
+        } catch {
+            node.remove();
+        }
+    }
+});
+
 function getTitleFromURL(url) {
     return url.split('/').pop().replace(/-/g, ' ');
 }
@@ -173,7 +204,11 @@ function askHelpsiteAI(query) {
         formData.append('platform', platform);
     }
 
-    fetch(ASK_AI_API_URL, {method: 'POST', body: formData, signal: aiAbortController.signal})
+    fetch(ASK_AI_API_URL, {
+        method: 'POST',
+        body: formData,
+        signal: aiAbortController.signal,
+    })
         .then((response) => response.json())
         .then((data) => {
             const answer = data.answer || '';
@@ -184,7 +219,10 @@ function askHelpsiteAI(query) {
 
             const template = cloneTemplate('ai-response-template');
             const content = template.querySelector('.ai-content');
-            content.innerHTML = answer;
+            content.innerHTML = DOMPurify.sanitize(answer, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
+                ALLOWED_ATTR: ['href', 'target', 'rel'],
+            });
 
             const showMoreButton = template.querySelector('.ai-show-more');
             aiContainer.innerHTML = '';

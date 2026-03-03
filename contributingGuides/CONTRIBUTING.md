@@ -66,8 +66,6 @@ If a PR causes a regression at any point within the regression period (starting 
 - payments will be issued 7 days after all regressions are fixed (ie: deployed to production)
 - a 50% penalty will be applied to the Contributor and [Contributor+](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) for each regression on an issue
 
-The 168 hours (aka 7 days) will be measured by calculating the time between when the PR is merged, and when a bug is posted to the #expensify-bugs Slack channel.
-
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
 

@@ -20,9 +20,10 @@ type AddTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, type
 function AddTagPage({route}: AddTagPageProps) {
     const {hash, index: orderWeight} = route.params ?? {};
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {canBeMissing: true, selector: getTagLists});
+    const [form] = useOnyx(ONYXKEYS.FORMS.EXPENSE_RULE_FORM);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policyTags = getEmptyArray<ValueOf<PolicyTagLists>>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${activePolicyID}`, {selector: getTagLists});
+    const hasDependentTags = policyTags.some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
     const tagList = policyTags.find((item) => item.orderWeight === orderWeight);
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const formTag = formTags.at(orderWeight);
@@ -46,7 +47,11 @@ function AddTagPage({route}: AddTagPageProps) {
 
     const onSave = (value?: string) => {
         const newTags = [...formTags];
-        newTags[orderWeight] = value ?? '';
+        if (hasDependentTags) {
+            newTags.splice(orderWeight, newTags.length - orderWeight, value ?? '');
+        } else {
+            newTags[orderWeight] = value ?? '';
+        }
         updateDraftRule({tag: trimTag(newTags.join(':'))});
     };
 

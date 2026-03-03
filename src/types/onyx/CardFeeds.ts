@@ -33,6 +33,12 @@ type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FE
 type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
 /**
+ * Bank name for card feeds that can be displayed in NewDot but cannot be added
+ * as a new connection (e.g. banks without an OAuth or Plaid integration).
+ */
+type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
+
+/**
  *
  */
 type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
@@ -226,6 +232,9 @@ type CardFeeds = {
 
         /** Whether 2FA is required for all members */
         twoFactorAuthRequired?: boolean;
+
+        /** List of member emails exempt from the domain's 2FA requirement */
+        twoFactorAuthExemptEmails?: string[];
     };
 } & CardFeedsStatus &
     DomainSettings;
@@ -318,6 +327,7 @@ export type {
     CardFeedWithNumber,
     CardFeedWithDomainID,
     BankName,
+    NonConnectableBankName,
     CardType,
     CardTypeName,
     CompanyCardFeed,
