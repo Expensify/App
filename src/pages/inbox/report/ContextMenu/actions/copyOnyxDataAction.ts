@@ -14,6 +14,10 @@ type CopyOnyxDataActionParams = BaseContextMenuActionParams & {
     checkmarkIcon: IconAsset;
 };
 
+function shouldShowCopyOnyxDataAction({isProduction}: {isProduction: boolean}): boolean {
+    return !isProduction;
+}
+
 function createCopyOnyxDataAction({report, interceptAnonymousUser, translate, copyIcon, checkmarkIcon}: CopyOnyxDataActionParams): ContextMenuAction {
     return {
         id: 'copyOnyxData',
@@ -32,3 +36,4 @@ function createCopyOnyxDataAction({report, interceptAnonymousUser, translate, co
 }
 
 export default createCopyOnyxDataAction;
+export {shouldShowCopyOnyxDataAction};

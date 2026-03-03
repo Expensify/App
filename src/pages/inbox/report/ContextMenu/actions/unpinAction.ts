@@ -11,6 +11,10 @@ type UnpinActionParams = BaseContextMenuActionParams & {
     pinIcon: IconAsset;
 };
 
+function shouldShowUnpinAction({isPinnedChat}: {isPinnedChat: boolean}): boolean {
+    return isPinnedChat;
+}
+
 function createUnpinAction({reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon}: UnpinActionParams): ContextMenuAction {
     return {
         id: 'unpin',
@@ -26,3 +30,4 @@ function createUnpinAction({reportID, interceptAnonymousUser, hideAndRun, transl
 }
 
 export default createUnpinAction;
+export {shouldShowUnpinAction};

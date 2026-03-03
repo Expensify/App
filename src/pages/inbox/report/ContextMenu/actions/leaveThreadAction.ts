@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {getChildReportNotificationPreference} from '@libs/ReportUtils';
+import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getChildReportNotificationPreference, shouldDisplayThreadReplies} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction, Report as ReportType} from '@src/types/onyx';
@@ -15,6 +16,36 @@ type LeaveThreadActionParams = BaseContextMenuActionParams & {
     hideAndRun: (callback?: () => void) => void;
     exitIcon: IconAsset;
 };
+
+function shouldShowLeaveThreadAction({
+    reportAction,
+    isArchivedRoom,
+    isThreadReportParentAction,
+    isHarvestReport,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    isArchivedRoom: boolean;
+    isThreadReportParentAction: boolean;
+    isHarvestReport: boolean;
+}): boolean {
+    const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
+    const isDeletedActionResult = isDeletedAction(reportAction);
+    const shouldDisplayReplies = shouldDisplayThreadReplies(reportAction, isThreadReportParentAction);
+    const subscribed = childReportNotificationPreference !== 'hidden';
+    const isWhisper = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+    const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewAction(reportAction);
+    const isTaskAction = isCreatedTaskReportAction(reportAction);
+    const isHarvestCreatedExpenseReportAction = !!isHarvestReport && isCreatedAction(reportAction);
+    return (
+        subscribed &&
+        !isWhisper &&
+        !isTaskAction &&
+        !isExpenseReportAction &&
+        !isThreadReportParentAction &&
+        !isHarvestCreatedExpenseReportAction &&
+        (shouldDisplayReplies || (!isDeletedActionResult && !isArchivedRoom))
+    );
+}
 
 function createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon}: LeaveThreadActionParams): ContextMenuAction {
     return {
@@ -34,3 +65,4 @@ function createLeaveThreadAction({reportAction, originalReport, currentUserAccou
 }
 
 export default createLeaveThreadAction;
+export {shouldShowLeaveThreadAction};

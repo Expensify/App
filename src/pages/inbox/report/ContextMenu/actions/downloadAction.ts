@@ -4,6 +4,7 @@ import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {isMessageDeleted, isReportActionAttachment} from '@libs/ReportActionsUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
@@ -19,6 +20,13 @@ type DownloadActionParams = BaseContextMenuActionParams & {
     download: OnyxEntry<DownloadOnyx>;
     downloadIcon: IconAsset;
 };
+
+function shouldShowDownloadAction({reportAction, isOffline}: {reportAction: OnyxEntry<ReportAction>; isOffline: boolean}): boolean {
+    const isAttachment = isReportActionAttachment(reportAction);
+    const html = getActionHtml(reportAction);
+    const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
+    return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
+}
 
 function createDownloadAction({reportAction, encryptedAuthToken, interceptAnonymousUser, download, translate, downloadIcon}: DownloadActionParams): ContextMenuAction {
     const isDownloading = download?.isDownloading ?? false;
@@ -49,3 +57,4 @@ function createDownloadAction({reportAction, encryptedAuthToken, interceptAnonym
 }
 
 export default createDownloadAction;
+export {shouldShowDownloadAction};

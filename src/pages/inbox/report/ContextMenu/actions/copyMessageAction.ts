@@ -65,12 +65,12 @@ import {
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
+    getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
-    getUpdatedApprovalRuleMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -108,6 +108,7 @@ import {
     isCreatedTaskReportAction,
     isMarkAsClosedAction,
     isMemberChangeAction,
+    isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isMovedAction,
@@ -119,6 +120,7 @@ import {
     isReportPreviewAction as isReportPreviewActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction as isTaskActionReportActionsUtils,
+    isTripPreview,
     isUnapprovedAction,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -140,7 +142,7 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Card, Policy, PolicyTagLists, ReportAction, Transaction, Report as ReportType} from '@src/types/onyx';
+import type {Card, Policy, PolicyTagLists, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getActionHtml} from './actionConfig';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
@@ -171,6 +173,10 @@ type CopyMessageActionParams = BaseContextMenuActionParams &
         copyIcon: IconAsset;
         checkmarkIcon: IconAsset;
     };
+
+function shouldShowCopyMessageAction({reportAction}: {reportAction: OnyxEntry<ReportAction>}): boolean {
+    return !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction);
+}
 
 function setClipboardMessage(content: string | undefined) {
     if (!content) {
@@ -544,3 +550,4 @@ function createCopyMessageAction({interceptAnonymousUser, translate, copyIcon, c
 }
 
 export default createCopyMessageAction;
+export {shouldShowCopyMessageAction};

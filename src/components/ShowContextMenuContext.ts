@@ -1,5 +1,4 @@
 import {createContext} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';

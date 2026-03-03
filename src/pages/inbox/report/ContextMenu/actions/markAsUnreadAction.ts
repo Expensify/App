@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {isActionOfType} from '@libs/ReportActionsUtils';
 import {markCommentAsUnread} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
@@ -16,6 +17,14 @@ type MarkAsUnreadActionParams = BaseContextMenuActionParams & {
     chatBubbleUnreadIcon: IconAsset;
     checkmarkIcon: IconAsset;
 };
+
+function shouldShowMarkAsUnreadForReportAction({reportAction}: {reportAction: OnyxEntry<ReportAction>}): boolean {
+    return !isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+}
+
+function shouldShowMarkAsUnreadForReport({isUnreadChat}: {isUnreadChat: boolean}): boolean {
+    return !isUnreadChat;
+}
 
 function createMarkAsUnreadAction({
     reportID,
@@ -43,3 +52,4 @@ function createMarkAsUnreadAction({
 }
 
 export default createMarkAsUnreadAction;
+export {shouldShowMarkAsUnreadForReportAction, shouldShowMarkAsUnreadForReport};

@@ -1,7 +1,9 @@
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
+import type {OnyxEntry} from 'react-native-onyx';
+import {getReportAction} from '@libs/ReportActionsUtils';
+import {canHoldUnholdReportAction, changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {Policy, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
 
@@ -14,7 +16,35 @@ type UnholdActionParams = BaseContextMenuActionParams & {
     stopwatchIcon: IconAsset;
 };
 
-function createUnholdAction({moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, interceptAnonymousUser, hideAndRun, translate, stopwatchIcon}: UnholdActionParams): ContextMenuAction {
+function shouldShowUnholdAction({
+    moneyRequestReport,
+    moneyRequestAction,
+    moneyRequestPolicy,
+    areHoldRequirementsMet,
+    iouTransaction,
+}: {
+    moneyRequestReport: OnyxEntry<ReportType>;
+    moneyRequestAction: ReportAction | undefined;
+    moneyRequestPolicy: OnyxEntry<Policy>;
+    areHoldRequirementsMet: boolean;
+    iouTransaction: OnyxEntry<Transaction>;
+}): boolean {
+    if (!areHoldRequirementsMet) {
+        return false;
+    }
+    const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
+    return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy).canUnholdRequest;
+}
+
+function createUnholdAction({
+    moneyRequestAction,
+    isDelegateAccessRestricted,
+    showDelegateNoAccessModal,
+    interceptAnonymousUser,
+    hideAndRun,
+    translate,
+    stopwatchIcon,
+}: UnholdActionParams): ContextMenuAction {
     return {
         id: 'unhold',
         icon: stopwatchIcon,
@@ -32,3 +62,4 @@ function createUnholdAction({moneyRequestAction, isDelegateAccessRestricted, sho
 }
 
 export default createUnholdAction;
+export {shouldShowUnholdAction};

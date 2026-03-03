@@ -1,2 +1,2 @@
-// Mini context menu only renders on web via createPortal
+// Mini context menu only renders on web
 export default () => null;

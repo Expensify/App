@@ -34,8 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {ActionID} from './actions/actionConfig';
-import {getVisibleActionIDs as getVisibleActionIDsFromConfig, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
+import {RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -160,31 +159,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         }
     };
 
-    const shouldShowArgs = {
-        type,
-        reportAction,
-        childReportActions,
-        isArchivedRoom,
-        menuTarget: anchor,
-        isChronosReport,
-        reportID,
-        isPinnedChat,
-        isUnreadChat,
-        isThreadReportParentAction,
-        isOffline: !!isOffline,
-        isProduction,
-        moneyRequestAction,
-        areHoldRequirementsMet,
-        isDebugModeEnabled,
-        iouTransaction,
-        transactions,
-        moneyRequestReport,
-        moneyRequestPolicy,
-        isHarvestReport,
-    };
-
-    const getVisibleActionIDs = (): ActionID[] => getVisibleActionIDsFromConfig(shouldShowArgs, disabledActionIDs);
-
     return {
         report,
         originalReport,
@@ -232,7 +206,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         draftMessage,
         selection,
         anchor,
-        getVisibleActionIDs,
     };
 }
 

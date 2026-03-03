@@ -12,6 +12,10 @@ type MarkAsReadActionParams = BaseContextMenuActionParams & {
     checkmarkIcon: IconAsset;
 };
 
+function shouldShowMarkAsReadAction({isUnreadChat}: {isUnreadChat: boolean}): boolean {
+    return isUnreadChat;
+}
+
 function createMarkAsReadAction({reportID, interceptAnonymousUser, hideAndRun, translate, mailIcon, checkmarkIcon}: MarkAsReadActionParams): ContextMenuAction {
     return {
         id: 'markAsRead',
@@ -28,3 +32,4 @@ function createMarkAsReadAction({reportID, interceptAnonymousUser, hideAndRun, t
 }
 
 export default createMarkAsReadAction;
+export {shouldShowMarkAsReadAction};

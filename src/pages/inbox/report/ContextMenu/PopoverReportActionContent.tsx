@@ -13,33 +13,25 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
-import type {ActionID} from './actions/actionConfig';
-import {ORDERED_ACTION_SHOULD_SHOW} from './actions/actionConfig';
-import type {ContextMenuAction} from './actions/actionTypes';
+import {ACTION_IDS} from './actions/actionConfig';
 import {CONTEXT_MENU_ICON_NAMES} from './actions/actionTypes';
-import createCopyEmailAction from './actions/copyEmailAction';
-import createCopyLinkAction from './actions/copyLinkAction';
-import createCopyMessageAction from './actions/copyMessageAction';
-import createCopyOnyxDataAction from './actions/copyOnyxDataAction';
-import createCopyToClipboardAction from './actions/copyToClipboardAction';
-import createCopyURLAction from './actions/copyURLAction';
-import createDebugAction from './actions/debugAction';
-import createDeleteAction from './actions/deleteAction';
-import createDownloadAction from './actions/downloadAction';
-import createEditAction from './actions/editAction';
-import createEmojiReactionData from './actions/emojiReactionAction';
-import createExplainAction from './actions/explainAction';
-import createFlagAsOffensiveAction from './actions/flagAsOffensiveAction';
-import createHoldAction from './actions/holdAction';
-import createJoinThreadAction from './actions/joinThreadAction';
-import createLeaveThreadAction from './actions/leaveThreadAction';
-import createMarkAsReadAction from './actions/markAsReadAction';
-import createMarkAsUnreadAction from './actions/markAsUnreadAction';
+import type {ContextMenuAction} from './actions/actionTypes';
+import createCopyLinkAction, {shouldShowCopyLinkAction} from './actions/copyLinkAction';
+import createCopyMessageAction, {shouldShowCopyMessageAction} from './actions/copyMessageAction';
+import createDebugAction, {shouldShowDebugAction} from './actions/debugAction';
+import createDeleteAction, {shouldShowDeleteAction} from './actions/deleteAction';
+import createDownloadAction, {shouldShowDownloadAction} from './actions/downloadAction';
+import createEditAction, {shouldShowEditAction} from './actions/editAction';
+import createEmojiReactionData, {shouldShowEmojiReaction} from './actions/emojiReactionAction';
+import createExplainAction, {shouldShowExplainAction} from './actions/explainAction';
+import createFlagAsOffensiveAction, {shouldShowFlagAsOffensiveAction} from './actions/flagAsOffensiveAction';
+import createHoldAction, {shouldShowHoldAction} from './actions/holdAction';
+import createJoinThreadAction, {shouldShowJoinThreadAction} from './actions/joinThreadAction';
+import createLeaveThreadAction, {shouldShowLeaveThreadAction} from './actions/leaveThreadAction';
+import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from './actions/markAsUnreadAction';
 import createOverflowMenuAction from './actions/overflowMenuAction';
-import createPinAction from './actions/pinAction';
-import createReplyInThreadAction from './actions/replyInThreadAction';
-import createUnholdAction from './actions/unholdAction';
-import createUnpinAction from './actions/unpinAction';
+import createReplyInThreadAction, {shouldShowReplyInThreadAction} from './actions/replyInThreadAction';
+import createUnholdAction, {shouldShowUnholdAction} from './actions/unholdAction';
 import type {PopoverContentProps} from './PopoverContextMenu';
 import {showContextMenu} from './ReportActionContextMenu';
 import useReportActionContextMenuData from './useReportActionContextMenuData';
@@ -62,8 +54,6 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         anchor: {current: menuState.contextMenuTargetNode ?? null},
     });
-
-    const visibleActionIDs = useMemo(() => new Set(data.getVisibleActionIDs()), [data]);
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRefParam: RefObject<ViewType | null>) => {
         showContextMenu({
@@ -93,199 +83,185 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const reportAction = (data.reportAction ?? null) as NonNullable<typeof data.reportAction>;
     const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
-    const {interceptAnonymousUser, translate} = data;
+    const {interceptAnonymousUser, translate, disabledActionIDs} = data;
+
+    const isDisabled = (id: string) => disabledActionIDs.has(id);
+
+    const showReplyInThread =
+        shouldShowReplyInThreadAction({
+            reportAction: data.reportAction,
+            reportID: data.reportID,
+            isThreadReportParentAction: data.isThreadReportParentAction,
+            isArchivedRoom: data.isArchivedRoom,
+        }) && !isDisabled(ACTION_IDS.REPLY_IN_THREAD);
+    const showMarkAsUnread = shouldShowMarkAsUnreadForReportAction({reportAction: data.reportAction}) && !isDisabled(ACTION_IDS.MARK_AS_UNREAD);
+    const showExplain = shouldShowExplainAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom}) && !isDisabled(ACTION_IDS.EXPLAIN);
+    const showEdit =
+        shouldShowEditAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom, isChronosReport: data.isChronosReport, moneyRequestAction: data.moneyRequestAction}) &&
+        !isDisabled(ACTION_IDS.EDIT);
+    const showUnhold =
+        shouldShowUnholdAction({
+            moneyRequestReport: data.moneyRequestReport,
+            moneyRequestAction: data.moneyRequestAction,
+            moneyRequestPolicy: data.moneyRequestPolicy,
+            areHoldRequirementsMet: data.areHoldRequirementsMet,
+            iouTransaction: data.iouTransaction,
+        }) && !isDisabled(ACTION_IDS.UNHOLD);
+    const showHold =
+        shouldShowHoldAction({
+            moneyRequestReport: data.moneyRequestReport,
+            moneyRequestAction: data.moneyRequestAction,
+            moneyRequestPolicy: data.moneyRequestPolicy,
+            areHoldRequirementsMet: data.areHoldRequirementsMet,
+            iouTransaction: data.iouTransaction,
+        }) && !isDisabled(ACTION_IDS.HOLD);
+    const showJoinThread =
+        shouldShowJoinThreadAction({
+            reportAction: data.reportAction,
+            isArchivedRoom: data.isArchivedRoom,
+            isThreadReportParentAction: data.isThreadReportParentAction,
+            isHarvestReport: data.isHarvestReport,
+        }) && !isDisabled(ACTION_IDS.JOIN_THREAD);
+    const showLeaveThread =
+        shouldShowLeaveThreadAction({
+            reportAction: data.reportAction,
+            isArchivedRoom: data.isArchivedRoom,
+            isThreadReportParentAction: data.isThreadReportParentAction,
+            isHarvestReport: data.isHarvestReport,
+        }) && !isDisabled(ACTION_IDS.LEAVE_THREAD);
+    const showCopyMessage = shouldShowCopyMessageAction({reportAction: data.reportAction}) && !isDisabled(ACTION_IDS.COPY_MESSAGE);
+    const showCopyLink = shouldShowCopyLinkAction({reportAction: data.reportAction, menuTarget: data.anchor}) && !isDisabled(ACTION_IDS.COPY_LINK);
+    const showFlagAsOffensive =
+        shouldShowFlagAsOffensiveAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom, isChronosReport: data.isChronosReport, reportID: data.reportID}) &&
+        !isDisabled(ACTION_IDS.FLAG_AS_OFFENSIVE);
+    const showDownload = shouldShowDownloadAction({reportAction: data.reportAction, isOffline: data.isOffline}) && !isDisabled(ACTION_IDS.DOWNLOAD);
+    const showDebug = shouldShowDebugAction({isDebugModeEnabled: data.isDebugModeEnabled}) && !isDisabled(ACTION_IDS.DEBUG);
+    const showDelete =
+        shouldShowDeleteAction({
+            reportAction: data.reportAction,
+            isArchivedRoom: data.isArchivedRoom,
+            isChronosReport: data.isChronosReport,
+            reportID: data.reportID,
+            moneyRequestAction: data.moneyRequestAction,
+            iouTransaction: data.iouTransaction,
+            transactions: data.transactions,
+            childReportActions: data.childReportActions,
+        }) && !isDisabled(ACTION_IDS.DELETE);
 
     /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const allActions: ContextMenuAction[] = [
-        createReplyInThreadAction({
-            childReport: data.childReport,
-            reportAction,
-            originalReport: data.originalReport,
-            currentUserAccountID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            chatBubbleReplyIcon: icons.ChatBubbleReply,
-        }),
-        createMarkAsUnreadAction({
-            reportID: data.reportID,
-            reportActions: data.reportActions,
-            reportAction,
-            currentUserAccountID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createExplainAction({
-            childReport: data.childReport,
-            originalReport: data.originalReport,
-            reportAction,
-            currentUserPersonalDetails: data.currentUserPersonalDetails,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            conciergeIcon: icons.Concierge,
-        }),
-        createMarkAsReadAction({
-            reportID: data.reportID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            mailIcon: icons.Mail,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createEditAction({
-            reportID: data.reportID,
-            reportAction,
-            moneyRequestAction: data.moneyRequestAction,
-            draftMessage: data.draftMessage,
-            introSelected: data.introSelected,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            pencilIcon: icons.Pencil,
-        }),
-        createUnholdAction({
-            moneyRequestAction: data.moneyRequestAction,
-            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            stopwatchIcon: icons.Stopwatch,
-        }),
-        createHoldAction({
-            moneyRequestAction: data.moneyRequestAction,
-            isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-            showDelegateNoAccessModal: data.showDelegateNoAccessModal,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            stopwatchIcon: icons.Stopwatch,
-        }),
-        createJoinThreadAction({
-            reportAction,
-            originalReport: data.originalReport,
-            currentUserAccountID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            bellIcon: icons.Bell,
-        }),
-        createLeaveThreadAction({
-            reportAction,
-            originalReport: data.originalReport,
-            currentUserAccountID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            exitIcon: icons.Exit,
-        }),
-        createCopyURLAction({
-            selection: data.selection,
-            interceptAnonymousUser,
-            translate,
-            copyIcon: icons.Copy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createCopyToClipboardAction({
-            selection: data.selection,
-            interceptAnonymousUser,
-            translate,
-            copyIcon: icons.Copy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createCopyEmailAction({
-            selection: data.selection,
-            interceptAnonymousUser,
-            translate,
-            copyIcon: icons.Copy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createCopyMessageAction({
-            reportAction,
-            transaction: data.transaction,
-            selection: data.selection,
-            report: data.report,
-            card: data.card,
-            originalReport: data.originalReport,
-            isHarvestReport: data.isHarvestReport,
-            isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
-            movedFromReport: data.movedFromReport,
-            movedToReport: data.movedToReport,
-            childReport: data.childReport,
-            policy: data.policy,
-            getLocalDateFromDatetime: data.getLocalDateFromDatetime,
-            policyTags: data.policyTags,
-            translate,
-            harvestReport: data.harvestReport,
-            currentUserPersonalDetails: data.currentUserPersonalDetails,
-            interceptAnonymousUser,
-            copyIcon: icons.Copy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createCopyLinkAction({
-            reportAction,
-            originalReportID: data.originalReportID,
-            interceptAnonymousUser,
-            translate,
-            linkCopyIcon: icons.LinkCopy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createPinAction({
-            reportID: data.reportID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            pinIcon: icons.Pin,
-        }),
-        createUnpinAction({
-            reportID: data.reportID,
-            interceptAnonymousUser,
-            hideAndRun,
-            translate,
-            pinIcon: icons.Pin,
-        }),
-        createFlagAsOffensiveAction({
-            reportID: data.reportID,
-            reportAction,
-            hideAndRun,
-            translate,
-            flagIcon: icons.Flag,
-        }),
-        createDownloadAction({
-            reportAction,
-            encryptedAuthToken: data.encryptedAuthToken,
-            interceptAnonymousUser,
-            download: data.download,
-            translate,
-            downloadIcon: icons.Download,
-        }),
-        createCopyOnyxDataAction({
-            report: data.report,
-            interceptAnonymousUser,
-            translate,
-            copyIcon: icons.Copy,
-            checkmarkIcon: icons.Checkmark,
-        }),
-        createDebugAction({
-            reportID: data.reportID,
-            reportAction,
-            interceptAnonymousUser,
-            translate,
-            bugIcon: icons.Bug,
-        }),
-        createDeleteAction({
-            reportID: data.reportID,
-            reportAction,
-            moneyRequestAction: data.moneyRequestAction,
-            hideAndRun,
-            translate,
-            trashcanIcon: icons.Trashcan,
-        }),
-    ];
+    const replyInThreadAction = showReplyInThread
+        ? createReplyInThreadAction({
+              childReport: data.childReport,
+              reportAction,
+              originalReport: data.originalReport,
+              currentUserAccountID,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              chatBubbleReplyIcon: icons.ChatBubbleReply,
+          })
+        : undefined;
+    const markAsUnreadAction = showMarkAsUnread
+        ? createMarkAsUnreadAction({
+              reportID: data.reportID,
+              reportActions: data.reportActions,
+              reportAction,
+              currentUserAccountID,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              chatBubbleUnreadIcon: icons.ChatBubbleUnread,
+              checkmarkIcon: icons.Checkmark,
+          })
+        : undefined;
+    const explainActionItem = showExplain
+        ? createExplainAction({
+              childReport: data.childReport,
+              originalReport: data.originalReport,
+              reportAction,
+              currentUserPersonalDetails: data.currentUserPersonalDetails,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              conciergeIcon: icons.Concierge,
+          })
+        : undefined;
+    const editActionItem = showEdit
+        ? createEditAction({
+              reportID: data.reportID,
+              reportAction,
+              moneyRequestAction: data.moneyRequestAction,
+              draftMessage: data.draftMessage,
+              introSelected: data.introSelected,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              pencilIcon: icons.Pencil,
+          })
+        : undefined;
+    const unholdActionItem = showUnhold
+        ? createUnholdAction({
+              moneyRequestAction: data.moneyRequestAction,
+              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              stopwatchIcon: icons.Stopwatch,
+          })
+        : undefined;
+    const holdActionItem = showHold
+        ? createHoldAction({
+              moneyRequestAction: data.moneyRequestAction,
+              isDelegateAccessRestricted: data.isDelegateAccessRestricted,
+              showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+              interceptAnonymousUser,
+              hideAndRun,
+              translate,
+              stopwatchIcon: icons.Stopwatch,
+          })
+        : undefined;
+    const joinThreadActionItem = showJoinThread
+        ? createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon: icons.Bell})
+        : undefined;
+    const leaveThreadActionItem = showLeaveThread
+        ? createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, exitIcon: icons.Exit})
+        : undefined;
+    const copyMessageActionItem = showCopyMessage
+        ? createCopyMessageAction({
+              reportAction,
+              transaction: data.transaction,
+              selection: data.selection,
+              report: data.report,
+              card: data.card,
+              originalReport: data.originalReport,
+              isHarvestReport: data.isHarvestReport,
+              isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
+              movedFromReport: data.movedFromReport,
+              movedToReport: data.movedToReport,
+              childReport: data.childReport,
+              policy: data.policy,
+              getLocalDateFromDatetime: data.getLocalDateFromDatetime,
+              policyTags: data.policyTags,
+              translate,
+              harvestReport: data.harvestReport,
+              currentUserPersonalDetails: data.currentUserPersonalDetails,
+              interceptAnonymousUser,
+              copyIcon: icons.Copy,
+              checkmarkIcon: icons.Checkmark,
+          })
+        : undefined;
+    const copyLinkActionItem = showCopyLink
+        ? createCopyLinkAction({reportAction, originalReportID: data.originalReportID, interceptAnonymousUser, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark})
+        : undefined;
+    const flagAsOffensiveActionItem = showFlagAsOffensive ? createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}) : undefined;
+    const downloadActionItem = showDownload
+        ? createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, interceptAnonymousUser, download: data.download, translate, downloadIcon: icons.Download})
+        : undefined;
+    const debugActionItem = showDebug ? createDebugAction({reportID: data.reportID, reportAction, interceptAnonymousUser, translate, bugIcon: icons.Bug}) : undefined;
+    const deleteActionItem = showDelete
+        ? createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan})
+        : undefined;
 
     const overflowMenu = createOverflowMenuAction(
         {
@@ -297,8 +273,71 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         },
         overflowMenuRef,
     );
-    const actionsWithOverflow = [...allActions, overflowMenu];
-    const actions = actionsWithOverflow.filter((action) => visibleActionIDs.has(action.id as ActionID));
+    /* eslint-enable react-hooks/refs */
+
+    const visibleActions = useMemo(() => {
+        const items: ContextMenuAction[] = [];
+        if (replyInThreadAction) {
+            items.push(replyInThreadAction);
+        }
+        if (markAsUnreadAction) {
+            items.push(markAsUnreadAction);
+        }
+        if (explainActionItem) {
+            items.push(explainActionItem);
+        }
+        if (editActionItem) {
+            items.push(editActionItem);
+        }
+        if (unholdActionItem) {
+            items.push(unholdActionItem);
+        }
+        if (holdActionItem) {
+            items.push(holdActionItem);
+        }
+        if (joinThreadActionItem) {
+            items.push(joinThreadActionItem);
+        }
+        if (leaveThreadActionItem) {
+            items.push(leaveThreadActionItem);
+        }
+        if (copyMessageActionItem) {
+            items.push(copyMessageActionItem);
+        }
+        if (copyLinkActionItem) {
+            items.push(copyLinkActionItem);
+        }
+        if (flagAsOffensiveActionItem) {
+            items.push(flagAsOffensiveActionItem);
+        }
+        if (downloadActionItem) {
+            items.push(downloadActionItem);
+        }
+        if (debugActionItem) {
+            items.push(debugActionItem);
+        }
+        if (deleteActionItem) {
+            items.push(deleteActionItem);
+        }
+        items.push(overflowMenu);
+        return items;
+    }, [
+        replyInThreadAction,
+        markAsUnreadAction,
+        explainActionItem,
+        editActionItem,
+        unholdActionItem,
+        holdActionItem,
+        joinThreadActionItem,
+        leaveThreadActionItem,
+        copyMessageActionItem,
+        copyLinkActionItem,
+        flagAsOffensiveActionItem,
+        downloadActionItem,
+        debugActionItem,
+        deleteActionItem,
+        overflowMenu,
+    ]);
 
     const emojiData = createEmojiReactionData({
         reportID: data.reportID,
@@ -309,23 +348,15 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         hideAndRun,
         interceptAnonymousUser,
     });
-    /* eslint-enable react-hooks/refs */
-
-    const contentActionIndexes = actions
-        .map((action, index) => {
-            const entry = ORDERED_ACTION_SHOULD_SHOW.find((e) => e.id === action.id);
-            return entry?.isContentAction ? index : undefined;
-        })
-        .filter((index): index is number => index !== undefined);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        disabledIndexes: contentActionIndexes,
-        maxIndex: actions.length - 1,
+        disabledIndexes: [],
+        maxIndex: visibleActions.length - 1,
         isActive: shouldEnableArrowNavigation,
     });
 
-    const hasEmoji = visibleActionIDs.has('emojiReaction');
+    const hasEmoji = shouldShowEmojiReaction({reportAction: data.reportAction});
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
 
     return (
@@ -351,7 +382,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                             }}
                         />
                     )}
-                    {actions.map((action: ContextMenuAction, i: number) => (
+                    {visibleActions.map((action: ContextMenuAction, i: number) => (
                         <FocusableMenuItem
                             key={action.id}
                             title={action.text}
@@ -365,7 +396,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
                             focused={focusedIndex === i}
                             interactive
                             onFocus={() => setFocusedIndex(i)}
-                            onBlur={() => (i === actions.length - 1 || i === 1) && setFocusedIndex(-1)}
+                            onBlur={() => (i === visibleActions.length - 1 || i === 1) && setFocusedIndex(-1)}
                             disabled={action.disabled}
                             shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
                             sentryLabel={action.sentryLabel}

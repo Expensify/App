@@ -8,11 +8,9 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canWriteInReport, chatIncludesChronosWithID, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions, Report as ReportType} from '@src/types/onyx';
-import type {ActionID} from './actions/actionConfig';
-import {getVisibleActionIDs as getVisibleActionIDsFromConfig, RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
+import {RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
 import {hideContextMenu} from './ReportActionContextMenu';
 
@@ -44,7 +42,6 @@ type UseReportContextMenuDataReturn = {
     translate: ReturnType<typeof useLocalize>['translate'];
     getLocalDateFromDatetime: ReturnType<typeof useLocalize>['getLocalDateFromDatetime'];
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    getVisibleActionIDs: () => ActionID[];
     type: ContextMenuType;
     reportID: string | undefined;
     originalReportID: string | undefined;
@@ -87,31 +84,6 @@ function useReportContextMenuData({reportID, reportActionID, originalReportID, d
         }
     };
 
-    const shouldShowArgs = {
-        type: CONST.CONTEXT_MENU_TYPES.REPORT,
-        reportAction,
-        childReportActions: undefined,
-        isArchivedRoom,
-        menuTarget: anchor,
-        isChronosReport,
-        reportID,
-        isPinnedChat,
-        isUnreadChat,
-        isThreadReportParentAction: false,
-        isOffline: !!isOffline,
-        isProduction,
-        moneyRequestAction: undefined as ReportAction | undefined,
-        areHoldRequirementsMet: false,
-        isDebugModeEnabled,
-        iouTransaction: undefined,
-        transactions: undefined,
-        moneyRequestReport: undefined,
-        moneyRequestPolicy: undefined,
-        isHarvestReport: false,
-    };
-
-    const getVisibleActionIDs = (): ActionID[] => getVisibleActionIDsFromConfig(shouldShowArgs, disabledActionIDs);
-
     return {
         report,
         originalReport,
@@ -128,7 +100,6 @@ function useReportContextMenuData({reportID, reportActionID, originalReportID, d
         translate,
         getLocalDateFromDatetime,
         interceptAnonymousUser,
-        getVisibleActionIDs,
         type,
         reportID,
         originalReportID,

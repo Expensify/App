@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {getChildReportNotificationPreference} from '@libs/ReportUtils';
+import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, isDeletedAction, isMoneyRequestAction, isReportPreviewAction, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getChildReportNotificationPreference, shouldDisableThread, shouldDisplayThreadReplies} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction, Report as ReportType} from '@src/types/onyx';
@@ -15,6 +16,38 @@ type JoinThreadActionParams = BaseContextMenuActionParams & {
     hideAndRun: (callback?: () => void) => void;
     bellIcon: IconAsset;
 };
+
+function shouldShowJoinThreadAction({
+    reportAction,
+    isArchivedRoom,
+    isThreadReportParentAction,
+    isHarvestReport,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    isArchivedRoom: boolean;
+    isThreadReportParentAction: boolean;
+    isHarvestReport: boolean;
+}): boolean {
+    const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
+    const isDeletedActionResult = isDeletedAction(reportAction);
+    const shouldDisplayReplies = shouldDisplayThreadReplies(reportAction, isThreadReportParentAction);
+    const subscribed = childReportNotificationPreference !== 'hidden';
+    const isWhisper = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+    const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewAction(reportAction);
+    const isTaskAction = isCreatedTaskReportAction(reportAction);
+    const isHarvestCreatedExpenseReportAction = !!isHarvestReport && isCreatedAction(reportAction);
+    const shouldDisableJoin = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
+    return (
+        !subscribed &&
+        !isWhisper &&
+        !isTaskAction &&
+        !isExpenseReportAction &&
+        !isThreadReportParentAction &&
+        !isHarvestCreatedExpenseReportAction &&
+        !shouldDisableJoin &&
+        (shouldDisplayReplies || (!isDeletedActionResult && !isArchivedRoom))
+    );
+}
 
 function createJoinThreadAction({reportAction, originalReport, currentUserAccountID, interceptAnonymousUser, hideAndRun, translate, bellIcon}: JoinThreadActionParams): ContextMenuAction {
     return {
@@ -34,3 +67,4 @@ function createJoinThreadAction({reportAction, originalReport, currentUserAccoun
 }
 
 export default createJoinThreadAction;
+export {shouldShowJoinThreadAction};

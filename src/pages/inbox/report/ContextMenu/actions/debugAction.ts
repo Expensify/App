@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -13,6 +14,10 @@ type DebugActionParams = BaseContextMenuActionParams & {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
     bugIcon: IconAsset;
 };
+
+function shouldShowDebugAction({isDebugModeEnabled}: {isDebugModeEnabled: OnyxEntry<boolean>}): boolean {
+    return !!isDebugModeEnabled;
+}
 
 function createDebugAction({reportID, reportAction, interceptAnonymousUser, translate, bugIcon}: DebugActionParams): ContextMenuAction {
     return {
@@ -37,3 +42,4 @@ function createDebugAction({reportID, reportAction, interceptAnonymousUser, tran
 }
 
 export default createDebugAction;
+export {shouldShowDebugAction};

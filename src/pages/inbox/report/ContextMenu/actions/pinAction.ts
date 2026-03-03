@@ -11,6 +11,10 @@ type PinActionParams = BaseContextMenuActionParams & {
     pinIcon: IconAsset;
 };
 
+function shouldShowPinAction({isPinnedChat}: {isPinnedChat: boolean}): boolean {
+    return !isPinnedChat;
+}
+
 function createPinAction({reportID, interceptAnonymousUser, hideAndRun, translate, pinIcon}: PinActionParams): ContextMenuAction {
     return {
         id: 'pin',
@@ -26,3 +30,4 @@ function createPinAction({reportID, interceptAnonymousUser, hideAndRun, translat
 }
 
 export default createPinAction;
+export {shouldShowPinAction};

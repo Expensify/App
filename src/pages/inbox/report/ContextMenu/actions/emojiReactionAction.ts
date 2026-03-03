@@ -1,6 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import {isActionOfType, isMessageDeleted} from '@libs/ReportActionsUtils';
 import {toggleEmojiReaction} from '@userActions/Report';
+import CONST from '@src/CONST';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 type EmojiReactionData = {
@@ -24,7 +26,20 @@ type EmojiReactionParams = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
 };
 
-function createEmojiReactionData({reportID, reportAction, currentUserAccountID, openContextMenu, setIsEmojiPickerActive, hideAndRun, interceptAnonymousUser}: EmojiReactionParams): EmojiReactionData {
+function shouldShowEmojiReaction({reportAction}: {reportAction: OnyxEntry<ReportAction>}): boolean {
+    const isDEWRouted = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+    return !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDEWRouted;
+}
+
+function createEmojiReactionData({
+    reportID,
+    reportAction,
+    currentUserAccountID,
+    openContextMenu,
+    setIsEmojiPickerActive,
+    hideAndRun,
+    interceptAnonymousUser,
+}: EmojiReactionParams): EmojiReactionData {
     const closeContextMenu = (onHideCallback?: () => void) => {
         hideAndRun(onHideCallback);
     };
@@ -60,3 +75,4 @@ function createEmojiReactionData({reportID, reportAction, currentUserAccountID, 
 }
 
 export default createEmojiReactionData;
+export {shouldShowEmojiReaction};

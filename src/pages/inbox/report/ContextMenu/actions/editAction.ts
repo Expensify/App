@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditReportAction} from '@libs/ReportUtils';
 import {deleteReportActionDraft, openReport, saveReportActionDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +22,31 @@ type EditActionParams = BaseContextMenuActionParams & {
     pencilIcon: IconAsset;
 };
 
-function createEditAction({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, interceptAnonymousUser, hideAndRun, translate, pencilIcon}: EditActionParams): ContextMenuAction {
+function shouldShowEditAction({
+    reportAction,
+    isArchivedRoom,
+    isChronosReport,
+    moneyRequestAction,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    isArchivedRoom: boolean;
+    isChronosReport: boolean;
+    moneyRequestAction: ReportAction | undefined;
+}): boolean {
+    return (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport;
+}
+
+function createEditAction({
+    reportID,
+    reportAction,
+    moneyRequestAction,
+    draftMessage,
+    introSelected,
+    interceptAnonymousUser,
+    hideAndRun,
+    translate,
+    pencilIcon,
+}: EditActionParams): ContextMenuAction {
     return {
         id: 'edit',
         icon: pencilIcon,
@@ -49,3 +74,4 @@ function createEditAction({reportID, reportAction, moneyRequestAction, draftMess
 }
 
 export default createEditAction;
+export {shouldShowEditAction};

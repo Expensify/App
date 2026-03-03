@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {shouldDisableThread} from '@libs/ReportUtils';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction, Report as ReportType} from '@src/types/onyx';
@@ -15,6 +16,23 @@ type ReplyInThreadActionParams = BaseContextMenuActionParams & {
     hideAndRun: (callback?: () => void) => void;
     chatBubbleReplyIcon: IconAsset;
 };
+
+function shouldShowReplyInThreadAction({
+    reportAction,
+    reportID,
+    isThreadReportParentAction,
+    isArchivedRoom,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    reportID: string | undefined;
+    isThreadReportParentAction: boolean;
+    isArchivedRoom: boolean;
+}): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
+}
 
 function createReplyInThreadAction({
     childReport,
@@ -43,3 +61,4 @@ function createReplyInThreadAction({
 }
 
 export default createReplyInThreadAction;
+export {shouldShowReplyInThreadAction};
