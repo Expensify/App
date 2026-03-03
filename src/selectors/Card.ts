@@ -57,11 +57,9 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Filter out non-personal cards from the card list.
- * Personal cards have fundID === '0' or no fundID.
- * This selector keeps personal cards (fundID === '0').
+ * Get only personal cards from the card list.
  */
-const filterOutNonPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
+const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
     return filterObject(
         cards ?? {},
         (key, card) => card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card.fundID === '0'),
@@ -98,5 +96,5 @@ export {
     cardByIdSelector,
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
-    filterOutNonPersonalCards,
+    getBankLinkedPersonalCards,
 };

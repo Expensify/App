@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
@@ -81,7 +82,7 @@ function PersonalCardWarning() {
         >
             <View style={[styles.flex1, styles.gap4, styles.mh5]}>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('personalCard.isPersonalCard')}</Text>
-                <Text>{translate('personalCard.warningDescription', {isAdmin})}</Text>
+                <RenderHTML html={translate('personalCard.warningDescription', {isAdmin})} />
             </View>
         </HeaderPageLayout>
     );

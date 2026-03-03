@@ -20,6 +20,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
 import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -30,7 +31,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalCardList from '@hooks/usePersonalCardList';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -105,7 +105,7 @@ function WalletPage() {
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
-    const personalCardList = usePersonalCardList();
+    const personalCardList = useBankLinkedPersonalCards();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
