@@ -26,7 +26,7 @@ const pages = [
 
 function SubscriptionSizePage() {
     const privateSubscription = usePrivateSubscription();
-    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT, {canBeMissing: false});
+    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const {translate} = useLocalize();
 
     const onFinished = () => {

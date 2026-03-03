@@ -22,7 +22,7 @@ const DEFAULT_CARD_FEED_ERRORS: CardFeedErrors = {
 };
 
 function useCardFeedErrors(): CardFeedErrors {
-    const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS, {canBeMissing: true});
+    const [cardFeedErrors] = useOnyx(ONYXKEYS.DERIVED.CARD_FEED_ERRORS);
 
     return cardFeedErrors ?? DEFAULT_CARD_FEED_ERRORS;
 }

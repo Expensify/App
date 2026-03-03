@@ -12,7 +12,7 @@ import type SCREENS from '@src/SCREENS';
 type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
 function NewBankAccountVerifyAccountPage({route}: NewBankAccountVerifyAccountPageProps) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const currentUserEmail = getCurrentUserEmail();
     const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
