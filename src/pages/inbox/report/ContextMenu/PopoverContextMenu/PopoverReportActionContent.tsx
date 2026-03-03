@@ -33,8 +33,8 @@ import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/i
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from '..';
-import useReportActionContextMenuData from './useReportActionContextMenuData';
+import type {PopoverContentProps} from '.';
+import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 
 function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOpen, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();

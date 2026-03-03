@@ -16,11 +16,11 @@ import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ConfirmDeleteReportActionModal from './ConfirmDeleteReportActionModal';
-import PopoverEmailContent from './Email/PopoverEmailContent';
-import PopoverLinkContent from './Link/PopoverLinkContent';
-import PopoverReportContent from './Report/PopoverReportContent';
-import PopoverReportActionContent from './ReportAction/PopoverReportActionContent';
-import PopoverTextContent from './Text/PopoverTextContent';
+import PopoverEmailContent from './PopoverEmailContent';
+import PopoverLinkContent from './PopoverLinkContent';
+import PopoverReportContent from './PopoverReportContent';
+import PopoverReportActionContent from './PopoverReportActionContent';
+import PopoverTextContent from './PopoverTextContent';
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {

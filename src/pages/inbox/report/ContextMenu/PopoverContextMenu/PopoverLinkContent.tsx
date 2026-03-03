@@ -11,9 +11,9 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from '..';
+import type {PopoverContentProps} from '.';
 
-function PopoverTextContent({menuState, contentRef}: PopoverContentProps) {
+function PopoverLinkContent({menuState, contentRef}: PopoverContentProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -35,17 +35,18 @@ function PopoverTextContent({menuState, contentRef}: PopoverContentProps) {
             style={wrapperStyle}
         >
             <ContextMenuItem
-                text={translate('common.copyToClipboard')}
+                text={translate('reportActionContextMenu.copyURLToClipboard')}
                 icon={icons.Copy}
                 onPress={handlePress}
                 wrapperStyle={[styles.pr8]}
+                description={menuState.selection}
                 isAnonymousAction
                 successText={translate('reportActionContextMenu.copied')}
                 successIcon={icons.Checkmark}
-                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD}
+                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL}
             />
         </View>
     );
 }
 
-export default PopoverTextContent;
+export default PopoverLinkContent;

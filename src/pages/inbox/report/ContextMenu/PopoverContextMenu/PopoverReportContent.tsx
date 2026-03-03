@@ -24,7 +24,7 @@ import createPinAction, {shouldShowPinAction} from '@pages/inbox/report/ContextM
 import createUnpinAction, {shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/unpinAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import type {PopoverContentProps} from '..';
+import type {PopoverContentProps} from '.';
 
 const EMPTY_SET = new Set<string>();
 
