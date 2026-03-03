@@ -6169,6 +6169,7 @@ ${amount} para ${merchant} - ${date}`,
                 note: 'Perderás acceso a las siguientes funciones ',
                 noteAndMore: 'y más:',
                 benefits: {
+                    important: '¡IMPORTANTE!',
                     confirm: 'Necesitarás cambiar el "Tipo de plan" de cada espacio de trabajo a "Collect" para asegurar la tarifa Collect.',
                     benefit1Label: 'Integraciones ERP',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',

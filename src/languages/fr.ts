@@ -6366,10 +6366,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 title: 'Passer à Collect',
                 note: 'Vous perdrez l’accès aux fonctionnalités suivantes',
                 benefits: {
-                    note: 'Pour une comparaison complète de nos offres, consultez notre',
-                    pricingPage: 'page des tarifs',
                     confirm: 'Vous devez modifier le « Type de forfait » de chaque espace de travail en « Collect » afin de bénéficier du tarif Collect.',
-                    warning: 'Cette action est irréversible.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6381,6 +6378,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     benefit2Label: 'Intégrations RH',
                     benefit3Label: 'Sécurité',
                     benefit4Label: 'Avancé',
+                    important: 'IMPORTANT :',
                 },
                 noteAndMore: 'et plus :',
             },

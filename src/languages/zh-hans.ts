@@ -6171,10 +6171,7 @@ ${reportName}
                 title: '降级为 Collect',
                 note: '您将无法再使用以下功能',
                 benefits: {
-                    note: '如需完整比较我们的套餐，请查看我们的',
-                    pricingPage: '定价页面',
                     confirm: '你需要将每个工作区的“计划类型”更改为“Collect”，才能锁定 Collect 费率。',
-                    warning: '此操作无法撤销。',
                     benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
                     benefit2: 'Workday、Certinia',
                     benefit3: 'SSO/SAML',
@@ -6186,6 +6183,7 @@ ${reportName}
                     benefit2Label: '人力资源集成',
                     benefit3Label: '安全',
                     benefit4Label: '高级',
+                    important: '重要提示：',
                 },
                 noteAndMore: '以及：',
             },

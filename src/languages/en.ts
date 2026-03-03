@@ -6298,6 +6298,7 @@ const translations = {
                 note: "You'll lose access to the following features ",
                 noteAndMore: 'and more:',
                 benefits: {
+                    important: 'IMPORTANT: ',
                     confirm: 'You\'ll need to change the "Plan type" of every workspace to "Collect" in order to secure the Collect rate.',
                     benefit1Label: 'ERP integrations',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',

@@ -6304,10 +6304,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zmień plan na Collect',
                 note: 'Stracisz dostęp do następujących funkcji',
                 benefits: {
-                    note: 'Aby zobaczyć pełne porównanie naszych planów, sprawdź nasz',
-                    pricingPage: 'strona cenowa',
                     confirm: 'Musisz zmienić „Typ planu” każdego workspace’u na „Collect”, żeby zapewnić stawkę Collect.',
-                    warning: 'Tej operacji nie można cofnąć.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6320,6 +6317,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     benefit2Label: 'Integracje HR',
                     benefit3Label: 'Bezpieczeństwo',
                     benefit4Label: 'Zaawansowane',
+                    important: 'WAŻNE:',
                 },
                 noteAndMore: 'i więcej:',
             },

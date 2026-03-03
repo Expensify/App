@@ -6329,10 +6329,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 title: 'Passa a Collect',
                 note: "Perderai l'accesso alle seguenti funzionalità",
                 benefits: {
-                    note: 'Per un confronto completo dei nostri piani, consulta la nostra',
-                    pricingPage: 'pagina prezzi',
                     confirm: 'Dovrai cambiare il "Tipo di piano" di ogni spazio di lavoro in "Collect" per poter ottenere la tariffa Collect.',
-                    warning: 'Questa operazione non può essere annullata.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6345,6 +6342,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     benefit2Label: 'Integrazioni HR',
                     benefit3Label: 'Sicurezza',
                     benefit4Label: 'Avanzate',
+                    important: 'IMPORTANTE:',
                 },
                 noteAndMore: 'e altro:',
             },

@@ -6309,10 +6309,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 title: 'Downgraden naar Collect',
                 note: 'Je verliest toegang tot de volgende functies',
                 benefits: {
-                    note: 'Voor een volledig overzicht van onze abonnementen, bekijk onze',
-                    pricingPage: 'prijspagina',
                     confirm: 'Je moet het "Planniveau" van elke workspace wijzigen naar "Collect" om het Collect-tarief veilig te stellen.',
-                    warning: 'Dit kan niet ongedaan worden gemaakt.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6324,6 +6321,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     benefit2Label: 'HR-integraties',
                     benefit3Label: 'Beveiliging',
                     benefit4Label: 'Geavanceerd',
+                    important: 'BELANGRIJK:',
                 },
                 noteAndMore: 'en meer:',
             },

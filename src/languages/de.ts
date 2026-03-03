@@ -6343,10 +6343,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 title: 'Auf Collect downgraden',
                 note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
-                    note: 'Für einen vollständigen Vergleich unserer Tarife sehen Sie sich unsere',
-                    pricingPage: 'Preisseite',
                     confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um sich den Collect-Tarif zu sichern.',
-                    warning: 'Dies kann nicht rückgängig gemacht werden.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6359,6 +6356,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                     benefit2Label: 'HR-Integrationen',
                     benefit3Label: 'Sicherheit',
                     benefit4Label: 'Erweitert',
+                    important: 'WICHTIG:',
                 },
                 noteAndMore: 'und mehr:',
             },

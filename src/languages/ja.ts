@@ -6266,10 +6266,7 @@ ${reportName}
                 title: 'Collect にダウングレード',
                 note: '次の機能が利用できなくなります',
                 benefits: {
-                    note: '各プランを完全に比較するには、こちらのページをご確認ください',
-                    pricingPage: '料金ページ',
                     confirm: 'Collect レートを適用するには、すべてのワークスペースの「プランタイプ」を「Collect」に変更する必要があります。',
-                    warning: 'この操作は元に戻せません。',
                     benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
                     benefit2: 'Workday、Certinia',
                     benefit3: 'SSO/SAML',
@@ -6281,6 +6278,7 @@ ${reportName}
                     benefit2Label: '人事統合',
                     benefit3Label: 'セキュリティ',
                     benefit4Label: '詳細設定',
+                    important: '重要:',
                 },
                 noteAndMore: 'その他：',
             },

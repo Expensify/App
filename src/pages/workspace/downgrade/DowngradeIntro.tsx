@@ -89,7 +89,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                     <RenderHTML html={benefitsListHTML} />
                 </View>
                 <Text style={[styles.mv4, styles.textBold, styles.textSupporting]}>
-                    {'IMPORTANT: '}
+                    {translate('workspace.downgrade.commonFeatures.benefits.important')}
                     {translate('workspace.downgrade.commonFeatures.benefits.confirm')}
                 </Text>
                 {!policyID && (
