@@ -335,7 +335,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
-    const canShowReceiptActions = hasReceipt && isEditable && !isTransactionScanning && !isMapDistanceRequest && !mergeTransactionID;
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isTransactionScanning && !isMapDistanceRequest && !mergeTransactionID;
 
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
