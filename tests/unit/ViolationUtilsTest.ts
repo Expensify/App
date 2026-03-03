@@ -667,6 +667,27 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
         });
 
+        it('should remove existing tagOutOfPolicy when tag is cleared to empty string', () => {
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
+            expect(result.value).toContainEqual({...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}});
+        });
+
+        it('should remove existing tagOutOfPolicy when policy requires tags, no tags are enabled, and tag is empty string', () => {
+            policyTags = {};
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([duplicatedTransactionViolation]);
+        });
+
         it('should not add a tag violation when the transaction is scanning', () => {
             const partialTransaction = {
                 ...transaction,

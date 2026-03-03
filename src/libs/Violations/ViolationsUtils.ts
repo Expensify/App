@@ -70,8 +70,8 @@ function getTagViolationsForSingleLevelTags(
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is in policy or there are no enabled tags
-    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && (isTagInPolicy || !hasEnabledTagsInList)) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
