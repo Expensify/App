@@ -1851,6 +1851,7 @@ function getActions(
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>,
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>,
     reportActions: OnyxTypes.ReportAction[] = [],
+    precomputedTransactionsForReport?: OnyxTypes.Transaction[],
 ): SearchTransactionAction[] {
     const isTransaction = isTransactionEntry(key);
     const report = getReportFromKey(data, key);
@@ -1891,7 +1892,7 @@ function getActions(
     const allActions: SearchTransactionAction[] = [];
     let allReportTransactions: OnyxTypes.Transaction[];
     if (isReportEntry(key)) {
-        allReportTransactions = getTransactionsForReport(data, report.reportID);
+        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
     } else {
         allReportTransactions = transaction ? [transaction] : [];
     }
@@ -2185,12 +2186,43 @@ function getReportSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
+    // Build transactionsByReportID map and compute report-level year flags in a single pass,
+    // eliminating the separate shouldShowYear(data, true) call and getTransactionsForReport O(R*N) scans.
+    const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
+    let shouldShowYearCreatedReport = false;
+    let shouldShowYearSubmittedReport = false;
+    let shouldShowYearApprovedReport = false;
+    let shouldShowYearExportedReport = false;
+
     const {reportKeys, transactionKeys} = Object.keys(data).reduce(
         (acc, key) => {
             if (isReportEntry(key)) {
                 acc.reportKeys.push(key);
+                const item = data[key];
+                if (!shouldShowYearCreatedReport && item.created && DateUtils.doesDateBelongToAPastYear(item.created)) {
+                    shouldShowYearCreatedReport = true;
+                }
+                if (!shouldShowYearSubmittedReport && item.submitted && DateUtils.doesDateBelongToAPastYear(item.submitted)) {
+                    shouldShowYearSubmittedReport = true;
+                }
+                if (!shouldShowYearApprovedReport && item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
+                    shouldShowYearApprovedReport = true;
+                }
+                const exportedAction = lastExportedActionByReportID.get(item.reportID);
+                if (!shouldShowYearExportedReport && exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
+                    shouldShowYearExportedReport = true;
+                }
             } else if (isTransactionEntry(key)) {
                 acc.transactionKeys.push(key);
+                const transaction = data[key];
+                if (transaction.reportID) {
+                    const existing = transactionsByReportID.get(transaction.reportID);
+                    if (existing) {
+                        existing.push(transaction);
+                    } else {
+                        transactionsByReportID.set(transaction.reportID, [transaction]);
+                    }
+                }
             }
             return acc;
         },
@@ -2198,12 +2230,6 @@ function getReportSections({
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
-    const {
-        shouldShowYearCreated: shouldShowYearCreatedReport,
-        shouldShowYearSubmitted: shouldShowYearSubmittedReport,
-        shouldShowYearApproved: shouldShowYearApprovedReport,
-        shouldShowYearExported: shouldShowYearExportedReport,
-    } = shouldShowYear(data, true, lastExportedActionByReportID);
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -2234,7 +2260,8 @@ function getReportSections({
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
-                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+                const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -2246,8 +2273,6 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
 
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
-
-                const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policyFromKey = getPolicyFromKey(data, reportItem);
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID ?? String(CONST.DEFAULT_NUMBER_ID)}`] ?? policyFromKey;
 
