@@ -1,15 +1,12 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated from 'react-native-reanimated';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
-import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -20,7 +17,7 @@ import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotal
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {search, updateAdvancedFilters} from '@libs/actions/Search';
+import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -44,16 +41,9 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
-    const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
-
-    const formValues = useFilterFormValues(queryJSON);
-
-    useEffect(() => {
-        updateAdvancedFilters(formValues, true);
-    }, [formValues]);
 
     useConfirmReadyToOpenApp();
 
@@ -148,17 +138,6 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     }, []);
 
-    const scrollHandler = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            if (!e.nativeEvent.contentOffset.y) {
-                return;
-            }
-
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [saveScrollOffset, route],
-    );
-
     return (
         <Animated.View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
@@ -193,7 +172,7 @@ function SearchPage({route}: SearchPageProps) {
                     footerData={footerData}
                     handleSearchAction={handleSearchAction}
                     onSortPressedCallback={onSortPressedCallback}
-                    scrollHandler={scrollHandler}
+                    route={route}
                     initScanRequest={initScanRequest}
                     isDragDisabled={isDragDisabled}
                     PDFValidationComponent={PDFValidationComponent}
