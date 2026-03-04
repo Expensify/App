@@ -472,7 +472,7 @@ function SearchAutocompleteList({
 
     return (
         <SelectionListWithSections<AutocompleteListItem>
-            showLoadingPlaceholder
+            shouldShowLoadingPlaceholder
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}

@@ -29,7 +29,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listFooterContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Component to display on the right side of each item */
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
@@ -65,7 +65,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listEmptyContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the empty list content */
-    showListEmptyContent?: boolean;
+    shouldShowListEmptyContent?: boolean;
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
