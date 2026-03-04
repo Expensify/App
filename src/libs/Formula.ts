@@ -242,16 +242,25 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
                 continue;
             }
 
-            // Check if this reference creates a cycle
-            if (referencedFieldName === fieldName || visitedFields.has(referencedFieldName)) {
+            // Normalize field name to handle both spaces and underscores
+            const normalizedReferencedFieldName = referencedFieldName.toLowerCase().replace(/_/g, ' ');
+
+            // Check if this reference creates a cycle (try both normalized and original)
+            if (referencedFieldName === fieldName || visitedFields.has(referencedFieldName) || normalizedReferencedFieldName === fieldName.toLowerCase()) {
                 return true;
             }
 
-            const referencedField = fieldsByName.get(referencedFieldName);
+            // Try to find the field with normalized name
+            let referencedField = fieldsByName.get(normalizedReferencedFieldName);
+
+            // Fallback to original name if not found
+            if (!referencedField) {
+                referencedField = fieldsByName.get(referencedFieldName);
+            }
 
             if (referencedField?.defaultValue) {
                 // Recursively check the referenced field
-                if (hasCircularReferencesRecursive(referencedField.defaultValue, referencedFieldName)) {
+                if (hasCircularReferencesRecursive(referencedField.defaultValue, normalizedReferencedFieldName)) {
                     return true;
                 }
             }
@@ -458,7 +467,22 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
         return part.definition;
     }
 
+    // Normalize field name to handle both spaces and underscores
+    // Field names can have spaces (e.g., "STATUS MIRROR") but formula references
+    // may use underscores (e.g., {field:STATUS_MIRROR})
+    const normalizedFieldName = fieldName.replace(/_/g, ' ');
+
     // If we have the full field definitions, we can recursively resolve dependencies
+    if (context?.fieldsByName?.[normalizedFieldName]) {
+        const field = context.fieldsByName[normalizedFieldName];
+        if (hasFieldReferences(field.defaultValue)) {
+            visited.add(fieldName);
+            return compute(field.defaultValue, {...context, visitedFields: visited});
+        }
+        return field.value ?? field.defaultValue ?? '';
+    }
+
+    // Try with original fieldName (for backward compatibility with single-word fields)
     if (context?.fieldsByName?.[fieldName]) {
         const field = context.fieldsByName[fieldName];
         if (hasFieldReferences(field.defaultValue)) {
@@ -469,6 +493,11 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
     }
 
     // Fallback to flat value map
+    if (context?.fieldValues?.[normalizedFieldName]) {
+        return context.fieldValues[normalizedFieldName];
+    }
+
+    // Try original fieldName in fieldValues
     if (context?.fieldValues?.[fieldName]) {
         return context.fieldValues[fieldName];
     }
