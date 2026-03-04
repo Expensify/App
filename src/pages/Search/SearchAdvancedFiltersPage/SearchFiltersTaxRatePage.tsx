@@ -18,8 +18,8 @@ function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
     for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {

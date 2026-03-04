@@ -15,7 +15,7 @@ type ChangeExpensifyLoginLinkProps = {
 function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>

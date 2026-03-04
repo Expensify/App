@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
@@ -14,9 +15,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
-import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
@@ -35,16 +38,16 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserLogin = session?.email;
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
-        mergeTransaction,
-    });
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -52,8 +55,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy: targetTransactionPolicy, report: targetTransactionReport, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, targetTransactionPolicy, targetTransactionReport, currentUserLogin, targetTransaction]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report: targetTransactionReport, currentUserLogin});
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, targetTransactionReport, currentUserLogin, targetTransaction]);
 
     const data = useMemo(() => {
         if (!eligibleTransactions) {
@@ -76,6 +79,47 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }))
             .sort((a, b) => localeCompare(getCreated(b), getCreated(a)));
     }, [eligibleTransactions, mergeTransaction?.sourceTransactionID, localeCompare]);
+
+    const shouldShowTextInput = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const filteredData = useMemo(() => {
+        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
+            return data;
+        }
+        return tokenizedSearch(data, debouncedSearchValue, (transaction) => {
+            const searchableFields: string[] = [];
+            const merchant = getMerchant(transaction);
+            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+                searchableFields.push(merchant);
+            }
+            const description = getDescription(transaction);
+            if (description.trim()) {
+                searchableFields.push(description);
+            }
+            const amount = getAmount(transaction);
+            const currency = getCurrency(transaction);
+            searchableFields.push(convertToDisplayString(amount, currency));
+            searchableFields.push((amount / 100).toString());
+            return searchableFields;
+        });
+    }, [data, debouncedSearchValue, shouldShowTextInput]);
+
+    const headerMessage = useMemo(() => {
+        if (debouncedSearchValue.trim() && filteredData.length === 0) {
+            return translate('common.noResultsFound');
+        }
+        return '';
+    }, [debouncedSearchValue, filteredData.length, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: shouldShowTextInput ? translate('common.search') : undefined,
+            onChangeText: setSearchValue,
+            headerMessage,
+        }),
+        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
+    );
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
@@ -115,11 +159,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true, undefined, [
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        ]);
-    }, [transactionID, targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare, targetTransactionPolicy, sourceTransactionPolicy]);
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true);
+    }, [transactionID, targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare]);
 
     const confirmButtonOptions = {
         showButton: true,
@@ -152,13 +193,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     return (
         <SelectionList<MergeTransactionListItemType>
-            data={data}
+            data={filteredData}
             onSelectRow={handleSelectRow}
             ListItem={MergeTransactionItem}
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
             customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            showLoadingPlaceholder
+            showLoadingPlaceholder={!eligibleTransactions}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={shouldShowTextInput}
         />
     );
 }

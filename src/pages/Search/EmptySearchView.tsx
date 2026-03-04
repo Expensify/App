@@ -1,6 +1,6 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
@@ -44,6 +44,7 @@ import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -90,17 +91,16 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
-        canBeMissing: true,
     });
 
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
@@ -154,6 +154,15 @@ function EmptySearchViewContent({
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
+    const skeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'EmptySearchView',
+            hasResults,
+            searchType: type,
+        }),
+        [hasResults, type],
+    );
+
     const tripsFeatures: FeatureListItem[] = [
         {
             icon: illustrations.PiggyBank,
@@ -166,23 +175,25 @@ function EmptySearchViewContent({
     ];
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const {showConfirmModal} = useConfirmModal();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
         selector: hasTransactionsSelector,
     });
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
         selector: hasExpenseReportsSelector,
     });
 
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+        selector: tryNewDotOnyxSelector,
+    });
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
@@ -191,7 +202,7 @@ function EmptySearchViewContent({
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const filteredPolicyID = queryJSON?.policyID;
@@ -217,7 +228,12 @@ function EmptySearchViewContent({
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                    reportID: createdReportID,
+                    backTo: Navigation.getActiveRoute(),
+                }),
+            );
         });
     };
 
@@ -364,7 +380,11 @@ function EmptySearchViewContent({
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
+                    lottieWebViewStyles: {
+                        backgroundColor: theme.travelBG,
+                        ...styles.emptyStateFolderWebStyles,
+                        ...styles.tripEmptyStateLottieWebView,
+                    },
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -522,6 +542,7 @@ function EmptySearchViewContent({
             >
                 <GenericEmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
+                    skeletonReasonAttributes={skeletonReasonAttributes}
                     headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
