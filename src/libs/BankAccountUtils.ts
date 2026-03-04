@@ -15,10 +15,6 @@ function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
 }
 
-function isBankAccountInSetupOrVerifyingState(state: string | undefined) {
-    return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
-}
-
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -34,11 +30,4 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
 
-export {
-    getDefaultCompanyWebsite,
-    getLastFourDigits,
-    hasPartiallySetupBankAccount,
-    isBankAccountPartiallySetup,
-    isBankAccountInSetupOrVerifyingState,
-    doesPolicyHavePartiallySetupBankAccount,
-};
+export {getDefaultCompanyWebsite, getLastFourDigits, hasPartiallySetupBankAccount, isBankAccountPartiallySetup, doesPolicyHavePartiallySetupBankAccount};
