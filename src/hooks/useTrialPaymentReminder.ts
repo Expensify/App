@@ -1,4 +1,3 @@
-import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
@@ -11,11 +10,11 @@ import useOnyx from './useOnyx';
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60;
 
-/** Waiting for onboarding data to load */
+/** Waiting for trial data to load */
 const DELAY_LOADING = 'loading';
-/** Onboarding not yet complete, waiting for completion */
+/** No trial yet, waiting for workspace creation */
 const DELAY_WAITING = 'waiting';
-/** Onboarding just completed, 5-minute timer running */
+/** Trial just started, 5-minute timer running */
 const DELAY_TIMING = 'timing';
 /** Ready to show modal */
 const DELAY_NO_DELAY = 'no_delay';
@@ -95,30 +94,27 @@ function computeCurrentVariation(firstDayFreeTrial: string | undefined, lastDayF
 }
 
 function useTrialPaymentReminder() {
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedVariation, dismissedVariationResult] = useOnyx(ONYXKEYS.NVP_TRIAL_PAYMENT_REMINDER_DISMISSED);
-    const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
-    });
 
     const [delayState, setDelayState] = useState<DelayState>(DELAY_STATE.LOADING);
 
     useEffect(() => {
-        if (isOnboardingCompleted === undefined) {
+        if (isLoadingOnyxValue(firstDayFreeTrialResult)) {
             return;
         }
 
         if (delayState === DELAY_STATE.LOADING) {
-            setDelayState(isOnboardingCompleted ? DELAY_STATE.NO_DELAY : DELAY_STATE.WAITING);
+            setDelayState(firstDayFreeTrial ? DELAY_STATE.NO_DELAY : DELAY_STATE.WAITING);
             return;
         }
 
-        if (delayState === DELAY_STATE.WAITING && isOnboardingCompleted) {
+        if (delayState === DELAY_STATE.WAITING && firstDayFreeTrial) {
             setDelayState(DELAY_STATE.TIMING);
         }
-    }, [delayState, isOnboardingCompleted]);
+    }, [delayState, firstDayFreeTrial, firstDayFreeTrialResult]);
 
     // Run 5-minute timer when in 'timing' state
     useEffect(() => {
