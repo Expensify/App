@@ -524,7 +524,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             }
                             const getDestinationRoute = () => {
                                 return isOdometerImage
-                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, undefined, isFromOdometerStep)
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isFromOdometerStep)
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
                                           iouType,

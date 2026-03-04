@@ -1931,7 +1931,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
         imageType: OdometerImageType;
-        isEditingConfirmation: boolean;
+        isEditingConfirmation?: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
