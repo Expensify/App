@@ -121,7 +121,6 @@ function HeaderFirstRow<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     let total = reportItem.total ?? 0;
     if (total) {
@@ -224,6 +223,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const {currentSearchHash, currentSearchKey, currentSearchResults: snapshot} = useSearchStateContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const snapshotReport = useMemo(() => {

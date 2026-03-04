@@ -365,7 +365,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ? selectedReports.map((report) => report.policyID)
             : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
 
-        const restrictedPolicyID = selectedPolicyIDList.find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
+        const restrictedPolicyID = selectedPolicyIDList.find(
+            (policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection),
+        );
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
@@ -413,6 +415,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         translate,
         hash,
         clearSelectedTransactions,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -532,7 +535,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-            const restrictedPolicyID = selectedOptions.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
+            const restrictedPolicyID = selectedOptions
+                .map((item) => item.policyID)
+                .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -650,6 +655,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             personalPolicyID,
             allTransactions,
             allReports,
+            userBillingGraceEndPeriodCollection,
         ],
     );
 
@@ -823,7 +829,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = itemList.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
+                    const restrictedPolicyID = itemList
+                        .map((item) => item.policyID)
+                        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
@@ -1069,6 +1077,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
