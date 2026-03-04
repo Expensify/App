@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,14 +21,13 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isHarvestCreatedExpenseReport,
-    isUnread,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ContextMenuAnchor, ContextMenuType} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
@@ -43,7 +41,6 @@ type UseContextMenuDataParams = {
     originalReportID: string | undefined;
     draftMessage: string;
     selection: string;
-    type: ContextMenuType;
     anchor: RefObject<ContextMenuAnchor> | undefined;
 };
 
@@ -51,16 +48,14 @@ type UseContextMenuDataParams = {
  * Aggregates all Onyx data and derived state needed for context menus.
  * Consumed by both PopoverReportActionContent (long-press menu) and MiniReportActionContextMenu (hover menu).
  */
-function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams) {
+function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, anchor}: UseContextMenuDataParams) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const encryptedAuthToken = useSession()?.encryptedAuthToken ?? '';
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
         selector: withDEWRoutedActionsObject,
@@ -109,8 +104,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
 
     const isChronosReport = chatIncludesChronosWithID(originalReportID);
     const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
-    const isPinnedChat = !!report?.isPinned;
-    const isUnreadChat = isUnread(report, undefined, isOriginalReportArchived);
     const isThreadReportParentAction = isChatThread(report) && report?.parentReportActionID === reportAction?.reportActionID;
 
     const isMoneyRequestReport = ReportUtilsIsMoneyRequestReport(childReport);
@@ -166,17 +159,13 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         encryptedAuthToken,
         isArchivedRoom,
         isChronosReport,
-        isPinnedChat,
-        isUnreadChat,
         isThreadReportParentAction,
         isOffline: !!isOffline,
-        isProduction,
         isHarvestReport,
         isTryNewDotNVPDismissed,
         isDelegateAccessRestricted: !!isDelegateAccessRestricted,
         areHoldRequirementsMet,
         isDebugModeEnabled,
-        betas,
         transactions,
         introSelected,
         movedFromReport,
@@ -187,7 +176,6 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         showDelegateNoAccessModal,
         translate,
         getLocalDateFromDatetime,
-        type,
         reportID,
         originalReportID,
         draftMessage,

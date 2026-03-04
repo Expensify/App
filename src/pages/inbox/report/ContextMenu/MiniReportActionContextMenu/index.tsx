@@ -103,13 +103,52 @@ function MiniReportActionContextMenu() {
         right: baseRight.get(),
     }));
 
-    const data = useReportActionContextMenuData({
+    const {
+        report,
+        reportAction,
+        reportActions: reportActionsMap,
+        originalReport,
+        childReport,
+        childReportActions,
+        policy,
+        policyTags,
+        moneyRequestAction,
+        moneyRequestReport,
+        moneyRequestPolicy,
+        iouTransaction,
+        transaction,
+        card,
+        currentUserPersonalDetails,
+        encryptedAuthToken,
+        isArchivedRoom,
+        isChronosReport,
+        isThreadReportParentAction,
+        isOffline,
+        isHarvestReport,
+        isTryNewDotNVPDismissed,
+        isDelegateAccessRestricted,
+        areHoldRequirementsMet,
+        transactions,
+        introSelected,
+        movedFromReport,
+        movedToReport,
+        harvestReport,
+        download,
+        disabledActionIDs,
+        showDelegateNoAccessModal,
+        translate,
+        getLocalDateFromDatetime,
+        reportID: resolvedReportID,
+        originalReportID: resolvedOriginalReportID,
+        draftMessage: resolvedDraftMessage,
+        selection: resolvedSelection,
+        anchor: resolvedAnchor,
+    } = useReportActionContextMenuData({
         reportID,
         reportActionID,
         originalReportID,
         draftMessage,
         selection: '',
-        type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         anchor,
     });
 
@@ -129,7 +168,7 @@ function MiniReportActionContextMenu() {
                 originalReportID,
             },
             reportAction: {
-                reportActionID: data.reportAction?.reportActionID,
+                reportActionID: reportAction?.reportActionID,
                 draftMessage,
             },
             callbacks: {
@@ -144,80 +183,80 @@ function MiniReportActionContextMenu() {
         });
     };
 
-    const reportAction = data.reportAction;
-    const currentUserAccountID = data.currentUserPersonalDetails?.accountID ?? 0;
-    const {translate, disabledActionIDs} = data;
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? 0;
 
     const isDisabled = (id: string) => disabledActionIDs.has(id);
 
     const showReplyInThread =
+        !isDisabled(ACTION_IDS.REPLY_IN_THREAD) &&
         shouldShowReplyInThreadAction({
-            reportAction: data.reportAction,
-            reportID: data.reportID,
-            isThreadReportParentAction: data.isThreadReportParentAction,
-            isArchivedRoom: data.isArchivedRoom,
-        }) && !isDisabled(ACTION_IDS.REPLY_IN_THREAD);
-    const showMarkAsUnread = shouldShowMarkAsUnreadForReportAction({reportAction: data.reportAction}) && !isDisabled(ACTION_IDS.MARK_AS_UNREAD);
-    const showExplain = shouldShowExplainAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom}) && !isDisabled(ACTION_IDS.EXPLAIN);
-    const showEdit =
-        shouldShowEditAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom, isChronosReport: data.isChronosReport, moneyRequestAction: data.moneyRequestAction}) &&
-        !isDisabled(ACTION_IDS.EDIT);
+            reportAction,
+            reportID: resolvedReportID,
+            isThreadReportParentAction,
+            isArchivedRoom,
+        });
+    const showMarkAsUnread = !isDisabled(ACTION_IDS.MARK_AS_UNREAD) && shouldShowMarkAsUnreadForReportAction({reportAction});
+    const showExplain = !isDisabled(ACTION_IDS.EXPLAIN) && shouldShowExplainAction({reportAction, isArchivedRoom});
+    const showEdit = !isDisabled(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction});
     const showUnhold =
+        !isDisabled(ACTION_IDS.UNHOLD) &&
         shouldShowUnholdAction({
-            moneyRequestReport: data.moneyRequestReport,
-            moneyRequestAction: data.moneyRequestAction,
-            moneyRequestPolicy: data.moneyRequestPolicy,
-            areHoldRequirementsMet: data.areHoldRequirementsMet,
-            iouTransaction: data.iouTransaction,
-        }) && !isDisabled(ACTION_IDS.UNHOLD);
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+        });
     const showHold =
+        !isDisabled(ACTION_IDS.HOLD) &&
         shouldShowHoldAction({
-            moneyRequestReport: data.moneyRequestReport,
-            moneyRequestAction: data.moneyRequestAction,
-            moneyRequestPolicy: data.moneyRequestPolicy,
-            areHoldRequirementsMet: data.areHoldRequirementsMet,
-            iouTransaction: data.iouTransaction,
-        }) && !isDisabled(ACTION_IDS.HOLD);
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+        });
     const showJoinThread =
+        !isDisabled(ACTION_IDS.JOIN_THREAD) &&
         shouldShowJoinThreadAction({
-            reportAction: data.reportAction,
-            isArchivedRoom: data.isArchivedRoom,
-            isThreadReportParentAction: data.isThreadReportParentAction,
-            isHarvestReport: data.isHarvestReport,
-        }) && !isDisabled(ACTION_IDS.JOIN_THREAD);
+            reportAction,
+            isArchivedRoom,
+            isThreadReportParentAction,
+            isHarvestReport,
+        });
     const showLeaveThread =
+        !isDisabled(ACTION_IDS.LEAVE_THREAD) &&
         shouldShowLeaveThreadAction({
-            reportAction: data.reportAction,
-            isArchivedRoom: data.isArchivedRoom,
-            isThreadReportParentAction: data.isThreadReportParentAction,
-            isHarvestReport: data.isHarvestReport,
-        }) && !isDisabled(ACTION_IDS.LEAVE_THREAD);
-    const showCopyMessage = shouldShowCopyMessageAction({reportAction: data.reportAction}) && !isDisabled(ACTION_IDS.COPY_MESSAGE);
-    const showCopyLink = shouldShowCopyLinkAction({reportAction: data.reportAction, menuTarget: data.anchor}) && !isDisabled(ACTION_IDS.COPY_LINK);
-    const showFlagAsOffensive =
-        shouldShowFlagAsOffensiveAction({reportAction: data.reportAction, isArchivedRoom: data.isArchivedRoom, isChronosReport: data.isChronosReport, reportID: data.reportID}) &&
-        !isDisabled(ACTION_IDS.FLAG_AS_OFFENSIVE);
-    const showDownload = shouldShowDownloadAction({reportAction: data.reportAction, isOffline: data.isOffline}) && !isDisabled(ACTION_IDS.DOWNLOAD);
+            reportAction,
+            isArchivedRoom,
+            isThreadReportParentAction,
+            isHarvestReport,
+        });
+    const showCopyMessage = !isDisabled(ACTION_IDS.COPY_MESSAGE) && shouldShowCopyMessageAction({reportAction});
+    const showCopyLink = !isDisabled(ACTION_IDS.COPY_LINK) && shouldShowCopyLinkAction({reportAction, menuTarget: resolvedAnchor});
+    const showFlagAsOffensive = !isDisabled(ACTION_IDS.FLAG_AS_OFFENSIVE) && shouldShowFlagAsOffensiveAction({reportAction, isArchivedRoom, isChronosReport, reportID: resolvedReportID});
+    const showDownload = !isDisabled(ACTION_IDS.DOWNLOAD) && shouldShowDownloadAction({reportAction, isOffline});
     const showDelete =
+        !isDisabled(ACTION_IDS.DELETE) &&
         shouldShowDeleteAction({
-            reportAction: data.reportAction,
-            isArchivedRoom: data.isArchivedRoom,
-            isChronosReport: data.isChronosReport,
-            reportID: data.reportID,
-            moneyRequestAction: data.moneyRequestAction,
-            iouTransaction: data.iouTransaction,
-            transactions: data.transactions,
-            childReportActions: data.childReportActions,
-        }) && !isDisabled(ACTION_IDS.DELETE);
+            reportAction,
+            isArchivedRoom,
+            isChronosReport,
+            reportID: resolvedReportID,
+            moneyRequestAction,
+            iouTransaction,
+            transactions,
+            childReportActions,
+        });
 
     const allVisibleActions: ContextMenuAction[] = [];
     if (reportAction) {
         if (showReplyInThread) {
             allVisibleActions.push(
                 createReplyInThreadAction({
-                    childReport: data.childReport,
+                    childReport,
                     reportAction,
-                    originalReport: data.originalReport,
+                    originalReport,
                     currentUserAccountID,
                     hideAndRun,
                     translate,
@@ -228,8 +267,8 @@ function MiniReportActionContextMenu() {
         if (showMarkAsUnread) {
             allVisibleActions.push(
                 createMarkAsUnreadAction({
-                    reportID: data.reportID,
-                    reportActions: data.reportActions,
+                    reportID: resolvedReportID,
+                    reportActions: reportActionsMap,
                     reportAction,
                     currentUserAccountID,
                     hideAndRun,
@@ -242,10 +281,10 @@ function MiniReportActionContextMenu() {
         if (showExplain) {
             allVisibleActions.push(
                 createExplainAction({
-                    childReport: data.childReport,
-                    originalReport: data.originalReport,
+                    childReport,
+                    originalReport,
                     reportAction,
-                    currentUserPersonalDetails: data.currentUserPersonalDetails,
+                    currentUserPersonalDetails,
                     hideAndRun,
                     translate,
                     conciergeIcon: icons.Concierge,
@@ -255,11 +294,11 @@ function MiniReportActionContextMenu() {
         if (showEdit) {
             allVisibleActions.push(
                 createEditAction({
-                    reportID: data.reportID,
+                    reportID: resolvedReportID,
                     reportAction,
-                    moneyRequestAction: data.moneyRequestAction,
-                    draftMessage: data.draftMessage,
-                    introSelected: data.introSelected,
+                    moneyRequestAction,
+                    draftMessage: resolvedDraftMessage,
+                    introSelected,
                     hideAndRun,
                     translate,
                     pencilIcon: icons.Pencil,
@@ -269,9 +308,9 @@ function MiniReportActionContextMenu() {
         if (showUnhold) {
             allVisibleActions.push(
                 createUnholdAction({
-                    moneyRequestAction: data.moneyRequestAction,
-                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+                    moneyRequestAction,
+                    isDelegateAccessRestricted,
+                    showDelegateNoAccessModal,
                     hideAndRun,
                     translate,
                     stopwatchIcon: icons.Stopwatch,
@@ -281,9 +320,9 @@ function MiniReportActionContextMenu() {
         if (showHold) {
             allVisibleActions.push(
                 createHoldAction({
-                    moneyRequestAction: data.moneyRequestAction,
-                    isDelegateAccessRestricted: data.isDelegateAccessRestricted,
-                    showDelegateNoAccessModal: data.showDelegateNoAccessModal,
+                    moneyRequestAction,
+                    isDelegateAccessRestricted,
+                    showDelegateNoAccessModal,
                     hideAndRun,
                     translate,
                     stopwatchIcon: icons.Stopwatch,
@@ -291,49 +330,47 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showJoinThread) {
-            allVisibleActions.push(createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
+            allVisibleActions.push(createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
         }
         if (showLeaveThread) {
-            allVisibleActions.push(createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
+            allVisibleActions.push(createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
         }
         if (showCopyMessage) {
             allVisibleActions.push(
                 createCopyMessageAction({
                     reportAction,
-                    transaction: data.transaction,
-                    selection: data.selection,
-                    report: data.report,
-                    card: data.card,
-                    originalReport: data.originalReport,
-                    isHarvestReport: data.isHarvestReport,
-                    isTryNewDotNVPDismissed: data.isTryNewDotNVPDismissed,
-                    movedFromReport: data.movedFromReport,
-                    movedToReport: data.movedToReport,
-                    childReport: data.childReport,
-                    policy: data.policy,
-                    getLocalDateFromDatetime: data.getLocalDateFromDatetime,
-                    policyTags: data.policyTags,
+                    transaction,
+                    selection: resolvedSelection,
+                    report,
+                    card,
+                    originalReport,
+                    isHarvestReport,
+                    isTryNewDotNVPDismissed,
+                    movedFromReport,
+                    movedToReport,
+                    childReport,
+                    policy,
+                    getLocalDateFromDatetime,
+                    policyTags,
                     translate,
-                    harvestReport: data.harvestReport,
-                    currentUserPersonalDetails: data.currentUserPersonalDetails,
+                    harvestReport,
+                    currentUserPersonalDetails,
                     copyIcon: icons.Copy,
                     checkmarkIcon: icons.Checkmark,
                 }),
             );
         }
         if (showCopyLink) {
-            allVisibleActions.push(createCopyLinkAction({reportAction, originalReportID: data.originalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
+            allVisibleActions.push(createCopyLinkAction({reportAction, originalReportID: resolvedOriginalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
         }
         if (showFlagAsOffensive) {
-            allVisibleActions.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
+            allVisibleActions.push(createFlagAsOffensiveAction({reportID: resolvedReportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
         }
         if (showDownload) {
-            allVisibleActions.push(createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, download: data.download, translate, downloadIcon: icons.Download}));
+            allVisibleActions.push(createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon: icons.Download}));
         }
         if (showDelete) {
-            allVisibleActions.push(
-                createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}),
-            );
+            allVisibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
         }
     }
 
@@ -341,15 +378,15 @@ function MiniReportActionContextMenu() {
     const displayedActions = needsOverflow ? allVisibleActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : allVisibleActions;
 
     const emojiData = createEmojiReactionData({
-        reportID: data.reportID,
-        reportAction: data.reportAction,
+        reportID: resolvedReportID,
+        reportAction,
         currentUserAccountID,
         openContextMenu: () => miniActions.keepOpen(),
         setIsEmojiPickerActive,
         hideAndRun,
     });
 
-    const hasEmoji = shouldShowEmojiReaction({reportAction: data.reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
+    const hasEmoji = shouldShowEmojiReaction({reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
 
     if (!rowMeasurements) {
         return null;
