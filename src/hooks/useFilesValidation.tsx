@@ -423,6 +423,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const ErrorModal = (
         <ConfirmModal
+            success={!isValidatingMultipleFiles}
             title={getFileValidationErrorText(translate, fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}

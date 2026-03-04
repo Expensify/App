@@ -133,6 +133,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     return (
         <ConfirmModal
+            success={isWeb && hasError}
             shouldShowCancelButton={!(isWeb && hasError)}
             onModalHide={() => {
                 setHasError(false);

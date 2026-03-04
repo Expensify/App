@@ -291,6 +291,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 prompt: translate('search.exportSearchResults.description'),
                 confirmText: translate('search.exportSearchResults.title'),
                 cancelText: translate('common.cancel'),
+                success: true,
             });
             if (result.action !== ModalActions.CONFIRM) {
                 return;

@@ -115,6 +115,7 @@ function ExportWithDropdownMenu({
             onPress={(_, value) => {
                 if (isExported) {
                     showConfirmModal({
+                        success: true,
                         title: translate('workspace.exportAgainModal.title'),
                         prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
                         confirmText: translate('workspace.exportAgainModal.confirmText'),

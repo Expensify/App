@@ -110,6 +110,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     return (
         <>
             <ConfirmModal
+                success
                 isVisible={showFirstAskModal}
                 title={translate('gps.locationRequiredModal.title')}
                 onCancel={() => setShowFirstAskModal(false)}
@@ -128,6 +129,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 shouldReverseStackedButtons
             />
             <ConfirmModal
+                success
                 isVisible={showBgPermissionsModal}
                 title={translate('gps.androidBackgroundLocationRequiredModal.title')}
                 onCancel={() => setShowBgPermissionsModal(false)}
@@ -146,6 +148,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 shouldReverseStackedButtons
             />
             <ConfirmModal
+                success
                 title={translate('gps.preciseLocationRequiredModal.title')}
                 isVisible={showPreciseLocationModal}
                 onConfirm={() => {

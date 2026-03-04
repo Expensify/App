@@ -80,6 +80,7 @@ function SearchFiltersBarCreateButton() {
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
+            success: true,
         });
         if (action === ModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);

@@ -94,6 +94,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
                 onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
             />
             <ConfirmModal
+                success
                 isVisible={isWarningModalVisible}
                 title={translate('common.areYouSure')}
                 onConfirm={() => {

@@ -507,6 +507,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 danger
             />
             <ConfirmModal
+                success
                 title={`${translate('cardPage.unfreezeCard')}?`}
                 isVisible={isUnfreezeModalVisible}
                 onConfirm={handleConfirmUnfreeze}

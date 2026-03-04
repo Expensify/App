@@ -257,6 +257,7 @@ function EmptySearchViewContent({
             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
+            success: true,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

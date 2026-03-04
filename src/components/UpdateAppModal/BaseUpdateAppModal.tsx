@@ -17,6 +17,7 @@ function BaseUpdateAppModal({onSubmit}: UpdateAppModalProps) {
 
     return (
         <ConfirmModal
+            success
             title={translate('baseUpdateAppModal.updateApp')}
             isVisible={isModalOpen}
             onConfirm={submitAndClose}

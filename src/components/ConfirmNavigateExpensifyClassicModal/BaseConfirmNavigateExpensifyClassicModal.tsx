@@ -30,6 +30,7 @@ function BaseConfirmNavigateExpensifyClassicModal() {
 
     return (
         <ConfirmModal
+            success
             prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
             isVisible={isOpenAppConfirmNavigateExpensifyClassicModalOpen}
             onConfirm={handleConfirm}

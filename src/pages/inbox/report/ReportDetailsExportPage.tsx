@@ -65,6 +65,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
                 confirmText: translate('workspace.exportAgainModal.confirmText'),
                 cancelText: translate('workspace.exportAgainModal.cancelText'),
+                success: true,
             });
             if (result.action === ModalActions.CONFIRM) {
                 confirmExport(type);

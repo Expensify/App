@@ -114,6 +114,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     return (
         <>
             <ConfirmModal
+                success
                 title={translate('gps.locationRequiredModal.title')}
                 isVisible={showFirstAskModal}
                 onConfirm={requestPermissionsFirstAsk}
@@ -135,6 +136,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 }}
             />
             <ConfirmModal
+                success
                 title={translate('gps.preciseLocationRequiredModal.title')}
                 isVisible={showPreciseLocationModal}
                 onConfirm={() => {
