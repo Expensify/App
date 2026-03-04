@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -24,20 +24,38 @@ function EnablePaymentsPage() {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
+    const wasLoadingRef = useRef(false);
 
+    // Always fetch fresh wallet data on mount
     useEffect(() => {
         if (isOffline) {
+            return;
+        }
+
+        openEnablePaymentsPage();
+    }, [isOffline]);
+
+    // Only redirect after the fresh data loading cycle (isLoading: true → false) completes,
+    // to avoid acting on stale cached values from a previous session.
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+
+        if (userWallet?.isLoading) {
+            wasLoadingRef.current = true;
+            return;
+        }
+
+        if (!wasLoadingRef.current) {
             return;
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
-            return;
         }
-
-        openEnablePaymentsPage();
-    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, userWallet?.isLoading]);
 
     if (isEmptyObject(userWallet) || userWallet?.isLoading) {
         return <FullScreenLoadingIndicator />;
