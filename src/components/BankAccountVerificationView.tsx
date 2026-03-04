@@ -1,7 +1,4 @@
 import React from 'react';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
-import LottieAnimations from '@components/LottieAnimations';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -10,6 +7,9 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import BlockingView from './BlockingViews/BlockingView';
+import Button from './Button';
+import LottieAnimations from './LottieAnimations';
 
 type BankAccountVerificationViewProps = {
     verificationState: string;
