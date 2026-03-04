@@ -203,7 +203,7 @@ function MoneyReportHeaderSecondaryActions({
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, login} = useCurrentUserPersonalDetails();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
@@ -570,7 +570,7 @@ function MoneyReportHeaderSecondaryActions({
             return [];
         }
         return getSecondaryReportActions({
-            currentUserLogin: email ?? '',
+            currentUserLogin: login ?? '',
             currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
@@ -587,7 +587,7 @@ function MoneyReportHeaderSecondaryActions({
         });
     }, [
         moneyRequestReport,
-        email,
+        login,
         accountID,
         chatReport,
         nonPendingDeleteTransactions,
