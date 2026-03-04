@@ -406,6 +406,10 @@ function isCancelledPnrStatus(status: string): boolean {
 function isPnrCancelled(pnr: Pnr): boolean {
     const {data} = pnr;
 
+    if (data.bookingStatus && isCancelledPnrStatus(data.bookingStatus)) {
+        return true;
+    }
+
     if (data.hotelPnr) {
         return isCancelledPnrStatus(data.hotelPnr.pnrStatus);
     }
