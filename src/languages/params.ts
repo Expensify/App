@@ -360,27 +360,27 @@ type WorkspaceUpgradeNoteParams = {
     subscriptionLink: string;
 };
 
-type WorkflowSettingsParam = {workflowSettingLink: string};
+// type WorkflowSettingsParam = {workflowSettingLink: string};
 
-type WorkspaceShareNoteParams = {
-    adminsRoomLink: string;
-};
+// type WorkspaceShareNoteParams = {
+//     adminsRoomLink: string;
+// };
 
-type UpgradeSuccessMessageParams = {
-    policyName: string;
-    subscriptionLink: string;
-};
+// type UpgradeSuccessMessageParams = {
+//     policyName: string;
+//     subscriptionLink: string;
+// };
 
-type WalletAgreementParams = {
-    walletAgreementUrl: string;
-};
+// type WalletAgreementParams = {
+//     walletAgreementUrl: string;
+// };
 
-type NextStepParams = {
-    actor: string;
-    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
-    eta?: string;
-    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
-};
+// type NextStepParams = {
+//     actor: string;
+//     actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+//     eta?: string;
+//     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+// };
 
 type ConciergeBrokenCardConnectionParams = {
     cardName: string;
@@ -501,11 +501,11 @@ export type {
     DeleteBudgetParams,
     AddOrDeletePolicyCustomUnitRateParams,
     WorkspaceUpgradeNoteParams,
-    WorkflowSettingsParam,
-    WorkspaceShareNoteParams,
-    UpgradeSuccessMessageParams,
-    WalletAgreementParams,
-    NextStepParams,
+    // WorkflowSettingsParam,
+    // WorkspaceShareNoteParams,
+    // UpgradeSuccessMessageParams,
+    // WalletAgreementParams,
+    // NextStepParams,
     // UpdatedPolicyOwnershipParams,
     UpdatedPolicyAutoHarvestingParams,
     // UpdatedPolicyBudgetNotificationParams,
