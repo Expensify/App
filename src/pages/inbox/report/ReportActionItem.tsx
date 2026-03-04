@@ -21,6 +21,7 @@ import {
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {
     deleteReportActionDraft,
     dismissTrackExpenseActionableWhisper,
@@ -28,7 +29,6 @@ import {
     resolveActionableReportMentionWhisper,
     toggleEmojiReaction,
 } from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

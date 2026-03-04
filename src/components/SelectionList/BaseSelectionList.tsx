@@ -67,8 +67,8 @@ function BaseSelectionList<TItem extends ListItem>({
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
-    showListEmptyContent = true,
-    showLoadingPlaceholder,
+    shouldShowListEmptyContent = true,
+    shouldShowLoadingPlaceholder,
     showScrollIndicator = true,
     canSelectMultiple = false,
     disableKeyboardShortcuts = false,
@@ -313,7 +313,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 dataLength={data.length}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
         );
@@ -385,10 +385,10 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
-        if (showListEmptyContent) {
+        if (shouldShowListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -507,7 +507,7 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>

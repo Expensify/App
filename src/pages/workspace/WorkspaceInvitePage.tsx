@@ -279,7 +279,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                     }}
-                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}

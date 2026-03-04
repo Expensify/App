@@ -11,7 +11,8 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {getReportTransactions} from './ReportUtils';
+import {getReportTransactions, isSelfDM} from './ReportUtils';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
@@ -332,6 +333,12 @@ function navigateToConfirmationPage(
     reportIDParam: string | undefined = undefined,
     fromManualDistanceRequest = false,
 ) {
+    endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+    startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
+        name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+    });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
@@ -388,6 +395,26 @@ function calculateDefaultReimbursable({
     return (isPolicyExpenseChat && isPaidGroupPolicy(reportPolicy)) || isCreatingTrackExpense ? (reportPolicy?.defaultReimbursable ?? true) : true;
 }
 
+function getInitialPerDiemTargetReport(
+    report: OnyxEntry<Report>,
+    selfDMReport: OnyxEntry<Report>,
+    iouType: IOUType,
+    defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+    personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
+    let targetReport = report;
+    let targetIouType = iouType;
+    const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+    if (!shouldAutoReport || targetIouType === CONST.IOU.TYPE.TRACK) {
+        targetReport = selfDMReport;
+    }
+    const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+    if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        targetIouType = CONST.IOU.TYPE.TRACK;
+    }
+    return {targetReport, targetIouType, transactionReportID};
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -405,4 +432,5 @@ export {
     shouldShowReceiptEmptyState,
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
+    getInitialPerDiemTargetReport,
 };
