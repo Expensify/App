@@ -66,6 +66,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     key?: string;
 
+    /** Whether to ignore key and use a fallback key for React rendering instead. */
+    shouldIgnoreKeyForRendering?: boolean;
+
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
 
@@ -382,17 +385,29 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, badgeText, ...menuItemProps} = item;
+        const {
+            text,
+            onSelected,
+            subMenuItems,
+            shouldCallAfterModalHide,
+            key,
+            shouldIgnoreKeyForRendering,
+            testID: menuItemTestID,
+            shouldShowLoadingSpinnerIcon,
+            badgeText,
+            ...menuItemProps
+        } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
+        const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
-                key={key ?? `${item.text}_${menuIndex}`}
+                key={reactKey}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
-                    key={key ?? `${item.text}_${menuIndex}`}
+                    key={reactKey}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}

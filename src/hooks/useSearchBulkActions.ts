@@ -180,7 +180,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
-    const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
+    const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
@@ -827,11 +827,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (shouldShowPayOption) {
             const hasMultipleBusinessBankAccounts = (businessBankAccountOptions?.length ?? 0) > 1;
-            const shouldShowPaySubmenu = typeExpenseReport ? hasMultipleBusinessBankAccounts : isFirstTimePayment;
+            const shouldShowPaySubmenu = isFirstTimePayment || (shouldShowBusinessBankAccountOptions && hasMultipleBusinessBankAccounts);
 
             const payButtonOption = {
                 icon: expensifyIcons.MoneyBag,
                 text: translate('search.bulkActions.pay'),
+                backButtonText: shouldShowPaySubmenu ? translate('search.bulkActions.pay') : undefined,
                 rightIcon: shouldShowPaySubmenu ? expensifyIcons.ArrowRight : undefined,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
                 shouldCloseModalOnSelect: true,
@@ -1042,7 +1043,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showDelegateNoAccessModal,
         clearSelectedTransactions,
         bulkPayButtonOptions,
-        businessBankAccountOptions,
+        businessBankAccountOptions?.length,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,

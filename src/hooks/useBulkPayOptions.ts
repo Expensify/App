@@ -42,6 +42,7 @@ type UseBulkPayOptionProps = {
 type UseBulkPayOptionReturnType = {
     bulkPayButtonOptions: PopoverMenuItem[] | undefined;
     businessBankAccountOptions: BankAccountMenuItem[] | undefined;
+    shouldShowBusinessBankAccountOptions: boolean;
 };
 
 /**
@@ -141,6 +142,7 @@ function useBulkPayOptions({
                         iconHeight: account.iconSize,
                         iconWidth: account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        shouldIgnoreKeyForRendering: true,
                         additionalData: {
                             bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
@@ -231,6 +233,7 @@ function useBulkPayOptions({
     return {
         bulkPayButtonOptions,
         businessBankAccountOptions,
+        shouldShowBusinessBankAccountOptions,
     };
 }
 

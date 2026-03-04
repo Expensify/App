@@ -3088,11 +3088,6 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        BUSINESS_BANK_ACCOUNT_MENU_TYPE: {
-            NONE: 'none',
-            SINGLE_VBBA: 'singleVBBA',
-            MULTIPLE_VBBA: 'multipleVBBA',
-        },
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',

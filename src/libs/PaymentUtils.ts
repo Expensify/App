@@ -311,7 +311,15 @@ function getActivePaymentType(
 function getBankAccountLastFourDigits(bankAccountID: number | undefined, bankAccountList: OnyxEntry<Record<string, BankAccount>>, policy: OnyxEntry<Policy>): string {
     const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
 
-    return bankAccount?.accountData?.accountNumber?.slice(-4) ?? policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+    if (bankAccount?.accountData?.accountNumber) {
+        return bankAccount.accountData.accountNumber.slice(-4);
+    }
+
+    // If bankAccountID is provided but not found in bankAccountList, return '' to avoid showing policy account digits for multi-VBBA payments.
+    if (bankAccountID != null) {
+        return '';
+    }
+    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
 }
 
 export {
