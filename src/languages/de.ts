@@ -7743,6 +7743,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zum GPS-Bildschirm wechseln (Schnellaktion)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',

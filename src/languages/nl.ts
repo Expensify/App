@@ -7709,6 +7709,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             prompt: 'Sta locatiestoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (zwevende actie)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Rapportkaart kwijt of beschadigd',

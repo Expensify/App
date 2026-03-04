@@ -7701,6 +7701,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',

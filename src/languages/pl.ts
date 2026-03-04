@@ -7697,6 +7697,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu GPS.',
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (działanie pływające)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',
