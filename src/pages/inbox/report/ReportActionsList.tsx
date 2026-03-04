@@ -1,4 +1,4 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
@@ -7,11 +7,11 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlatList from '@components/InvertedFlatList';
+import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -23,6 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -59,6 +60,7 @@ import {
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
@@ -119,6 +121,15 @@ type ReportActionsListProps = {
 
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
+
+    /** If concierge is currently processing a request */
+    isConciergeProcessing?: boolean;
+
+    /** Concierge reasoning history for display */
+    conciergeReasoningHistory?: ReasoningEntry[];
+
+    /** Concierge status label */
+    conciergeStatusLabel?: string;
 };
 
 // In the component we are subscribing to the arrival of new actions.
@@ -158,6 +169,9 @@ function ReportActionsList({
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
+    isConciergeProcessing = false,
+    conciergeReasoningHistory,
+    conciergeStatusLabel,
 }: ReportActionsListProps) {
     const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -780,12 +794,21 @@ function ReportActionsList({
         }
 
         return (
-            <ListBoundaryLoader
-                type={CONST.LIST_COMPONENTS.HEADER}
-                onRetry={retryLoadNewerChatsError}
-            />
+            <>
+                {isConciergeProcessing && (
+                    <ConciergeThinkingMessage
+                        report={report}
+                        reasoningHistory={conciergeReasoningHistory}
+                        statusLabel={conciergeStatusLabel}
+                    />
+                )}
+                <ListBoundaryLoader
+                    type={CONST.LIST_COMPONENTS.HEADER}
+                    onRetry={retryLoadNewerChatsError}
+                />
+            </>
         );
-    }, [canShowHeader, retryLoadNewerChatsError]);
+    }, [canShowHeader, isConciergeProcessing, report, conciergeReasoningHistory, conciergeStatusLabel, retryLoadNewerChatsError]);
 
     const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 

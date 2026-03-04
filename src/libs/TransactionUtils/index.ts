@@ -24,7 +24,6 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
-    getPolicy,
     getTaxByID,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
@@ -137,9 +136,7 @@ type BuildOptimisticTransactionParams = {
 };
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -1117,11 +1114,8 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 /**
  * Verify that the transaction is in Self DM or is an original split transaction and that its distance rate is invalid.
  */
-function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
+function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy>) {
     if (transaction && isDistanceRequest(transaction)) {
-        const report = getReportOrDraftReport(transaction.reportID);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = policyParam ?? getPolicy(report?.policyID);
         const {rate} = DistanceRequestUtils.getRate({transaction, policy});
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || String(transaction.reportID) === CONST.REPORT.SPLIT_REPORT_ID;
 
@@ -1136,34 +1130,7 @@ function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInput
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (transaction && isDistanceRequest(transaction)) {
-        const report = getReportOrDraftReport(transaction.reportID);
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = policyParam ?? getPolicy(report?.policyID);
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-        const {unit, rate} = mileageRate;
-        const distanceInMeters = getDistanceInMeters(transaction, unit);
-        if (
-            (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) ||
-            // If modifiedMerchant is empty but modifiedCurrency exists, recalculate the merchant
-            (!transaction?.modifiedMerchant && transaction?.modifiedCurrency)
-        ) {
-            return DistanceRequestUtils.getDistanceMerchant(
-                true,
-                distanceInMeters,
-                unit,
-                rate,
-                getCurrency(transaction),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                translateLocal,
-                (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                getCurrencySymbol,
-                isManualDistanceRequest(transaction),
-            );
-        }
-    }
+function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
