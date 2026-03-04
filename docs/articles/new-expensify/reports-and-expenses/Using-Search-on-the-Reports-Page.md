@@ -35,7 +35,9 @@ Depending on your role, you’ll see shortcuts like:
 - **Pay** – Reports ready for reimbursement.
 - **Export** – Reports ready for accounting export (e.g., to QuickBooks).
 
-Admins may also see **Monthly accrual** (Unapproved cash, Unapproved card) and **Reconciliation** (Card statements, Expensify Card, Reimbursements).
+Admins may also see:
+- **Monthly accrual** -- Unapproved cash, Unapproved card.
+- **Reconciliation** -- Card statements, Expensify Card, Reimbursements.
 
 ---
 
