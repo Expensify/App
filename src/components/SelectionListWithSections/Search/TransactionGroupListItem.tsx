@@ -160,20 +160,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
-    const searchTransactions = useCallback((pageSize = 0, isRefresh = false) => {
-        if (!groupItem.transactionsQueryJSON) {
-            return;
-        }
+    const searchTransactions = useCallback(
+        (pageSize = 0, isRefresh = false) => {
+            if (!groupItem.transactionsQueryJSON) {
+                return;
+            }
 
-        search({
-            queryJSON: groupItem.transactionsQueryJSON,
-            searchKey: undefined,
-            offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
-            shouldCalculateTotals: false,
-            isLoading: !!transactionsSnapshot?.search?.isLoading,
-            isOffline,
-        });
-    }, [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading, transactionsSnapshot?.search?.offset]);
+            search({
+                queryJSON: groupItem.transactionsQueryJSON,
+                searchKey: undefined,
+                offset: isRefresh ? 0 : (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+                shouldCalculateTotals: false,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
+                isOffline,
+            });
+        },
+        [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading, transactionsSnapshot?.search?.offset],
+    );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
