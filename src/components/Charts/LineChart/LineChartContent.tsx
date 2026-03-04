@@ -140,7 +140,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
-    const renderOutsideComponents = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
         return (
             <>
                 <LeftFrameLine
@@ -154,7 +154,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     radius={DOT_RADIUS}
                     color={DEFAULT_CHART_COLOR}
                 />
-                {!!font && (
+                {!!font && xAxisLabelHeight !== undefined && (
                     <ChartXAxisLabels
                         labels={truncatedLabels}
                         labelRotation={labelRotation}
@@ -204,7 +204,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
-                        renderOutside={renderOutsideComponents}
+                        renderOutside={renderOutside}
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: X_AXIS_LINE_WIDTH,

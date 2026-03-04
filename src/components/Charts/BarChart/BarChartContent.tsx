@@ -157,8 +157,8 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         );
     };
 
-    const renderCustomXLabels = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
-        if (!font) {
+    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        if (!font || xAxisLabelHeight === undefined) {
             return null;
         }
         return (
@@ -211,7 +211,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
-                        renderOutside={renderCustomXLabels}
+                        renderOutside={renderOutside}
                         xAxis={{
                             tickCount: data.length,
                             lineWidth: X_AXIS_LINE_WIDTH,
