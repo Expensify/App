@@ -42,8 +42,8 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         snapshot = surface.makeImageSnapshot();
         const base64 = snapshot.encodeToBase64();
 
-        // Write to a temp file so the receipt is treated as a local file
-        // We use a fixed filename, so that RNFS.writeFile overwrites existing content, so at most 1 stitched temp file ever exists
+        // We use a fixed filename so that RNFS.writeFile overwrites existing content
+        // resulting in at most 1 stitched temp file ever existing at a time
         const filename = 'stitched_odometer.jpg';
         const tempPath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
         await RNFS.writeFile(tempPath, base64, 'base64');
