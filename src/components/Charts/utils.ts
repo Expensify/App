@@ -1,6 +1,6 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import type { SkFont } from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import type {ChartDataPoint, PieSlice} from './types';
+import type { ChartDataPoint, PieSlice } from './types';
 
 /**
  * Expensify Chart Color Palette.
@@ -151,19 +151,22 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: { centerX: number, centerY: number, radius: number }): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
     }
 
     return data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
+        .map((point, index) => ({ label: point.label, absTotal: Math.abs(point.total), originalIndex: index }))
         .sort((a, b) => b.absTotal - a.absTotal)
-        .reduce<{slices: PieSlice[]; angle: number}>(
+        .reduce<{ slices: PieSlice[]; angle: number }>(
             (acc, slice, index) => {
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
+                const angle = acc.angle + sweepAngle / 2;
+                const tooltipX = pieGeometry.centerX + (pieGeometry.radius / 1.5) * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + (pieGeometry.radius / 1.5) * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
@@ -172,11 +175,13 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number): PieS
                     startAngle: acc.angle,
                     endAngle: acc.angle + sweepAngle,
                     originalIndex: slice.originalIndex,
+                    ordinalIndex: index,
+                    tooltipPosition: { x: tooltipX, y: tooltipY }
                 });
                 acc.angle += sweepAngle;
                 return acc;
             },
-            {slices: [], angle: startAngle},
+            { slices: [], angle: startAngle },
         ).slices;
 }
 

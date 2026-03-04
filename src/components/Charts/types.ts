@@ -63,6 +63,12 @@ type PieSlice = {
 
     /** Index in the original unsorted data array, used to map back for tooltips */
     originalIndex: number;
+
+    /** Ordinal position in the processed slice list (0 = largest slice). */
+    ordinalIndex: number;
+
+    /** Position of the tooltip on label hover. */
+    tooltipPosition: {x: number; y: number};
 };
 
 export type {ChartDataPoint, ChartProps, CartesianChartProps, PieSlice, UnitPosition, UnitWithFallback};
