@@ -60,17 +60,17 @@ function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
             timestamp: Date.now(),
         };
 
-        if (level === 'error') {
-            Log.hmmm(`[MFA] ${eventMessage}`, extra);
-        } else {
-            Log.info(`[MFA] ${eventMessage}`, false, extra);
-        }
-
         Sentry.captureMessage(eventMessage, {
             level,
             tags,
             extra,
         });
+
+        if (level === 'error') {
+            Log.hmmm(`[MFA] ${eventMessage}`, extra);
+        } else {
+            Log.info(`[MFA] ${eventMessage}`, false, extra);
+        }
     } catch (sentryError) {
         Log.warn('[trackMfaFlowOutcome] Failed to track MFA flow outcome', {sentryError, originalContext: context});
     }
