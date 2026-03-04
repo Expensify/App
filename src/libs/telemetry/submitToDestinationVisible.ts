@@ -14,8 +14,13 @@ let pendingExpenseCreateDestination: PendingExpenseCreateDestination = null;
 /**
  * Set the pending expense-create destination before navigating (for submit-to-destination-visible telemetry).
  * The destination screen should call markSubmitToDestinationVisibleEnd when visible.
+ * If there is already a pending destination and the span is still running (e.g. second submit before first destination visible), we cancel the previous span so it is not left stuck or attributed to the wrong destination.
  */
 function setPendingExpenseCreateDestination(destinationType: DestinationType, reportID?: string) {
+    if (pendingExpenseCreateDestination !== null && getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+        cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+        pendingExpenseCreateDestination = null;
+    }
     pendingExpenseCreateDestination = {destinationType, reportID};
 }
 
