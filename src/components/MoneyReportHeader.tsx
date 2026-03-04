@@ -89,6 +89,7 @@ import {
     isOpenExpenseReport,
     isProcessingReport,
     isReportOwner,
+    isSelfDM,
     navigateOnDeleteExpense,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -101,6 +102,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasDuplicateTransactions,
+    isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
@@ -438,7 +440,12 @@ function MoneyReportHeader({
     );
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const isDistanceExpenseUnsupportedForDuplicating = !!(
+        isDistanceRequest(transaction) &&
+        (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
+    );
 
+    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
@@ -1500,6 +1507,11 @@ function MoneyReportHeader({
                     return;
                 }
 
+                if (isDistanceExpenseUnsupportedForDuplicating) {
+                    setDuplicateDistanceErrorModalVisible(true);
+                    return;
+                }
+
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
                     setDuplicatePerDiemErrorModalVisible(true);
                     return;
@@ -1513,7 +1525,11 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: isPerDiemRequestOnNonDefaultWorkspace || hasCustomUnitOutOfPolicyViolation || activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
+            shouldCloseModalOnSelect:
+                isDistanceExpenseUnsupportedForDuplicating ||
+                isPerDiemRequestOnNonDefaultWorkspace ||
+                hasCustomUnitOutOfPolicyViolation ||
+                activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
             text: translate('common.duplicateReport'),
@@ -2020,6 +2036,15 @@ function MoneyReportHeader({
                 onCancel={() => setRateErrorModalVisible(false)}
                 confirmText={translate('common.buttonConfirm')}
                 prompt={translate('iou.correctRateError')}
+                shouldShowCancelButton={false}
+            />
+            <ConfirmModal
+                title={translate('common.duplicateExpense')}
+                isVisible={duplicateDistanceErrorModalVisible}
+                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
+                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('iou.cannotDuplicateDistanceExpense')}
                 shouldShowCancelButton={false}
             />
             <ConfirmModal

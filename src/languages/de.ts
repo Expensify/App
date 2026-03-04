@@ -1600,6 +1600,8 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
+        cannotDuplicateDistanceExpense:
+            'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
     },
     transactionMerge: {
         listPage: {
@@ -8596,7 +8598,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
             },
-
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Bist du sicher? Dadurch wird das Konto von <strong>${email}</strong> gesperrt. <br /><br /> Unser Team wird das Konto anschließend überprüfen und unbefugten Zugriff entfernen. Um den Zugriff wiederherzustellen, muss die Person mit Concierge zusammenarbeiten.`,
             reportSuspiciousActivityConfirmationPrompt: 'Wir überprüfen das Konto, um sicherzustellen, dass es sicher entsperrt werden kann, und melden uns bei Fragen über Concierge.',

@@ -1597,6 +1597,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) =>
             `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Non puoi duplicare le spese chilometriche tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse.',
     },
     transactionMerge: {
         listPage: {
