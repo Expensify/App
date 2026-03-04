@@ -588,7 +588,9 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT}
+                    shouldShowRightIcon={!!rate && !isReadOnly && !isUnreported && iouType !== CONST.IOU.TYPE.SPLIT}
+                    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+                    // confirmation screen where a rate violation is not applicable yet.
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
