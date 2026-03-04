@@ -354,6 +354,7 @@ function deactivateTravelInvoicing(policyID: string, workspaceAccountID: number)
                     isEnabled: true,
                 },
                 pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];

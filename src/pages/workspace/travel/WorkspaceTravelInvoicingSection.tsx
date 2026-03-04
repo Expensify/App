@@ -169,11 +169,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         }
 
         // Has settlement account - enable Travel Invoicing and navigate to settlement page to show verification state
-        const existingPaymentBankAccountID = cardSettings?.TRAVEL_US?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
+        const existingPaymentBankAccountID = cardSettings?.[CONST.TRAVEL.PROGRAM_TRAVEL_US]?.paymentBankAccountID ?? cardSettings?.paymentBankAccountID ?? settlementAccount?.bankAccountID;
         if (existingPaymentBankAccountID) {
             configureTravelInvoicingForPolicy(policyID, workspaceAccountID, existingPaymentBankAccountID);
-            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
         }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
 
     const handleConfirmDisable = () => {

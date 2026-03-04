@@ -309,6 +309,7 @@ describe('TravelInvoicing', () => {
                                 isEnabled: true,
                             }),
                             pendingAction: null,
+                            errors: expect.anything() as unknown,
                         }),
                     }),
                 ]),

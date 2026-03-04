@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ValueOf} from 'type-fest';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +13,7 @@ import Button from './Button';
 import LottieAnimations from './LottieAnimations';
 
 type BankAccountVerificationViewProps = {
-    verificationState: string;
+    verificationState: ValueOf<typeof CONST.EXPENSIFY_CARD.VERIFICATION_STATE> | '';
     children: React.ReactNode;
     onVerifiedButtonPress?: () => void;
     verifiedButtonText?: string;
