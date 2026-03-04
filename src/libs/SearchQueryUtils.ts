@@ -1621,11 +1621,11 @@ function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
 }
 
 /**
- * Determines whether sortOrder should be reset (not passed to query builder) when filters change.
- * Each view/groupBy combination has its own default sortOrder derived by the parser,
- * so we reset on any view or groupBy change to let the parser determine the correct default.
+ * Determines whether sortBy and sortOrder should be reset when filters change.
+ * Each view/groupBy combination has its own defaults derived by the parser,
+ * so we reset on any view or groupBy change to let the parser determine the correct defaults.
  */
-function shouldResetSortOrder({
+function shouldResetSort({
     newView,
     oldView,
     newGroupBy,
@@ -1654,7 +1654,7 @@ function buildFilterQueryWithSortDefaults(
     previousState: {view?: string; groupBy?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
-    const resetSort = shouldResetSortOrder({
+    const resetSort = shouldResetSort({
         newView: filterValues.view,
         oldView: previousState.view,
         newGroupBy: filterValues.groupBy,
@@ -1717,7 +1717,7 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldSkipSuggestedSearchNavigation,
-    shouldResetSortOrder,
+    shouldResetSort,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
 };

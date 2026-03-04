@@ -15,7 +15,7 @@ import {
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
     shouldHighlight,
-    shouldResetSortOrder,
+    shouldResetSort,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1377,25 +1377,29 @@ describe('SearchQueryUtils', () => {
         });
     });
 
-    describe('shouldResetSortOrder', () => {
+    describe('shouldResetSort', () => {
         test('returns true when view changes', () => {
-            expect(shouldResetSortOrder({newView: 'line', oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(true);
+            expect(shouldResetSort({newView: 'line', oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(true);
         });
 
         test('returns true when groupBy changes', () => {
-            expect(shouldResetSortOrder({newView: 'table', oldView: 'table', newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
         });
 
         test('returns false when view and groupBy stay the same', () => {
-            expect(shouldResetSortOrder({newView: 'table', oldView: 'table', newGroupBy: 'category', oldGroupBy: 'category'})).toBe(false);
+            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'category', oldGroupBy: 'category'})).toBe(false);
         });
 
         test('returns false when both views are undefined and groupBy does not change', () => {
-            expect(shouldResetSortOrder({newView: undefined, oldView: undefined, newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
+            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
         });
 
         test('returns true when both views are undefined and groupBy changes', () => {
-            expect(shouldResetSortOrder({newView: undefined, oldView: undefined, newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+        });
+
+        test('returns false when form has undefined view and URL has table (parser default) with no groupBy change', () => {
+            expect(shouldResetSort({newView: undefined, oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
         });
     });
 
