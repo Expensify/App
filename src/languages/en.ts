@@ -564,6 +564,7 @@ const translations = {
         quarter: 'Quarter',
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
+        approver: 'Approver',
     },
     socials: {
         podcast: 'Follow us on Podcast',

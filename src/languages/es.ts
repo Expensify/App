@@ -409,6 +409,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
+        approver: 'Aprobador',
     },
     socials: {
         podcast: 'Síguenos en Podcast',
