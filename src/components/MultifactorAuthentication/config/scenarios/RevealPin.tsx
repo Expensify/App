@@ -8,7 +8,9 @@ import type {
 } from '@components/MultifactorAuthentication/config/types';
 import {revealPINForCard} from '@libs/actions/MultifactorAuthentication';
 import {setRevealedPIN} from '@libs/CardPINStore';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 /**
  * Payload type for the REVEAL_PIN scenario.
@@ -51,6 +53,8 @@ export default {
             if (pin) {
                 setRevealedPIN(payload.cardID, pin);
             }
+            Navigation.closeRHPFlow();
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(payload.cardID)));
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN;
         }
 
