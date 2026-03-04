@@ -17,6 +17,7 @@ type LHNAvatarProps = {
     useMidSubscriptSize?: boolean;
     shouldShowTooltip?: boolean;
     delegateAccountID?: number;
+    delegateTooltipAccountID?: number;
 };
 
 /**
@@ -33,6 +34,7 @@ function LHNAvatar({
     useMidSubscriptSize,
     shouldShowTooltip = false,
     delegateAccountID,
+    delegateTooltipAccountID,
 }: LHNAvatarProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -47,7 +49,7 @@ function LHNAvatar({
     if (icons.length === 1 || !secondaryIcon) {
         return (
             <ReportActionAvatar.Single
-                accountID={Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={delegateTooltipAccountID ?? Number(primaryIcon.id ?? CONST.DEFAULT_NUMBER_ID)}
                 avatar={primaryIcon}
                 shouldShowTooltip={shouldShowTooltip}
                 size={size}

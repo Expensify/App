@@ -109,7 +109,7 @@ function OptionRowLHN({
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
     // delegate's avatar as primary instead of the report owner's.
-    const skipDelegate = report?.type === CONST.REPORT.TYPE.CHAT || report?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !report?.chatReportID);
+    const skipDelegate = report?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !report?.chatReportID);
     const icons = useMemo(() => {
         let result = optionItem?.icons ?? [];
         if (!skipDelegate && delegateAccountID && personalDetails && result.length > 0) {
@@ -131,6 +131,13 @@ function OptionRowLHN({
 
         return result;
     }, [optionItem?.icons, skipDelegate, delegateAccountID, personalDetails]);
+
+    const delegateTooltipAccountID = useMemo(() => {
+        if (!skipDelegate && delegateAccountID && personalDetails?.[delegateAccountID] && optionItem?.icons?.length) {
+            return Number(optionItem.icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
+        }
+        return undefined;
+    }, [skipDelegate, delegateAccountID, personalDetails, optionItem?.icons]);
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
@@ -305,7 +312,8 @@ function OptionRowLHN({
                                                     secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
-                                                    delegateAccountID={delegateAccountID}
+                                                    delegateAccountID={skipDelegate ? undefined : delegateAccountID}
+                                                    delegateTooltipAccountID={delegateTooltipAccountID}
                                                 />
                                             )}
                                             <View style={contentContainerStyles}>
