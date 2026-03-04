@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -28,7 +29,7 @@ type MoneyRequestReportTransactionItemProps = {
     report: Report;
 
     /** Policy to which the transaction belongs */
-    policy?: Policy;
+    policy: OnyxEntry<Policy>;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -143,6 +144,7 @@ function MoneyRequestReportTransactionItem({
                         transactionItem={{...transaction, policy}}
                         violations={filteredViolations}
                         report={report}
+                        policy={policy}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

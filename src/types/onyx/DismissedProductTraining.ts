@@ -11,6 +11,7 @@ const {
     SCAN_TEST_DRIVE_CONFIRMATION,
     MULTI_SCAN_EDUCATIONAL_MODAL,
     GPS_TOOLTIP,
+    HAS_FILTER_NEGATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
@@ -88,6 +89,11 @@ type DismissedProductTraining = {
      * When user dismisses the GPS tooltip, we store the timestamp here.
      */
     [GPS_TOOLTIP]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the Has filter negation tooltip, we store the timestamp here.
+     */
+    [HAS_FILTER_NEGATION]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;
