@@ -8349,6 +8349,7 @@ const CONST = {
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
+            PRE: 'HTMLRenderer-Pre',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',

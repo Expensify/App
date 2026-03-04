@@ -54,6 +54,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
             <PressableWithoutFeedback
+                sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
                 onPress={onPressIn ?? (() => {})}
                 onPressIn={onPressIn}
                 onPressOut={onPressOut}

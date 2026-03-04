@@ -29,6 +29,7 @@ jest.mock('@components/VideoPlayerPreview', () => {
                 onPress={handlePress}
                 accessibilityRole="button"
                 accessibilityLabel={fileName}
+                sentryLabel="VideoRendererTest-ShowModalButton"
             />
         );
     };
