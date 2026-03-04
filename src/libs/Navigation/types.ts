@@ -194,6 +194,14 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };

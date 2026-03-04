@@ -746,6 +746,9 @@ const translations = {
         revealPin: {
             authenticationCanceled: 'We couldn’t reveal your PIN. Please try again.',
         },
+        changePin: {
+            authenticationCanceled: 'We didn’t change your PIN. Please try again.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -2318,14 +2321,24 @@ const translations = {
             alertMessage: ({cardLastFour, amount, merchant, date}: {cardLastFour: string; amount: string; merchant: string; date: string}) =>
                 `identified suspicious activity on card ending in ${cardLastFour}. Do you recognize this charge?\n\n${amount} for ${merchant} - ${date}`,
         },
-        setYourPin: 'Set the PIN for your card',
-        confirmYourPin: 'Enter your PIN again to confirm',
+        setYourPin: 'Set the PIN for your card.',
+        confirmYourPin: 'Enter your PIN again to confirm.',
+        changeYourPin: 'Enter a new PIN for your card.',
+        confirmYourChangedPin: 'Confirm your new PIN.',
         pinMustBeFourDigits: 'PIN must be exactly 4 digits.',
         invalidPin: 'Please choose a more secure PIN.',
         pinMismatch: 'PINs do not match. Please try again.',
         revealPin: 'Reveal PIN',
         hidePin: 'Hide PIN',
         pin: 'PIN',
+        pinChanged: 'PIN changed!',
+        pinChangedHeader: 'PIN changed',
+        pinChangedDescription: "You're all set to use your PIN now.",
+        changePin: 'Change PIN',
+        changePinAtATM: 'Change your PIN at any ATM',
+        changePinAtATMDescription: 'This is required in your region. ',
+        changePinAtATMConciergeLink: 'Reach out to Concierge',
+        changePinAtATMSuffix: ' if you have any questions.',
         freezeCard: 'Freeze card',
         unfreeze: 'Unfreeze',
         unfreezeCard: 'Unfreeze card',

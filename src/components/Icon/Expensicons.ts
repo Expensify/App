@@ -95,6 +95,7 @@ import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
+import Key from '@assets/images/key.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
@@ -217,6 +218,7 @@ export {
     EyeDisabled,
     FallbackAvatar,
     Flag,
+    Key,
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,

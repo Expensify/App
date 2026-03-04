@@ -493,3 +493,4 @@ export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomai
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as RevealCardPINParams} from './RevealCardPINParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as ChangeCardPINParams} from './ChangeCardPINParams';

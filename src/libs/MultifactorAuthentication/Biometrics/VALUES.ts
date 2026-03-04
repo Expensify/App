@@ -63,6 +63,7 @@ const REASON = {
         TRANSACTION_APPROVED: 'Transaction approved successfully',
         TRANSACTION_DENIED: 'Transaction denied successfully',
         PIN_REVEALED: 'PIN revealed successfully',
+        PIN_CHANGED: 'PIN changed successfully',
         SET_PIN: 'PIN set successfully',
     },
     CHALLENGE: {
@@ -192,6 +193,13 @@ const API_RESPONSE_MAP = {
 
     REVEAL_CARD_PIN: {
         [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_REVEALED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+        },
+    },
+
+    CHANGE_CARD_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_CHANGED,
         [HTTP_STATUS.CLIENT_ERROR]: {
             ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
         },

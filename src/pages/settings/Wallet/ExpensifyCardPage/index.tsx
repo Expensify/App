@@ -109,7 +109,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key']);
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -157,7 +157,8 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const currency = getCurrencyKeyByCountryCode(currencyList, currentCard?.nameValuePairs?.country ?? currentCard?.nameValuePairs?.feedCountry);
     const shouldShowPIN = currency !== CONST.CURRENCY.USD;
-    const canRevealPin = isExpensifyCardUkEuSupported(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !revealedPIN;
+    const canChangePin = isExpensifyCardUkEuSupported(currentPhysicalCard) && currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
+    const canRevealPin = canChangePin && !revealedPIN;
     const formattedAvailableSpendAmount = convertToDisplayString(currentCard?.availableSpend, currency);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(currentCard?.nameValuePairs?.limitType);
 
@@ -448,6 +449,21 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 />
                                             ) : undefined
                                         }
+                                    />
+                                )}
+                                {canChangePin && (
+                                    <MenuItem
+                                        title={translate('cardPage.changePin')}
+                                        icon={expensifyIcons.Key}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            const physicalCardID = String(currentPhysicalCard?.cardID);
+                                            if (currentPhysicalCard?.isOfflinePINMarket) {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                            } else {
+                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                            }
+                                        }}
                                     />
                                 )}
                                 <MenuItem
