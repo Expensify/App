@@ -55,6 +55,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -135,6 +136,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            userBillingGraceEndPeriodCollection,
         });
     }, [
         currentSearchHash,
@@ -149,6 +151,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

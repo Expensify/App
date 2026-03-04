@@ -92,6 +92,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -364,7 +365,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             ? selectedReports.map((report) => report.policyID)
             : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
 
-        const restrictedPolicyID = selectedPolicyIDList.find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+        const restrictedPolicyID = selectedPolicyIDList.find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
@@ -531,7 +532,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-            const restrictedPolicyID = selectedOptions.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+            const restrictedPolicyID = selectedOptions.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -822,7 +823,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = itemList.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+                    const restrictedPolicyID = itemList.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
