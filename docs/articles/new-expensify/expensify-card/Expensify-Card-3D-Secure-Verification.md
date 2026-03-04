@@ -2,6 +2,7 @@
 title: Expensify Card 3D Secure verification
 description: Learn how to approve 3D Secure verification requests for your Expensify Card, fix failed or declined transactions, and update the phone number linked to your card.
 keywords: [3D Secure, 3DS, Verified by Visa, Mastercard SecureCode, Expensify Card, transaction declined, failed transaction, verification code not received, not receiving verification, Expensify Card being declined, phone number, SMS verification]
+internalScope: Audience is Expensify Cardholders. Covers 3D Secure verification for Expensify Card transactions, troubleshooting declined 3DS transactions, and updating the phone number linked to the card. Does not cover Expensify Card setup, activation, or general card management.
 ---
 
 Some online purchases require extra verification through 3D Secure (sometimes called Verified by Visa or Mastercard SecureCode). When this happens, you'll need to approve the transaction in the New Expensify app before it can go through.
