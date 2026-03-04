@@ -1636,7 +1636,9 @@ function shouldResetSortOrder({
     newGroupBy: string | undefined;
     oldGroupBy: string | undefined;
 }): boolean {
-    return newView !== oldView || newGroupBy !== oldGroupBy;
+    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
+    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
+    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
 }
 
 /**
