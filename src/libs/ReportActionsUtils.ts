@@ -2679,7 +2679,7 @@ function getPolicyChangeLogAddEmployeeMessage(translate: LocalizedTranslate, rep
     const email = originalMessage?.email ?? '';
     const role = translate('workspace.common.roleName', originalMessage?.role ?? '').toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
-    return translate('report.actions.type.addEmployee', formattedEmail, role);
+    return translate('report.actions.type.addEmployee', formattedEmail, role, originalMessage?.didJoinPolicy);
 }
 
 function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {

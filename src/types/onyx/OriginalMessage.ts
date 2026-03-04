@@ -719,6 +719,9 @@ type OriginalMessagePolicyChangeLog = {
         /** The accountID of the previous reimburser */
         accountID: number;
     };
+
+    /** Whether the user joined the workspace via joining link */
+    didJoinPolicy?: boolean;
 };
 
 /** Model of `join policy` report action */
