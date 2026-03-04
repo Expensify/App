@@ -14,7 +14,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
-import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import DateUtils from '@libs/DateUtils';
@@ -27,6 +27,7 @@ import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, remov
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {ReceiptFile, UseReceiptScanParams} from './types';
@@ -137,12 +138,26 @@ function useReceiptScan({
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
         });
+        const participants = getMoneyRequestParticipantOptions(
+            currentUserPersonalDetails.accountID,
+            report,
+            policy,
+            personalDetails,
+            reportNameValuePairs?.private_isArchived,
+            reportAttributesDerived,
+        );
+        const participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+            if (participant.policyID) {
+                acc[participant.policyID] = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+            }
+            return acc;
+        }, {});
+
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
             report,
             reportID,
-            reportAttributesDerived,
             transactions,
             initialTransaction: {
                 transactionID: initialTransactionID,
@@ -169,7 +184,6 @@ function useReceiptScan({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
             files,
             isTestTransaction,
             locationPermissionGranted,
@@ -179,7 +193,8 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
-            allPolicyTags,
+            participants,
+            participantsPolicyTags,
         });
     }
 

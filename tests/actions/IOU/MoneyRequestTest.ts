@@ -1,7 +1,7 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, QuickAction, RecentWaypoint} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -384,7 +385,6 @@ describe('MoneyRequest', () => {
             policy: fakePolicy,
             report: fakeReport,
             reportID: '1',
-            reportAttributesDerived: {},
             transactions: [fakeTransaction],
             initialTransaction: {
                 transactionID: '1',
@@ -414,7 +414,8 @@ describe('MoneyRequest', () => {
             betas: [],
             recentWaypoints: [] as RecentWaypoint[],
             allTransactionDrafts: {},
-            allPolicyTags: {} as OnyxCollection<PolicyTagLists>,
+            participants: [] as Participant[],
+            participantsPolicyTags: {} as Record<string, PolicyTagLists>,
         };
 
         beforeEach(async () => {
@@ -428,11 +429,17 @@ describe('MoneyRequest', () => {
                 },
             });
             baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, baseParams.report, baseParams.policy, baseParams.personalDetails, undefined, {});
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
                 waitForCollectionCallback: true,
                 callback: (value) => {
-                    baseParams.allPolicyTags = value;
+                    baseParams.participantsPolicyTags = baseParams.participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                        if (participant.policyID) {
+                            acc[participant.policyID] = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                        }
+                        return acc;
+                    }, {});
                 },
             });
         });
@@ -526,13 +533,28 @@ describe('MoneyRequest', () => {
         });
 
         it('should return if no participants found for non-SPLIT iouType when not from global create menu and skipping confirmation', async () => {
+            const report = {
+                ...fakeReport,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            };
+            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, {});
+
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    baseParams.participantsPolicyTags = baseParams.participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                        if (participant.policyID) {
+                            acc[participant.policyID] = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                        }
+                        return acc;
+                    }, {});
+                },
+            });
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
-                report: {
-                    ...fakeReport,
-                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                },
+                report,
                 shouldSkipConfirmation: true,
                 initialTransaction: {
                     ...baseParams.initialTransaction,
