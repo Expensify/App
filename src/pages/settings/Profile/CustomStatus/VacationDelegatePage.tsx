@@ -21,19 +21,16 @@ function VacationDelegatePage() {
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
-    const showErrorModal = useCallback(
-        async (message?: string) => {
-            await showConfirmModal({
-                title: translate('common.headsUp'),
-                prompt: message ?? translate('statusPage.vacationDelegateError'),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-            });
+    const showErrorModal = async (message?: string) => {
+        await showConfirmModal({
+            title: translate('common.headsUp'),
+            prompt: message ?? translate('statusPage.vacationDelegateError'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
 
-            clearVacationDelegateError(vacationDelegate?.previousDelegate);
-        },
-        [showConfirmModal, translate, vacationDelegate?.previousDelegate],
-    );
+        clearVacationDelegateError(vacationDelegate?.previousDelegate);
+    };
 
     const showWarningModal = useCallback(
         async (delegateLogin: string) => {
