@@ -1790,6 +1790,10 @@ const CONST = {
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
+        SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
+        SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
+        SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
+        SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
@@ -1847,6 +1851,8 @@ const CONST = {
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
+        ATTRIBUTE_COLD_START: 'cold_start',
+        ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         SUBMIT_EXPENSE_SCENARIO: {
@@ -6997,6 +7003,15 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    PNR_STATUS: {
+        CANCELLED: 'CANCELLED',
+        VOIDED: 'VOIDED',
+    },
+
+    LEG_STATUS: {
+        CANCELLED: 'CANCELLED_STATUS',
+    },
+
     UPCOMING_TRAVEL_WINDOW_DAYS: 7,
 
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
@@ -7741,11 +7756,6 @@ const CONST = {
         AUTOMATIC: 'automatic',
         NONE: 'none',
     },
-    EMPTY_STATE_MEDIA: {
-        ANIMATION: 'animation',
-        ILLUSTRATION: 'illustration',
-        VIDEO: 'video',
-    },
     REPORT_FIELDS_FEATURE: {
         qbo: {
             classes: 'report-fields-qbo-classes',
@@ -8349,6 +8359,7 @@ const CONST = {
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
+            PRE: 'HTMLRenderer-Pre',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -9044,10 +9055,13 @@ const CONST = {
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
         /** Onyx prefix for vacation delegate */
         PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
+        /** Onyx prefix for lock account IDs */
+        PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',
+                SAVE_TO_CSV: 'saveToCSV',
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
