@@ -321,14 +321,17 @@ jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatLi
 // in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
 // heavy integration tests like SessionTest to exceed their timeout.
 jest.mock('@src/hooks/useDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
