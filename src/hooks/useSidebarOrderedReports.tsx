@@ -82,7 +82,7 @@ function SidebarOrderedReportsContextProvider({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
-    const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
+    const currentReportsToDisplayRef = useRef<ReportsToDisplayInLHN>({});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
@@ -187,17 +187,17 @@ function SidebarOrderedReportsContextProvider({
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
-        const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
+        const hasCachedReports = Object.keys(currentReportsToDisplayRef.current).length > 0;
 
         // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
         // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
         // reports, recheck only the already-displayed reports with the new reportAttributes.
-        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplayRef.current) : updatedReports;
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
-                displayedReports: currentReportsToDisplay,
+                displayedReports: currentReportsToDisplayRef.current,
                 reports: chatReports,
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
@@ -229,6 +229,8 @@ function SidebarOrderedReportsContextProvider({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
 
+    currentReportsToDisplayRef.current = reportsToDisplayInLHN;
+
     // Derive a stable boolean map indicating which reports have drafts.
     const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
     const hasDraftByReportID = useMemo(() => {
@@ -249,10 +251,6 @@ function SidebarOrderedReportsContextProvider({
         hasDraftByReportIDRef.current = result;
         return result;
     }, [reportsDrafts]);
-
-    useEffect(() => {
-        setCurrentReportsToDisplay(reportsToDisplayInLHN);
-    }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, conciergeReportID),
@@ -278,7 +276,7 @@ function SidebarOrderedReportsContextProvider({
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
-        setCurrentReportsToDisplay({});
+        currentReportsToDisplayRef.current = {};
         setClearCacheDummyCounter((current) => current + 1);
     }, []);
 
@@ -328,7 +326,7 @@ function SidebarOrderedReportsContextProvider({
         reportNameValuePairs,
         betas,
         reportAttributes,
-        currentReportsToDisplay,
+        currentReportsToDisplay: currentReportsToDisplayRef.current,
         shouldUseNarrowLayout,
         accountID,
         currentReportIDValue,
