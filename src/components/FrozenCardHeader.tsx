@@ -20,9 +20,10 @@ type FrozenCardHeaderProps = {
     cardPreview: React.ReactNode;
     onUnfreezePress: () => void;
     onAskToUnfreezePress: () => void;
+    canUnfreezeCard: boolean;
 };
 
-function FrozenCardHeader({cardID, cardPreview, onUnfreezePress, onAskToUnfreezePress}: FrozenCardHeaderProps) {
+function FrozenCardHeader({cardID, cardPreview, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -59,9 +60,9 @@ function FrozenCardHeader({cardID, cardPreview, onUnfreezePress, onAskToUnfreeze
             </View>
             <Button
                 medium
-                text={translate(isCurrentUser ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
-                onPress={isCurrentUser ? onUnfreezePress : onAskToUnfreezePress}
-                isDisabled={isCurrentUser && isOffline}
+                text={translate(canUnfreezeCard ? 'cardPage.unfreeze' : 'cardPage.askToUnfreeze')}
+                onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                isDisabled={canUnfreezeCard && isOffline}
                 style={[styles.mt4]}
             />
         </View>
