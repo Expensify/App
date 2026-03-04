@@ -110,6 +110,7 @@ function HeaderWithBackButton({
                     presence or absence of back/close buttons to the left/right of it */}
                     <View style={styles.headerProgressBarContainer}>
                         <View
+                            accessible
                             style={styles.headerProgressBar}
                             role={CONST.ROLE.PROGRESSBAR}
                             accessibilityLabel={translate('common.progressBarLabel')}
