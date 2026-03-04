@@ -123,10 +123,24 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
             const section = fileOrFolder;
             const articles: Article[] = [];
 
-            // Each subfolder will be a section containing articles
-            for (const subArticle of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`)) {
-                const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
-                articles.push(getArticleObj(subArticle, order));
+            // Section can contain .md files directly and/or subfolders that contain .md files
+            const sectionPath = `${docsDir}/articles/${platformName}/${hub}/${section}`;
+            for (const entry of fs.readdirSync(sectionPath)) {
+                const entryPath = `${sectionPath}/${entry}`;
+                if (entry.endsWith('.md') && fs.statSync(entryPath).isFile()) {
+                    const order = getOrderFromArticleFrontMatter(entryPath);
+                    articles.push(getArticleObj(entry, order));
+                    continue;
+                }
+                if (fs.statSync(entryPath).isDirectory()) {
+                    for (const file of fs.readdirSync(entryPath)) {
+                        if (!file.endsWith('.md')) continue;
+                        const filePath = `${entryPath}/${file}`;
+                        if (!fs.statSync(filePath).isFile()) continue;
+                        const order = getOrderFromArticleFrontMatter(filePath);
+                        articles.push(getArticleObj(`${entry}/${file}`, order));
+                    }
+                }
             }
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {
