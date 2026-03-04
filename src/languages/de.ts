@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nachname',
         scanning: 'Scannen',
         analyzing: 'Analysiere…',
+        thinking: 'Concierge denkt nach...',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
         phone: 'Telefon',
@@ -515,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Achtung!',
         submitTo: 'Einreichen bei',
         forwardTo: 'Weiterleiten an',
+        approvalLimit: 'Genehmigungslimit',
+        overLimitForwardTo: 'Weiterleiten bei Überschreitung',
         merge: 'Zusammenführen',
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
@@ -551,6 +554,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Folgen Sie uns auf Instagram',
         facebook: 'Folgen Sie uns auf Facebook',
         linkedin: 'Folgen Sie uns auf LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Begründung einklappen',
+        expandReasoning: 'Begründung erweitern',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2030,6 +2037,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Für Domain-Admins: Dadurch werden auch alle Aktivitäten der Expensify Karte und alle Administratoraktionen in Ihrer/Ihren Domain(s) pausiert.',
         areYouSure: 'Möchtest du dein Expensify-Konto wirklich sperren?',
         onceLocked: 'Sobald Ihr Konto gesperrt ist, wird es eingeschränkt, bis eine Entsperrungsanfrage gestellt und eine Sicherheitsprüfung durchgeführt wurde',
+        unlockTitle: 'Wir haben Ihre Anfrage erhalten',
+        unlockDescription: 'Wir überprüfen das Konto, um sicherzustellen, dass es sicher entsperrt werden kann, und melden uns bei Fragen über Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',
@@ -8560,7 +8569,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             resetDomain: 'Domain zurücksetzen',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Bitte gib zur Bestätigung des Zurücksetzens der Domain <strong>${domainName}</strong> ein.`,
             enterDomainName: 'Gib hier deinen Domainnamen ein',
-            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <ul><li>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</li> <li>SAML- und Gruppeneinstellungen</li> </ul> Alle Konten, Workspaces, Berichte, Ausgaben und andere Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> entfernen.`,
+            resetDomainInfo: `Diese Aktion ist <strong>dauerhaft</strong> und die folgenden Daten werden gelöscht: <br/> <bullet-list><bullet-item>Firmenkartenzugänge und alle nicht eingereichten Ausgaben dieser Karten</bullet-item><bullet-item>SAML- und Gruppeneinstellungen</bullet-item></bullet-list> Alle Konten, Workspaces, Berichte, Ausgaben und andere Daten bleiben erhalten. <br/><br/>Hinweis: Sie können diese Domain aus Ihrer Domainliste entfernen, indem Sie die zugehörige E-Mail aus Ihren <a href="#">Kontaktmethoden</a> entfernen.`,
         },
         domainMembers: 'Domänenmitglieder',
         members: {
@@ -8579,14 +8588,18 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 other: 'Konten sicher schließen',
             }),
             closeAccountInfo: () => ({
-                one: 'Wir empfehlen, das Konto sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <ul><li>Ausstehende Genehmigungen</li><li>Aktive Erstattungen</li><li>Keine alternativen Anmeldemethoden</li></ul>Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und das ausgewählte Konto zwangsweise schließen.',
-                other: 'Wir empfehlen, die Konten sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <ul><li>Ausstehende Genehmigungen</li><li>Aktive Erstattungen</li><li>Keine alternativen Anmeldemethoden</li></ul>Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und die ausgewählten Konten zwangsweise schließen.',
+                one: 'Wir empfehlen, das Konto sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <bullet-list><bullet-item>Ausstehende Genehmigungen</bullet-item><bullet-item>Aktive Erstattungen</bullet-item><bullet-item>Keine alternativen Anmeldemethoden</bullet-item></bullet-list>Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und das ausgewählte Konto zwangsweise schließen.',
+                other: 'Wir empfehlen, die Konten sicher zu schließen, um das Schließen zu überspringen, falls Folgendes vorliegt: <bullet-list><bullet-item>Ausstehende Genehmigungen</bullet-item><bullet-item>Aktive Erstattungen</bullet-item><bullet-item>Keine alternativen Anmeldemethoden</bullet-item></bullet-list>Andernfalls können Sie die oben genannten Sicherheitsvorkehrungen ignorieren und die ausgewählten Konten zwangsweise schließen.',
             }),
             error: {
                 removeMember: 'Dieser Benutzer kann nicht entfernt werden. Bitte versuche es erneut.',
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
             },
+
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Bist du sicher? Dadurch wird das Konto von <strong>${email}</strong> gesperrt. <br /><br /> Unser Team wird das Konto anschließend überprüfen und unbefugten Zugriff entfernen. Um den Zugriff wiederherzustellen, muss die Person mit Concierge zusammenarbeiten.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Wir überprüfen das Konto, um sicherzustellen, dass es sicher entsperrt werden kann, und melden uns bei Fragen über Concierge.',
             cannotSetVacationDelegateForMember: (email: string) => `Du kannst keine Urlaubsvertretung für ${email} festlegen, weil sie derzeit die Vertretung für folgende Mitglieder sind:`,
         },
         common: {

@@ -95,6 +95,7 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -220,7 +221,9 @@ function MoneyReportHeader({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isUserValidatedSelector,
+    });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`) ?? null;
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -272,7 +275,9 @@ function MoneyReportHeader({
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftsSelector,
+    });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const {translate, localeCompare} = useLocalize();
@@ -332,7 +337,11 @@ function MoneyReportHeader({
     );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
-    const {deleteTransactions} = useDeleteTransactions({report: chatReport, reportActions, policy});
+    const {deleteTransactions} = useDeleteTransactions({
+        report: chatReport,
+        reportActions,
+        policy,
+    });
     const isExported = useMemo(() => isExportedUtils(reportActions, moneyRequestReport), [reportActions, moneyRequestReport]);
     // wrapped in useMemo to improve performance because this is an operation on array
     const integrationNameFromExportMessage = useMemo(() => {
@@ -388,7 +397,9 @@ function MoneyReportHeader({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
 
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
@@ -769,24 +780,39 @@ function MoneyReportHeader({
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (shouldShowMarkAsResolved) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
+            return {
+                icon: getStatusIcon(expensifyIcons.Hourglass),
+                description: translate('iou.reject.rejectedStatus'),
+            };
         }
 
         if (isPayAtEndExpense) {
             if (!isArchivedReport) {
-                return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.bookingPendingDescription')};
+                return {
+                    icon: getStatusIcon(expensifyIcons.Hourglass),
+                    description: translate('iou.bookingPendingDescription'),
+                };
             }
             if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
-                return {icon: getStatusIcon(expensifyIcons.Box), description: translate('iou.bookingArchivedDescription')};
+                return {
+                    icon: getStatusIcon(expensifyIcons.Box),
+                    description: translate('iou.bookingArchivedDescription'),
+                };
             }
         }
 
         if (hasOnlyHeldExpenses) {
-            return {icon: getStatusIcon(expensifyIcons.Stopwatch), description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')};
+            return {
+                icon: getStatusIcon(expensifyIcons.Stopwatch),
+                description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold'),
+            };
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))};
+            return {
+                icon: getStatusIcon(expensifyIcons.Flag),
+                description: translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport)),
+            };
         }
 
         // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
@@ -812,13 +838,22 @@ function MoneyReportHeader({
             };
         }
         if (hasAllPendingRTERViolations) {
-            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+            return {
+                icon: getStatusIcon(expensifyIcons.Hourglass),
+                description: translate('iou.pendingMatchWithCreditCardDescription'),
+            };
         }
         if (hasOnlyPendingTransactions) {
-            return {icon: getStatusIcon(expensifyIcons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {
+                icon: getStatusIcon(expensifyIcons.CreditCardHourglass),
+                description: translate('iou.transactionPendingDescription'),
+            };
         }
         if (hasScanningReceipt) {
-            return {icon: getStatusIcon(expensifyIcons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {
+                icon: getStatusIcon(expensifyIcons.ReceiptScan),
+                description: translate('iou.receiptScanInProgressDescription'),
+            };
         }
     };
 
@@ -859,7 +894,11 @@ function MoneyReportHeader({
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
             if (moneyRequestReport?.reportID) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                        reportID: moneyRequestReport.reportID,
+                    }),
+                );
             }
         } else {
             dismissRejectUseExplanation();
@@ -960,7 +999,10 @@ function MoneyReportHeader({
                         return;
                     }
                     exportReportToCSV(
-                        {reportID: moneyRequestReport.reportID, transactionIDList: transactionIDs},
+                        {
+                            reportID: moneyRequestReport.reportID,
+                            transactionIDList: transactionIDs,
+                        },
                         () => {
                             setDownloadErrorModalVisible(true);
                         },
@@ -969,8 +1011,10 @@ function MoneyReportHeader({
                 },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
+                text: translate('workspace.common.exportIntegrationSelected', {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    connectionName: connectedIntegrationFallback!,
+                }),
                 icon: (() => {
                     return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
@@ -1101,8 +1145,10 @@ function MoneyReportHeader({
         [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
             <Button
                 success
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
+                text={translate('workspace.common.exportIntegrationSelected', {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    connectionName: connectedIntegration!,
+                })}
                 onPress={() => {
                     if (!connectedIntegration || !moneyRequestReport) {
                         return;
@@ -1241,7 +1287,11 @@ function MoneyReportHeader({
         return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
 
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
+    const connectedIntegrationName = connectedIntegration
+        ? translate('workspace.accounting.connectionName', {
+              connectionName: connectedIntegration,
+          })
+        : '';
     const unapproveWarningText = useMemo(
         () => (
             <Text>
@@ -1254,7 +1304,11 @@ function MoneyReportHeader({
     const reopenExportedReportWarningText = (
         <Text>
             <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')} </Text>
-            <Text>{translate('iou.reopenExportedReportConfirmation', {connectionName: integrationNameFromExportMessage ?? ''})}</Text>
+            <Text>
+                {translate('iou.reopenExportedReportConfirmation', {
+                    connectionName: integrationNameFromExportMessage ?? '',
+                })}
+            </Text>
         </Text>
     );
 
@@ -1684,8 +1738,12 @@ function MoneyReportHeader({
 
     const showDeleteModal = useCallback(() => {
         showConfirmModal({
-            title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
-            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+            title: translate('iou.deleteExpense', {
+                count: selectedTransactionIDs.length,
+            }),
+            prompt: translate('iou.deleteConfirmation', {
+                count: selectedTransactionIDs.length,
+            }),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
@@ -1809,6 +1867,14 @@ function MoneyReportHeader({
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 
+    const nextStepSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyReportHeader',
+        shouldShowNextStep,
+        isLoadingInitialReportActions: !!isLoadingInitialReportActions,
+        isOffline,
+        hasOptimisticNextStep: !!optimisticNextStep,
+    };
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -1816,6 +1882,7 @@ function MoneyReportHeader({
                 shouldDisplayStatus
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
+                policy={policy}
                 shouldShowBackButton={shouldShowBackButton}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
@@ -1843,7 +1910,9 @@ function MoneyReportHeader({
                                 <ButtonWithDropdownMenu
                                     onPress={() => null}
                                     options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                                    customText={translate('workspace.common.selected', {
+                                        count: selectedTransactionIDs.length,
+                                    })}
                                     isSplitButton={false}
                                     shouldAlwaysShowDropdownMenu
                                 />
@@ -1858,7 +1927,9 @@ function MoneyReportHeader({
                         <ButtonWithDropdownMenu
                             onPress={() => null}
                             options={selectedTransactionsOptions}
-                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            customText={translate('workspace.common.selected', {
+                                count: selectedTransactionIDs.length,
+                            })}
                             isSplitButton={false}
                             shouldAlwaysShowDropdownMenu
                             wrapperStyle={styles.w100}
@@ -1885,7 +1956,7 @@ function MoneyReportHeader({
                 <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton />}
+                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
                         {!!statusBarProps && (
                             <MoneyRequestHeaderStatusBar
                                 icon={statusBarProps.icon}
