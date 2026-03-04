@@ -353,10 +353,6 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return customUnitRateID;
-    }
-
     if (isEmptyObject(policy)) {
         return customUnitRateID;
     }
