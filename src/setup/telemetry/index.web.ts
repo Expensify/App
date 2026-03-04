@@ -14,6 +14,7 @@ export default function (): void {
     requestAnimationFrame(() => {
         // webpack module timing path (ModuleInitTimingPlugin injected __moduleInitTimes).
         // In dev mode, keys are relative file paths; in production they are numeric IDs.
-        reportModuleInitTimes(__moduleInitTimes as Record<string, number> | undefined, undefined, 1);
+        // Use typeof guard — bare identifier throws ReferenceError if ModuleInitTimingPlugin didn't run (e.g. Storybook, stale cache)
+        reportModuleInitTimes(typeof __moduleInitTimes !== 'undefined' ? __moduleInitTimes as Record<string, number> | undefined : undefined, undefined, 1);
     });
 }
