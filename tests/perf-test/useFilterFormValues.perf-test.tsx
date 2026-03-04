@@ -31,8 +31,13 @@ describe('useFilterFormValues', () => {
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) => ({
                     ...createRandomPolicy(index),
-                    taxRates: {name: 'Tax', defaultValue: '10%', taxes: {tax1: {name: 'VAT', value: '20%', code: 'vat', modifiedName: 'VAT', isDisabled: false}}},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: '',
+                        defaultValue: '10%',
+                        foreignTaxDefault: '',
+                        taxes: {tax1: {name: 'VAT', value: '20%', code: 'vat', modifiedName: 'VAT', isDisabled: false}},
+                    },
                     employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
                 }),
                 POLICY_COUNT,
@@ -105,7 +110,7 @@ describe('useFilterFormValues', () => {
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) => ({
                     ...createRandomPolicy(index),
-                    taxRates: {name: 'Tax', defaultValue: '10%', taxes: {}},
+                    taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
                 }),
                 POLICY_COUNT,
             );
@@ -133,7 +138,7 @@ describe('useFilterFormValues', () => {
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
                 (index) => ({
                     ...createRandomPolicy(index),
-                    taxRates: {name: 'Tax', defaultValue: '10%', taxes: {}},
+                    taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
                 }),
                 POLICY_COUNT,
             );
