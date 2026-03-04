@@ -592,7 +592,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
+                    shouldShowRightIcon={!!rate && !isReadOnly && !isUnreported && iouType !== CONST.IOU.TYPE.SPLIT}
                     // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
                     // confirmation screen where a rate violation is not applicable yet.
                     title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
@@ -604,7 +604,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
+                        if (!isPolicyExpenseChat) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
@@ -613,22 +613,16 @@ function MoneyRequestConfirmationListFooter({
                                     reportID,
                                     upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
                                     backTo: Navigation.getActiveRoute(),
-                                    shouldSubmitExpense: !isTrackExpense,
+                                    shouldSubmitExpense: true,
                                 }),
                             );
-                        } else if (!policy && shouldSelectPolicy && isTrackExpense) {
-                            Navigation.navigate(
-                                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                ),
-                            );
-                        } else {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            return;
                         }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT}
+                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RATE_FIELD}
                 />
             ),
