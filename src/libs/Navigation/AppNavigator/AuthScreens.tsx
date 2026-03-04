@@ -20,7 +20,6 @@ import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
@@ -215,8 +214,6 @@ function AuthScreens() {
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-
     // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
     const isIn2FASetupFlow = useNavigationState((state) => {
@@ -393,7 +390,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            () => markAllMessagesAsRead(archivedReportsIdSet),
+            () => markAllMessagesAsRead(),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,

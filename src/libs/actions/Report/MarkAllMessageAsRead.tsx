@@ -6,13 +6,10 @@ import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
-import {isUnread} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 
-// We use connectWithoutView because markAllMessagesAsRead doesn't affect the UI rendering
-// and this avoids unnecessary re-rendering in AuthScreen whenever any report or report action is updated
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -27,7 +24,14 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportNameValuePairs = value),
+});
+
+function markAllMessagesAsRead() {
     if (isAnonymousUser()) {
         return;
     }
@@ -48,8 +52,8 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
+        const reportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
+        if (!isUnread(report, oneTransactionThreadReport, reportArchived)) {
             continue;
         }
 

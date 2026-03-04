@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -27,8 +26,6 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
-    const archivedReportsIdSet = useArchivedReportsIdSet();
-
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         // Determine if the current URL indicates a transition.
@@ -45,7 +42,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
             return '';
         }
 
-        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom(), undefined, archivedReportsIdSet);
+        const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), shouldOpenOnAdminRoom());
         // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
