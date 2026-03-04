@@ -40,7 +40,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         const currentURL = getCurrentUrl();
         const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
-        const reportIdFromPath = currentURL.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
+        const reportIdFromPath = new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
         if (reportIdFromPath) {
             return reportIdFromPath;
         }
