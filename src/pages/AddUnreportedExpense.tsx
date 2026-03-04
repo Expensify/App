@@ -221,13 +221,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const onSelectAll = () => {
         setSelectedIds((prevSelectedIDs) => {
-            if (prevSelectedIDs.size > 0) {
+            const availableUnreportedExpenses = unreportedExpenses.filter(({isDisabled}) => !isDisabled);
+            if (availableUnreportedExpenses.some(({transactionID}) => prevSelectedIDs.has(transactionID))) {
                 return new Set();
             }
             if (errorMessage) {
                 setErrorMessage('');
             }
-            return new Set(unreportedExpenses.filter((expense) => !expense.isDisabled).map((expense) => expense.transactionID));
+            return new Set(availableUnreportedExpenses.map(({transactionID}) => transactionID));
         });
     };
 
