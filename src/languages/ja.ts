@@ -1653,7 +1653,6 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     modal: {
         backdropLabel: 'モーダルの背景',
-        dismissDialog: 'ダイアログを閉じる',
     },
     nextStep: {
         message: {

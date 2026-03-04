@@ -3587,7 +3587,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             height: variables.iconSizeXSmall,
-            backgroundColor: 'transparent',
+            backgroundColor: theme.transparent,
             zIndex: 1,
         },
 

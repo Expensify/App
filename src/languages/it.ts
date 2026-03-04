@@ -1664,7 +1664,6 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     modal: {
         backdropLabel: 'Sfondo modale',
-        dismissDialog: 'Chiudi finestra di dialogo',
     },
     nextStep: {
         message: {

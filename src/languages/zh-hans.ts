@@ -1630,7 +1630,6 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     modal: {
         backdropLabel: '模态背景',
-        dismissDialog: '关闭对话框',
     },
     nextStep: {
         message: {

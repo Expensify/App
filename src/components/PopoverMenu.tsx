@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {AccessibilityInfo, InteractionManager, StyleSheet, View} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, View as RNView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -179,6 +180,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     badgeStyle?: StyleProp<ViewStyle>;
 };
 
+const MAX_FIRST_MENU_ITEM_FOCUS_RETRIES = 5;
+
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
     if (shouldUseScrollView) {
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
@@ -308,9 +311,22 @@ function BasePopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
+    const isAndroid = platform === CONST.PLATFORM.ANDROID;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
+    const firstMenuItemRef = useRef<RNView>(null);
+    const isVisibleRef = useRef(isVisible);
+    const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible;
+        if (isVisible) {
+            return;
+        }
+        hasFocusedFirstItemOnCurrentOpenRef.current = false;
+    }, [isVisible]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -393,6 +409,7 @@ function BasePopoverMenu({
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
                     key={key ?? `${item.text}_${menuIndex}`}
+                    ref={menuIndex === 0 ? firstMenuItemRef : undefined}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
@@ -467,6 +484,107 @@ function BasePopoverMenu({
     // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
+
+    const focusFirstMenuItem = useCallback(() => {
+        if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+            return false;
+        }
+        const focusTarget = () => {
+            const target = firstMenuItemRef.current;
+            if (!target) {
+                return false;
+            }
+
+            if (isWeb) {
+                if ('focus' in target && typeof target.focus === 'function') {
+                    target.focus();
+                }
+                hasFocusedFirstItemOnCurrentOpenRef.current = true;
+                return true;
+            }
+
+            const sendAccessibilityEvent = AccessibilityInfo.sendAccessibilityEvent;
+            if (sendAccessibilityEvent) {
+                if (isAndroid) {
+                    sendAccessibilityEvent(target, 'viewHoverEnter');
+                }
+                sendAccessibilityEvent(target, 'focus');
+                hasFocusedFirstItemOnCurrentOpenRef.current = true;
+                return true;
+            }
+
+            if ('focus' in target && typeof target.focus === 'function') {
+                target.focus();
+                hasFocusedFirstItemOnCurrentOpenRef.current = true;
+                return true;
+            }
+
+            return false;
+        };
+
+        return focusTarget();
+    }, [isAndroid, isWeb]);
+
+    const scheduleFocusFirstMenuItem = useCallback(() => {
+        const focusFirstMenuItemWithRetries = (retries = MAX_FIRST_MENU_ITEM_FOCUS_RETRIES) => {
+            if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                return;
+            }
+
+            if (focusFirstMenuItem()) {
+                return;
+            }
+
+            if (retries <= 0) {
+                return;
+            }
+
+            requestAnimationFrame(() => focusFirstMenuItemWithRetries(retries - 1));
+        };
+
+        if (isWeb) {
+            requestAnimationFrame(() => focusFirstMenuItemWithRetries());
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => focusFirstMenuItemWithRetries());
+        });
+    }, [focusFirstMenuItem, isWeb]);
+
+    const handleModalShow = useCallback(() => {
+        onModalShow?.();
+
+        if (!isSmallScreenWidth) {
+            return;
+        }
+
+        if (isScreenReaderEnabled) {
+            scheduleFocusFirstMenuItem();
+            return;
+        }
+
+        const isScreenReaderEnabledAsync = AccessibilityInfo.isScreenReaderEnabled;
+        if (!isScreenReaderEnabledAsync) {
+            return;
+        }
+
+        isScreenReaderEnabledAsync()
+            .then((enabled) => {
+                if (!enabled || !isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                    return;
+                }
+                scheduleFocusFirstMenuItem();
+            })
+            .catch(() => {});
+    }, [isScreenReaderEnabled, isSmallScreenWidth, onModalShow, scheduleFocusFirstMenuItem]);
+
+    useEffect(() => {
+        if (!isVisible || !isSmallScreenWidth || !isScreenReaderEnabled || hasFocusedFirstItemOnCurrentOpenRef.current) {
+            return;
+        }
+        scheduleFocusFirstMenuItem();
+    }, [isVisible, isSmallScreenWidth, isScreenReaderEnabled, scheduleFocusFirstMenuItem]);
 
     const handleModalHide = () => {
         onModalHide?.();
@@ -582,7 +700,7 @@ function BasePopoverMenu({
             }}
             isVisible={isVisible}
             onModalHide={handleModalHide}
-            onModalShow={onModalShow}
+            onModalShow={handleModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInDelay={animationInDelay}
