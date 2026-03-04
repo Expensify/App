@@ -119,10 +119,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
-    const onArrowUpDownCallback = useCallback(() => {
-        setShouldDisableHoverStyle(true);
-    }, [setShouldDisableHoverStyle]);
-
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: flattenedData.length - 1,
@@ -137,7 +133,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
-        onArrowUpDownCallback,
+        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
     const getFocusedItem = (): TItem | undefined => {
