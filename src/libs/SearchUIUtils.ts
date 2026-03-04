@@ -1788,14 +1788,16 @@ function getTransactionsSections({
         measurements.tag = Math.max(measurements.tag, tagPixelWidth);
 
         // Handle the amount
-        const currency = getOriginalCurrencyForDisplay(transaction);
-        const amountForDisplay = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
-        const formattedAmount = convertToDisplayString(amountForDisplay, currency);
+        const transactionCurrency = getOriginalCurrencyForDisplay(transaction);
+        const transactionDisplayAmount = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        const formattedAmount = convertToDisplayString(transactionDisplayAmount, transactionCurrency);
         const amountPixelWidth = formattedAmount.length * averageCharacterLengthWithPadding;
         measurements.amount = Math.max(measurements.amount, amountPixelWidth);
 
         // Handle the exchange rate
-        measurements.exchangeRate = Math.max(measurements.exchangeRate);
+        const formattedExchangeRate = getExchangeRate(transaction);
+        const exchangeRatePixelWidth = formattedExchangeRate.length * averageCharacterLengthWithPadding;
+        measurements.exchangeRate = Math.max(measurements.exchangeRate, exchangeRatePixelWidth);
 
         // Handle the description
         measurements.description = Math.max(measurements.description);
