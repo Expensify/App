@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {LABEL_ROTATIONS} from './constants';
+import type {LABEL_ROTATIONS} from './constants';
 
 type ChartDataPoint = {
     /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
