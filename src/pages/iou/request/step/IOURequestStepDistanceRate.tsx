@@ -30,6 +30,7 @@ import {
     getRateID,
     getTaxValue,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isExpenseUnreported,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +74,7 @@ function IOURequestStepDistanceRate({
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
 
     const currentRateID = getRateID(currentTransaction);
     const transactionCurrency = getCurrency(currentTransaction);
@@ -139,14 +140,15 @@ function IOURequestStepDistanceRate({
 
         let taxAmount;
         let taxRateExternalID;
+        let taxValue;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
             const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
-            const taxPercentage = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
-            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
+            taxValue = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
+            taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
         }
@@ -176,6 +178,7 @@ function IOURequestStepDistanceRate({
                     isASAPSubmitBetaEnabled,
                     updatedTaxAmount: taxAmount,
                     updatedTaxCode: taxRateExternalID,
+                    updatedTaxValue: taxValue,
                 });
             }
         }
