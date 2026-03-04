@@ -67,7 +67,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     return (
         <ConfirmModal
-            success
             isVisible={isModalVisible}
             onConfirm={handleGrantPermission}
             onCancel={handleCloseModal}

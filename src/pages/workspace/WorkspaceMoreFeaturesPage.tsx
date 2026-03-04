@@ -648,7 +648,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 </ScrollView>
 
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
                         if (!policyID) {
@@ -664,7 +663,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     cancelText={translate('common.cancel')}
                 />
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
                         if (!policyID) {
@@ -697,7 +695,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     />
                 )}
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
                     isVisible={isDisableExpensifyCardWarningModalOpen}
                     onConfirm={() => {
@@ -710,7 +707,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     cancelText={translate('common.cancel')}
                 />
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.companyCards.disableCardTitle')}
                     isVisible={isDisableCompanyCardsWarningModalOpen}
                     onConfirm={() => {
@@ -723,7 +719,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     cancelText={translate('common.cancel')}
                 />
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle')}
                     isVisible={isDisableWorkflowWarningModalOpen}
                     onConfirm={() => {

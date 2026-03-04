@@ -95,7 +95,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
                         // Disable browser history handling since we handle navigation ourselves
                         shouldHandleNavigationBack: false,
-                        success: true,
                     }).then((result) => {
                         // Only navigate to concierge on confirm, on backdrop just close modal (TravelTerms stays visible)
                         if (result.action !== ModalActions.CONFIRM) {

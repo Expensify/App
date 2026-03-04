@@ -321,7 +321,6 @@ function WorkspaceReportFieldsPage({
                     danger
                 />
                 <ConfirmModal
-                    success
                     title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
                     onConfirm={() => {
                         if (!policyID) {

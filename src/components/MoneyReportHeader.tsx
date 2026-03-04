@@ -1781,7 +1781,6 @@ function MoneyReportHeader({
             }),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
-            success: true,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 setExportModalStatus(null);

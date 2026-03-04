@@ -83,7 +83,6 @@ function GPSTripStateChecker() {
 
     return (
         <ConfirmModal
-            success
             isVisible={showContinueTripModal && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
             title={translate('gps.continueGpsTripModal.title')}
             prompt={translate('gps.continueGpsTripModal.prompt')}

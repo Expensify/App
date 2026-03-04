@@ -80,7 +80,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     return (
         <ConfirmModal
-            success
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}

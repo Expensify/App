@@ -125,7 +125,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             prompt: translate('lockAccountPage.unlockDescription'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-            success: true,
         });
     };
 

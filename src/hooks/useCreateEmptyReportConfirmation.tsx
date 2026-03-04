@@ -106,7 +106,6 @@ export default function useCreateEmptyReportConfirmation({policyName, onConfirm,
     const CreateReportConfirmationModal = useMemo(
         () => (
             <ConfirmModal
-                success
                 confirmText={translate('report.newReport.createReport')}
                 cancelText={translate('common.cancel')}
                 isVisible={isVisible}

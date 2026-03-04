@@ -244,7 +244,6 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', form.merchantToMatch ?? ''),
                 confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
                 cancelText: translate('common.cancel'),
-                success: true,
             }).then((result) => {
                 if (result.action !== ModalActions.CONFIRM) {
                     return;

@@ -164,7 +164,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 prompt={translate('gps.zeroDistanceTripModal.prompt')}
             />
             <ConfirmModal
-                success
                 isVisible={showLocationRequiredModal}
                 title={translate('gps.locationRequiredModal.title')}
                 onConfirm={() => {
@@ -183,7 +182,6 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 shouldReverseStackedButtons
             />
             <ConfirmModal
-                success
                 title={translate('gps.locationServicesRequiredModal.title')}
                 isVisible={showDisabledServicesModal}
                 onConfirm={openSettingsForLocationServices}

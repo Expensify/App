@@ -26,7 +26,6 @@ function ScreenShareRequestModal() {
             confirmText={translate('common.join')}
             cancelText={translate('common.decline')}
             isVisible
-            success
         />
     );
 }
