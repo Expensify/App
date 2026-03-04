@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -171,15 +171,14 @@ function PopoverReportActionContent({
             childReportActions: data.childReportActions,
         }) && !isDisabled(ACTION_IDS.DELETE);
 
-    /* eslint-disable react-hooks/refs -- factory functions store refs for later use, they don't read .current during render */
-    const visibleActions = useMemo(() => {
-        if (!data.reportAction) {
-            return [createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef)];
-        }
+    const visibleActions: ContextMenuAction[] = [];
+    if (!data.reportAction) {
+        // eslint-disable-next-line react-hooks/refs -- factory stores ref for later use, doesn't read .current during render
+        visibleActions.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
+    } else {
         const reportAction = data.reportAction;
-        const items: ContextMenuAction[] = [];
         if (showReplyInThread) {
-            items.push(
+            visibleActions.push(
                 createReplyInThreadAction({
                     childReport: data.childReport,
                     reportAction,
@@ -192,7 +191,7 @@ function PopoverReportActionContent({
             );
         }
         if (showMarkAsUnread) {
-            items.push(
+            visibleActions.push(
                 createMarkAsUnreadAction({
                     reportID: data.reportID,
                     reportActions: data.reportActions,
@@ -206,7 +205,7 @@ function PopoverReportActionContent({
             );
         }
         if (showExplain) {
-            items.push(
+            visibleActions.push(
                 createExplainAction({
                     childReport: data.childReport,
                     originalReport: data.originalReport,
@@ -219,7 +218,7 @@ function PopoverReportActionContent({
             );
         }
         if (showEdit) {
-            items.push(
+            visibleActions.push(
                 createEditAction({
                     reportID: data.reportID,
                     reportAction,
@@ -233,7 +232,7 @@ function PopoverReportActionContent({
             );
         }
         if (showUnhold) {
-            items.push(
+            visibleActions.push(
                 createUnholdAction({
                     moneyRequestAction: data.moneyRequestAction,
                     isDelegateAccessRestricted: data.isDelegateAccessRestricted,
@@ -245,7 +244,7 @@ function PopoverReportActionContent({
             );
         }
         if (showHold) {
-            items.push(
+            visibleActions.push(
                 createHoldAction({
                     moneyRequestAction: data.moneyRequestAction,
                     isDelegateAccessRestricted: data.isDelegateAccessRestricted,
@@ -257,13 +256,13 @@ function PopoverReportActionContent({
             );
         }
         if (showJoinThread) {
-            items.push(createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
+            visibleActions.push(createJoinThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
         }
         if (showLeaveThread) {
-            items.push(createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
+            visibleActions.push(createLeaveThreadAction({reportAction, originalReport: data.originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
         }
         if (showCopyMessage) {
-            items.push(
+            visibleActions.push(
                 createCopyMessageAction({
                     reportAction,
                     transaction: data.transaction,
@@ -288,7 +287,7 @@ function PopoverReportActionContent({
             );
         }
         if (showCopyLink) {
-            items.push(
+            visibleActions.push(
                 createCopyLinkAction({
                     reportAction,
                     originalReportID: data.originalReportID,
@@ -299,41 +298,22 @@ function PopoverReportActionContent({
             );
         }
         if (showFlagAsOffensive) {
-            items.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
+            visibleActions.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
         }
         if (showDownload) {
-            items.push(createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, download: data.download, translate, downloadIcon: icons.Download}));
+            visibleActions.push(createDownloadAction({reportAction, encryptedAuthToken: data.encryptedAuthToken, download: data.download, translate, downloadIcon: icons.Download}));
         }
         if (showDebug) {
-            items.push(createDebugAction({reportID: data.reportID, reportAction, translate, bugIcon: icons.Bug}));
+            visibleActions.push(createDebugAction({reportID: data.reportID, reportAction, translate, bugIcon: icons.Bug}));
         }
         if (showDelete) {
-            items.push(createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
+            visibleActions.push(
+                createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}),
+            );
         }
-        items.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
-        return items;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        showReplyInThread,
-        showMarkAsUnread,
-        showExplain,
-        showEdit,
-        showUnhold,
-        showHold,
-        showJoinThread,
-        showLeaveThread,
-        showCopyMessage,
-        showCopyLink,
-        showFlagAsOffensive,
-        showDownload,
-        showDebug,
-        showDelete,
-        data,
-        currentUserAccountID,
-        translate,
-        icons,
-    ]);
-    /* eslint-enable react-hooks/refs */
+        // eslint-disable-next-line react-hooks/refs -- factory stores ref for later use, doesn't read .current during render
+        visibleActions.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
+    }
 
     const emojiData = createEmojiReactionData({
         reportID: data.reportID,
