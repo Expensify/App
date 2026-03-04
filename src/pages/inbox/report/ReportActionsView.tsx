@@ -58,6 +58,9 @@ type ReportActionsViewProps = {
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
+    /** Whether report actions have been successfully loaded at least once */
+    hasOnceLoadedReportActions?: boolean;
+
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -79,6 +82,7 @@ type ReportActionsViewProps = {
 
     /** DB-time string marking when the current side panel session started */
     sessionStartTime?: string | null;
+
     /** Whether Concierge is currently processing */
     isConciergeProcessing?: boolean;
 
@@ -96,6 +100,7 @@ function ReportActionsView({
     parentReportAction,
     reportActions: allReportActions,
     isLoadingInitialReportActions,
+    hasOnceLoadedReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -317,7 +322,6 @@ function ReportActionsView({
         isConciergeSidePanel,
         hasUserSentMessage,
         hasOlderActions,
-        isLoadingInitialReportActions,
         sessionStartTime,
         currentUserAccountID,
         greetingText: translate('common.concierge.sidePanelGreeting'),
@@ -369,7 +373,15 @@ function ReportActionsView({
 
     // Show skeleton while the app is loading and we're online
     const shouldShowSkeletonForAppLoad = isLoadingApp && !isOffline;
-    const shouldShowSkeleton = shouldShowSkeletonForInitialLoad ?? shouldShowSkeletonForAppLoad;
+
+    // Show skeleton for the Concierge side panel until report data has been
+    // loaded at least once. Before the first openReport response, hasOlderActions
+    // is unreliable, so we can't determine whether to show the greeting or
+    // onboarding messages. The skeleton avoids flashing wrong content.
+    const shouldShowSkeletonForConciergePanel = isConciergeSidePanel && !hasOnceLoadedReportActions && !isOffline;
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad;
 
     useEffect(() => {
         if (!shouldShowSkeleton) {

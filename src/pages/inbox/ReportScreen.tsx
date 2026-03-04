@@ -1045,6 +1045,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 report={report}
                                                 reportActions={reportActions}
                                                 isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                                hasOnceLoadedReportActions={reportMetadata?.hasOnceLoadedReportActions}
                                                 hasNewerActions={hasNewerActions}
                                                 hasOlderActions={hasOlderActions}
                                                 parentReportAction={parentReportAction}
@@ -1056,8 +1057,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 isConciergeProcessing={isConciergeProcessing}
                                                 conciergeReasoningHistory={conciergeReasoningHistory}
                                                 conciergeStatusLabel={conciergeStatusLabel}
-                                                hasUserSentMessage={hasUserSentMessage}
-                                                sessionStartTime={sessionStartTime}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
