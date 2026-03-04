@@ -3,8 +3,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -45,7 +43,7 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar'] as const);
     const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -156,8 +154,9 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                         onPress={() => inviteOrResend(email)}
                         styles={[...buttonStyles, isInvite ? styles.buttonSuccess : undefined]}
                         textStyles={[...buttonTextStyles, isInvite ? styles.buttonSuccessText : undefined]}
-                        iconChecked={Expensicons.Checkmark}
+                        iconChecked={icons.Checkmark}
                         inline={false}
+                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT_PARTNERS.INVITE_RESEND_BUTTON}
                         accessible={false}
                     />
                 );
@@ -201,7 +200,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
         }
         return sortAlphabetically(list, 'text', localeCompare);
-    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.FallbackAvatar]);
+    }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend, icons.Checkmark, icons.FallbackAvatar]);
 
     const applyTabStatusFilter = useCallback(
         (tab: ReceiptPartnersTab, data: MemberForList[]) => {
