@@ -212,6 +212,7 @@ const translations = {
         lastName: 'Last name',
         scanning: 'Scanning',
         analyzing: 'Analyzing...',
+        thinking: 'Concierge is thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -534,6 +535,8 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
+        approvalLimit: 'Approval limit',
+        overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
@@ -570,6 +573,10 @@ const translations = {
         instagram: 'Follow us on Instagram',
         facebook: 'Follow us on Facebook',
         linkedin: 'Follow us on LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Collapse reasoning',
+        expandReasoning: 'Expand reasoning',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -1066,6 +1073,19 @@ const translations = {
                 fireworksTitle: 'All caught up',
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
+        },
+        upcomingTravel: 'Upcoming travel',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Flight to ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train to ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Car rental in ${destination}`,
+            inOneWeek: 'In 1 week',
+            inDays: () => ({
+                one: 'In 1 day',
+                other: (count: number) => `In ${count} days`,
+            }),
+            today: 'Today',
         },
     },
     allSettingsScreen: {
@@ -1600,6 +1620,7 @@ const translations = {
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">workspace rules</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: "You can't duplicate per diem expenses across workspaces because the rates may differ between workspaces.",
+        cannotDuplicateDistanceExpense: "You can't duplicate distance expenses across workspaces because the rates may differ between workspaces.",
     },
     transactionMerge: {
         listPage: {
@@ -2057,6 +2078,8 @@ const translations = {
         reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
+        unlockTitle: 'We’ve received your request',
+        unlockDescription: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
         compromisedDescription:
             'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
         domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
@@ -8334,6 +8357,7 @@ const translations = {
         outstandingFilter: '<tooltip>Filter for expenses\nthat <strong>need approval</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Send this receipt to\n<strong>complete the test drive!</strong></tooltip>',
         gpsTooltip: "<tooltip>GPS tracking in progress! When you're done, stop tracking below.</tooltip>",
+        hasFilterNegation: '<tooltip>Search for expenses without receipts using <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',
@@ -8502,7 +8526,7 @@ const translations = {
             resetDomain: 'Reset domain',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Please type <strong>${domainName}</strong> to confirm the domain reset.`,
             enterDomainName: 'Enter your domain name here',
-            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <ul><li>Company card connections and any unreported expenses from those cards</li> <li>SAML and group settings</li> </ul> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
+            resetDomainInfo: `This action is <strong>permanent</strong> and the following data will be deleted: <br/> <bullet-list><bullet-item>Company card connections and any unreported expenses from those cards</bullet-item><bullet-item>SAML and group settings</bullet-item></bullet-list> All accounts, workspaces, reports, expenses, and other data will remain. <br/><br/>Note: You can clear this domain from your domains list by removing the associated email from your <a href="#">contact methods</a>.`,
         },
         domainMembers: 'Domain members',
         members: {
@@ -8517,8 +8541,8 @@ const translations = {
                 other: 'Close accounts safely',
             }),
             closeAccountInfo: () => ({
-                one: 'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul>Otherwise, you can ignore the safety precautions above and force close the selected account.',
-                other: 'We recommend closing the accounts safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul>Otherwise, you can ignore the safety precautions above and force close the selected accounts.',
+                one: 'We recommend closing the account safely to skip closing it in case there are: <bullet-list><bullet-item>Pending approvals</bullet-item><bullet-item>Active reimbursements</bullet-item><bullet-item>No alternative login methods</bullet-item></bullet-list>Otherwise, you can ignore the safety precautions above and force close the selected account.',
+                other: 'We recommend closing the accounts safely to skip closing it in case there are: <bullet-list><bullet-item>Pending approvals</bullet-item><bullet-item>Active reimbursements</bullet-item><bullet-item>No alternative login methods</bullet-item></bullet-list>Otherwise, you can ignore the safety precautions above and force close the selected accounts.',
             }),
             closeAccount: () => ({
                 one: 'Close account',
@@ -8530,6 +8554,10 @@ const translations = {
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
+
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
         },
         common: {
             settings: 'Settings',
