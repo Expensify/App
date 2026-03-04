@@ -9051,6 +9051,7 @@ const CONST = {
         MEMBERS: {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',
+                SAVE_TO_CSV: 'saveToCSV',
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
