@@ -121,7 +121,7 @@ function getCustomDisplayName(
 
             if (!hasTransactions) {
                 return {
-                    fullTitle: reportName,
+                    fullTitle: title,
                     shouldUseFullTitle,
                     ...baseProps,
                     ...styleProps,
