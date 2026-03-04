@@ -3,13 +3,13 @@ import type {OnyxCollection} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +40,7 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
@@ -255,14 +256,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 />
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pt5, styles.pb0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                    headerMedia={LottieAnimations.GenericEmptyState}
+                    cardContentStyles={[styles.pb0]}
+                    headerMedia={illustrations.FolderWithPapersAndWatch}
                     title={translate('iou.emptyStateUnreportedExpenseTitle')}
                     subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
                     headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                    headerContentStyles={styles.emptyStateFolderWebStyles}
+                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                     buttons={[
                         {
                             buttonText: translate('iou.createExpense'),

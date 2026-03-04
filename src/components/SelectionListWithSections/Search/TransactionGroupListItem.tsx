@@ -77,7 +77,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     onDEWModalOpen,
     isDEWBetaEnabled,
-    collapseExpandedGroupsTrigger = 0,
+    lastPaymentMethod,
+    personalPolicyID,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -110,15 +111,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
-
-    // When returning from expense RHP, collapse so user must click the header row again to see the expense (with updated data).
-    useEffect(() => {
-        if (collapseExpandedGroupsTrigger <= 0) {
-            return;
-        }
-        setIsExpanded(false);
-    }, [collapseExpandedGroupsTrigger]);
-
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -395,6 +387,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isHovered={hovered}
                     onDEWModalOpen={onDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
                 />

@@ -64,8 +64,9 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -280,8 +281,12 @@ function Search({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
+    const spanExistedOnMount = useRef(!!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE));
+
     const savedSearchSelector = useCallback((searches: OnyxEntry<SaveSearch>) => searches?.[hash], [hash]);
-    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {selector: savedSearchSelector});
+    const [savedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
+        selector: savedSearchSelector,
+    });
 
     const handleDEWModalOpen = useCallback(() => {
         if (onDEWModalOpen) {
@@ -403,6 +408,31 @@ function Search({
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
+
+    const loadingSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Search',
+            isOffline,
+            isDataLoaded,
+            isCardFeedsLoading,
+            isSearchLoading: !!searchResults?.search?.isLoading,
+            hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+            hasErrors,
+            hasPendingResponse: searchRequestResponseStatusCode === null,
+            shouldUseLiveData,
+        }),
+        [isOffline, isDataLoaded, isCardFeedsLoading, searchResults?.search?.isLoading, searchResults?.data, hasErrors, searchRequestResponseStatusCode, shouldUseLiveData],
+    );
+
+    const loadMoreSkeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Search.ListFooter',
+            isSearchLoading: !!searchResults?.search?.isLoading,
+            searchOffset: searchResults?.search?.offset ?? 0,
+        }),
+        [searchResults?.search?.isLoading, searchResults?.search?.offset],
+    );
+
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
@@ -501,7 +531,10 @@ function Search({
                 allReportMetadata,
                 cardList,
             });
-            return {...item, transactions: transactions1 as TransactionListItemType[]};
+            return {
+                ...item,
+                transactions: transactions1 as TransactionListItemType[],
+            };
         });
 
         return enriched;
@@ -557,7 +590,14 @@ function Search({
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
+        handleSearch({
+            queryJSON,
+            searchKey,
+            offset,
+            shouldCalculateTotals,
+            prevReportsLength: filteredDataLength,
+            isLoading: !!searchResults?.search?.isLoading,
+        });
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -590,7 +630,14 @@ function Search({
         }
 
         shouldRetrySearchWithTotalsOrGroupedRef.current = false;
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals: true, prevReportsLength: filteredDataLength, isLoading: false});
+        handleSearch({
+            queryJSON,
+            searchKey,
+            offset,
+            shouldCalculateTotals: true,
+            prevReportsLength: filteredDataLength,
+            isLoading: false,
+        });
     }, [filteredDataLength, handleSearch, offset, queryJSON, searchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
@@ -652,8 +699,11 @@ function Search({
                     );
                     const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report) : false;
 
-                    const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                    const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                    const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                    const originalItemTransaction =
+                        searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
                     newTransactionList[transactionItem.transactionID] = {
                         transaction: transactionItem,
@@ -870,7 +920,9 @@ function Search({
 
                 if (selectedTransactions[reportKey]?.isSelected) {
                     // Deselect the empty report
-                    const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                    const reducedSelectedTransactions: SelectedTransactions = {
+                        ...selectedTransactions,
+                    };
                     delete reducedSelectedTransactions[reportKey];
                     setSelectedTransactions(reducedSelectedTransactions, filteredData);
                     updateSelectAllMatchingItemsState(reducedSelectedTransactions);
@@ -888,7 +940,9 @@ function Search({
             }
 
             if (currentTransactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
-                const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
+                const reducedSelectedTransactions: SelectedTransactions = {
+                    ...selectedTransactions,
+                };
 
                 for (const transaction of currentTransactions) {
                     delete reducedSelectedTransactions[transaction.keyForList];
@@ -905,8 +959,11 @@ function Search({
                     currentTransactions
                         .filter((t) => !isTransactionPendingDelete(t))
                         .map((transactionItem) => {
-                            const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                            const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                            const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                            const originalItemTransaction =
+                                searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                                transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                             return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                         }),
                 ),
@@ -919,6 +976,10 @@ function Search({
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData) => {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return;
+            }
+
             if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
@@ -930,14 +991,20 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, introSelected, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, introSelected, backTo, email ?? '', accountID, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
             }
 
             if (isTransactionGroupListItemType(item) && !isTransactionReportGroupListItemType(item) && item.transactionsQueryJSON) {
-                handleSearch({queryJSON: item.transactionsQueryJSON, searchKey, offset: 0, shouldCalculateTotals: false, isLoading: false});
+                handleSearch({
+                    queryJSON: item.transactionsQueryJSON,
+                    searchKey,
+                    offset: 0,
+                    shouldCalculateTotals: false,
+                    isLoading: false,
+                });
                 return;
             }
 
@@ -971,7 +1038,16 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, introSelected, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
+                        createAndOpenSearchTransactionThread(
+                            firstTransaction,
+                            introSelected,
+                            backTo,
+                            email ?? '',
+                            accountID,
+                            firstTransaction?.reportAction?.childReportID,
+                            transactionPreviewData,
+                            false,
+                        );
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
@@ -1015,6 +1091,8 @@ function Search({
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
+            email,
+            accountID,
         ],
     );
 
@@ -1087,7 +1165,10 @@ function Search({
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
                 // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
-                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
+                Navigation.setParams({
+                    q: buildCannedSearchQuery(),
+                    rawQuery: undefined,
+                });
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -1163,18 +1244,38 @@ function Search({
 
     const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
-        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
         markNavigateAfterExpenseCreateEnd();
+        // Reset the ref after the span is ended so future render-time cancelSpan calls are no longer guarded.
+        spanExistedOnMount.current = false;
         handleSelectionListScroll(sortedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedData]);
 
+    useEffect(() => {
+        const spanExisted = spanExistedOnMount.current;
+        return () => {
+            if (!spanExisted) {
+                return;
+            }
+            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const cancelNavigationSpans = useCallback(() => {
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        spanExistedOnMount.current = false;
+    }, []);
+
     const onLayoutSkeleton = useCallback(() => {
         hasHadFirstLayout.current = true;
-        const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
-        endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
+    }, []);
+
+    const onLayoutChart = useCallback(() => {
+        hasHadFirstLayout.current = true;
+        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     }, []);
 
     // On re-visits, react-freeze serves the cached layout — onLayout/onLayoutSkeleton never fire.
@@ -1184,10 +1285,11 @@ function Search({
             if (!hasHadFirstLayout.current) {
                 return;
             }
-            const span = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-            span?.setAttributes({[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState});
-            endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
+            });
             markNavigateAfterExpenseCreateEnd();
+            spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
     );
 
@@ -1202,6 +1304,7 @@ function Search({
                 <SearchRowSkeleton
                     shouldAnimate
                     containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
+                    reasonAttributes={loadingSkeletonReasonAttributes}
                 />
             </Animated.View>
         );
@@ -1209,22 +1312,22 @@ function Search({
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
     if (hasErrors) {
         const isInvalidQuery = searchRequestResponseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <FullPageErrorView
                     shouldShow
                     containerStyle={styles.searchBlockingErrorViewContainer}
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                    title={translate('errorPage.title', {
+                        isBreakLine: shouldUseNarrowLayout,
+                    })}
                     subtitle={translate(isInvalidQuery ? 'errorPage.wrongTypeSubtitle' : 'errorPage.subtitle')}
                 />
             </View>
@@ -1233,8 +1336,7 @@ function Search({
 
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
     if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
-        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+        cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
@@ -1249,7 +1351,11 @@ function Search({
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         clearSelectedTransactions();
-        const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
+        const newQuery = buildSearchQueryString({
+            ...queryJSON,
+            sortBy: column,
+            sortOrder: order,
+        });
         onSortPressedCallback?.();
         // We want to explicitly clear stale rawQuery since it's only used for manually typed-in queries.
         navigation.setParams({q: newQuery, rawQuery: undefined});
@@ -1266,6 +1372,7 @@ function Search({
     const shouldShowChartView = (view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.LINE || view === CONST.SEARCH.VIEW.PIE) && !!validGroupBy;
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
         if (savedSearch) {
             if (savedSearch.name !== savedSearch.query) {
@@ -1284,6 +1391,7 @@ function Search({
                     data={sortedData}
                     isLoading={shouldShowLoadingState}
                     onScroll={onSearchListScroll}
+                    onLayout={onLayoutChart}
                     title={chartTitle}
                 />
             </SearchScopeProvider>
@@ -1340,6 +1448,7 @@ function Search({
                             <SearchRowSkeleton
                                 shouldAnimate
                                 fixedNumItems={5}
+                                reasonAttributes={loadMoreSkeletonReasonAttributes}
                             />
                         ) : undefined
                     }
