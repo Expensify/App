@@ -4862,6 +4862,7 @@ describe('OptionsListUtils', () => {
                     policy,
                     isReportArchived: true,
                     chatReport: undefined,
+                    currentUserLogin: '',
                 });
 
                 expect(lastMessage).toBe(
@@ -4902,6 +4903,7 @@ describe('OptionsListUtils', () => {
                     policy,
                     isReportArchived: true,
                     chatReport: undefined,
+                    currentUserLogin: '',
                 });
 
                 expect(lastMessage).toBe(
