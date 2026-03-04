@@ -10,6 +10,7 @@ import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -110,11 +111,9 @@ function HeaderWithBackButton({
                     presence or absence of back/close buttons to the left/right of it */}
                     <View style={styles.headerProgressBarContainer}>
                         <View
-                            accessible
                             style={styles.headerProgressBar}
-                            role={CONST.ROLE.PROGRESSBAR}
-                            accessibilityLabel={translate('common.progressBarLabel')}
-                            aria-valuetext={stepCounter ? translate('stepCounter', stepCounter) : undefined}
+                            accessible={!!stepCounter}
+                            accessibilityLabel={stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined}
                         >
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
                         </View>
@@ -353,6 +352,9 @@ function HeaderWithBackButton({
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
+            {/* Visually hidden text for screen readers. Placed as a direct child of the header bar
+            (not nested in the flex row) to prevent VoiceOver from announcing parent containers as "group". */}
+            {!!progressBarPercentage && !!stepCounter && <Text style={styles.screenReaderOnly}>{`${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}`}</Text>}
         </View>
     );
 }

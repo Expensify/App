@@ -4980,7 +4980,7 @@ const staticStyles = (theme: ThemeColors) =>
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',
-            zIndex: -1,
+            pointerEvents: 'none',
         },
 
         headerProgressBar: {
@@ -4995,6 +4995,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusRounded,
             height: '100%',
             backgroundColor: theme.success,
+        },
+
+        screenReaderOnly: {
+            position: 'absolute',
+            opacity: 0,
         },
 
         interactiveStepHeaderContainer: {
