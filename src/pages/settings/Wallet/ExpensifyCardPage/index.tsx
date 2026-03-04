@@ -1,14 +1,17 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import cardScarf from '@assets/images/card-scarf.svg';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -41,6 +44,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
+import variables from '@styles/variables';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -50,7 +54,6 @@ import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
-import FrozenCardIndicator from './FrozenCardIndicator';
 
 type ExpensifyCardPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
@@ -180,6 +183,17 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         [currentCard?.fundID],
     );
     const [policyIDForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDSelector}, [policyIDSelector]);
+    
+    const scarfOverlayStyle = useMemo<ViewStyle>(
+        () => ({
+            top: 0,
+            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+            zIndex: variables.cardScarfOverlayZIndex,
+            width: variables.cardScarfOverlayWidth,
+            height: variables.cardScarfOverlayHeight,
+        }),
+        [],
+    );
 
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
@@ -220,9 +234,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         if (!currentCard) {
             return;
         }
-        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard);
+        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
         handleDismissUnfreezeModal();
-    }, [currentCard, handleDismissUnfreezeModal]);
+    }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -236,11 +250,17 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             />
             <ScrollView>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
-                    <FrozenCardIndicator
+                    <FrozenCardHeader
                         cardID={cardID}
                         canUnfreezeCard={canUnfreezeCard}
                         onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
+                        cardPreview={
+                            <CardPreview
+                                overlayImage={cardScarf}
+                                overlayContainerStyle={scarfOverlayStyle}
+                            />
+                        }
                     />
                 ) : (
                     <View style={[styles.flex1, styles.mb9, styles.mt9]}>

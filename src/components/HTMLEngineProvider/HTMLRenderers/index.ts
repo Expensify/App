@@ -1,6 +1,7 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AccountManagerLinkRenderer from './AccountManagerLinkRenderer';
 import AnchorRenderer from './AnchorRenderer';
+import BulletItemRenderer from './BulletItemRenderer';
 import CodeRenderer from './CodeRenderer';
 import ConciergeLinkRenderer from './ConciergeLinkRenderer';
 import CopyTextRenderer from './CopyTextRenderer';
@@ -34,6 +35,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     edited: EditedRenderer,
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
+    'bullet-item': BulletItemRenderer,
     'task-title': TaskTitleRenderer,
     rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,
