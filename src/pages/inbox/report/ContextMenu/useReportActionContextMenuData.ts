@@ -47,6 +47,10 @@ type UseContextMenuDataParams = {
     anchor: RefObject<ContextMenuAnchor> | undefined;
 };
 
+/**
+ * Aggregates all Onyx data and derived state needed for context menus.
+ * Consumed by both PopoverReportActionContent (long-press menu) and MiniReportActionContextMenu (hover menu).
+ */
 function useReportActionContextMenuData({reportID, reportActionID, originalReportID, draftMessage, selection, type, anchor}: UseContextMenuDataParams) {
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();

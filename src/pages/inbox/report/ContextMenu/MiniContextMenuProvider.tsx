@@ -27,10 +27,19 @@ type MiniContextMenuState = MiniContextMenuParams & {
 };
 
 type MiniContextMenuActions = {
+    /** Display the mini context menu with the given parameters. Cancels any pending hide. */
     showMiniContextMenu: (params: MiniContextMenuParams) => void;
+
+    /** Hide the mini context menu after a short delay (or immediately if `options.immediate` is set). No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
     hideMiniContextMenu: (options?: {immediate?: boolean}) => void;
+
+    /** Cancel a pending delayed hide without locking the menu open. Future `hideMiniContextMenu` calls still take effect normally. */
     cancelHide: () => void;
+
+    /** Lock the menu open so that `hideMiniContextMenu` calls are deferred until `release` is called. Use when a sub-interaction (overflow menu, emoji picker) needs the menu to stay visible. */
     keepOpen: () => void;
+
+    /** Unlock the menu after `keepOpen`. If a hide was deferred while locked, it executes immediately. */
     release: () => void;
 };
 

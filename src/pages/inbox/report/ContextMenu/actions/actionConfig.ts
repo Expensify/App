@@ -29,6 +29,7 @@ type BaseContextMenuActionParams = {
     translate: LocalizedTranslate;
 };
 
+/** A fully-resolved context menu action ready to be rendered. Created by the `create*Action` factory in each action module. */
 type ContextMenuAction = {
     id: string;
     icon: IconAsset;
@@ -77,6 +78,7 @@ function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     return message?.html ?? '';
 }
 
+/** Actions that are disabled when the user cannot write in the report. */
 const RESTRICTED_READONLY_ACTION_IDS = new Set<ActionID>([ACTION_IDS.REPLY_IN_THREAD, ACTION_IDS.EDIT, ACTION_IDS.JOIN_THREAD, ACTION_IDS.DELETE]);
 
 export {ACTION_IDS, CONTEXT_MENU_ICON_NAMES, RESTRICTED_READONLY_ACTION_IDS, getActionHtml};
