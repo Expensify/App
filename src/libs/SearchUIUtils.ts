@@ -94,6 +94,7 @@ import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './Ca
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import getBase62ReportID from './getBase62ReportID';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from './Navigation/Navigation';
@@ -111,6 +112,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
+import {getReportName as getReportNameUtil} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -144,11 +146,14 @@ import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearc
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
+    getBillable,
     getCategory,
+    getCurrency,
     getDescription,
     getExchangeRate,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    getReimbursable,
     getTag,
     getTagForDisplay,
     getTaxAmount,
@@ -158,6 +163,7 @@ import {
     getMerchant as getTransactionMerchant,
     isPending,
     isScanning,
+    isTimeRequest,
     isViolationDismissed,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
@@ -1709,11 +1715,12 @@ function getTransactionsSections({
         description: 0,
         card: 0,
         billable: 0,
+        reimbursable: 0,
         title: 0,
         taxRate: 0,
-        tax: 0,
+        taxAmount: 0,
         reportID: 0,
-        reimbursable: 0,
+        base62ReportID: 0,
         originalAmount: 0,
         longReportID: 0,
         exportedDate: 0,
@@ -1771,6 +1778,7 @@ function getTransactionsSections({
             report,
         );
 
+        // Compute the maximum size of all of the text fields to determine how much space we need to delegate
         // Handle the date
         const datePixelWidth = (date?.length ?? 0) * averageCharacterLengthWithPadding;
         measurements.date = Math.max(measurements.date, datePixelWidth);
@@ -1810,22 +1818,41 @@ function getTransactionsSections({
         measurements.card = Math.max(measurements.card);
 
         // Handle the billable
-        measurements.billable = Math.max(measurements.billable);
-
-        // Handle the title
-        measurements.title = Math.max(measurements.title);
-
-        // Handle the tax rate
-        measurements.taxRate = Math.max(measurements.taxRate);
-
-        // Handle the tax
-        measurements.tax = Math.max(measurements.tax);
-
-        // Handle the report ID
-        measurements.reportID = Math.max(measurements.reportID);
+        const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
+        const billablePixelWidth = formattedBillable.length * averageCharacterLengthWithPadding;
+        measurements.billable = Math.max(measurements.billable, billablePixelWidth);
 
         // Handle the reimbursable
-        measurements.reimbursable = Math.max(measurements.reimbursable);
+        const formattedReimbursable = getReimbursable(transaction) ? translate('common.yes') : translate('common.no');
+        const reimbursablePixelWidth = formattedReimbursable.length * averageCharacterLengthWithPadding;
+        measurements.reimbursable = Math.max(measurements.reimbursable, reimbursablePixelWidth);
+
+        // Handle the title
+        const formattedTitle = getReportNameUtil(report);
+        const titlePixelWidth = formattedTitle.length * averageCharacterLengthWithPadding;
+        measurements.title = Math.max(measurements.title, titlePixelWidth);
+
+        // Handle the tax rate
+        const formattedTaxRate = !isTimeRequest(transaction) ? (getTaxName(policy, transaction) ?? transaction.taxValue ?? '') : '';
+        const taxRatePixelWidth = formattedTaxRate.length * averageCharacterLengthWithPadding;
+        measurements.taxRate = Math.max(measurements.taxRate, taxRatePixelWidth);
+
+        // Handle the tax
+        const transactionTaxAmount = getTaxAmount(transaction, true);
+        const transactionTaxAmountCurrency = getCurrency(transaction);
+        const formattedTaxAmount = !isTimeRequest(transaction) ? convertToDisplayString(transactionTaxAmount, transactionTaxAmountCurrency) : '';
+        const taxAmountPixelWidth = formattedTaxAmount.length * averageCharacterLengthWithPadding;
+        measurements.taxAmount = Math.max(measurements.taxAmount, taxAmountPixelWidth);
+
+        // Handle the report ID
+        const formattedReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : (transaction.reportID?.toString() ?? '');
+        const reportIDPixelWidth = formattedReportID.toString().length * averageCharacterLength;
+        measurements.reportID = Math.max(measurements.reportID, reportIDPixelWidth);
+
+        // Handle the base62 report ID
+        const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
+        const base62ReportIDPixelWidth = formattedBase62ReportID.length * averageCharacterLength;
+        measurements.base62ReportID = Math.max(measurements.base62ReportID, base62ReportIDPixelWidth);
 
         // Handle the original amount
         measurements.originalAmount = Math.max(measurements.originalAmount);
