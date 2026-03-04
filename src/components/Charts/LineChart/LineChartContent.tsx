@@ -1,5 +1,5 @@
 import {useFont} from '@shopify/react-native-skia';
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -17,7 +17,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -70,10 +70,23 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         setChartWidth(event.nativeEvent.layout.width);
     };
 
+    const chartBottom = useSharedValue(0);
+
+    /** Pixel-space X position of each tick, filled by onScaleChange and used for label hit-testing */
+    const tickXPositions = useSharedValue<number[]>([]);
+
+    const handleScaleChange = useCallback(
+        (xScale: Scale) => {
+            tickXPositions.set(data.map((_, i) => xScale(i)));
+        },
+        [data, tickXPositions],
+    );
+
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         setPlotAreaWidth(bounds.right - bounds.left);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
+        chartBottom.set(bounds.bottom);
     };
 
     const domainPadding = (() => {
@@ -120,6 +133,17 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         allowTightDiagonalPacking: true,
     });
 
+    // Measure label widths for custom positioning in `renderOutside`
+    const labelWidths = useMemo(() => {
+        if (!font) {
+            return [] as number[];
+        }
+        return truncatedLabels.map((label) => measureTextWidth(label, font));
+    }, [font, truncatedLabels]);
+
+    // Convert hook's degree rotation to radians for Skia rendering
+    const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
+
     const {formatValue} = useChartLabelFormats({
         data,
         font,
@@ -158,7 +182,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             }
             // When labels are rotated 45° we need to check it the other way
             if (angleRad < 1) {
-                console.log('activeIndex', activeIndex);
                 const rightUpperCorner = {
                     x: args.targetX - (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
                     y: labelY + (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
