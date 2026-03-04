@@ -71,6 +71,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
     canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
@@ -117,6 +119,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: flattenedData.length - 1,
@@ -131,6 +137,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
+        onArrowUpDownCallback,
     });
 
     const getFocusedItem = (): TItem | undefined => {
@@ -330,6 +337,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        shouldDisableHoverStyle={shouldDisableHoverStyle}
                     />
                 );
             }
