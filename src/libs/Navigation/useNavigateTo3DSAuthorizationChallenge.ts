@@ -142,7 +142,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
             // the old value and react will run a second effect with the new value. Typescript doesn't know that Onyx treats the object as
             // immutable, so we must guard against transactionID becoming undefined again, even though we know it won't be.
             if (!transactionPending3DSReview?.transactionID) {
-                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - typeguard bail-out (should be impossible to reach)');
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - type guard bail-out (should be impossible to reach)');
                 return;
             }
 
