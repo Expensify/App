@@ -1,7 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
+import {Platform} from 'react-native';
 import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {VideoView} from 'expo-video';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -48,7 +50,10 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         .runOnJS(true)
         // Reduce gesture threshold so quick taps trigger onFinalize on iOS.
         .minDistance(0)
-        .activateAfterLongPress(0)
+        // On Android, use a small delay to avoid conflict with native VideoView gestures
+        .activateAfterLongPress(Platform.OS === 'android' ? 100 : 0)
+        // Allow the gesture to work alongside the native VideoView on Android
+        .simultaneousWithExternalGesture(VideoView)
         .onBegin((event) => {
             setIsSliderPressed(true);
             checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
