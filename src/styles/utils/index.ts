@@ -1695,14 +1695,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
-    getMiniReportActionContextMenuWrapperStyle: (isReportActionItemGrouped: boolean): ViewStyle => ({
-        ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
-        ...positioning.r4,
-        ...styles.cursorDefault,
-        ...styles.userSelectNone,
-        overflowAnchor: 'none',
+    getMiniReportActionContextMenuWrapperStyle: (pos: {top: number; right: number} | null, isVisible: boolean): ViewStyle => ({
         position: 'absolute',
         zIndex: 8,
+        top: pos?.top ?? 0,
+        right: pos?.right ?? 0,
+        opacity: isVisible && pos ? 1 : 0,
     }),
 
     /**

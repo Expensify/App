@@ -2027,6 +2027,7 @@ function PureReportActionItem({
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
+                    shouldHandleScroll
                     isDisabled={draftMessage !== undefined}
                     shouldFreezeCapture={isPaymentMethodPopoverActive}
                     onHoverIn={() => {

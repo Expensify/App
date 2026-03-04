@@ -1,10 +1,9 @@
 import {Portal} from '@gorhom/portal';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -37,8 +36,6 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
 
-const SLIDE_DURATION = 200;
-
 function MiniReportActionContextMenu() {
     const {
         isVisible = false,
@@ -59,73 +56,25 @@ function MiniReportActionContextMenu() {
 
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
     const threeDotRef = useRef<View>(null);
-    const wasVisibleRef = useRef(false);
     const overlayRef = useRef<View>(null);
     const menuContainerRef = useRef<View>(null);
-    const topValue = useSharedValue(0);
-    const rightValue = useSharedValue(0);
+    const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
 
-    useEffect(() => {
-        if (!isVisible || !rowMeasurements) {
-            return;
-        }
-
+    useLayoutEffect(() => {
         const el = overlayRef.current as unknown as HTMLElement | null;
         if (!el) {
             return;
         }
+        setContainerRect(el.getBoundingClientRect());
+    }, [isVisible, rowMeasurements]);
 
-        const containerRect = el.getBoundingClientRect();
-        const newTop = rowMeasurements.top - containerRect.top + (displayAsGroup ? -8 : -4);
-        const newRight = containerRect.right - rowMeasurements.right + 4;
-
-        const timingConfig = {duration: SLIDE_DURATION, easing: Easing.inOut(Easing.ease)};
-        if (wasVisibleRef.current) {
-            topValue.set(withTiming(newTop, timingConfig));
-            rightValue.set(withTiming(newRight, timingConfig));
-        } else {
-            topValue.set(newTop);
-            rightValue.set(newRight);
-        }
-    }, [isVisible, rowMeasurements, displayAsGroup, topValue, rightValue]);
-
-    useEffect(() => {
-        if (isVisible) {
-            wasVisibleRef.current = true;
-            return;
-        }
-        wasVisibleRef.current = false;
-    }, [isVisible]);
-
-    useEffect(() => {
-        if (!isVisible || !anchor?.current) {
-            return;
-        }
-
-        let rafId: number;
-        const handleScroll = () => {
-            cancelAnimationFrame(rafId);
-            rafId = requestAnimationFrame(() => {
-                const node = anchor.current as unknown as HTMLElement | null;
-                const el = overlayRef.current as unknown as HTMLElement | null;
-                if (!node || !el) {
-                    return;
-                }
-                const rect = node.getBoundingClientRect();
-                const containerRect = el.getBoundingClientRect();
-                const newTop = rect.top - containerRect.top + (displayAsGroup ? -8 : -4);
-                const newRight = containerRect.right - rect.right + 4;
-                topValue.set(newTop);
-                rightValue.set(newRight);
-            });
-        };
-
-        window.addEventListener('scroll', handleScroll, true);
-        return () => {
-            window.removeEventListener('scroll', handleScroll, true);
-            cancelAnimationFrame(rafId);
-        };
-    }, [isVisible, anchor, displayAsGroup, topValue, rightValue]);
+    const position =
+        isVisible && rowMeasurements && containerRect
+            ? {
+                  top: rowMeasurements.top - containerRect.top + (displayAsGroup ? -8 : -4),
+                  right: containerRect.right - rowMeasurements.right + 4,
+              }
+            : null;
 
     useEffect(() => {
         const el = menuContainerRef.current as unknown as HTMLElement | null;
@@ -442,11 +391,6 @@ function MiniReportActionContextMenu() {
 
     const hasEmoji = shouldShowEmojiReaction({reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
 
-    const animatedPositionStyle = useAnimatedStyle(() => ({
-        top: topValue.get(),
-        right: rightValue.get(),
-    }));
-
     if (!rowMeasurements) {
         return null;
     }
@@ -460,8 +404,8 @@ function MiniReportActionContextMenu() {
                 style={StyleSheet.absoluteFill}
                 pointerEvents="box-none"
             >
-                <Animated.View
-                    style={[{position: 'absolute', zIndex: 8, opacity: isVisible ? 1 : 0}, animatedPositionStyle]}
+                <View
+                    style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
                     pointerEvents={isVisible ? 'auto' : 'none'}
                 >
                     <Hoverable
@@ -523,7 +467,7 @@ function MiniReportActionContextMenu() {
                             )}
                         </View>
                     </Hoverable>
-                </Animated.View>
+                </View>
             </View>
         </Portal>
     );
