@@ -32,9 +32,7 @@ const useCardFeedsForActivePolicies = () => {
 
     const allCardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
     const eligiblePolicyIdsSet = new Set(eligiblePoliciesIDsArray ?? []);
-    const cardFeedsByPolicy = Object.fromEntries(
-        Object.entries(allCardFeedsByPolicy).filter(([policyID]) => eligiblePolicyIdsSet.has(policyID)),
-    );
+    const cardFeedsByPolicy = Object.fromEntries(Object.entries(allCardFeedsByPolicy).filter(([policyID]) => eligiblePolicyIdsSet.has(policyID)));
 
     return {cardFeedsByPolicy};
 };
