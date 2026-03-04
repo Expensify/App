@@ -41,7 +41,7 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {setPendingExpenseCreateDestination} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
+import {setPendingExpenseCreateDestination} from '@libs/telemetry/submitToDestinationVisible';
 import {
     buildOptimisticTransaction,
     getAmount,

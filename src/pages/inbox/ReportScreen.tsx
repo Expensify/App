@@ -83,7 +83,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import markSubmitToDestinationVisibleEnd from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
+import {getPendingExpenseCreateDestination, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -177,26 +177,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const hasEndedSubmitToDestinationRef = useRef(false);
-
-    // Reset the layout guard when a new pending destination targets this screen (e.g. user submitted another expense and we are the destination again).
-    useEffect(() => {
-        if (
-            !pendingExpenseCreateDestination ||
-            !reportIDFromRoute ||
-            (pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT &&
-                pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
-        ) {
-            return;
-        }
-        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
-            return;
-        }
-        hasEndedSubmitToDestinationRef.current = false;
-    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -989,22 +972,30 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
-    const handleReportContentLayout = useCallback(() => {
-        if (
-            hasEndedSubmitToDestinationRef.current ||
-            !pendingExpenseCreateDestination ||
-            !reportIDFromRoute ||
-            (pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT &&
-                pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
-        ) {
-            return;
-        }
-        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
-            return;
-        }
-        hasEndedSubmitToDestinationRef.current = true;
-        markSubmitToDestinationVisibleEnd(pendingExpenseCreateDestination.destinationType, reportIDFromRoute);
-    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+    // End submit-to-destination-visible span when this report screen gains focus (covers REPORT_CHAT and RHP_POP; reset ref on blur for next submit).
+    useFocusEffect(
+        useCallback(() => {
+            const pending = getPendingExpenseCreateDestination();
+            // Already ended this span, or no pending destination, or we're not a report-chat/rhp-pop target.
+            if (
+                hasEndedSubmitToDestinationRef.current ||
+                !pending ||
+                !reportIDFromRoute ||
+                (pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT && pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
+            ) {
+                return;
+            }
+            // Pending destination targets a different report.
+            if (pending.reportID && pending.reportID !== reportIDFromRoute) {
+                return;
+            }
+            hasEndedSubmitToDestinationRef.current = true;
+            markSubmitToDestinationVisibleEnd(pending.destinationType, reportIDFromRoute);
+            return () => {
+                hasEndedSubmitToDestinationRef.current = false;
+            };
+        }, [reportIDFromRoute]),
+    );
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -1063,7 +1054,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                     <View
                                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                         testID="report-actions-view-wrapper"
-                                        onLayout={handleReportContentLayout}
                                     >
                                         {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
                                         {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (

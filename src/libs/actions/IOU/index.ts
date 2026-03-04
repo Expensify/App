@@ -197,7 +197,7 @@ import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import markSubmitToDestinationVisibleEnd, {setPendingExpenseCreateDestination} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
+import {markSubmitToDestinationVisibleEnd, setPendingExpenseCreateDestination} from '@libs/telemetry/submitToDestinationVisible';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,

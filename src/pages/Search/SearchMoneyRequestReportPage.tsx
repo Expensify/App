@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -36,7 +36,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import markSubmitToDestinationVisibleEnd from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
+import {getPendingExpenseCreateDestination, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
@@ -74,19 +74,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
     const hasEndedSubmitToDestinationRef = useRef(false);
 
-    // Reset the layout guard when a new pending destination targets this page (e.g. user submitted another expense and we are the destination again).
-    useEffect(() => {
-        if (!pendingExpenseCreateDestination || pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP) {
-            return;
-        }
-        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
-            return;
-        }
-        hasEndedSubmitToDestinationRef.current = false;
-    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+    // Reset the layout guard on blur so the next time this page gains focus we can end the span again if targeted.
+    useFocusEffect(
+        useCallback(() => {
+            // Cleanup runs on blur.
+            return () => {
+                hasEndedSubmitToDestinationRef.current = false;
+            };
+        }, []),
+    );
 
     const parentReportAction = useParentReportAction(report);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
@@ -405,19 +403,16 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     ]);
 
     const handleMoneyRequestReportLayout = useCallback(() => {
-        if (
-            hasEndedSubmitToDestinationRef.current ||
-            !pendingExpenseCreateDestination ||
-            pendingExpenseCreateDestination.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP
-        ) {
+        const pending = getPendingExpenseCreateDestination();
+        if (hasEndedSubmitToDestinationRef.current || !pending || pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP) {
             return;
         }
-        if (pendingExpenseCreateDestination.reportID && pendingExpenseCreateDestination.reportID !== reportIDFromRoute) {
+        if (pending.reportID && pending.reportID !== reportIDFromRoute) {
             return;
         }
         hasEndedSubmitToDestinationRef.current = true;
         markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP, reportIDFromRoute);
-    }, [pendingExpenseCreateDestination, reportIDFromRoute]);
+    }, [reportIDFromRoute]);
 
     return (
         <WideRHPOverlayWrapper>

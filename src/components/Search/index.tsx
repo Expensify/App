@@ -66,7 +66,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
-import markSubmitToDestinationVisibleEnd, {cancelSubmitToDestinationVisibleSpan} from '@libs/telemetry/markSubmitToDestinationVisibleEnd';
+import {cancelSubmitToDestinationVisibleSpan, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
