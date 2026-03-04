@@ -133,14 +133,15 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
     const {setCardsDetails} = useExpensifyCardActions();
-    const revealedPIN = useRevealedPIN(cardID);
+    const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
+    const revealedPIN = useRevealedPIN(String(currentPhysicalCard?.cardID));
 
     // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
         useCallback(() => {
             return () => {
                 setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
-                clearRevealedPIN(cardID);
+                clearRevealedPIN();
             };
         }, [cardID, setCardsDetails]),
     );
@@ -150,7 +151,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
-    const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
 
     // Cards that are already activated and working (OPEN) and cards shipped but not activated yet can be reported as missing or damaged
     const shouldShowReportLostCardButton = currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;

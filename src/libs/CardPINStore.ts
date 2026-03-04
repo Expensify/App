@@ -9,7 +9,7 @@ import {useSyncExternalStore} from 'react';
 type Listener = () => void;
 
 const listeners = new Set<Listener>();
-const revealedPINs: Record<string, string> = {};
+let revealedPINs: Record<string, string> = {};
 
 function subscribe(listener: Listener) {
     listeners.add(listener);
@@ -23,12 +23,12 @@ function notifyListeners() {
 }
 
 function setRevealedPIN(cardID: string, pin: string) {
-    revealedPINs[cardID] = pin;
+    revealedPINs = {[cardID]: pin};
     notifyListeners();
 }
 
-function clearRevealedPIN(cardID: string) {
-    delete revealedPINs[cardID];
+function clearRevealedPIN() {
+    revealedPINs = {};
     notifyListeners();
 }
 
