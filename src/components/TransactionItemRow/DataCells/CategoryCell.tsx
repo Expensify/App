@@ -23,7 +23,8 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={categoryForDisplay}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
+            numberOfLines={2}
+            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }

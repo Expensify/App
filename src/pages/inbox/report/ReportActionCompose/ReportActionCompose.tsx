@@ -17,7 +17,6 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
@@ -39,7 +38,6 @@ import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {rand64} from '@libs/NumberUtils';
-import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -49,7 +47,6 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
-    isAdminRoom,
     isChatRoom,
     isConciergeChatReport,
     isGroupChat,
@@ -62,7 +59,6 @@ import {
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import AgentZeroProcessingRequestIndicator from '@pages/inbox/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -118,6 +114,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the report screen is being displayed in the side panel */
     isInSidePanel?: boolean;
+
+    /** Function to trigger optimistic waiting indicator for Concierge */
+    kickoffWaitingIndicator?: () => void;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -142,6 +141,7 @@ function ReportActionCompose({
     reportTransactions,
     transactionThreadReportID,
     isInSidePanel = false,
+    kickoffWaitingIndicator,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -219,10 +219,6 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
-    const isAdminsRoom = useMemo(() => isAdminRoom(report), [report]);
-
-    // Show agent zero status indicator for both concierge chats and admin rooms
-    const shouldShowAgentZeroStatus = isConciergeChat || isAdminsRoom;
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -264,8 +260,6 @@ function ReportActionCompose({
         }
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
-
-    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, shouldShowAgentZeroStatus);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -339,7 +333,7 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
-            if (isConciergeChat) {
+            if (isConciergeChat && kickoffWaitingIndicator) {
                 kickoffWaitingIndicator();
             }
 
@@ -363,7 +357,6 @@ function ReportActionCompose({
                 // The list is inverted, so an offset near 0 means the user is at the bottom (newest messages visible).
                 const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
                 if (isScrolledToBottom) {
-                    Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
                     startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${optimisticReportActionID}`, {
                         name: 'send-message',
                         op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
@@ -681,10 +674,6 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroProcessingRequestIndicator
-                            reportID={reportID}
-                            label={agentZeroDisplayLabel}
-                        />
                         <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
