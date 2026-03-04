@@ -2,6 +2,7 @@ import {AppStartTimeNitroModule} from '@expensify/nitro-utils';
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
+import reportModuleInitTimes from './reportModuleInitTimes';
 import setupSentry from './setupSentry';
 
 export default function (): void {
@@ -20,5 +21,9 @@ export default function (): void {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,
         op: CONST.TELEMETRY.SPAN_APP_STARTUP,
         startTime: nativeAppStartTimeMs,
+    });
+
+    requestAnimationFrame(() => {
+        reportModuleInitTimes(__moduleInitTimes as Record<string, number> | undefined, __moduleNames as Record<string, string> | undefined, 100);
     });
 }
