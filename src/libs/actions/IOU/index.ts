@@ -239,7 +239,7 @@ import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, createTransactionThreadReport, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -1007,6 +1007,14 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
+});
+
+let introSelectedOnyx: OnyxEntry<OnyxTypes.IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => {
+        introSelectedOnyx = value;
+    },
 });
 
 // Use connectWithoutView because this is created for non-UI task only
@@ -13894,8 +13902,19 @@ function updateMultipleMoneyRequests(
 
         const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
         const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
-        const transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
-        const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+        let transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
+        let transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+
+        // Offline-created expenses can be missing a transaction thread until it's opened once.
+        // Ensure the thread exists before adding optimistic MODIFIED_EXPENSE actions so
+        // bulk-edit comments are visible immediately while still offline.
+        if (!transactionThreadReportID && iouReport?.reportID) {
+            const optimisticTransactionThread = createTransactionThreadReport(introSelectedOnyx, iouReport, reportAction, transaction);
+            if (optimisticTransactionThread?.reportID) {
+                transactionThreadReportID = optimisticTransactionThread.reportID;
+                transactionThread = optimisticTransactionThread;
+            }
+        }
 
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
@@ -13992,9 +14011,7 @@ function updateMultipleMoneyRequests(
         const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
         const clearedPendingFields = getClearedPendingFields(transactionChanges);
 
-        const errorFields = Object.fromEntries(
-            Object.keys(pendingFields).map((field) => [field, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]),
-        );
+        const errorFields = Object.fromEntries(Object.keys(pendingFields).map((field) => [field, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
         // Build updated transaction
         const updatedTransaction = getUpdatedTransaction({
