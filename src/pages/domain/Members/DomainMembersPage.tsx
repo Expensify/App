@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError, closeUserAccount, exportMembersToSCV} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {hasDomainMemberDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -134,7 +134,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             });
             return;
         }
-        exportMembersToSCV(
+        exportMembersToCSV(
             domainAccountID,
             () => {
                 showConfirmModal({

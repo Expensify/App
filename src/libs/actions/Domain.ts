@@ -1676,7 +1676,7 @@ function resetDomainMemberTwoFactorAuth(domainAccountID: number, targetAccountID
     API.write(WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH, params, {optimisticData, failureData, successData});
 }
 
-function exportMembersToSCV(domainAccountID: number, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV, {
         domainAccountID,
     });
@@ -1726,5 +1726,5 @@ export {
     setTwoFactorAuthExemptEmailForDomain,
     clearTwoFactorAuthExemptEmailsErrors,
     resetDomainMemberTwoFactorAuth,
-    exportMembersToSCV,
+    exportMembersToCSV,
 };
