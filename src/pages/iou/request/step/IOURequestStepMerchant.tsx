@@ -109,10 +109,12 @@ function IOURequestStepMerchant({
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            navigateBack();
             return;
         }
 
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+            navigateBack();
             return;
         }
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
@@ -131,6 +133,8 @@ function IOURequestStepMerchant({
                 parentReportNextStep,
             });
         }
+
+        navigateBack();
     };
 
     return (
