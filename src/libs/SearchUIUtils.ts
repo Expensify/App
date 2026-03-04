@@ -204,6 +204,7 @@ type GetTransactionSectionsParams = {
     currentSearch: SearchKey;
     currentAccountID: number;
     currentUserEmail: string;
+    translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isActionLoadingSet: ReadonlySet<string> | undefined;
     bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
@@ -1666,6 +1667,7 @@ function getTransactionsSections({
     currentSearch,
     currentAccountID,
     currentUserEmail,
+    translate,
     formatPhoneNumber,
     isActionLoadingSet,
     bankAccountList,
@@ -1800,7 +1802,9 @@ function getTransactionsSections({
         measurements.exchangeRate = Math.max(measurements.exchangeRate, exchangeRatePixelWidth);
 
         // Handle the description
-        measurements.description = Math.max(measurements.description);
+        const formattedDescription = getDescription(transaction);
+        const descriptionPixelWidth = formattedDescription.length * averageCharacterLengthWithPadding;
+        measurements.description = Math.max(measurements.description, descriptionPixelWidth);
 
         // Handle the card
         measurements.card = Math.max(measurements.card);
@@ -2966,6 +2970,7 @@ function getSections({
 
     return getTransactionsSections({
         data,
+        translate,
         currentSearch,
         currentAccountID,
         currentUserEmail,
