@@ -2353,6 +2353,19 @@ function deleteReportComment(
         },
     };
 
+    // Optimistically hide any associated unresolved ACTIONABLE_MENTION_WHISPER.
+    // By convention, the backend creates the whisper at parentCommentID + 1.
+    const mentionWhisperID = String(BigInt(reportActionID) + 1n);
+    const mentionWhisper = allReportActions?.[originalReportID]?.[mentionWhisperID];
+    const mentionWhisperOriginalMessage = mentionWhisper ? ReportActionsUtils.getOriginalMessage(mentionWhisper) : undefined;
+    const shouldOptimisticallyDeleteMentionWhisper =
+        mentionWhisper?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER && !mentionWhisperOriginalMessage?.resolution && !mentionWhisperOriginalMessage?.deleted;
+    if (shouldOptimisticallyDeleteMentionWhisper) {
+        optimisticReportActions[mentionWhisperID] = {
+            originalMessage: {deleted: DateUtils.getDBTime()},
+        };
+    }
+
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
@@ -2373,19 +2386,26 @@ function deleteReportComment(
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
+
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
-    // and and remove the pendingAction so the strike-through clears
+    // and remove the pendingAction so the strike-through clears
+    const failureReportActionsData: NullishDeep<ReportActions> = {
+        [reportActionID]: {
+            message: reportAction.message,
+            pendingAction: null,
+            previousMessage: null,
+        },
+    };
+    if (shouldOptimisticallyDeleteMentionWhisper) {
+        failureReportActionsData[mentionWhisperID] = {
+            originalMessage: {deleted: null},
+        };
+    }
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
-            value: {
-                [reportActionID]: {
-                    message: reportAction.message,
-                    pendingAction: null,
-                    previousMessage: null,
-                },
-            },
+            value: failureReportActionsData,
         },
     ];
 
