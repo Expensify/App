@@ -67,13 +67,8 @@ function AuthScreensInitHandler({onDelegatorReady}: AuthScreensInitHandlerProps)
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
 
-    useEffect(() => {
-        lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    }, [lastUpdateIDAppliedToClient]);
-
-    useEffect(() => {
-        isLoadingAppRef.current = isLoadingApp;
-    }, [isLoadingApp]);
+    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
+    isLoadingAppRef.current = isLoadingApp;
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
