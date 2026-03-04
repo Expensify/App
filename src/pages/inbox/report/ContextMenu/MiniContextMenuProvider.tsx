@@ -2,8 +2,6 @@ import type {ReactNode, RefObject} from 'react';
 import React, {createContext, useContext, useRef, useState} from 'react';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-const HIDE_DELAY_MS = 120;
-
 type RowMeasurements = {
     top: number;
     height: number;
@@ -27,14 +25,11 @@ type MiniContextMenuState = MiniContextMenuParams & {
 };
 
 type MiniContextMenuActions = {
-    /** Display the mini context menu with the given parameters. Cancels any pending hide. */
+    /** Display the mini context menu with the given parameters. */
     showMiniContextMenu: (params: MiniContextMenuParams) => void;
 
-    /** Hide the mini context menu after a short delay. No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
+    /** Hide the mini context menu immediately. No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
     hideMiniContextMenu: () => void;
-
-    /** Cancel a pending delayed hide without locking the menu open. Future `hideMiniContextMenu` calls still take effect normally. */
-    cancelHide: () => void;
 
     /** Lock the menu open so that `hideMiniContextMenu` calls are deferred until `release` is called. Use when a sub-interaction (overflow menu, emoji picker) needs the menu to stay visible. */
     keepOpen: () => void;
@@ -46,7 +41,6 @@ type MiniContextMenuActions = {
 const MiniContextMenuActionsContext = createContext<MiniContextMenuActions>({
     showMiniContextMenu: () => {},
     hideMiniContextMenu: () => {},
-    cancelHide: () => {},
     keepOpen: () => {},
     release: () => {},
 });
@@ -59,27 +53,16 @@ type MiniContextMenuProviderProps = {
 
 function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
     const [state, setState] = useState<MiniContextMenuState | null>(null);
-    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const shouldKeepOpenRef = useRef(false);
     const pendingHideRef = useRef(false);
 
     const [actions] = useState<MiniContextMenuActions>(() => {
-        const clearHideTimer = () => {
-            if (hideTimerRef.current == null) {
-                return;
-            }
-            clearTimeout(hideTimerRef.current);
-            hideTimerRef.current = null;
-        };
-
         const performHide = () => {
-            clearHideTimer();
             setState((prev) => (prev ? {...prev, isVisible: false} : null));
         };
 
         return {
             showMiniContextMenu: (params: MiniContextMenuParams) => {
-                clearHideTimer();
                 pendingHideRef.current = false;
                 setState({...params, isVisible: true});
             },
@@ -88,16 +71,10 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                     pendingHideRef.current = true;
                     return;
                 }
-                clearHideTimer();
-                hideTimerRef.current = setTimeout(performHide, HIDE_DELAY_MS);
-            },
-            cancelHide: () => {
-                clearHideTimer();
-                pendingHideRef.current = false;
+                performHide();
             },
             keepOpen: () => {
                 shouldKeepOpenRef.current = true;
-                clearHideTimer();
                 pendingHideRef.current = false;
             },
             release: () => {

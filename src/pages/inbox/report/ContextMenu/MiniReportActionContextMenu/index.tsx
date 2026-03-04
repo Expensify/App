@@ -49,7 +49,7 @@ function MiniReportActionContextMenu() {
         checkIfContextMenuActive,
         setIsEmojiPickerActive,
     } = useMiniContextMenuState() ?? {};
-    const {hideMiniContextMenu, cancelHide, keepOpen, release} = useMiniContextMenuActions();
+    const {hideMiniContextMenu, keepOpen, release} = useMiniContextMenuActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
@@ -82,7 +82,6 @@ function MiniReportActionContextMenu() {
             return;
         }
 
-        const onFocusCapture = () => cancelHide();
         const onBlurCapture = (e: FocusEvent) => {
             if (e.relatedTarget && el.contains(e.relatedTarget as Node)) {
                 return;
@@ -90,13 +89,11 @@ function MiniReportActionContextMenu() {
             hideMiniContextMenu();
         };
 
-        el.addEventListener('focus', onFocusCapture, true);
         el.addEventListener('blur', onBlurCapture, true);
         return () => {
-            el.removeEventListener('focus', onFocusCapture, true);
             el.removeEventListener('blur', onBlurCapture, true);
         };
-    }, [cancelHide, hideMiniContextMenu]);
+    }, [hideMiniContextMenu]);
 
     useEffect(() => {
         const el = menuContainerRef.current as unknown as HTMLElement | null;
@@ -408,10 +405,7 @@ function MiniReportActionContextMenu() {
                     style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
                     pointerEvents={isVisible ? 'auto' : 'none'}
                 >
-                    <Hoverable
-                        onHoverIn={cancelHide}
-                        onHoverOut={() => hideMiniContextMenu()}
-                    >
+                    <Hoverable onHoverOut={() => hideMiniContextMenu()}>
                         <View
                             ref={menuContainerRef}
                             style={wrapperStyle}
