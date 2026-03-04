@@ -542,7 +542,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
         duplicateReport: 'Duplicar relatório',
-        explain: 'Explicar',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -1041,6 +1040,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
         },
+        upcomingTravel: 'Próximas viagens',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Voo para ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trem para ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel em ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Aluguel de carro em ${destination}`,
+            inOneWeek: 'Em 1 semana',
+            inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
+            today: 'Hoje',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -1367,6 +1376,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Insira uma distância válida antes de continuar',
             invalidReadings: 'Insira as leituras de início e fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
+            distanceAmountTooLarge: 'O valor total é muito alto. Diminua a distância ou reduza a tarifa.',
+            distanceAmountTooLargeReduceDistance: 'O valor total é muito alto. Diminua a distância.',
+            distanceAmountTooLargeReduceRate: 'O valor total é muito alto. Reduza a tarifa.',
+            odometerReadingTooLarge: (formattedMax: string) => `As leituras do hodômetro não podem exceder ${formattedMax}.`,
             invalidIntegerAmount: 'Insira um valor inteiro em dólares antes de continuar',
             invalidTaxAmount: (amount: string) => `O valor máximo de imposto é ${amount}`,
             invalidSplit: 'A soma das divisões deve ser igual ao valor total',
@@ -1553,6 +1566,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Diminua as horas ou reduza a tarifa.',
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
@@ -1566,6 +1580,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras de despesas pessoais</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do workspace</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `falha ao enviar o relatório via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">adiar envios</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `falha ao enviar o relatório. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -8323,6 +8341,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
+        hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',

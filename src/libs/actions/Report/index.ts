@@ -311,7 +311,6 @@ type AddAttachmentWithCommentParams = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-let conciergeReportIDOnyxConnect: string | undefined;
 let deprecatedCurrentUserAccountID = -1;
 /** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
 let deprecatedCurrentUserLogin: string | undefined;
@@ -321,18 +320,12 @@ Onyx.connect({
     callback: (value) => {
         // When signed out, val is undefined
         if (!value?.accountID) {
-            conciergeReportIDOnyxConnect = undefined;
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         deprecatedCurrentUserLogin = value.email;
         deprecatedCurrentUserAccountID = value.accountID;
     },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => (conciergeReportIDOnyxConnect = value),
 });
 
 // map of reportID to all reportActions for that report
@@ -1895,7 +1888,7 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
  * @param currentUserAccountID the account ID of the current user.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, shouldDismissModal = true) {
+function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, shouldDismissModal = true) {
     let newChat: OptimisticChatReport | undefined;
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -1906,7 +1899,7 @@ function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: num
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat);
+        openReport(newChat?.reportID, introSelected, '', userLogins, newChat);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -3218,6 +3211,8 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
  */
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    currentUserAccountID: number,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
@@ -3233,7 +3228,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], deprecatedCurrentUserAccountID, shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3684,21 +3679,27 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, conciergeReportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(
+    reportID: string | undefined,
+    conciergeReportID: string | undefined,
+    currentUserAccountID: number,
+    shouldPopToTop = false,
+    shouldDeleteChildReports = false,
+) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportID, false);
+    navigateToConciergeChat(conciergeReportID, deprecatedIntroSelected, currentUserAccountID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined) {
+function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3706,7 +3707,7 @@ function clearCreateChatError(report: OnyxEntry<Report>, conciergeReportID: stri
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, undefined, true);
 }
 
 /**
@@ -4040,7 +4041,7 @@ function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, currentUserAccountID: number) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
@@ -4061,13 +4062,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(conciergeReportID, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, deprecatedIntroSelected, currentUserAccountID, false, () => true, {forceReplace: true});
     }
 }
 
-function getMostRecentReportID(currentReport: OnyxEntry<Report>) {
+function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined) {
     const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID)?.reportID;
-    return lastAccessedReportID ?? conciergeReportIDOnyxConnect;
+    return lastAccessedReportID ?? conciergeReportID;
 }
 
 function joinRoom(report: OnyxEntry<Report>, currentUserAccountID: number) {
@@ -4131,7 +4132,7 @@ function leaveGroupChat(report: Report, shouldClearQuickAction: boolean, current
         },
     ];
 
-    navigateToMostRecentReport(report, conciergeReportID);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
@@ -4240,7 +4241,7 @@ function leaveRoom(report: Report, currentUserAccountID: number, conciergeReport
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID);
+    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID);
 }
 
 function buildInviteToRoomOnyxData(report: Report, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
@@ -4758,6 +4759,7 @@ type CompleteOnboardingProps = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
 };
 
 async function completeOnboarding({
@@ -4777,6 +4779,7 @@ async function completeOnboarding({
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
+    betas,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
         introSelected,
@@ -4790,6 +4793,7 @@ async function completeOnboarding({
         selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
+        betas,
     });
     if (!onboardingData) {
         return;

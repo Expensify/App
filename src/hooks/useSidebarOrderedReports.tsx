@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
@@ -237,21 +236,36 @@ function SidebarOrderedReportsContextProvider({
         clearCacheDummyCounter,
     ]);
 
-    // useDeepCompareRef prevents unnecessary useCallback recreations when these have same content but different reference.
-    // Without this, getOrderedReportIDs would be recreated on every render, causing expensive orderedReportIDs recalculation.
-    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
-    const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
+    // Derive a stable boolean map indicating which reports have drafts.
+    const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
+    const hasDraftByReportID = useMemo(() => {
+        const result: Record<string, boolean> = {};
+        if (reportsDrafts) {
+            for (const [key, value] of Object.entries(reportsDrafts)) {
+                if (value) {
+                    result[key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')] = true;
+                }
+            }
+        }
+        const prev = hasDraftByReportIDRef.current;
+        const prevKeys = Object.keys(prev);
+        const newKeys = Object.keys(result);
+        if (prevKeys.length === newKeys.length && newKeys.every((k) => k in prev)) {
+            return prev;
+        }
+        hasDraftByReportIDRef.current = result;
+        return result;
+    }, [reportsDrafts]);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () =>
-            SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, conciergeReportID),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, conciergeReportID),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts, conciergeReportID],
+        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, conciergeReportID],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
