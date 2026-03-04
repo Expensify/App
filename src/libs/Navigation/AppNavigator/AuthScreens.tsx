@@ -16,9 +16,7 @@ import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
-import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -26,7 +24,6 @@ import useTheme from '@hooks/useTheme';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
@@ -41,7 +38,6 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
@@ -115,60 +111,6 @@ const modalScreenListenersWithCancelSearch = {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
     },
 };
-
-function EscapeShortcutHandler() {
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
-        useWideRHPState();
-
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (modal?.willAlertModalBecomeVisible) {
-                    return;
-                }
-
-                if (modal?.disableDismissOnEscape) {
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForWideRHP) {
-                    Navigation.closeRHPFlow();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-                    Navigation.dismissToSuperWideRHP();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
-                    Navigation.dismissToPreviousRHP();
-                    return;
-                }
-
-                Navigation.dismissModal();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return () => unsubscribeEscapeKey();
-    }, [
-        modal?.disableDismissOnEscape,
-        modal?.willAlertModalBecomeVisible,
-        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-        shouldRenderSecondaryOverlayForRHPOnWideRHP,
-        shouldRenderSecondaryOverlayForWideRHP,
-        shouldRenderTertiaryOverlay,
-    ]);
-
-    return null;
-}
 
 function AuthScreens() {
     const theme = useTheme();
@@ -246,7 +188,6 @@ function AuthScreens() {
             <>
                 <AuthScreensInitHandler onDelegatorReady={() => setIsDelegatorFromOldDotIsReady(true)} />
                 <KeyboardShortcutsHandler shouldShowRequire2FAPage={shouldShowRequire2FAPage} />
-                <EscapeShortcutHandler />
                 <ThreeDSAuthHandler />
                 <UserStatusHandler />
                 <FullScreenLoadingIndicator />
@@ -268,7 +209,6 @@ function AuthScreens() {
         >
             <AuthScreensInitHandler onDelegatorReady={() => setIsDelegatorFromOldDotIsReady(true)} />
             <KeyboardShortcutsHandler shouldShowRequire2FAPage={shouldShowRequire2FAPage} />
-            <EscapeShortcutHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <RootStack.Navigator
