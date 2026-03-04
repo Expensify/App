@@ -1,5 +1,6 @@
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector, memberPendingActionSelector, selectSecurityGroupForAccount} from '@selectors/Domain';
 import React, {useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -137,7 +138,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
             />
         ) : (
-            <>
+            <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     success
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
@@ -162,9 +163,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                         },
                     ]}
                     isSplitButton={false}
-                    wrapperStyle={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                    wrapperStyle={styles.flexGrow0}
                 />
-            </>
+            </View>
         );
     };
 

@@ -1,5 +1,6 @@
 import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -64,7 +65,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
     const headerContent = isAdmin ? (
-        <>
+        <View style={[styles.flexRow, styles.gap2]}>
             <Button
                 success
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
@@ -82,7 +83,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                 style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
             />
-        </>
+        </View>
     ) : null;
 
     return (
