@@ -113,8 +113,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const achData = reimbursementAccount?.achData;
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace);
-    }, [achData, isNonUSDWorkspace]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
+    }, [achData, isNonUSDWorkspace, policy?.id]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
