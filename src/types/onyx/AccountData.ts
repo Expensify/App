@@ -50,6 +50,9 @@ type AccountData = {
 
     /** The debit card ID */
     fundID?: number;
+
+    /** List of policies this account is linked to */
+    policyIDs?: string[];
 };
 
 export default AccountData;

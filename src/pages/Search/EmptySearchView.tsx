@@ -143,7 +143,9 @@ function EmptySearchViewContent({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -153,7 +155,9 @@ function EmptySearchViewContent({
         selector: hasExpenseReportsSelector,
     });
 
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+        selector: tryNewDotOnyxSelector,
+    });
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
@@ -188,7 +192,12 @@ function EmptySearchViewContent({
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                    reportID: createdReportID,
+                    backTo: Navigation.getActiveRoute(),
+                }),
+            );
         });
     };
 
