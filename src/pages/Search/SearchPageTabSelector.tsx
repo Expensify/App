@@ -7,9 +7,9 @@ import ScrollableTabSelectorContextProvider from '@components/TabSelector/Scroll
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {getItemBadgeText} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
