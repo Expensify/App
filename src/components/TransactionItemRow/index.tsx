@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -41,7 +42,6 @@ import {
     isMerchantMissing,
     isScanning,
     isTimeRequest,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -107,7 +107,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
-    policy?: Policy;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -159,7 +158,6 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 function TransactionItemRow({
     transactionItem,
     report,
-    policy,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -200,6 +198,7 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -208,13 +207,6 @@ function TransactionItemRow({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-
-    const filteredViolations = useMemo(() => {
-        if (!violations) {
-            return undefined;
-        }
-        return violations;
-    }, [violations]);
 
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
@@ -234,9 +226,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const policyParam = policy ?? transactionItem.policy;
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -248,12 +238,11 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
-            } else if (isCustomUnitOutOfPolicy) {
-                error = translate('violations.customUnitOutOfPolicy');
             }
+
             return error;
         }
-    }, [transactionItem, translate, report, policy]);
+    }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
@@ -667,7 +656,7 @@ function TransactionItemRow({
                             style={styles.mr3}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
                                     date={createdAt}
                                     showTooltip={shouldShowTooltip}
@@ -730,7 +719,7 @@ function TransactionItemRow({
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight6]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
@@ -746,10 +735,11 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={filteredViolations}
+                                    violations={violations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
+                                    transactionThreadReportID={transactionThreadReportID}
                                 />
                             )}
                         </View>
@@ -823,9 +813,10 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         missingFieldError={missingFieldError}
+                        transactionThreadReportID={transactionThreadReportID}
                     />
                 )}
             </View>

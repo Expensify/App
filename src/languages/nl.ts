@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Achternaam',
         scanning: 'Scannen',
         analyzing: 'Analyseren...',
+        thinking: 'Concierge denkt na...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
         phone: 'Telefoon',
@@ -551,6 +552,10 @@ const translations: TranslationDeepObject<typeof en> = {
         facebook: 'Volg ons op Facebook',
         linkedin: 'Volg ons op LinkedIn',
     },
+    concierge: {
+        collapseReasoning: 'Redenering inklappen',
+        expandReasoning: 'Redenering uitklappen',
+    },
     supportalNoAccess: {
         title: 'Niet zo snel',
         descriptionWithCommand: ({
@@ -646,6 +651,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Meld je opnieuw aan.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Transactie controleren',
+            pleaseReview: 'Controleer deze transactie alsjeblieft',
+            requiresYourReview: 'Er is een Expensify Card-transactie hieronder die je moet beoordelen.',
+            transactionDetails: 'Transactiegegevens',
+            deny: 'Weigeren',
+            approve: 'Goedkeuren',
+            denyTransaction: 'Transactie weigeren',
+            transactionDenied: 'Transactie geweigerd',
+            transactionApproved: 'Transactie goedgekeurd!',
+            areYouSureToDeny: 'Weet je het zeker? De transactie wordt geweigerd als je dit scherm sluit.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Je kunt het opnieuw proberen bij de winkelier. Als je deze transactie niet hebt geprobeerd uit te voeren, <concierge-link>neem dan contact op met Concierge</concierge-link> om mogelijke fraude te melden.',
+            youNeedToTryAgainAtMerchant: 'Deze transactie is niet geverifieerd, dus we hebben haar geweigerd. Je moet het opnieuw proberen bij de handelaar.',
+            goBackToTheMerchant: 'Ga terug naar de website van de verkoper om door te gaan met de transactie.',
+            attemptedTransaction: 'Poging tot transactie',
+            transactionFailed: 'Transactie mislukt',
+            transactionCouldNotBeCompleted: 'Je transactie kon niet worden voltooid. Probeer het alsjeblieft opnieuw bij de verkoper.',
+            transactionCouldNotBeCompletedReachOut:
+                'Je transactie kon niet worden voltooid. Als je deze transactie niet hebt geprobeerd uit te voeren, <concierge-link>neem dan contact op met Concierge</concierge-link> om mogelijke fraude te melden.',
+            reviewFailed: 'Beoordeling mislukt',
+            alreadyReviewedSubtitle:
+                'Je hebt deze transactie al gecontroleerd. Controleer je <transaction-history-link>transactiegeschiedenis</transaction-history-link> of neem contact op met <concierge-link>Concierge</concierge-link> om problemen te melden.',
+        },
         biometricsTest: {
             biometricsTest: 'Biometrische test',
             authenticationSuccessful: 'Verificatie geslaagd',
@@ -697,7 +726,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Niet-ondersteund apparaat',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Deze actie wordt niet ondersteund op jouw apparaat. Download de Expensify-app uit de <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> of de <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> en probeer het opnieuw.`,
         },
         verificationFailed: 'Verificatie mislukt',
     },
@@ -1016,6 +1045,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Helemaal bij',
                 fireworksDescription: 'Aankomende taken verschijnen hier.',
             },
+        },
+        upcomingTravel: 'Aankomende reizen',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vlucht naar ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trein naar ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Autoverhuur in ${destination}`,
+            inOneWeek: 'Over 1 week',
+            inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
+            today: 'Vandaag',
         },
     },
     allSettingsScreen: {
@@ -1345,6 +1384,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Voer een geldige afstand in voordat je verdergaat',
             invalidReadings: 'Voer zowel de begin- als eindstanden in',
             negativeDistanceNotAllowed: 'Eindstand moet hoger zijn dan beginstand',
+            distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
+            distanceAmountTooLargeReduceDistance: 'Het totale bedrag is te hoog. Verlaag de afstand.',
+            distanceAmountTooLargeReduceRate: 'Het totale bedrag is te hoog. Verlaag het tarief.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometertellerstanden mogen niet hoger zijn dan ${formattedMax}.`,
             invalidIntegerAmount: 'Voer een volledig dollarbedrag in voordat je doorgaat',
             invalidTaxAmount: (amount: string) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
@@ -1545,6 +1588,10 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">persoonlijke onkostregels</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">werkruimte­regels</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `rapport indienen via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a> is mislukt. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `het is niet gelukt om het rapport in te dienen. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -1983,6 +2030,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Kaart-activiteit en beheerdersacties in je domein(en).',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
         onceLocked: 'Zodra deze wordt vergrendeld, wordt je account beperkt in afwachting van een deblokkeringsverzoek en een beveiligingscontrole',
+        unlockTitle: 'We hebben je verzoek ontvangen',
+        unlockDescription: 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Account vergrendelen mislukt',
@@ -3920,6 +3969,7 @@ ${
             workspaceOwner: 'Eigenaar',
             workspaceType: 'Werkruimtetype',
             workspaceAvatar: 'Workspace-avatar',
+            keepMeAsAdmin: 'Houd mij als beheerder',
             clientID: 'Klant-ID',
             clientIDInputHint: 'Voer de unieke identificatie van de klant in',
             mustBeOnlineToViewMembers: 'Je moet online zijn om de leden van deze workspace te bekijken.',
@@ -7407,6 +7457,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `zakelijke bankrekening ${maskedBankAccountNumber} is automatisch vergrendeld vanwege een probleem met terugbetalingen of Expensify Kaart-afwikkeling. Los het probleem op in je <a href="${linkURL}">werkruimte-instellingen</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}heeft de chat verlaten`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Open de mobiele Expensify-app om je${amountAndMerchantText ? ` ${amountAndMerchantText}-` : ' '}transactie te bekijken`;
+                },
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
@@ -7585,7 +7639,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
     },
     gps: {
-        disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om de registratie te beginnen.',
         error: {
             failedToStart: 'Locatietracking starten is mislukt.',
             failedToGetPermissions: 'Locatievereisten ophalen mislukt.',
@@ -8304,6 +8357,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
+        hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -8476,7 +8530,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             resetDomain: 'Domein resetten',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Typ <strong>${domainName}</strong> om het resetten van het domein te bevestigen.`,
             enterDomainName: 'Voer hier je domeinnaam in',
-            resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en alle niet-gerapporteerde uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinlijst verwijderen door het bijbehorende e-mailadres te verwijderen uit je <a href="#">contactmethoden</a>.`,
+            resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <bullet-list><bullet-item>Bedrijfskaartverbindingen en alle niet-gerapporteerde uitgaven van die kaarten</bullet-item><bullet-item>SAML- en groepsinstellingen</bullet-item></bullet-list> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinlijst verwijderen door het bijbehorende e-mailadres te verwijderen uit je <a href="#">contactmethoden</a>.`,
         },
         domainMembers: 'Domeinleden',
         members: {
@@ -8495,8 +8549,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 other: 'Accounts veilig sluiten',
             }),
             closeAccountInfo: () => ({
-                one: 'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
-                other: 'We raden aan om de accounts veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde accounts geforceerd sluiten.',
+                one: 'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <bullet-list><bullet-item>Openstaande goedkeuringen</bullet-item><bullet-item>Actieve terugbetalingen</bullet-item><bullet-item>Geen alternatieve inlogmethoden</bullet-item></bullet-list>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
+                other: 'We raden aan om de accounts veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <bullet-list><bullet-item>Openstaande goedkeuringen</bullet-item><bullet-item>Actieve terugbetalingen</bullet-item><bullet-item>Geen alternatieve inlogmethoden</bullet-item></bullet-list>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde accounts geforceerd sluiten.',
             }),
             error: {
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
@@ -8505,6 +8559,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Je kunt geen vakantiemandataris instellen voor ${email} omdat die persoon momenteel gedelegeerde is voor de volgende leden:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Weet je het zeker? Hiermee wordt het account van <strong>${email}</strong> vergrendeld. <br /><br /> Ons team zal het account vervolgens beoordelen en ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moeten ze samenwerken met Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt:
+                'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
         },
         common: {
             settings: 'Instellingen',

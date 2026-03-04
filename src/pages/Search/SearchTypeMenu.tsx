@@ -50,6 +50,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         'CreditCard',
         'MoneyHourglass',
         'CreditCardHourglass',
+        'ExpensifyCard',
         'Bank',
         'User',
         'Folder',

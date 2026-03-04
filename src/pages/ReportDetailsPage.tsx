@@ -1,6 +1,6 @@
 import {StackActions} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -875,7 +875,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, ancestors);
+            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
             return;
         }
 
@@ -928,6 +928,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         currentSearchHash,
         removeTransaction,
+        conciergeReportID,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
@@ -1024,7 +1025,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateToTargetUrl();
-            deleteTransaction();
+            // Delay deletion until the RHP close animation finishes to prevent a brief
+            // "Not Found" flash inside the animating-out panel on slower devices.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                deleteTransaction();
+            });
         });
     }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
 
