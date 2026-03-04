@@ -81,7 +81,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 iconFill={hasSettingsErrors ? theme.danger : undefined}
                 iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={shouldUseNarrowLayout ? [styles.flexGrow0, styles.mb3] : undefined}
             />
         </View>
     ) : null;
