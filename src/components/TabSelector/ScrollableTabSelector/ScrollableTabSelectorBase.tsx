@@ -1,10 +1,11 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import ScrollView from '@components/ScrollView';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import type {TabSelectorBaseProps} from '@components/TabSelector/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
 import ScrollableTabSelectorItem from './ScrollableTabSelectorItem';
 
@@ -29,6 +30,16 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
     const {containerRef, onContainerLayout, onContainerScroll} = useContext(ScrollableTabSelectorContext);
+
+    // After a tab change, reset affectedAnimatedTabs once the transition is done so
+    // tabs settle back into the default animated state.
+    useEffect(() => {
+        const timerID = setTimeout(() => {
+            setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
+        }, CONST.ANIMATED_TRANSITION);
+
+        return () => clearTimeout(timerID);
+    }, [defaultAffectedAnimatedTabs, activeIndex]);
 
     return (
         <ScrollView

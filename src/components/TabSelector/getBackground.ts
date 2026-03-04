@@ -15,7 +15,7 @@ function getBackgroundColor({routesLength, tabIndex, affectedTabs, theme, positi
             }) as unknown as Animated.AnimatedInterpolation<string>;
         }
 
-        return isActive ? theme.border : theme.appBG;
+        return affectedTabs.includes(tabIndex) && isActive ? theme.border : theme.appBG;
     }
 
     return theme.border;
