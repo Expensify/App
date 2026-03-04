@@ -78,10 +78,28 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
     const policyData = usePolicyData(policyID);
 
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    const backTo = route.params?.backTo;
     const categoryId = route.params?.categoryId;
+    const featureName = route.params?.featureName;
 
     const defaultApprover = getDefaultApprover(policy);
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+
+    const perDiemCustomUnitID = perDiemCustomUnit?.customUnitID;
+    const policyXeroConfig = policy?.connections?.xero?.config;
+    const policyXeroData = policy?.connections?.xero?.data;
+    const qboSyncClasses = qboConfig?.syncClasses;
+    const qboSyncCustomers = qboConfig?.syncCustomers;
+    const qboSyncLocations = qboConfig?.syncLocations;
+
+    //  perDiemCustomUnit?.customUnitID,
+    //     policy?.connections?.xero?.config,
+    //     policy?.connections?.xero?.data,
+    //     policyID,
+    //     qboConfig?.syncClasses,
+    //     qboConfig?.syncCustomers,
+    //     qboConfig?.syncLocations,
+    //     route.params?.featureName,
 
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
@@ -92,18 +110,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
                 Navigation.goBack();
-                if (route.params.backTo) {
-                    Navigation.navigate(route.params.backTo);
+                if (backTo) {
+                    Navigation.navigate(backTo);
                 }
                 return;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
-                switch (route.params.featureName) {
+                switch (featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
                         return Navigation.goBack(ROUTES.WORKSPACE_REPORTS.getRoute(policyID));
                     default: {
                         Navigation.goBack();
-                        if (route.params.backTo) {
-                            Navigation.navigate(route.params.backTo);
+                        if (backTo) {
+                            Navigation.navigate(backTo);
                         }
                         return;
                     }
@@ -115,9 +133,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
-                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
+                return backTo ? Navigation.goBack(backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
+    }, [feature, policyID, backTo, featureName, featureNameAlias]);
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
@@ -159,9 +177,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
-                        const {trackingCategories} = policy?.connections?.xero?.data ?? {};
+                        const {trackingCategories} = policyXeroData ?? {};
                         const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-                        const {mappings} = policy?.connections?.xero?.config ?? {};
+                        const {mappings} = policyXeroConfig ?? {};
                         const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
                         updateXeroMappings(
                             policyID,
@@ -182,7 +200,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enableCompanyCards(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
+                enablePerDiem(policyID, true, perDiemCustomUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
                 setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
@@ -193,9 +211,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         feature,
         policyData,
-        perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
+        perDiemCustomUnitID,
+        policyXeroConfig,
+        policyXeroData,
         policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,

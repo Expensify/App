@@ -4,8 +4,7 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyCategories} from '@src/types/onyx';
-import {type Policy, type PolicyTagLists, type Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
