@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
@@ -64,16 +64,8 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
         policy,
     });
 
-    const ancestorsRef = useRef<ReturnType<typeof useAncestors>>([]);
     const ancestors = useAncestors(originalReport);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(originalReport?.iouReportID);
-
-    useEffect(() => {
-        if (!originalReport) {
-            return;
-        }
-        ancestorsRef.current = ancestors;
-    }, [originalReport, ancestors]);
 
     const [isVisible, setIsVisible] = useState(true);
     const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
@@ -105,7 +97,7 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(report, reportAction, ancestors, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
             });
         }
 
