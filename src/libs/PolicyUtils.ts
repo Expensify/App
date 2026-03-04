@@ -1018,15 +1018,15 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getPersonalDetailByEmail(defaultApprover)?.accountID ?? -1;
+        return getPersonalDetailByEmail(defaultApprover)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
     if (!employee && !defaultApprover) {
-        return -1;
+        return CONST.DEFAULT_NUMBER_ID;
     }
 
-    return getPersonalDetailByEmail(employee?.submitsTo ?? defaultApprover)?.accountID ?? -1;
+    return getPersonalDetailByEmail(employee?.submitsTo ?? defaultApprover)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
 /**
@@ -1093,7 +1093,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 
                 const ruleApprover = firstCategoryApprover || firstTagApprover;
                 if (ruleApprover) {
-                    return getPersonalDetailByEmail(ruleApprover)?.accountID ?? -1;
+                    return getPersonalDetailByEmail(ruleApprover)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 }
             }
         }
