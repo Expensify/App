@@ -26,12 +26,12 @@ import {
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {RESTRICTED_READONLY_ACTION_IDS} from './actions/actionConfig';
+import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
 const EMPTY_SET = new Set<string>();
 

@@ -394,11 +394,19 @@ function MiniReportActionContextMenu() {
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(true, shouldUseNarrowLayout);
 
+    const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+        if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
+            return;
+        }
+        hideMiniContextMenu();
+    };
+
     return createPortal(
-        // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
         <div
             onMouseEnter={cancelHide}
             onMouseLeave={() => hideMiniContextMenu()}
+            onFocusCapture={cancelHide}
+            onBlurCapture={handleBlur}
             data-selection-scraper-hidden-element={isVisible}
             style={{
                 position: 'fixed',
