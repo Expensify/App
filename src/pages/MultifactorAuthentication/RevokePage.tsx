@@ -102,8 +102,8 @@ function MultifactorAuthenticationRevokePage() {
     );
 
     const revokeOtherDevices = useCallback(
-        async (currentDeviceKeyID: string | undefined) => {
-            const params = currentDeviceKeyID ? {exceptKeyID: currentDeviceKeyID} : {};
+        async (currentDeviceKeyID: string) => {
+            const params = {exceptKeyID: currentDeviceKeyID};
             await executeRevoke(params, setIsOtherDevicesLoading);
         },
         [executeRevoke],
@@ -125,11 +125,9 @@ function MultifactorAuthenticationRevokePage() {
             }
             await revokeThisDevice(localPublicKey);
         } else if (confirmMode === 'single' || confirmMode === 'multiple') {
-            if (!localPublicKey) {
-                hideConfirmModal();
-                return;
+            if (localPublicKey) {
+                await revokeOtherDevices(localPublicKey);
             }
-            await revokeOtherDevices(localPublicKey);
         } else if (confirmMode === 'all') {
             await revokeAll();
         }
@@ -210,9 +208,6 @@ function MultifactorAuthenticationRevokePage() {
                                                 isLoading={isOtherDevicesLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
                                                 onPress={() => {
-                                                    if (!localPublicKey) {
-                                                        return;
-                                                    }
                                                     showConfirmModal(otherDevicesConfirmMode());
                                                 }}
                                             />
