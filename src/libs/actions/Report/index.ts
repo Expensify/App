@@ -2357,9 +2357,11 @@ function deleteReportComment(
     // By convention, the backend creates the whisper at parentCommentID + 1.
     const mentionWhisperID = String(BigInt(reportActionID) + 1n);
     const mentionWhisper = allReportActions?.[originalReportID]?.[mentionWhisperID];
-    const mentionWhisperOriginalMessage = mentionWhisper ? ReportActionsUtils.getOriginalMessage(mentionWhisper) : undefined;
+    // Use isActionableMentionWhisper as a type guard so TypeScript narrows the original message type.
     const shouldOptimisticallyDeleteMentionWhisper =
-        mentionWhisper?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER && !mentionWhisperOriginalMessage?.resolution && !mentionWhisperOriginalMessage?.deleted;
+        ReportActionsUtils.isActionableMentionWhisper(mentionWhisper) &&
+        !ReportActionsUtils.getOriginalMessage(mentionWhisper)?.resolution &&
+        !ReportActionsUtils.getOriginalMessage(mentionWhisper)?.deleted;
     if (shouldOptimisticallyDeleteMentionWhisper) {
         optimisticReportActions[mentionWhisperID] = {
             originalMessage: {deleted: DateUtils.getDBTime()},
