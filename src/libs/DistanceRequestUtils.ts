@@ -6,6 +6,7 @@ import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@sr
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {replaceAllDigits} from './MoneyRequestUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
@@ -136,7 +137,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
-function getRateForDisplay(
+function getFormattedRateValue(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -159,6 +160,33 @@ function getRateForDisplay(
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
+}
+
+/**
+ * Get the rate title to display on the expense page.
+ * If the rate is out of policy, displays "Rate out of policy".
+ * For workspace expenses, shows the rate name (e.g., "Default Rate") so that updating a rate's
+ * value on the workspace does not retroactively change the displayed rate on historical expenses.
+ * For P2P expenses (no rate name), shows the formatted rate value (e.g., "$0.67 / mi").
+ */
+function getRateForExpenseDisplay(
+    rateName: string | undefined,
+    isCustomUnitOutOfPolicy: boolean,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string | undefined,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isOffline?: boolean,
+): string {
+    if (isCustomUnitOutOfPolicy) {
+        return translate('common.rateOutOfPolicy');
+    }
+    if (rateName) {
+        return rateName;
+    }
+    return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 }
 
 /**
@@ -234,7 +262,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
+    const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
@@ -269,6 +297,15 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
 }
 
 /**
+ * Rounds a distance (already in the target unit) to 2 decimal places,
+ * multiplies by the rate, and rounds to the nearest integer (cents).
+ */
+function roundDistanceAmount(distanceInUnits: number, rate: number): number {
+    const roundedDistance = parseFloat(distanceInUnits.toFixed(2));
+    return Math.round(roundedDistance * rate);
+}
+
+/**
  * Calculates the expense amount based on distance, unit, and rate.
  *
  * @param distance - The distance traveled in meters
@@ -277,9 +314,7 @@ function getRateForP2P(currency: string, transaction: OnyxEntry<Transaction>): M
  * @returns The computed expense amount (rounded) in "cents".
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
-    const convertedDistance = convertDistanceUnit(distance, unit);
-    const roundedDistance = parseFloat(convertedDistance.toFixed(2));
-    return Math.round(roundedDistance * rate);
+    return roundDistanceAmount(convertDistanceUnit(distance, unit), rate);
 }
 
 /**
@@ -303,12 +338,14 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
+    isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+    isTrackDistanceExpense?: boolean;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -324,11 +361,12 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    if (isPolicyExpenseChat) {
+    // For TrackDistanceExpense we will return the default rate of the policyForMovingExpenses.
+    if (isPolicyExpenseChat || isTrackDistanceExpense) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+        if (!isTrackDistanceExpense && lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             const defaultMileageRate = getDefaultMileageRate(policy);
@@ -373,16 +411,19 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
+    policyForMovingExpenses,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
+    const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -393,8 +434,10 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
+    const isUnreportedExpense = isExpenseUnreported(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+    const customMileageRate =
+        (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
@@ -423,11 +466,35 @@ function getRateByCustomUnitRateID({customUnitRateID, policy}: {customUnitRateID
     return getMileageRates(policy, true, customUnitRateID)[customUnitRateID];
 }
 
+/**
+ * Returns whether the calculated distance expense amount (distance * rate) is within the backend's safe limit.
+ * The backend WAF rejects amounts exceeding 12 digits (999,999,999,999 cents).
+ *
+ * @param distance - The distance in the unit specified (km or mi), NOT meters
+ * @param rate - The rate in cents per unit
+ * @returns true if the amount is within limits, false if it would exceed the backend limit
+ */
+function isDistanceAmountWithinLimit(distance: number, rate: number): boolean {
+    return Math.abs(roundDistanceAmount(distance, rate)) <= CONST.IOU.MAX_SAFE_AMOUNT;
+}
+
+/**
+ * Normalize odometer text by standardizing locale digits and stripping all
+ * non-numeric characters except the decimal point. fromLocaleDigit converts
+ * each locale character to its standard equivalent (e.g. German ',' → '.'
+ * for decimal, German '.' → ',' for group separator), then we keep only
+ * digits and the standard decimal point.
+ */
+function normalizeOdometerText(text: string, fromLocaleDigit: (char: string) => string): string {
+    const standardized = replaceAllDigits(text, fromLocaleDigit);
+    return standardized.replaceAll(/[^0-9.]/g, '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
-    getRateForDisplay,
+    getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
@@ -441,6 +508,9 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    getRateForExpenseDisplay,
+    isDistanceAmountWithinLimit,
+    normalizeOdometerText,
 };
 
 export type {MileageRate};
