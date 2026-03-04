@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -66,6 +66,7 @@ function IOURequestStepMerchant({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
 
     const updateHasUnsavedChanges = useCallback(
         (value: string) => {
@@ -83,6 +84,13 @@ function IOURequestStepMerchant({
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
+
+    useEffect(() => {
+        if (!isSaved) {
+            return;
+        }
+        navigateBack();
+    }, [isSaved, navigateBack]);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -109,12 +117,12 @@ function IOURequestStepMerchant({
 
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
-            navigateBack();
+            setIsSaved(true);
             return;
         }
 
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-            navigateBack();
+            setIsSaved(true);
             return;
         }
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
@@ -133,8 +141,7 @@ function IOURequestStepMerchant({
                 parentReportNextStep,
             });
         }
-
-        navigateBack();
+        setIsSaved(true);
     };
 
     return (
