@@ -43,6 +43,18 @@ describe('PolicyUtils', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                rules: {
+                    approvalRules: Array.from(Array(10000), () => ({
+                        applyWhen: [
+                            {
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                field: CONST.POLICY.FIELDS.CATEGORY,
+                                value: '',
+                            },
+                        ],
+                        approver: 'approver@gmail.com',
+                    })),
+                },
             };
             const expenseReport: Report = {
                 ...createRandomReport(0, undefined),
@@ -57,35 +69,67 @@ describe('PolicyUtils', () => {
             await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
         });
 
-        test('not a submit and close policy', async () => {
-            const category = 'Car';
-            const policy: Policy = {
-                ...createRandomPolicy(0),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                rules: {
-                    approvalRules: Array.from(Array(100), () => ({
-                        applyWhen: [
-                            {
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                field: CONST.POLICY.FIELDS.CATEGORY,
-                                value: category,
-                            },
-                        ],
-                        approver: 'approver@gmail.com',
-                    })),
-                },
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            const transactions = createCollection<Transaction>(
-                (transaction) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                (index) => ({...createRandomTransaction(index), reportID: expenseReport.reportID, category: ''}),
-                10000,
-            );
-            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-            await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+        describe('not a submit and close policy', () => {
+            test('policy has category approval rules, but all transactions have no category', async () => {
+                const category = 'Car';
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    rules: {
+                        approvalRules: Array.from(Array(10000), () => ({
+                            applyWhen: [
+                                {
+                                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                    field: CONST.POLICY.FIELDS.CATEGORY,
+                                    value: category,
+                                },
+                            ],
+                            approver: 'approver@gmail.com',
+                        })),
+                    },
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transactions = createCollection<Transaction>(
+                    (transaction) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    (index) => ({...createRandomTransaction(index), reportID: expenseReport.reportID, category: ''}),
+                    10000,
+                );
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+            });
+
+            test('all transactions have category, but no category approval rules', async () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    rules: {
+                        approvalRules: Array.from(Array(10000), () => ({
+                            applyWhen: [
+                                {
+                                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                    field: CONST.POLICY.FIELDS.TAX,
+                                    value: '',
+                                },
+                            ],
+                            approver: 'approver@gmail.com',
+                        })),
+                    },
+                };
+                const expenseReport: Report = {
+                    ...createRandomReport(0, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                const transactions = createCollection<Transaction>(
+                    (transaction) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    (index) => ({...createRandomTransaction(index), reportID: expenseReport.reportID}),
+                    10000,
+                );
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+            });
         });
     });
 });
