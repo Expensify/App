@@ -421,7 +421,7 @@ function ReportActionsView({
                 showHiddenHistory={!showFullHistory}
                 hasPreviousMessages={hasPreviousMessages}
                 onShowPreviousMessages={handleShowPreviousMessages}
-                isConciergeProcessing={isConciergeProcessing}
+                isConciergeProcessing={isConciergeProcessing && !showConciergeSidePanelWelcome}
                 conciergeReasoningHistory={conciergeReasoningHistory}
                 conciergeStatusLabel={conciergeStatusLabel}
             />

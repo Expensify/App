@@ -114,6 +114,7 @@ const renderReportActionsView = (
         reportActions?: OnyxTypes.ReportAction[];
         parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
         isLoadingInitialReportActions?: boolean;
+        hasOnceLoadedReportActions?: boolean;
         transactionThreadReportID?: string | null;
         hasNewerActions: boolean;
         hasOlderActions: boolean;
@@ -127,6 +128,7 @@ const renderReportActionsView = (
         reportActions: mockReportActions,
         parentReportAction: null as unknown as OnyxEntry<OnyxTypes.ReportAction>,
         isLoadingInitialReportActions: false,
+        hasOnceLoadedReportActions: true,
         hasNewerActions: false,
         hasOlderActions: false,
         ...props,
