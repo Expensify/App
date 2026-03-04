@@ -168,6 +168,8 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
     }, []);
 }
 
+const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
+
 export {
     domainMemberSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -185,6 +187,7 @@ export {
     isSecurityGroupEntry,
     groupsSelector,
     vacationDelegateSelector,
+    accountLockSelector,
 };
 
 export {type DomainSecurityGroupWithID};
