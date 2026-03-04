@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
@@ -35,6 +36,11 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
 
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'EmptyCardView',
+        isBankAccountVerified,
+    };
+
     return (
         <ScrollView
             contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
@@ -43,6 +49,7 @@ function EmptyCardView({isBankAccountVerified, policyID, buttons}: EmptyCardView
             <View style={[{minHeight: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
+                    skeletonReasonAttributes={skeletonReasonAttributes}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={isBankAccountVerified ? lazyIllustrations.EmptyCardState : lazyIllustrations.CompanyCardsPendingState}
                     headerStyles={
