@@ -134,9 +134,13 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                 }
                 if (fs.statSync(entryPath).isDirectory()) {
                     for (const file of fs.readdirSync(entryPath)) {
-                        if (!file.endsWith('.md')) continue;
+                        if (!file.endsWith('.md')) {
+                            continue;
+                        }
                         const filePath = `${entryPath}/${file}`;
-                        if (!fs.statSync(filePath).isFile()) continue;
+                        if (!fs.statSync(filePath).isFile()) {
+                            continue;
+                        }
                         const order = getOrderFromArticleFrontMatter(filePath);
                         articles.push(getArticleObj(`${entry}/${file}`, order));
                     }
