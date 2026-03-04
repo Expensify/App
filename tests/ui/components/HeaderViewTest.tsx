@@ -6,6 +6,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/inbox/HeaderView';
@@ -49,6 +50,7 @@ describe('HeaderView', () => {
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
     });
 
     it('should update invoice room title when the invoice receiver detail is updated', async () => {
@@ -150,6 +152,7 @@ describe('HeaderView', () => {
 
         const threadReport = {
             ...createRandomReport(Number(threadReportID), undefined),
+            type: CONST.REPORT.TYPE.CHAT,
             parentReportID,
             parentReportActionID: parentReportAction.reportActionID,
         };
