@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line @typescript-eslint/naming-convention
