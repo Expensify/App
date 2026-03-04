@@ -178,4 +178,30 @@ describe('DistanceRequestUtils', () => {
             expect(result).toBe('0.00 mi @ $0.67 / mi');
         });
     });
+
+    describe('getRateForExpenseDisplay', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
+
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
+            expect(result).toBe('Default Rate');
+        });
+
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
 });

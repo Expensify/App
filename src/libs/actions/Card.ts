@@ -32,6 +32,7 @@ import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -1157,13 +1158,14 @@ type DeletePersonalCardData = {
     card?: Card;
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report>;
+    savedColumnLayout?: SavedCSVColumnLayoutData;
 };
 
 /**
  * Deletes a personal card (CSV-imported card) and its associated transactions.
  * The backend will handle deleting transactions on unsubmitted/open reports.
  */
-function deletePersonalCard({cardID, card, allTransactions, allReports}: DeletePersonalCardData) {
+function deletePersonalCard({cardID, card, allTransactions, allReports, savedColumnLayout}: DeletePersonalCardData) {
     // Find all transactions associated with this card that are on open/unsubmitted reports
     // This matches the backend logic which only deletes transactions on open reports
     const transactionsToDelete: Transaction[] = [];
@@ -1173,8 +1175,8 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
         }
     }
 
-    // Optimistically remove the card immediately for instant UI feedback
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    // Optimistically remove the card and its saved column layout immediately for instant UI feedback
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -1182,9 +1184,16 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
                 [cardID]: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -1197,6 +1206,17 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
             },
         },
     ];
+
+    // Restore the saved column layout on failure if it existed
+    if (savedColumnLayout) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+            value: {
+                [cardID]: savedColumnLayout,
+            },
+        });
+    }
 
     // Optimistically delete transactions and prepare failure data to restore them
     for (const transaction of transactionsToDelete) {
