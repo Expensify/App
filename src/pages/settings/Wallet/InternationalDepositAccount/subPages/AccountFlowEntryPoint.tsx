@@ -118,6 +118,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
                         <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                         <View style={styles.ml1}>

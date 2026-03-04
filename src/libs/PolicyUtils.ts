@@ -1201,10 +1201,10 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
-    if (!policy?.hasMultipleTagLists) {
+    if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
 }
 
 /** Get the Xero organizations connected to the policy */
