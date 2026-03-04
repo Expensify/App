@@ -202,10 +202,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [reportID, transaction?.transactionID, transactionViolations]);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const targetPolicyTags = useMemo(
-        () => (defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {}),
-        [allPolicyTags, defaultExpensePolicy],
-    );
+    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
