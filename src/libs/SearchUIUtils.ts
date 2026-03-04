@@ -91,7 +91,7 @@ import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {doesCardFeedExist, getCardDescription, getFeedNameForDisplay} from './CardUtils';
-import {getDecodedCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -131,6 +131,7 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport,
     isInvoiceReport,
     isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
@@ -147,7 +148,9 @@ import {
     getDescription,
     getExchangeRate,
     getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
     getTag,
+    getTagForDisplay,
     getTaxAmount,
     getTaxName,
     getAmount as getTransactionAmount,
@@ -1103,7 +1106,7 @@ function getTransactionItemCommonFormattedProperties(
 
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
-    const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+    const date = getTransactionCreatedDate(transactionItem);
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
     const submitted = report?.submitted;
@@ -1721,8 +1724,12 @@ function getTransactionsSections({
         const transaction = data[key];
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? [];
+        const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transaction.reportID}`] ?? {};
+
         const reportAction = moneyRequestReportActionsByTransactionID.get(transaction.transactionID);
         const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transaction.reportID}`);
+        const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
 
         let shouldShowTransaction = !!transaction.transactionID;
 
@@ -1739,7 +1746,7 @@ function getTransactionsSections({
             }
         }
 
-        if (!shouldShowTransaction) {
+        if (!shouldShowTransaction || !transaction) {
             continue;
         }
 
@@ -1763,23 +1770,33 @@ function getTransactionsSections({
         );
 
         // Handle the date
-        measurements.date = Math.max(measurements.date);
+        const datePixelWidth = (date?.length ?? 0) * averageCharacterLengthWithPadding;
+        measurements.date = Math.max(measurements.date, datePixelWidth);
 
         // Handle the merchant
-        measurements.merchant = Math.max(measurements.merchant);
+        const merchantPixelWidth = (formattedMerchant?.length ?? 0) * averageCharacterLengthWithPadding;
+        measurements.merchant = Math.max(measurements.merchant, merchantPixelWidth);
 
         // Handle the category
-        measurements.category = Math.max(measurements.category);
+        const formattedCategory = isCategoryMissing(transaction?.category) ? '' : getDecodedCategoryName(transaction?.category ?? '');
+        const categoryPixelWidth = (formattedCategory?.length ?? 0) * averageCharacterLengthWithPadding;
+        measurements.category = Math.max(measurements.category, categoryPixelWidth);
 
         // Handle the tag
-        measurements.tag = Math.max(measurements.tag);
+        const formattedTag = getTagForDisplay(transaction);
+        const tagPixelWidth = (formattedTag?.length ?? 0) * averageCharacterLengthWithPadding;
+        measurements.tag = Math.max(measurements.tag, tagPixelWidth);
 
         // Handle the amount
-        measurements.amount = Math.max(measurements.amount);
-        
+        const currency = getOriginalCurrencyForDisplay(transaction);
+        const amountForDisplay = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        const formattedAmount = convertToDisplayString(amountForDisplay, currency);
+        const amountPixelWidth = formattedAmount.length * averageCharacterLengthWithPadding;
+        measurements.amount = Math.max(measurements.amount, amountPixelWidth);
+
         // Handle the exchange rate
         measurements.exchangeRate = Math.max(measurements.exchangeRate);
-        
+
         // Handle the description
         measurements.description = Math.max(measurements.description);
 
@@ -1788,7 +1805,7 @@ function getTransactionsSections({
 
         // Handle the billable
         measurements.billable = Math.max(measurements.billable);
-        
+
         // Handle the title
         measurements.title = Math.max(measurements.title);
 
@@ -1806,83 +1823,58 @@ function getTransactionsSections({
 
         // Handle the original amount
         measurements.originalAmount = Math.max(measurements.originalAmount);
-        
+
         // Handle long report ID
         measurements.longReportID = Math.max(measurements.longReportID);
 
         // Handle exported date
         measurements.exportedDate = Math.max(measurements.exportedDate);
-        
+
         // Handle submitted date
         measurements.submittedDate = Math.max(measurements.submittedDate);
 
         // Handle approved date
         measurements.approvedDate = Math.max(measurements.approvedDate);
-        
+
         // Handle posted date
         measurements.postedDate = Math.max(measurements.postedDate);
 
-        
+        const transactionSection: TransactionListItemType = {
+            ...transaction,
+            keyForList: transaction.transactionID,
+            action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+            allActions,
+            report,
+            policy,
+            reportAction,
+            holdReportAction: holdReportActionsByTransactionID.get(transaction.transactionID),
+            from,
+            to,
+            formattedFrom,
+            formattedTo: shouldShowBlankTo ? '' : formattedTo,
+            formattedTotal,
+            formattedMerchant,
+            isCardFeedDeleted,
+            date,
+            submitted,
+            approved,
+            posted,
+            exported: transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '',
+            shouldShowMerchant,
+            shouldShowYear: shouldShowYearCreated,
+            shouldShowYearSubmitted,
+            shouldShowYearApproved,
+            shouldShowYearPosted,
+            shouldShowYearExported,
+            isAmountColumnWide: shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
+            violations: transactionViolations,
+            category: isIOUReport ? '' : transaction?.category,
+        };
 
-
-        // if (shouldShow) {
-        //     const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-        //     const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
-        //     // Use Map.get() for faster lookups with default values
-        //     const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
-        //     const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-        //     const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
-        //     const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
-        //     // Check if the card feed has been deleted. If cardFeeds is still loading (undefined), return undefined to avoid showing incorrect state.
-        //     const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transactionItem.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
-
-        //     const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
-        //         transactionItem,
-        //         from,
-        //         to,
-        //         policy,
-        //         formatPhoneNumber,
-        //         report,
-        //     );
-        //     const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
-        //     const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
-        //     const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
-        //     const transactionSection: TransactionListItemType = {
-        //         ...transactionItem,
-        //         keyForList: transactionItem.transactionID,
-        //         action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-        //         allActions,
-        //         report,
-        //         policy,
-        //         reportAction,
-        //         holdReportAction: holdReportActionsByTransactionID.get(transactionItem.transactionID),
-        //         from,
-        //         to,
-        //         formattedFrom,
-        //         formattedTo: shouldShowBlankTo ? '' : formattedTo,
-        //         formattedTotal,
-        //         formattedMerchant,
-        //         isCardFeedDeleted,
-        //         date,
-        //         submitted,
-        //         approved,
-        //         posted,
-        //         exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
-        //         shouldShowMerchant,
-        //         shouldShowYear: shouldShowYearCreated,
-        //         shouldShowYearSubmitted,
-        //         shouldShowYearApproved,
-        //         shouldShowYearPosted,
-        //         shouldShowYearExported,
-        //         isAmountColumnWide: shouldShowAmountInWideColumn,
-        //         isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-        //         violations: transactionViolations,
-        //         category: isIOUReport ? '' : transactionItem?.category,
-        //     };
-
-        //     transactionsSections.push(transactionSection);
-        }
+        transactionsSections.push(transactionSection);
     }
+
     return [transactionsSections, transactionsSections.length];
 }
 
