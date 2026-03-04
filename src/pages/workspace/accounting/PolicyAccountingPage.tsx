@@ -319,7 +319,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
-                        badgeSuccess: isXero,
+                        isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
                             <Button
