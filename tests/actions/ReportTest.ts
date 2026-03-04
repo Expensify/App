@@ -27,6 +27,7 @@ import DateUtils from '@src/libs/DateUtils';
 import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -73,15 +74,19 @@ jest.mock('@libs/ReportUtils', () => {
 /* eslint-enable @typescript-eslint/no-unsafe-assignment */
 
 const currentHash = 12345;
-jest.mock('@src/libs/SearchQueryUtils', () => ({
-    getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
-        hash: currentHash,
-        query: 'test',
-        type: 'expense',
-        status: '',
-        flatFilters: [],
-    })),
-}));
+jest.mock('@src/libs/SearchQueryUtils', () => {
+    const originalSearchQueryModule = jest.requireActual<typeof SearchQueryUtilsType>('@src/libs/SearchQueryUtils');
+    return {
+        ...originalSearchQueryModule,
+        getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
+            hash: currentHash,
+            query: 'test',
+            type: 'expense',
+            status: '',
+            flatFilters: [],
+        })),
+    };
+});
 
 const UTC = 'UTC';
 jest.mock('@src/libs/actions/Report', () => {
@@ -452,7 +457,7 @@ describe('actions/Report', () => {
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID, TEST_INTRO_SELECTED);
-                Report.readNewestAction(REPORT_ID);
+                Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
             })
@@ -538,6 +543,7 @@ describe('actions/Report', () => {
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
                     shouldShow: true,
                     created: DateUtils.getDBTime(Date.now() - 3),
+                    reportID: REPORT_ID,
                 };
 
                 const optimisticReportActions: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -2340,6 +2346,7 @@ describe('actions/Report', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                 userReportedIntegration: null,
                 introSelected: {choice: engagementChoice},
+                betas: [CONST.BETAS.ALL],
             });
 
             await waitForBatchedUpdates();
@@ -3520,6 +3527,7 @@ describe('actions/Report', () => {
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             userReportedIntegration: null,
             introSelected: {choice: engagementChoice},
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdates();
