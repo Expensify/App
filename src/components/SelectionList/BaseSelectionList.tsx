@@ -181,7 +181,7 @@ function BaseSelectionList<TItem extends ListItem>({
         setShouldDisableHoverStyle(true);
     }, [setShouldDisableHoverStyle]);
 
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
@@ -319,16 +319,6 @@ function BaseSelectionList<TItem extends ListItem>({
         );
     };
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
         const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
@@ -336,51 +326,41 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
-            <View
-                onMouseMove={() => setCurrentHoverIndex(index)}
-                onMouseEnter={() => setCurrentHoverIndex(index)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
+            <ListItemRenderer
+                ListItem={ListItem}
+                selectRow={selectRow}
+                showTooltip={shouldShowTooltips}
+                item={{
+                    shouldAnimateInHighlight: isItemHighlighted,
+                    isSelected: selected,
+                    ...item,
                 }}
-            >
-                <ListItemRenderer
-                    ListItem={ListItem}
-                    selectRow={selectRow}
-                    showTooltip={shouldShowTooltips}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        isSelected: selected,
-                        ...item,
-                    }}
-                    setFocusedIndex={setFocusedIndex}
-                    index={index}
-                    isFocused={isItemFocused}
-                    isDisabled={isItemDisabled}
-                    canSelectMultiple={canSelectMultiple}
-                    onDismissError={onDismissError}
-                    onLongPressRow={onLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    rightHandSideComponent={rightHandSideComponent}
-                    isMultilineSupported={isRowMultilineSupported}
-                    isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
-                    alternateTextNumberOfLines={alternateNumberOfSupportedLines}
-                    shouldIgnoreFocus={shouldIgnoreFocus}
-                    titleStyles={style?.listItemTitleStyles}
-                    wrapperStyle={style?.listItemWrapperStyle}
-                    titleContainerStyles={style?.listItemTitleContainerStyles}
-                    errorRowStyles={style?.listItemErrorRowStyles}
-                    singleExecution={singleExecution}
-                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                    shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
-                    shouldShowRightCaret={shouldShowRightCaret}
-                />
-            </View>
+                setFocusedIndex={setFocusedIndex}
+                index={index}
+                isFocused={isItemFocused}
+                isDisabled={isItemDisabled}
+                canSelectMultiple={canSelectMultiple}
+                onDismissError={onDismissError}
+                onLongPressRow={onLongPressRow}
+                onCheckboxPress={onCheckboxPress}
+                shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
+                isMultilineSupported={isRowMultilineSupported}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
+                alternateTextNumberOfLines={alternateNumberOfSupportedLines}
+                shouldIgnoreFocus={shouldIgnoreFocus}
+                titleStyles={style?.listItemTitleStyles}
+                wrapperStyle={style?.listItemWrapperStyle}
+                titleContainerStyles={style?.listItemTitleContainerStyles}
+                errorRowStyles={style?.listItemErrorRowStyles}
+                singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+                shouldShowRightCaret={shouldShowRightCaret}
+            />
         );
     };
 
