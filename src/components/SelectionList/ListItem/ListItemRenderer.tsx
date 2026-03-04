@@ -49,7 +49,6 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
     shouldShowRightCaret,
     errorRowStyles,
 }: ListItemRendererProps<TItem>) {
@@ -106,7 +105,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
                 shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}

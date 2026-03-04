@@ -41,7 +41,7 @@ type SearchTypeMenuItemProps = {
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, wrapperStyle, badgeStyle, sentryLabel}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, wrapperStyle, badgeStyle, isBadgeSuccess, sentryLabel}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -83,6 +83,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, w
                         <Badge
                             text={badgeText}
                             badgeStyles={badgeStyle}
+                            success
                         />
                     )}
                 </>
