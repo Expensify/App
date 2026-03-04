@@ -6502,7 +6502,7 @@ describe('actions/IOU', () => {
                 );
         });
 
-        it('shows an error when paying results in an error', () => {
+        it('does not set a client-side generic error on the report action when paying fails', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
 
@@ -6608,7 +6608,10 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connection);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {}).at(0)).toEqual(translateLocal('iou.error.other'));
+                                    // After removing the client-side generic error from failureData,
+                                    // no report action should have a client-set error. The backend's
+                                    // actual error message (via onyxData) will be preserved instead.
+                                    expect(erroredAction).toBeUndefined();
                                     resolve();
                                 },
                             });
