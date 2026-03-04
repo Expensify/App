@@ -42,22 +42,16 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const getSelectedTransactions = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) => {
-            if (!allTransactions) {
-                return {};
-            }
-            return Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
-                const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (transaction) {
-                    acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-                }
-                return acc;
-            }, {});
-        },
-        [selectedIds],
-    );
-    const [selectedTransactions = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: getSelectedTransactions});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const selectedTransactions = !allTransactions
+        ? CONST.EMPTY_OBJECT
+        : Array.from(selectedIds).reduce<Record<string, Transaction>>((acc, id) => {
+              const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+              if (transaction) {
+                  acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+              }
+              return acc;
+          }, {});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
