@@ -7,6 +7,7 @@
  */
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import Log from '@libs/Log';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,7 +88,7 @@ function init() {
                 const dependencyIndex = i;
                 const dependencyOnyxKey = dependencies[dependencyIndex];
 
-                if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                if (OnyxKeys.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connectWithoutView({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
