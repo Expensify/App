@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToSCV} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {hasDomainMemberDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -123,9 +123,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
-    const onDownloadCSV = async () => {
+    const onDownloadCSV = () => {
         if (isOffline) {
-            await showConfirmModal({
+            showConfirmModal({
                 title: translate('common.youAppearToBeOffline'),
                 prompt: translate('common.thisFeatureRequiresInternet'),
                 confirmText: translate('common.buttonConfirm'),
@@ -134,7 +134,20 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             });
             return;
         }
-        // API call responsible for downloading members as a CSV file
+        exportMembersToSCV(
+            domainAccountID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    success: false,
+                    shouldHandleNavigationBack: true,
+                });
+            },
+            translate,
+        );
     };
 
     const getHeaderButtons = () => {
