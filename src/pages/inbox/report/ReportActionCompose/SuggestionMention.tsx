@@ -242,8 +242,11 @@ function SuggestionMention({
                 suggestionValues.atSignIndex + Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
             );
 
-            updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend} ${trimLeadingSpace(commentAfterMention)}`, true);
-            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + dotToAppend.length + CONST.SPACE_LENGTH;
+            const trimmedCommentAfterMention = trimLeadingSpace(commentAfterMention);
+            const spacer = !trimmedCommentAfterMention || !CONST.REGEX.STARTS_WITH_PUNCTUATION_WITHOUT_SPACE.test(trimmedCommentAfterMention) ? ' ' : '';
+
+            updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend}${spacer}${trimmedCommentAfterMention}`, true);
+            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + dotToAppend.length + spacer.length;
             setSelection({
                 start: selectionPosition,
                 end: selectionPosition,
