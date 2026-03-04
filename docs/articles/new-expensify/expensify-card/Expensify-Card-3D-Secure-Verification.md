@@ -47,7 +47,7 @@ To update your phone number:
 1. Choose **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Profile**.
 3. Select **Phone number**.
-4. Enter your updated phone number and choose **Savee**
+4. Enter your updated phone number and choose **Save**.
 
 After updating, your new phone number will be used for future 3D Secure SMS codes.
 
