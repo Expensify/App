@@ -166,15 +166,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePolicyAutoReimbursementLimit(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
-                switch (route.params.featureName) {
+                switch (featureName) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
-                        updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
+                        updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboSyncClasses);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.qbo.customers:
-                        updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncCustomers);
+                        updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboSyncCustomers);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
-                        updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+                        updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboSyncLocations);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
                         const {trackingCategories} = policyXeroData ?? {};
@@ -215,10 +215,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         policyXeroConfig,
         policyXeroData,
         policyID,
-        qboConfig?.syncClasses,
-        qboConfig?.syncCustomers,
-        qboConfig?.syncLocations,
-        route.params?.featureName,
+        qboSyncClasses,
+        qboSyncCustomers,
+        qboSyncLocations,
+        featureName,
         featureNameAlias,
         defaultApprover,
     ]);
