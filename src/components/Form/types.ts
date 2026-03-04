@@ -1,5 +1,5 @@
-import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ComponentType, ElementRef, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
+import type {GestureResponderEvent, HostComponent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -125,6 +125,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
+    getNativeRef?: () => ElementRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;

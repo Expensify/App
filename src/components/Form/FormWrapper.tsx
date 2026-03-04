@@ -11,6 +11,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -133,6 +134,8 @@ function FormWrapper({
                 }),
             );
         }
+
+        Accessibility.moveAccessibilityFocus(focusInput?.getNativeRef?.());
 
         // Focus the input after scrolling, as on the Web it gives a slightly better visual result
         focusInput?.focus?.();
