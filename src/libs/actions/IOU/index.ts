@@ -10265,15 +10265,6 @@ function getPayMoneyRequestParams({
     onyxData.failureData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
                 ...iouReport,
