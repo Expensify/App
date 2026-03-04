@@ -2650,25 +2650,11 @@ function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
     return report?.transactionCount === 1;
 }
 
-/**
- * Checks if a report has only one transaction associated with it
- * NOTE: This function should not be exported because it accesses module-level Onyx data (allReportActions, allReports)
- * which can become stale. Each file should implement its own version using local Onyx collections.
- * See tests/actions/EnforceActionExportRestrictions.ts for more details.
- * @deprecated - Use isOneTransactionReport instead
- */
-function isOneTransactionReportDeprecated(report: OnyxEntry<Report>): boolean {
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    return !!getOneTransactionThreadReportID(report, chatReport, reportActions);
-}
-
 /*
  * Whether the report contains only one expense and the expense should be paid later
  */
 function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transaction[] | undefined): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReportDeprecated(report)) {
+    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReport(report)) {
         return false;
     }
 
@@ -3321,7 +3307,7 @@ function getWorkspaceIcon(report: OnyxInputOrEntry<Report>, policy?: OnyxInputOr
     }
 
     const workspaceIcon: Icon = {
-        source: policyExpenseChatAvatarSource ?? '',
+        source: policyExpenseChatAvatarSource || defaultWorkspaceAvatars.WorkspaceBuilding,
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
         id: report?.policyID,
@@ -3593,6 +3579,20 @@ function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetai
             },
         ];
     }
+
+    // When the receiver policy data is not yet loaded in Onyx (e.g. cross-user B2B invoice),
+    // return a placeholder workspace icon so the subscript pair is always shown.
+    if (receiverPolicyID) {
+        return [
+            {
+                source: getDefaultWorkspaceAvatar(''),
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: '',
+                id: receiverPolicyID,
+            },
+        ];
+    }
+
     return [];
 }
 
@@ -3640,7 +3640,7 @@ function getIconsForChatThread(
         fallbackIcon: actorDetails?.fallbackIcon,
     };
 
-    if (isWorkspaceThread(report)) {
+    if (isWorkspaceThread(report) || isTripRoom(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [actorIcon, workspaceIcon];
     }
@@ -3741,15 +3741,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
     };
-    const isManager = currentUserAccountID === report?.managerID;
-
-    // For one transaction IOUs, display a simplified report icon
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isOneTransactionReportDeprecated(report)) {
-        return [ownerIcon];
-    }
-
-    return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
+    return [managerIcon, ownerIcon];
 }
 
 /**
@@ -3782,7 +3774,7 @@ function getIconsForInvoiceReport(
         return [];
     }
     const invoiceRoomReport = getReportOrDraftReport(report.chatReportID);
-    const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
+    const icons = [invoiceRoomReport ? getWorkspaceIcon(invoiceRoomReport, policy) : getWorkspaceIcon(report, policy)];
 
     if (invoiceRoomReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         icons.push(...getIconsForParticipants([invoiceRoomReport?.invoiceReceiver.accountID], personalDetails));
@@ -3854,6 +3846,15 @@ function getIcons(
     if (isExpenseRequest(report)) {
         return getIconsForExpenseRequest(report, personalDetails, policy);
     }
+    if (isExpenseReport(report)) {
+        return getIconsForExpenseReport(report, personalDetails, policy);
+    }
+    if (isIOUReport(report)) {
+        return getIconsForIOUReport(report, personalDetails);
+    }
+    if (isInvoiceReport(report)) {
+        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
+    }
     if (isChatThread(report)) {
         return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber);
     }
@@ -3863,20 +3864,14 @@ function getIcons(
     if (isDomainRoom(report)) {
         return getIconsForDomainRoom(report);
     }
+    if (isPolicyExpenseChat(report)) {
+        return getIconsForPolicyExpenseChat(report, personalDetails, policy);
+    }
     if (isUserCreatedPolicyRoom(report)) {
         return getIconsForUserCreatedPolicyRoom(report, policy);
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, isReportArchived) && !chatIncludesConcierge(report))) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
-    }
-    if (isPolicyExpenseChat(report)) {
-        return getIconsForPolicyExpenseChat(report, personalDetails, policy);
-    }
-    if (isExpenseReport(report)) {
-        return getIconsForExpenseReport(report, personalDetails, policy);
-    }
-    if (isIOUReport(report)) {
-        return getIconsForIOUReport(report, personalDetails);
     }
     if (isSelfDM(report)) {
         return getIconsForParticipants(currentUserAccountID ? [currentUserAccountID] : [], personalDetails);
@@ -3886,9 +3881,6 @@ function getIcons(
     }
     if (isGroupChat(report)) {
         return getIconsForGroupChat(report, formatPhoneNumber);
-    }
-    if (isInvoiceReport(report)) {
-        return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
@@ -10000,7 +9992,7 @@ function getWhisperDisplayNames(translate: LocalizedTranslate, formatPhoneNumber
  * Show subscript on expense chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    if (isArchivedNonExpenseReport(report, isReportArchived) && !isWorkspaceThread(report)) {
+    if (isArchivedNonExpenseReport(report, isReportArchived) && !isWorkspaceThread(report) && !isPolicyExpenseChat(report) && !isInvoiceRoom(report)) {
         return false;
     }
 
@@ -10028,7 +10020,16 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isInvoiceRoom(report) || isInvoiceReport(report)) {
+    if (isTripRoom(report)) {
+        return true;
+    }
+
+    if (isInvoiceRoom(report)) {
+        return true;
+    }
+
+    // B2B invoice reports should render diagonal (two workspace icons), not subscript.
+    if (isInvoiceReport(report) && !isBusinessInvoiceRoom(report?.parentReportID)) {
         return true;
     }
 
