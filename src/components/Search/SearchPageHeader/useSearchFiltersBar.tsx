@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
@@ -88,7 +87,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();

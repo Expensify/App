@@ -206,7 +206,15 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarButtonWithIcon
