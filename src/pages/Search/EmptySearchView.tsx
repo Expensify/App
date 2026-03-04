@@ -1,6 +1,6 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
@@ -44,6 +44,7 @@ import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -153,6 +154,15 @@ function EmptySearchViewContent({
 
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
+    const skeletonReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'EmptySearchView',
+            hasResults,
+            searchType: type,
+        }),
+        [hasResults, type],
+    );
+
     const tripsFeatures: FeatureListItem[] = [
         {
             icon: illustrations.PiggyBank,
@@ -169,7 +179,9 @@ function EmptySearchViewContent({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -179,7 +191,9 @@ function EmptySearchViewContent({
         selector: hasExpenseReportsSelector,
     });
 
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+        selector: tryNewDotOnyxSelector,
+    });
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
@@ -214,7 +228,12 @@ function EmptySearchViewContent({
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                    reportID: createdReportID,
+                    backTo: Navigation.getActiveRoute(),
+                }),
+            );
         });
     };
 
@@ -361,7 +380,11 @@ function EmptySearchViewContent({
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
                     children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
+                    lottieWebViewStyles: {
+                        backgroundColor: theme.travelBG,
+                        ...styles.emptyStateFolderWebStyles,
+                        ...styles.tripEmptyStateLottieWebView,
+                    },
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -519,6 +542,7 @@ function EmptySearchViewContent({
             >
                 <GenericEmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
+                    skeletonReasonAttributes={skeletonReasonAttributes}
                     headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}

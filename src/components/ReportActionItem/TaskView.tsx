@@ -112,7 +112,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                     <OfflineWithFeedback
                         shouldShowErrorMessages
                         errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                        onClose={() => clearTaskErrors(report, conciergeReportID)}
+                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID)}
                         errorRowStyles={styles.ph5}
                     >
                         <Hoverable>

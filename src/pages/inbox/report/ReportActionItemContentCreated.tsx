@@ -171,7 +171,8 @@ function ReportActionItemContentCreated({
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 {!isEmptyObject(transactionThreadReport?.reportID) ? (
-                    <>
+                    <View style={[styles.pRelative, styles.moneyRequestView]}>
+                        <AnimatedEmptyStateBackground />
                         <MoneyReportView
                             report={report}
                             policy={policy}
@@ -179,6 +180,7 @@ function ReportActionItemContentCreated({
                             pendingAction={action?.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
                             shouldHideThreadDividerLine={false}
+                            shouldShowAnimatedBackground={false}
                         />
                         <ShowContextMenuStateContext.Provider value={disabledStateValue}>
                             <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
@@ -193,7 +195,7 @@ function ReportActionItemContentCreated({
                                 </View>
                             </ShowContextMenuActionsContext.Provider>
                         </ShowContextMenuStateContext.Provider>
-                    </>
+                    </View>
                 ) : (
                     <MoneyReportView
                         report={report}

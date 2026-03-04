@@ -240,6 +240,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -379,7 +380,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
         if (option?.reportID) {
             Navigation.dismissModal({
-                afterTransition: () => {
+                callback: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
                 },
             });
@@ -398,7 +399,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected))();
         });
     };
 

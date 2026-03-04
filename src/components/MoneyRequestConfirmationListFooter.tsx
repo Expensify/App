@@ -2,7 +2,7 @@ import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,7 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getTagForDisplay,
     getTaxAmount,
@@ -177,6 +178,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The rate of the transaction */
     rate: number | undefined;
 
+    /** The name of the distance rate */
+    distanceRateName: string | undefined;
+
     /** The filename of the receipt */
     receiptFilename: string;
 
@@ -290,6 +294,7 @@ function MoneyRequestConfirmationListFooter({
     policyTags,
     policyTagLists,
     rate,
+    distanceRateName,
     receiptFilename,
     receiptPath,
     reportActionID,
@@ -596,7 +601,9 @@ function MoneyRequestConfirmationListFooter({
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
                     shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
-                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
+                    // Pass false for isCustomUnitOutOfPolicy because this is the expense creation/edit
+                    // confirmation screen where a rate violation is not applicable yet.
+                    title={DistanceRequestUtils.getRateForExpenseDisplay(distanceRateName, false, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -1018,7 +1025,12 @@ function MoneyRequestConfirmationListFooter({
     const isCompactMode = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
     const [receiptAspectRatio, setReceiptAspectRatio] = useState<number | null>(null);
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
+    const hasEndedReceiptLoadSpan = useRef(false);
     const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
+        if (!hasEndedReceiptLoadSpan.current) {
+            hasEndedReceiptLoadSpan.current = true;
+            endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
+        }
         const width = event?.nativeEvent.width ?? 0;
         const height = event?.nativeEvent.height ?? 0;
         if (!width || !height) {

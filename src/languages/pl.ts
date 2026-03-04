@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nazwisko',
         scanning: 'Skanowanie',
         analyzing: 'Trwa analizowanie...',
+        thinking: 'Concierge myśli...',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
         phone: 'Telefon',
@@ -551,6 +552,10 @@ const translations: TranslationDeepObject<typeof en> = {
         facebook: 'Śledź nas na Facebook',
         linkedin: 'Śledź nas na LinkedIn',
     },
+    concierge: {
+        collapseReasoning: 'Zwiń rozumowanie',
+        expandReasoning: 'Rozwiń rozumowanie',
+    },
     supportalNoAccess: {
         title: 'Nie tak szybko',
         descriptionWithCommand: ({
@@ -646,6 +651,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Zaloguj się ponownie.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Sprawdź transakcję',
+            pleaseReview: 'Proszę przejrzeć tę transakcję',
+            requiresYourReview: 'Transakcja kartą Expensify wymaga Twojej weryfikacji poniżej.',
+            transactionDetails: 'Szczegóły transakcji',
+            deny: 'Odrzuć',
+            approve: 'Zatwierdź',
+            denyTransaction: 'Odrzuć transakcję',
+            transactionDenied: 'Transakcja odrzucona',
+            transactionApproved: 'Transakcja zatwierdzona!',
+            areYouSureToDeny: 'Na pewno? Transakcja zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Możesz spróbować ponownie u sprzedawcy. Jeśli nie próbowałeś(-aś) wykonać tej transakcji, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby zgłosić potencjalne oszustwo.',
+            youNeedToTryAgainAtMerchant: 'Ta transakcja nie została zweryfikowana, więc ją odrzuciliśmy. Musisz spróbować ponownie u sprzedawcy.',
+            goBackToTheMerchant: 'Wróć do strony sprzedawcy, aby kontynuować transakcję.',
+            attemptedTransaction: 'Próbowana transakcja',
+            transactionFailed: 'Transakcja nie powiodła się',
+            transactionCouldNotBeCompleted: 'Twoja transakcja nie mogła zostać zrealizowana. Spróbuj ponownie u sprzedawcy.',
+            transactionCouldNotBeCompletedReachOut:
+                'Nie można było sfinalizować Twojej transakcji. Jeśli nie próbowałeś(-aś) wykonać tej transakcji, <concierge-link>skontaktuj się z Concierge</concierge-link>, aby zgłosić potencjalne oszustwo.',
+            reviewFailed: 'Recenzja nie powiodła się',
+            alreadyReviewedSubtitle:
+                'Ta transakcja została już przez Ciebie sprawdzona. Sprawdź swoją <transaction-history-link>historię transakcji</transaction-history-link> lub skontaktuj się z <concierge-link>Concierge</concierge-link>, aby zgłosić wszelkie problemy.',
+        },
         biometricsTest: {
             biometricsTest: 'Test biometrii',
             authenticationSuccessful: 'Uwierzytelnianie powiodło się',
@@ -698,7 +727,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,
         },
         verificationFailed: 'Weryfikacja nie powiodła się',
     },
@@ -1017,6 +1046,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Wszystko nadrobione',
                 fireworksDescription: 'Nadchodzące zadania pojawią się tutaj.',
             },
+        },
+        upcomingTravel: 'Nadchodząca podróż',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Lot do ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Pociąg do ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel w ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Wynajem samochodu w ${destination}`,
+            inOneWeek: 'Za 1 tydzień',
+            inDays: () => ({one: 'Za 1 dzień', other: (count: number) => `Za ${count} dni`}),
+            today: 'Dzisiaj',
         },
     },
     allSettingsScreen: {
@@ -1344,6 +1383,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Wprowadź prawidłowy dystans przed kontynuowaniem',
             invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
             negativeDistanceNotAllowed: 'Końcowy odczyt musi być większy niż początkowy odczyt',
+            distanceAmountTooLarge: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans lub obniż stawkę.',
+            distanceAmountTooLargeReduceDistance: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans.',
+            distanceAmountTooLargeReduceRate: 'Łączna kwota jest zbyt wysoka. Obniż stawkę.',
+            odometerReadingTooLarge: (formattedMax: string) => `Odczyty licznika nie mogą przekraczać ${formattedMax}.`,
             invalidIntegerAmount: 'Przed kontynuowaniem wprowadź kwotę w pełnych dolarach',
             invalidTaxAmount: (amount: string) => `Maksymalna kwota podatku to ${amount}`,
             invalidSplit: 'Suma podziałów musi być równa całkowitej kwocie',
@@ -1415,6 +1458,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Niektóre z tych duplikatów zostały już zatwierdzone lub opłacone.',
         reviewDuplicates: 'Przejrzyj duplikaty',
         keepAll: 'Zachowaj wszystko',
+        noDuplicatesTitle: 'Wszystko gotowe!',
+        noDuplicatesDescription: 'Nie ma tutaj zduplikowanych transakcji do sprawdzenia.',
         confirmApprove: 'Potwierdź kwotę zatwierdzenia',
         confirmApprovalAmount: 'Zatwierdź tylko zgodne wydatki lub zatwierdź cały raport.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1529,18 +1574,25 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? 'oznaczył(a) wydatek jako „podlegający zwrotowi”' : 'oznaczył(a) wydatek jako „niepodlegający zwrotowi”'),
+        duplicateNonDefaultWorkspacePerDiemError:
+            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? 'oznaczył(a) wydatek jako „podlegający zwrotowi”' : 'oznaczył(a) wydatek jako „niepodlegający zwrotowi kosztów”'),
             billable: (value: boolean) => (value ? 'oznaczył(-a) wydatek jako „fakturowany”' : 'oznaczono wydatek jako „niefakturowalny”'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `ustaw stawkę podatku na „${value}”` : `stawka podatku na „${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `przeniósł ten wydatek do raportu „${value}”`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `ustaw ${field} na „${value}”` : `${field} na „${value}”`;
             },
-            format: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady przestrzeni roboczej</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady wydatków prywatnych</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady workspace’u</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError:
-            'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        failedToAutoSubmitViaDEW: (reason: string) => `nie udało się przesłać raportu przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłki</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `nie udało się wysłać raportu. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -1978,6 +2030,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Dla administratorów domen: to również wstrzymuje całą aktywność Kart Expensify i działania administracyjne w twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeprowadzenia kontroli bezpieczeństwa',
+        unlockTitle: 'Otrzymaliśmy Twoją prośbę',
+        unlockDescription: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
@@ -3907,6 +3961,7 @@ ${
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
             workspaceOwner: 'Właściciel',
+            keepMeAsAdmin: 'Zachowaj mnie jako administratora',
             workspaceType: 'Typ przestrzeni roboczej',
             workspaceAvatar: 'Awatar przestrzeni roboczej',
             clientID: 'ID klienta',
@@ -7390,6 +7445,10 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `firmowe konto bankowe ${maskedBankAccountNumber} zostało automatycznie zablokowane z powodu problemu z rozliczeniami zwrotów lub Karty Expensify. Napraw problem w <a href="${linkURL}">ustawieniach przestrzeni roboczej</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} opuścił czat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Otwórz aplikację mobilną Expensify, aby przejrzeć transakcję${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
@@ -7568,7 +7627,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
     },
     gps: {
-        disclaimer: 'Użyj GPS, aby utworzyć wydatek z podróży. Stuknij przycisk „Start” poniżej, aby rozpocząć śledzenie.',
         error: {
             failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.',
             failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień lokalizacji.',
@@ -8285,6 +8343,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
+        hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -8457,7 +8516,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             resetDomain: 'Resetuj domenę',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
             enterDomainName: 'Wprowadź tutaj swoją nazwę domeny',
-            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <ul><li>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</li> <li>Ustawień SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
+            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <bullet-list><bullet-item>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</bullet-item><bullet-item>Ustawień SAML i grup</bullet-item></bullet-list> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         domainMembers: 'Członkowie domeny',
         members: {
@@ -8476,8 +8535,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 other: 'Zamknij konta bezpiecznie',
             }),
             closeAccountInfo: () => ({
-                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
-                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
+                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
+                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
             }),
             error: {
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
@@ -8485,6 +8544,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 vacationDelegate: 'Nie można ustawić tego użytkownika jako zastępującego na czas nieobecności. Spróbuj ponownie.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
+
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Czy na pewno? To zablokuje konto użytkownika <strong>${email}</strong>. <br /><br /> Nasz zespół następnie przejrzy konto i usunie wszelki nieautoryzowany dostęp. Aby odzyskać dostęp, będą musieli współpracować z Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
         },
         common: {
             settings: 'Ustawienia',
