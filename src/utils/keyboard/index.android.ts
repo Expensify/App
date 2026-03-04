@@ -40,6 +40,7 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
 
         TransitionTracker.startTransition();
         Keyboard.dismiss();
+
         if (options?.afterTransition) {
             TransitionTracker.runAfterTransitions({callback: options.afterTransition});
         }

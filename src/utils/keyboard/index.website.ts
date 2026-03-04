@@ -65,8 +65,10 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
         };
 
         window.visualViewport?.addEventListener('resize', handleDismissResize);
-        Keyboard.dismiss();
+
         TransitionTracker.startTransition();
+        Keyboard.dismiss();
+
         if (options?.afterTransition) {
             TransitionTracker.runAfterTransitions({callback: options.afterTransition});
         }
