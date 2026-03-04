@@ -325,7 +325,7 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -124,
+    minimalTopBarOffset: -176,
     searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 176,
     searchTopBarZIndex: 9,

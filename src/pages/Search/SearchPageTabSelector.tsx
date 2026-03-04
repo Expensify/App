@@ -1,11 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
+import {View} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ScrollableTabSelectorBase from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorBase';
 import ScrollableTabSelectorContextProvider from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {setSearchContext} from '@libs/actions/Search';
@@ -20,6 +22,7 @@ type SearchPageTabSelectorProps = {
 
 function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
@@ -90,13 +93,15 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
     };
 
     return (
-        <ScrollableTabSelectorContextProvider activeTabKey={activeKey}>
-            <ScrollableTabSelectorBase
-                tabs={tabItems}
-                activeTabKey={activeKey}
-                onTabPress={handleTabPress}
-            />
-        </ScrollableTabSelectorContextProvider>
+        <View style={[styles.appBG]}>
+            <ScrollableTabSelectorContextProvider activeTabKey={activeKey}>
+                <ScrollableTabSelectorBase
+                    tabs={tabItems}
+                    activeTabKey={activeKey}
+                    onTabPress={handleTabPress}
+                />
+            </ScrollableTabSelectorContextProvider>
+        </View>
     );
 }
 
