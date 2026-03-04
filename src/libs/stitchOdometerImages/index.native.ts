@@ -42,15 +42,22 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         snapshot = surface.makeImageSnapshot();
         const base64 = snapshot.encodeToBase64();
 
-        // We use a fixed filename so that RNFS.writeFile overwrites existing content
-        // resulting in at most 1 stitched temp file ever existing at a time
-        const filename = 'stitched_odometer.jpg';
+        // Delete any previously stitched files before creating a new one
+        try {
+            const tempDirContents = await RNFS.readDir(RNFS.TemporaryDirectoryPath);
+            const oldStitchedFiles = tempDirContents.filter((f) => f.name.startsWith('stitched_odometer_') && f.name.endsWith('.jpg'));
+            await Promise.all(oldStitchedFiles.map((f) => RNFS.unlink(f.path)));
+        } catch (error) {
+            Log.warn('stitchOdometerImages (native) failed to clean up old stitched files', {error});
+        }
+
+        const filename = `stitched_odometer_${Date.now()}.jpg`;
         const tempPath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
         await RNFS.writeFile(tempPath, base64, 'base64');
 
         return {uri: `file://${tempPath}`, name: filename, type: 'image/jpeg'};
     } catch (error) {
-        Log.warn('stitchOdometerImages failed', {error});
+        Log.warn('stitchOdometerImages (native) failed', {error});
         return null;
     } finally {
         skImage1?.dispose?.();

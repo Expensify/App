@@ -2,8 +2,7 @@ import Log from '@libs/Log';
 import type {FileObject} from '@src/types/utils/Attachment';
 import calculateStitchLayout from './stitchLayout';
 
-// Tracks the single active stitched blob URL, so that we can revoke it on the next call so at most
-// one blob URL exists at a time - mirrors the native strategy of a single overwritten temp file
+// Tracks the single active stitched blob URL so that we can revoke it on the next call so at most one blob URL exists at a time
 let previousBlobUrl: string | null = null;
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
