@@ -54,6 +54,7 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -471,8 +472,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                     >
                                         <Icon
                                             src={lazyIcons.Fullscreen}
-                                            height={16}
-                                            width={16}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
                                             fill={theme.icon}
                                         />
                                     </PressableWithFeedback>
@@ -490,7 +491,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                                 notifyReportID: moneyRequestReport?.reportID ?? report.reportID,
                                                                 ancestors,
                                                                 attachments: files,
-                                                                currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                                                                currentUserAccountID,
                                                                 timezone: currentUserTimezone,
                                                             });
                                                         },
