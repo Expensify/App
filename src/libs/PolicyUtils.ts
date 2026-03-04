@@ -52,7 +52,7 @@ import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1013,12 +1013,12 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    const employeeLogin = getLoginByAccountID(employeeAccountID) ?? '';
     const defaultApprover = getDefaultApprover(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
-        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
+        return getPersonalDetailByEmail(defaultApprover)?.accountID ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
@@ -1026,7 +1026,7 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
         return -1;
     }
 
-    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return getPersonalDetailByEmail(employee?.submitsTo ?? defaultApprover)?.accountID ?? -1;
 }
 
 /**
@@ -1039,7 +1039,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 
         if (allReportTransactions.length) {
             const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-            const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+            const employeeLogin = getLoginByAccountID(employeeAccountID);
 
             const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
             let firstCategoryApprover = '';
@@ -1083,7 +1083,7 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
 
             const ruleApprover = firstCategoryApprover || firstTagApprover;
             if (ruleApprover) {
-                return getAccountIDsByLogins([ruleApprover]).at(0) ?? -1;
+                return getPersonalDetailByEmail(ruleApprover)?.accountID ?? -1;
             }
         }
     }
