@@ -315,3 +315,20 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+// Mock document title hooks as no-ops in tests. The web implementation of setPageTitle uses
+// setTimeout(fn, 0) which accumulates in the fake timer queue. Combined with lodash debounce
+// in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
+// heavy integration tests like SessionTest to exceed their timeout.
+jest.mock('@src/hooks/useDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
