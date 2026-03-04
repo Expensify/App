@@ -1,4 +1,5 @@
 import DOMAIN_TO_RHP from './DOMAIN_TO_RHP';
+import HOME_TO_RHP from './HOME_TO_RHP';
 import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
 import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
@@ -35,6 +36,7 @@ const RHP_TO_WORKSPACES_LIST = createInverseRelation(WORKSPACES_LIST_TO_RHP);
 const RHP_TO_SEARCH = createInverseRelation(SEARCH_TO_RHP);
 const FULLSCREEN_TO_TAB = createInverseRelation(TAB_TO_FULLSCREEN);
 const RHP_TO_DOMAIN = createInverseRelation(DOMAIN_TO_RHP);
+const RHP_TO_HOME = createInverseRelation(HOME_TO_RHP);
 
 export {
     SETTINGS_TO_RHP,
@@ -51,4 +53,6 @@ export {
     FULLSCREEN_TO_TAB,
     RHP_TO_WORKSPACES_LIST,
     RHP_TO_DOMAIN,
+    HOME_TO_RHP,
+    RHP_TO_HOME,
 };

@@ -1,13 +1,12 @@
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
@@ -31,25 +30,13 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
 
-    /** Flag to indicate if the viewport offset top should be enabled */
-    shouldEnableViewportOffsetTop?: boolean;
-
     /** Flag to indicate if max height should be enabled */
     shouldEnableMaxHeight?: boolean;
 };
 
-function TwoFactorAuthWrapper({
-    stepName,
-    title,
-    stepCounter,
-    onBackButtonPress,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableViewportOffsetTop = false,
-    shouldEnableMaxHeight = true,
-    children,
-}: TwoFactorAuthWrapperProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const {isDelegateAccessRestricted} = useContext(DelegateNoAccessContext);
+function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -75,8 +62,6 @@ function TwoFactorAuthWrapper({
         }
     }, [account, stepName]);
 
-    const viewportOffsetTop = useViewportOffsetTop();
-
     if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
@@ -97,7 +82,6 @@ function TwoFactorAuthWrapper({
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
-            style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}

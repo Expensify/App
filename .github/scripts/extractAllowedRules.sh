@@ -1,26 +1,31 @@
 #!/bin/bash
 
-# Extract allowed rules from code-inline-reviewer.md
-# Rules are in format [PREFIX-NUMBER] where PREFIX is uppercase letters
+# Extract allowed rules from individual rule files in the rules directory.
+# Each rule file has YAML frontmatter with a ruleId field.
 set -euo pipefail
 
-REVIEWER_FILE="${1:-.claude/agents/code-inline-reviewer.md}"
+RULES_DIR="${1:-.claude/skills/coding-standards/rules}"
 OUTPUT_FILE="${2:-.claude/allowed-rules.txt}"
 
-if [[ ! -f "$REVIEWER_FILE" ]]; then
-    echo "Error: Reviewer file not found: $REVIEWER_FILE" >&2
+if [[ ! -d "$RULES_DIR" ]]; then
+    echo "Error: Rules directory not found: $RULES_DIR" >&2
     exit 1
 fi
 
-# Extract rules in format [CAPS-NUMBER] (e.g., [PERF-1], [CONSISTENCY-1], [CLEAN-REACT-PATTERNS-1])
-# Remove brackets to store as PERF-1, SEC-1, etc.
-grep -oE '\[[A-Z]+(-[A-Z]+)*-[0-9]+\]' "$REVIEWER_FILE" | sed 's/\[\(.*\)\]/\1/' | sort -u > "$OUTPUT_FILE"
+# Extract ruleId from YAML frontmatter of each non-underscore .md file
+# Use multi-hyphen regex to validate rule ID format (e.g., PERF-1, CLEAN-REACT-PATTERNS-1)
+true > "$OUTPUT_FILE"
+for file in "$RULES_DIR"/[!_]*.md; do
+    [[ -f "$file" ]] || continue
+    grep -m1 '^ruleId:' "$file" | grep -oE '[A-Z]+(-[A-Z]+)*-[0-9]+' >> "$OUTPUT_FILE" || true
+done
+
+sort -u -o "$OUTPUT_FILE" "$OUTPUT_FILE"
 
 if [[ ! -s "$OUTPUT_FILE" ]]; then
-    echo "Error: No allowed rules found in $REVIEWER_FILE" >&2
+    echo "Error: No allowed rules found in $RULES_DIR" >&2
     exit 1
 fi
 
 echo "Extracted allowed rules:"
 cat "$OUTPUT_FILE"
-
