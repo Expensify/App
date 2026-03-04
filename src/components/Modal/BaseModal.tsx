@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,8 +89,11 @@ function BaseModal({
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
     const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
     const [modalHeight, setModalHeight] = useState(0);
+    const dismissRef = useRef<View>(null);
 
     const insets = useSafeAreaInsets();
 
@@ -380,8 +384,22 @@ function BaseModal({
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
+                            {isWeb && shouldShowBottomDockedDismissButton && (
+                                <PressableWithoutFeedback
+                                    onPress={handleBackdropPress}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    ref={dismissRef}
+                                    tabIndex={0}
+                                    sentryLabel="Modal-DismissDialog"
+                                    style={styles.bottomDockedModalDismissButton}
+                                    shouldUseAutoHitSlop
+                                >
+                                    <View />
+                                </PressableWithoutFeedback>
+                            )}
                             <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                            {shouldShowBottomDockedDismissButton && (
+                            {!isWeb && shouldShowBottomDockedDismissButton && (
                                 <PressableWithoutFeedback
                                     onPress={handleBackdropPress}
                                     accessibilityRole={CONST.ROLE.BUTTON}
