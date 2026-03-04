@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -11,14 +12,14 @@ import {deleteReport} from './Report';
 type IgnoreDirection = 'parent' | 'child';
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -26,7 +27,7 @@ Onyx.connect({
     },
 });
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
+function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
     if (!reportAction?.reportActionID) {
         return;
     }
@@ -48,6 +49,27 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, o
         const taskReportID = getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && isCreatedTaskReportAction(reportAction)) {
             deleteReport(taskReportID);
+        }
+
+        // Clear the chat snapshot entry for the failed optimistic action so it disappears from Reports > Chats.
+        const snapshotDataToClear: Record<string, unknown> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`]: {
+                [reportAction.reportActionID]: null,
+            },
+        };
+        if (taskReportID && isCreatedTaskReportAction(reportAction)) {
+            // If this is a failed optimistic task-create action, also remove the task report snapshot data so it disappears from Reports > Task when the user dismiss the error.
+            snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`] = null;
+            snapshotDataToClear[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`] = null;
+        }
+
+        // Apply the same cleanup to snapshot hashes used by Reports > Chats and Reports > Task.
+        for (const type of [CONST.SEARCH.DATA_TYPES.CHAT, CONST.SEARCH.DATA_TYPES.TASK]) {
+            const snapshotUpdate = buildOptimisticSnapshotData(type, snapshotDataToClear);
+            if (!snapshotUpdate) {
+                continue;
+            }
+            Onyx.merge(snapshotUpdate.key, snapshotUpdate.value as OnyxTypes.SearchResults);
         }
         return;
     }
@@ -90,7 +112,7 @@ function clearAllRelatedReportActionErrors(
         return;
     }
 
-    clearReportActionErrors(reportID, reportAction, originalReportID, keys);
+    clearReportActionErrors(reportAction, originalReportID, keys);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
@@ -113,7 +135,4 @@ function clearAllRelatedReportActionErrors(
 }
 
 export type {IgnoreDirection};
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    clearAllRelatedReportActionErrors,
-};
+export {clearAllRelatedReportActionErrors};
