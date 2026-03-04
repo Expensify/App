@@ -709,6 +709,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
+    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT, splitChatReport.reportID);
     Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     notifyNewAction(splitChatReport.reportID, undefined, true);
 

@@ -37,9 +37,17 @@ function getPendingExpenseCreateDestination(): PendingExpenseCreateDestination {
 /**
  * Mark the submit-to-destination-visible span as finished and clear the pending destination.
  * Call from each destination when its main content is visible (e.g. onLayout).
+ * Only ends the span if the passed destination matches the current pending destination (avoids races and wrong attribution).
  */
 function markSubmitToDestinationVisibleEnd(destinationType: DestinationType, reportID?: string) {
     if (!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+        return;
+    }
+    const pending = pendingExpenseCreateDestination;
+    if (!pending || pending.destinationType !== destinationType) {
+        return;
+    }
+    if (pending.reportID !== undefined && pending.reportID !== reportID) {
         return;
     }
     const attributes: Record<string, string> = {
