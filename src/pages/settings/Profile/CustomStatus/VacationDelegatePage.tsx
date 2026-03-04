@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,6 +20,10 @@ function VacationDelegatePage() {
     const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const vacationDelegateRef = useRef(vacationDelegate);
+    useEffect(() => {
+        vacationDelegateRef.current = vacationDelegate;
+    }, [vacationDelegate]);
 
     const showErrorModal = async (message?: string) => {
         await showConfirmModal({
@@ -29,7 +33,7 @@ function VacationDelegatePage() {
             shouldShowCancelButton: false,
         });
 
-        clearVacationDelegateError(vacationDelegate?.previousDelegate);
+        clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
     };
 
     const showWarningModal = useCallback(
@@ -43,14 +47,14 @@ function VacationDelegatePage() {
             });
 
             if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegate?.delegate);
+                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.delegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            clearVacationDelegateError(vacationDelegate?.previousDelegate);
+            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin, vacationDelegate?.previousDelegate, vacationDelegate?.delegate],
+        [showConfirmModal, translate, currentUserLogin],
     );
 
     const onSelectRow = useCallback(
