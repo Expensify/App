@@ -123,12 +123,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                 <SearchTypeMenuItem
                                                     key={item.key}
                                                     title={translate(item.translationPath)}
-                                                    badgeStyle={styles.todoBadge}
                                                     icon={icon}
                                                     badgeText={getItemBadgeText(item.key, reportCounts)}
                                                     focused={focused}
                                                     onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
                                                 />
                                             );
                                         })}

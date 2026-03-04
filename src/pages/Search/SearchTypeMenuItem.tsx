@@ -1,5 +1,4 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
@@ -27,21 +26,12 @@ type SearchTypeMenuItemProps = {
 
     /** Press handler */
     onPress: () => void;
-
-    /** Wrapper style override */
-    wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Badge container style override */
-    badgeStyle?: StyleProp<ViewStyle>;
-
-    /** Sentry label for the pressable */
-    sentryLabel?: string;
 };
 
 /**
  * Menu item row for Search type menu
  */
-function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, wrapperStyle, badgeStyle, isBadgeSuccess, sentryLabel}: SearchTypeMenuItemProps) {
+function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: SearchTypeMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -50,13 +40,12 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, w
             onPress={onPress}
             accessibilityLabel={title}
             role={CONST.ROLE.BUTTON}
-            sentryLabel={sentryLabel}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
-                ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
             ]}
         >
             {({hovered, pressed}) => (
@@ -82,7 +71,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress, w
                     {!!badgeText && (
                         <Badge
                             text={badgeText}
-                            badgeStyles={badgeStyle}
+                            badgeStyles={styles.todoBadge}
                             success
                         />
                     )}
