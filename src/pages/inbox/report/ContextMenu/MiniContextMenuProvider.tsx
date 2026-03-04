@@ -30,8 +30,8 @@ type MiniContextMenuActions = {
     /** Display the mini context menu with the given parameters. Cancels any pending hide. */
     showMiniContextMenu: (params: MiniContextMenuParams) => void;
 
-    /** Hide the mini context menu after a short delay (or immediately if `options.immediate` is set). No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
-    hideMiniContextMenu: (options?: {immediate?: boolean}) => void;
+    /** Hide the mini context menu after a short delay. No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
+    hideMiniContextMenu: () => void;
 
     /** Cancel a pending delayed hide without locking the menu open. Future `hideMiniContextMenu` calls still take effect normally. */
     cancelHide: () => void;
@@ -83,17 +83,13 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                 pendingHideRef.current = false;
                 setState({...params, isVisible: true});
             },
-            hideMiniContextMenu: (options) => {
+            hideMiniContextMenu: () => {
                 if (shouldKeepOpenRef.current) {
                     pendingHideRef.current = true;
                     return;
                 }
                 clearHideTimer();
-                if (options?.immediate) {
-                    performHide();
-                } else {
-                    hideTimerRef.current = setTimeout(performHide, HIDE_DELAY_MS);
-                }
+                hideTimerRef.current = setTimeout(performHide, HIDE_DELAY_MS);
             },
             cancelHide: () => {
                 clearHideTimer();

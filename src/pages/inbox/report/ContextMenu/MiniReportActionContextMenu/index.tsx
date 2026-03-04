@@ -1,10 +1,10 @@
 import {Portal} from '@gorhom/portal';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -52,8 +52,7 @@ function MiniReportActionContextMenu() {
         checkIfContextMenuActive,
         setIsEmojiPickerActive,
     } = useMiniContextMenuState() ?? {};
-    const miniActions = useMiniContextMenuActions();
-    const {hideMiniContextMenu, cancelHide} = miniActions;
+    const {hideMiniContextMenu, cancelHide, keepOpen, release} = useMiniContextMenuActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
@@ -63,8 +62,8 @@ function MiniReportActionContextMenu() {
     const wasVisibleRef = useRef(false);
     const overlayRef = useRef<View>(null);
     const menuContainerRef = useRef<View>(null);
-    const [position, setPosition] = useState<{top: number; right: number} | null>(null);
-    const [shouldAnimateSlide, setShouldAnimateSlide] = useState(false);
+    const topValue = useSharedValue(0);
+    const rightValue = useSharedValue(0);
 
     useEffect(() => {
         if (!isVisible || !rowMeasurements) {
@@ -80,9 +79,15 @@ function MiniReportActionContextMenu() {
         const newTop = rowMeasurements.top - containerRect.top + (displayAsGroup ? -8 : -4);
         const newRight = containerRect.right - rowMeasurements.right + 4;
 
-        setShouldAnimateSlide(wasVisibleRef.current);
-        setPosition({top: newTop, right: newRight});
-    }, [isVisible, rowMeasurements, displayAsGroup]);
+        const timingConfig = {duration: SLIDE_DURATION, easing: Easing.inOut(Easing.ease)};
+        if (wasVisibleRef.current) {
+            topValue.set(withTiming(newTop, timingConfig));
+            rightValue.set(withTiming(newRight, timingConfig));
+        } else {
+            topValue.set(newTop);
+            rightValue.set(newRight);
+        }
+    }, [isVisible, rowMeasurements, displayAsGroup, topValue, rightValue]);
 
     useEffect(() => {
         if (isVisible) {
@@ -90,25 +95,37 @@ function MiniReportActionContextMenu() {
             return;
         }
         wasVisibleRef.current = false;
-        const timer = setTimeout(() => {
-            setPosition(null);
-            setShouldAnimateSlide(false);
-        }, 0);
-        return () => clearTimeout(timer);
     }, [isVisible]);
 
     useEffect(() => {
-        if (!isVisible) {
+        if (!isVisible || !anchor?.current) {
             return;
         }
+
+        let rafId: number;
         const handleScroll = () => {
-            hideMiniContextMenu({immediate: true});
+            cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => {
+                const node = anchor.current as unknown as HTMLElement | null;
+                const el = overlayRef.current as unknown as HTMLElement | null;
+                if (!node || !el) {
+                    return;
+                }
+                const rect = node.getBoundingClientRect();
+                const containerRect = el.getBoundingClientRect();
+                const newTop = rect.top - containerRect.top + (displayAsGroup ? -8 : -4);
+                const newRight = containerRect.right - rect.right + 4;
+                topValue.set(newTop);
+                rightValue.set(newRight);
+            });
         };
+
         window.addEventListener('scroll', handleScroll, true);
         return () => {
             window.removeEventListener('scroll', handleScroll, true);
+            cancelAnimationFrame(rafId);
         };
-    }, [isVisible, hideMiniContextMenu]);
+    }, [isVisible, anchor, displayAsGroup, topValue, rightValue]);
 
     useEffect(() => {
         const el = menuContainerRef.current as unknown as HTMLElement | null;
@@ -190,7 +207,7 @@ function MiniReportActionContextMenu() {
     });
 
     const hideAndRun = (callback?: () => void) => {
-        miniActions.release();
+        release();
         callback?.();
     };
 
@@ -212,7 +229,7 @@ function MiniReportActionContextMenu() {
                 onShow: checkIfContextMenuActive,
                 onHide: () => {
                     checkIfContextMenuActive?.();
-                    miniActions.release();
+                    release();
                 },
             },
             shouldCloseOnTarget: true,
@@ -418,20 +435,23 @@ function MiniReportActionContextMenu() {
         reportID: resolvedReportID,
         reportAction,
         currentUserAccountID,
-        openContextMenu: () => miniActions.keepOpen(),
+        openContextMenu: () => keepOpen(),
         setIsEmojiPickerActive,
         hideAndRun,
     });
 
     const hasEmoji = shouldShowEmojiReaction({reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
 
+    const animatedPositionStyle = useAnimatedStyle(() => ({
+        top: topValue.get(),
+        right: rightValue.get(),
+    }));
+
     if (!rowMeasurements) {
         return null;
     }
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(true, shouldUseNarrowLayout);
-
-    const shouldTransitionPosition = shouldAnimateSlide && isVisible;
 
     return (
         <Portal hostName={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU}>
@@ -441,16 +461,7 @@ function MiniReportActionContextMenu() {
                 pointerEvents="box-none"
             >
                 <Animated.View
-                    style={{
-                        position: 'absolute',
-                        zIndex: 8,
-                        top: position?.top ?? 0,
-                        right: position?.right ?? 0,
-                        opacity: isVisible && position !== null ? 1 : 0,
-                        transitionProperty: shouldTransitionPosition ? 'top, right' : 'none',
-                        transitionDuration: `${SLIDE_DURATION}ms`,
-                        transitionTimingFunction: 'ease-in-out',
-                    }}
+                    style={[{position: 'absolute', zIndex: 8, opacity: isVisible ? 1 : 0}, animatedPositionStyle]}
                     pointerEvents={isVisible ? 'auto' : 'none'}
                 >
                     <Hoverable
@@ -495,7 +506,7 @@ function MiniReportActionContextMenu() {
                                     onPress={() =>
                                         interceptAnonymousUser(() => {
                                             openOverflowMenu(new MouseEvent('click'), threeDotRef);
-                                            miniActions.keepOpen();
+                                            keepOpen();
                                         }, true)
                                     }
                                     shouldPreventDefaultFocusOnPress={false}
