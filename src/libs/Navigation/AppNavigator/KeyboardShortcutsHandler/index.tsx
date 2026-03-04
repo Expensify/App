@@ -1,3 +1,4 @@
+import React from 'react';
 import EscapeHandler from './EscapeHandler';
 import MarkAllMessagesAsReadHandler from './MarkAllMessagesAsReadHandler';
 import NewChatHandler from './NewChatHandler';
