@@ -13,7 +13,6 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxListItemProvider';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
