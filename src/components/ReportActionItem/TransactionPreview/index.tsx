@@ -68,7 +68,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
-    const transactionDetails = useMemo(() => getTransactionDetails(transaction), [transaction]);
+    const transactionDetails = getTransactionDetails(transaction);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
 
     const showContextMenu = (event: GestureResponderEvent) => {
@@ -83,11 +83,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
-    const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(
+    const navigateToReviewFields = () => Navigation.navigate(
             getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, transactionReport),
         );
-    }, [route.params?.threadReportID, transaction, duplicates, policy, policyCategories, policyTags, transactionReport]);
 
     const transactionPreview = transaction;
 
@@ -163,4 +161,4 @@ function TransactionPreview(props: TransactionPreviewProps) {
     );
 }
 
-export default memo(TransactionPreview);
+export default TransactionPreview;
