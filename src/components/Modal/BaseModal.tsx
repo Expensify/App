@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {AccessibilityInfo, Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -17,7 +17,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
@@ -79,8 +78,6 @@ function BaseModal({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const isScreenReaderEnabledFromHook = Accessibility.useScreenReaderStatus();
-    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(isScreenReaderEnabledFromHook);
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     const canUseTouchScreen = canUseTouchScreenCheck();
@@ -100,23 +97,6 @@ function BaseModal({
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
 
     const wasVisible = usePrevious(isVisible);
-
-    useEffect(() => {
-        setIsScreenReaderEnabled(isScreenReaderEnabledFromHook);
-    }, [isScreenReaderEnabledFromHook]);
-
-    useEffect(() => {
-        const isScreenReaderEnabledAsync = AccessibilityInfo.isScreenReaderEnabled;
-        if (!isScreenReaderEnabledAsync) {
-            return;
-        }
-
-        isScreenReaderEnabledAsync()
-            .then((enabled) => {
-                setIsScreenReaderEnabled(enabled);
-            })
-            .catch(() => {});
-    }, []);
 
     const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
     const saveFocusState = useCallback(() => {
@@ -284,7 +264,7 @@ function BaseModal({
         ],
     );
 
-    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose) && isScreenReaderEnabled;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
@@ -400,6 +380,7 @@ function BaseModal({
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
+                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                             {shouldShowBottomDockedDismissButton && (
                                 <PressableWithoutFeedback
                                     onPress={handleBackdropPress}
@@ -412,7 +393,6 @@ function BaseModal({
                                     <View />
                                 </PressableWithoutFeedback>
                             )}
-                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>

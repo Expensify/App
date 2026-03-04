@@ -2,7 +2,7 @@
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, InteractionManager, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, findNodeHandle, InteractionManager, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, View as RNView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -312,7 +312,6 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
-    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const firstMenuItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
@@ -507,8 +506,17 @@ function BasePopoverMenu({
             if (sendAccessibilityEvent) {
                 if (isAndroid) {
                     sendAccessibilityEvent(target, 'viewHoverEnter');
+                    sendAccessibilityEvent(target, 'focus');
+                    hasFocusedFirstItemOnCurrentOpenRef.current = true;
+                    return true;
                 }
                 sendAccessibilityEvent(target, 'focus');
+            }
+
+            const nodeHandle = findNodeHandle(target);
+            const setAccessibilityFocus = typeof AccessibilityInfo.setAccessibilityFocus === 'function' ? AccessibilityInfo.setAccessibilityFocus : undefined; // @ts-expect-error - not typed in RN
+            if (nodeHandle && setAccessibilityFocus) {
+                setTimeout(() => setAccessibilityFocus(nodeHandle), 100);
                 hasFocusedFirstItemOnCurrentOpenRef.current = true;
                 return true;
             }
@@ -559,32 +567,15 @@ function BasePopoverMenu({
             return;
         }
 
-        if (isScreenReaderEnabled) {
-            scheduleFocusFirstMenuItem();
-            return;
-        }
-
-        const isScreenReaderEnabledAsync = AccessibilityInfo.isScreenReaderEnabled;
-        if (!isScreenReaderEnabledAsync) {
-            return;
-        }
-
-        isScreenReaderEnabledAsync()
-            .then((enabled) => {
-                if (!enabled || !isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
-                    return;
-                }
-                scheduleFocusFirstMenuItem();
-            })
-            .catch(() => {});
-    }, [isScreenReaderEnabled, isSmallScreenWidth, onModalShow, scheduleFocusFirstMenuItem]);
+        scheduleFocusFirstMenuItem();
+    }, [isSmallScreenWidth, onModalShow, scheduleFocusFirstMenuItem]);
 
     useEffect(() => {
-        if (!isVisible || !isSmallScreenWidth || !isScreenReaderEnabled || hasFocusedFirstItemOnCurrentOpenRef.current) {
+        if (!isVisible || !isSmallScreenWidth || hasFocusedFirstItemOnCurrentOpenRef.current) {
             return;
         }
         scheduleFocusFirstMenuItem();
-    }, [isVisible, isSmallScreenWidth, isScreenReaderEnabled, scheduleFocusFirstMenuItem]);
+    }, [isVisible, isSmallScreenWidth, scheduleFocusFirstMenuItem]);
 
     const handleModalHide = () => {
         onModalHide?.();
