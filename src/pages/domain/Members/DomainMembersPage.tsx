@@ -183,14 +183,18 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const getCustomRowProps = (accountID: number, email?: string) => {
         const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction;
+        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
 
         const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
         const accountIDErrors = domainErrors?.memberErrors?.[accountID];
+        const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
+        const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
+        const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
+
         const mergedErrors: DomainMemberErrors = {
-            errors: {...accountIDErrors?.errors, ...emailErrors?.errors},
-            vacationDelegateErrors: {...accountIDErrors?.vacationDelegateErrors, ...emailErrors?.vacationDelegateErrors},
-            twoFactorAuthExemptEmailsError: {...accountIDErrors?.twoFactorAuthExemptEmailsError, ...emailErrors?.twoFactorAuthExemptEmailsError},
+            errors: {...getLatestError(accountIDErrors?.errors), ...getLatestError(accountIDErrors?.lockAccountErrors), ...emailError},
+            vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
+            twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
         };
         const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
