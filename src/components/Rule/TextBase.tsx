@@ -39,7 +39,7 @@ function TextBase<TFormID extends OnyxFormKey>({
     isMarkdownEnabled = false,
 }: TextBaseProps<TFormID>) {
     const {translate} = useLocalize();
-    const [form] = useOnyx(formID, {canBeMissing: true});
+    const [form] = useOnyx(formID);
     const styles = useThemeStyles();
 
     const currentValue = (form as Record<string, unknown>)?.[fieldID] ?? '';

@@ -84,10 +84,9 @@ function AccountValidatePage() {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: accountSelector,
-        canBeMissing: true,
     });
 
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

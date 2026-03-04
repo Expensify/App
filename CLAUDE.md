@@ -154,7 +154,6 @@ Key GitHub Actions workflows:
 - `test.yml`: Unit tests
 - `typecheck.yml`: TypeScript validation
 - `lint.yml`: Code quality checks
-- `e2ePerformanceTests.yml`: Performance testing
 
 ## Related Repositories
 
@@ -198,7 +197,6 @@ The skill provides guidance on:
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
-- **E2E Tests**: Custom test runner
 - **Performance Tests**: Reassure framework
 
 ## Special Considerations

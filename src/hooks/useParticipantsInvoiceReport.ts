@@ -18,10 +18,8 @@ const reportSelector = (report: OnyxEntry<Report>): Report | undefined => {
 const allInvoiceReportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, reportSelector);
 
 function useParticipantsInvoiceReport(receiverID: string | number | undefined, receiverType: InvoiceReceiverType, policyID?: string): OnyxEntry<Report> {
-    const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true, selector: allInvoiceReportsSelector});
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-    });
+    const [allInvoiceReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: allInvoiceReportsSelector});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
 
     const invoiceReport = useMemo(() => {
         const existingInvoiceReport = Object.values(allInvoiceReports ?? {}).find((report) => {
