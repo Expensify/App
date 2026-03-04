@@ -7741,11 +7741,6 @@ const CONST = {
         AUTOMATIC: 'automatic',
         NONE: 'none',
     },
-    EMPTY_STATE_MEDIA: {
-        ANIMATION: 'animation',
-        ILLUSTRATION: 'illustration',
-        VIDEO: 'video',
-    },
     REPORT_FIELDS_FEATURE: {
         qbo: {
             classes: 'report-fields-qbo-classes',
