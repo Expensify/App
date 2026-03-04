@@ -508,6 +508,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage()
             .catch((error) => {
                 Log.warn('navigateToNextPage failed', {error});
+                setFormError(translate('common.genericErrorMessage'));
             })
             .finally(() => setIsSubmitting(false));
     };
