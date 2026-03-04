@@ -24,7 +24,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
 
-    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector});
     const uniqueModalId = ComposerFocusManager.getId();
 
     const {wideRHPRouteKeys, isWideRHPFocused, superWideRHPRouteKeys, isSuperWideRHPFocused} = useWideRHPState();

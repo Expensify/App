@@ -24,7 +24,7 @@ type DateTime = {
 function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
     const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (value: DateTime) => {

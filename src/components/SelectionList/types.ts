@@ -37,6 +37,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
 
+    /** Custom content to display in the header of list component. */
+    customListHeaderContent?: React.JSX.Element | null;
+
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -75,6 +78,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether to scroll to the focused item */
     shouldScrollToFocusedIndex?: boolean;
+
+    /** Whether to scroll to the focused item on mount. When false, the list stays at the top to keep header content visible */
+    shouldScrollToFocusedIndexOnMount?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
@@ -125,9 +131,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
-
-        /** Custom content to display in the header of list component. */
-        customListHeaderContent?: React.JSX.Element | null;
 
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
@@ -181,6 +184,12 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 type SelectionListStyle = {
     /** Styles for the list */
     listStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the content container of the list (scrolls with content) */
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Styles for the list footer content container */
+    listFooterContentStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the list container */
     containerStyle?: StyleProp<ViewStyle>;
