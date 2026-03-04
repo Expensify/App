@@ -376,6 +376,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         switchContainerStyle,
         showConfirmModal,
         shouldShowApproverColumn,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.mr3,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {

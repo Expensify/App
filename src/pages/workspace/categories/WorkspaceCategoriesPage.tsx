@@ -300,6 +300,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         glCodeTextStyle,
         switchContainerStyle,
         shouldShowApproverColumn,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.mr3,
     ]);
 
     const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
