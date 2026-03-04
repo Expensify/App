@@ -1,11 +1,12 @@
-import React, {useEffect, useRef} from 'react';
+import {Portal} from '@gorhom/portal';
+import React, {useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import {createPortal} from 'react-dom';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
@@ -37,7 +38,6 @@ import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useR
 import CONST from '@src/CONST';
 
 const SLIDE_DURATION = 200;
-const OVERSHOOT_EASING = Easing.bezier(0.34, 1.56, 0.64, 1);
 
 function MiniReportActionContextMenu() {
     const {
@@ -61,29 +61,41 @@ function MiniReportActionContextMenu() {
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
     const threeDotRef = useRef<View>(null);
     const wasVisibleRef = useRef(false);
-
-    const baseTop = useSharedValue(0);
-    const baseRight = useSharedValue(0);
+    const overlayRef = useRef<View>(null);
+    const menuContainerRef = useRef<View>(null);
+    const [position, setPosition] = useState<{top: number; right: number} | null>(null);
+    const [shouldAnimateSlide, setShouldAnimateSlide] = useState(false);
 
     useEffect(() => {
-        if (!rowMeasurements) {
+        if (!isVisible || !rowMeasurements) {
             return;
         }
 
-        if (isVisible) {
-            const targetY = rowMeasurements.top + (displayAsGroup ? -8 : -4);
-            const targetRight = window.innerWidth - rowMeasurements.right + 4;
-
-            if (wasVisibleRef.current) {
-                baseTop.set(withTiming(targetY, {duration: SLIDE_DURATION, easing: OVERSHOOT_EASING}));
-                baseRight.set(withTiming(targetRight, {duration: SLIDE_DURATION}));
-            } else {
-                baseTop.set(targetY);
-                baseRight.set(targetRight);
-            }
+        const el = overlayRef.current as unknown as HTMLElement | null;
+        if (!el) {
+            return;
         }
-        wasVisibleRef.current = isVisible;
-    }, [isVisible, rowMeasurements, displayAsGroup, baseTop, baseRight]);
+
+        const containerRect = el.getBoundingClientRect();
+        const newTop = rowMeasurements.top - containerRect.top + (displayAsGroup ? -8 : -4);
+        const newRight = containerRect.right - rowMeasurements.right + 4;
+
+        setShouldAnimateSlide(wasVisibleRef.current);
+        setPosition({top: newTop, right: newRight});
+    }, [isVisible, rowMeasurements, displayAsGroup]);
+
+    useEffect(() => {
+        if (isVisible) {
+            wasVisibleRef.current = true;
+            return;
+        }
+        wasVisibleRef.current = false;
+        const timer = setTimeout(() => {
+            setPosition(null);
+            setShouldAnimateSlide(false);
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [isVisible]);
 
     useEffect(() => {
         if (!isVisible) {
@@ -98,10 +110,35 @@ function MiniReportActionContextMenu() {
         };
     }, [isVisible, hideMiniContextMenu]);
 
-    const positionStyle = useAnimatedStyle(() => ({
-        top: baseTop.get(),
-        right: baseRight.get(),
-    }));
+    useEffect(() => {
+        const el = menuContainerRef.current as unknown as HTMLElement | null;
+        if (!el) {
+            return;
+        }
+
+        const onFocusCapture = () => cancelHide();
+        const onBlurCapture = (e: FocusEvent) => {
+            if (e.relatedTarget && el.contains(e.relatedTarget as Node)) {
+                return;
+            }
+            hideMiniContextMenu();
+        };
+
+        el.addEventListener('focus', onFocusCapture, true);
+        el.addEventListener('blur', onBlurCapture, true);
+        return () => {
+            el.removeEventListener('focus', onFocusCapture, true);
+            el.removeEventListener('blur', onBlurCapture, true);
+        };
+    }, [cancelHide, hideMiniContextMenu]);
+
+    useEffect(() => {
+        const el = menuContainerRef.current as unknown as HTMLElement | null;
+        if (!el) {
+            return;
+        }
+        el.dataset.selectionScraperHiddenElement = String(isVisible);
+    }, [isVisible]);
 
     const {
         report,
@@ -394,87 +431,90 @@ function MiniReportActionContextMenu() {
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(true, shouldUseNarrowLayout);
 
-    const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-        if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
-            return;
-        }
-        hideMiniContextMenu();
-    };
+    const shouldTransitionPosition = shouldAnimateSlide && isVisible;
 
-    return createPortal(
-        <div
-            onMouseEnter={cancelHide}
-            onMouseLeave={() => hideMiniContextMenu()}
-            onFocusCapture={cancelHide}
-            onBlurCapture={handleBlur}
-            data-selection-scraper-hidden-element={isVisible}
-            style={{
-                position: 'fixed',
-                zIndex: 8,
-                opacity: isVisible ? 1 : 0,
-                pointerEvents: isVisible ? 'auto' : 'none',
-                cursor: 'default',
-                userSelect: 'none',
-                transitionProperty: 'opacity',
-                transitionDuration: '150ms',
-                transitionTimingFunction: 'ease-in-out',
-            }}
-        >
-            <Animated.View style={[{position: 'absolute'}, positionStyle]}>
-                <View style={wrapperStyle}>
-                    {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
-                        <MiniQuickEmojiReactions
-                            onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                            }
-                            onPressOpenPicker={emojiData.onPressOpenPicker}
-                            onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
-                            reportActionID={emojiData.reportActionID}
-                            reportAction={emojiData.reportAction}
-                        />
-                    )}
-                    {displayedActions.map((action) => (
-                        <MiniContextMenuItem
-                            key={action.id}
-                            tooltipText={action.text}
-                            onPress={action.onPress}
-                            sentryLabel={action.sentryLabel}
+    return (
+        <Portal hostName={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU}>
+            <View
+                ref={overlayRef}
+                style={StyleSheet.absoluteFill}
+                pointerEvents="box-none"
+            >
+                <Animated.View
+                    style={{
+                        position: 'absolute',
+                        zIndex: 8,
+                        top: position?.top ?? 0,
+                        right: position?.right ?? 0,
+                        opacity: isVisible && position !== null ? 1 : 0,
+                        transitionProperty: shouldTransitionPosition ? 'top, right' : 'none',
+                        transitionDuration: `${SLIDE_DURATION}ms`,
+                        transitionTimingFunction: 'ease-in-out',
+                    }}
+                    pointerEvents={isVisible ? 'auto' : 'none'}
+                >
+                    <Hoverable
+                        onHoverIn={cancelHide}
+                        onHoverOut={() => hideMiniContextMenu()}
+                    >
+                        <View
+                            ref={menuContainerRef}
+                            style={wrapperStyle}
                         >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    small
-                                    src={action.icon}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                            {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
+                                <MiniQuickEmojiReactions
+                                    onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
+                                        interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                                    }
+                                    onPressOpenPicker={emojiData.onPressOpenPicker}
+                                    onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
+                                    reportActionID={emojiData.reportActionID}
+                                    reportAction={emojiData.reportAction}
                                 />
                             )}
-                        </MiniContextMenuItem>
-                    ))}
-                    {needsOverflow && (
-                        <MiniContextMenuItem
-                            ref={threeDotRef}
-                            tooltipText={translate('reportActionContextMenu.menu')}
-                            onPress={() =>
-                                interceptAnonymousUser(() => {
-                                    openOverflowMenu(new MouseEvent('click'), threeDotRef);
-                                    miniActions.keepOpen();
-                                }, true)
-                            }
-                            shouldPreventDefaultFocusOnPress={false}
-                            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    small
-                                    src={icons.ThreeDots}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                />
+                            {displayedActions.map((action) => (
+                                <MiniContextMenuItem
+                                    key={action.id}
+                                    tooltipText={action.text}
+                                    onPress={action.onPress}
+                                    sentryLabel={action.sentryLabel}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <Icon
+                                            small
+                                            src={action.icon}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                        />
+                                    )}
+                                </MiniContextMenuItem>
+                            ))}
+                            {needsOverflow && (
+                                <MiniContextMenuItem
+                                    ref={threeDotRef}
+                                    tooltipText={translate('reportActionContextMenu.menu')}
+                                    onPress={() =>
+                                        interceptAnonymousUser(() => {
+                                            openOverflowMenu(new MouseEvent('click'), threeDotRef);
+                                            miniActions.keepOpen();
+                                        }, true)
+                                    }
+                                    shouldPreventDefaultFocusOnPress={false}
+                                    sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <Icon
+                                            small
+                                            src={icons.ThreeDots}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                        />
+                                    )}
+                                </MiniContextMenuItem>
                             )}
-                        </MiniContextMenuItem>
-                    )}
-                </View>
-            </Animated.View>
-        </div>,
-        document.body,
+                        </View>
+                    </Hoverable>
+                </Animated.View>
+            </View>
+        </Portal>
     );
 }
 

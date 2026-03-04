@@ -5,7 +5,7 @@ import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -1027,13 +1027,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                             </ScrollView>
                                         </Animated.View>
                                     )}
-                                    <MiniContextMenuProvider>
-                                        <MiniReportActionContextMenu />
-                                        <View
-                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                            testID="report-actions-view-wrapper"
-                                        >
-                                            {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                    <View
+                                        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                        testID="report-actions-view-wrapper"
+                                    >
+                                        {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                        <MiniContextMenuProvider>
                                             {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                                 <ReportActionsView
                                                     report={report}
@@ -1063,18 +1062,25 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                     reportPendingAction={reportPendingAction}
                                                 />
                                             ) : null}
-                                            {isCurrentReportLoadedFromOnyx ? (
-                                                <ReportFooter
-                                                    report={report}
-                                                    lastReportAction={lastReportAction}
-                                                    reportTransactions={reportTransactions}
-                                                    transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
-                                                    isInSidePanel={isInSidePanel}
-                                                    kickoffWaitingIndicator={kickoffWaitingIndicator}
-                                                />
-                                            ) : null}
-                                        </View>
-                                    </MiniContextMenuProvider>
+                                            <MiniReportActionContextMenu />
+                                            <View
+                                                style={StyleSheet.absoluteFill}
+                                                pointerEvents="box-none"
+                                            >
+                                                <PortalHost name={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU} />
+                                            </View>
+                                        </MiniContextMenuProvider>
+                                        {isCurrentReportLoadedFromOnyx ? (
+                                            <ReportFooter
+                                                report={report}
+                                                lastReportAction={lastReportAction}
+                                                reportTransactions={reportTransactions}
+                                                transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
+                                                kickoffWaitingIndicator={kickoffWaitingIndicator}
+                                            />
+                                        ) : null}
+                                    </View>
                                 </View>
                                 <PortalHost name="suggestions" />
                             </DragAndDropProvider>
