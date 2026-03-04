@@ -123,7 +123,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
             const section = fileOrFolder;
             const articles: Article[] = [];
 
-            // Section can contain .md files directly and/or subfolders that contain .md files
+            // Section can contain .md files directly and/or subfolders (and nested subfolders) that contain .md files
             const sectionPath = `${docsDir}/articles/${platformName}/${hub}/${section}`;
             for (const entry of fs.readdirSync(sectionPath)) {
                 const entryPath = `${sectionPath}/${entry}`;
@@ -133,16 +133,28 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                     continue;
                 }
                 if (fs.statSync(entryPath).isDirectory()) {
+                    // One level: section/SubFolder/file.md -> href "SubFolder/file"
                     for (const file of fs.readdirSync(entryPath)) {
-                        if (!file.endsWith('.md')) {
-                            continue;
-                        }
                         const filePath = `${entryPath}/${file}`;
-                        if (!fs.statSync(filePath).isFile()) {
+                        if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
+                            const order = getOrderFromArticleFrontMatter(filePath);
+                            articles.push(getArticleObj(`${entry}/${file}`, order));
                             continue;
                         }
-                        const order = getOrderFromArticleFrontMatter(filePath);
-                        articles.push(getArticleObj(`${entry}/${file}`, order));
+                        if (fs.statSync(filePath).isDirectory()) {
+                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file"
+                            for (const nestedFile of fs.readdirSync(filePath)) {
+                                if (!nestedFile.endsWith('.md')) {
+                                    continue;
+                                }
+                                const nestedPath = `${filePath}/${nestedFile}`;
+                                if (!fs.statSync(nestedPath).isFile()) {
+                                    continue;
+                                }
+                                const order = getOrderFromArticleFrontMatter(nestedPath);
+                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order));
+                            }
+                        }
                     }
                 }
             }
