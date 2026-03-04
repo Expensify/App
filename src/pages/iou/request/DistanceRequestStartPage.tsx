@@ -173,7 +173,7 @@ function DistanceRequestStartPage({
             allPolicies={allPolicies}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={false}
+                shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="DistanceRequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
