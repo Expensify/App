@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -24,9 +23,6 @@ type SidebarLinksProps = {
     /** List of options to display */
     optionListItems: Report[];
 
-    /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoading: OnyxEntry<boolean>;
-
     /** The chat priority mode */
     priorityMode?: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
@@ -34,7 +30,7 @@ type SidebarLinksProps = {
     isActiveReport: (reportID: string) => boolean;
 };
 
-function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
+function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -91,11 +87,6 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
                 />
-                {!!isLoading && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView shouldAnimate />
-                    </View>
-                )}
             </View>
         </View>
     );
