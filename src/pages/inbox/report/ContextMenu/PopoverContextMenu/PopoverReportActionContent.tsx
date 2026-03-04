@@ -1,8 +1,8 @@
 import type {RefObject} from 'react';
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
+import type {GestureResponderEvent, View as ViewType} from 'react-native';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
@@ -28,7 +28,6 @@ import createHoldAction, {shouldShowHoldAction} from '@pages/inbox/report/Contex
 import createJoinThreadAction, {shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
 import createLeaveThreadAction, {shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
 import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
-import createOverflowMenuAction from '@pages/inbox/report/ContextMenu/actions/overflowMenuAction';
 import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -66,8 +65,6 @@ function PopoverReportActionContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const overflowMenuRef = useRef<ViewType>(null);
-
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
 
     const data = useReportActionContextMenuData({
@@ -80,12 +77,12 @@ function PopoverReportActionContent({
         anchor: {current: contextMenuTargetNode ?? null},
     });
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRefParam: RefObject<ViewType | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection: selection ?? '',
-            contextMenuAnchor: anchorRefParam?.current as ViewType | RNText | null,
+            contextMenuAnchor: null,
             report: {
                 reportID,
                 originalReportID,
@@ -171,10 +168,23 @@ function PopoverReportActionContent({
             childReportActions: data.childReportActions,
         }) && !isDisabled(ACTION_IDS.DELETE);
 
+    const overflowAction: ContextMenuAction = {
+        id: 'overflowMenu',
+        icon: icons.ThreeDots,
+        text: translate('reportActionContextMenu.menu'),
+        isAnonymousAction: true,
+        shouldPreventDefaultFocusOnPress: false,
+        onPress: (event) =>
+            interceptAnonymousUser(() => {
+                openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+                setLocalShouldKeepOpen(true);
+            }, true),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
+    };
+
     const visibleActions: ContextMenuAction[] = [];
     if (!data.reportAction) {
-        // eslint-disable-next-line react-hooks/refs -- factory stores ref for later use, doesn't read .current during render
-        visibleActions.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
+        visibleActions.push(overflowAction);
     } else {
         const reportAction = data.reportAction;
         if (showReplyInThread) {
@@ -287,15 +297,7 @@ function PopoverReportActionContent({
             );
         }
         if (showCopyLink) {
-            visibleActions.push(
-                createCopyLinkAction({
-                    reportAction,
-                    originalReportID: data.originalReportID,
-                    translate,
-                    linkCopyIcon: icons.LinkCopy,
-                    checkmarkIcon: icons.Checkmark,
-                }),
-            );
+            visibleActions.push(createCopyLinkAction({reportAction, originalReportID: data.originalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
         }
         if (showFlagAsOffensive) {
             visibleActions.push(createFlagAsOffensiveAction({reportID: data.reportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
@@ -311,8 +313,7 @@ function PopoverReportActionContent({
                 createDeleteAction({reportID: data.reportID, reportAction, moneyRequestAction: data.moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}),
             );
         }
-        // eslint-disable-next-line react-hooks/refs -- factory stores ref for later use, doesn't read .current during render
-        visibleActions.push(createOverflowMenuAction({openOverflowMenu, openContextMenu: () => setLocalShouldKeepOpen(true), translate, threeDotsIcon: icons.ThreeDots}, overflowMenuRef));
+        visibleActions.push(overflowAction);
     }
 
     const emojiData = createEmojiReactionData({
