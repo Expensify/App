@@ -67,6 +67,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}
                         accessibilityLabel={translate('accessibilityHints.preStyledText')}
+                        sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
                     >
                         <View>
                             <Text style={{fontSize}}>
