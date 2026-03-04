@@ -17,6 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import {createRandomReport} from '../../utils/collections/reports';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -51,6 +52,7 @@ describe('HeaderView', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
+        return waitForBatchedUpdates();
     });
 
     it('should update invoice room title when the invoice receiver detail is updated', async () => {
@@ -66,11 +68,14 @@ describe('HeaderView', () => {
             },
         };
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [accountID]: {
-                    displayName,
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: report,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [accountID]: {
+                        displayName,
+                    },
                 },
-            });
+            } as unknown as KeyValueMapping);
         });
 
         render(
@@ -157,13 +162,16 @@ describe('HeaderView', () => {
             parentReportActionID: parentReportAction.reportActionID,
         };
 
+        // Set report actions first so they're available when the derived value computes report names
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, {
+            [parentReportAction.reportActionID]: parentReportAction,
+        });
+        await waitForBatchedUpdates();
+
         await Onyx.multiSet({
             [`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]: originalReport,
             [`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`]: parentReport,
             [`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]: threadReport,
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`]: {
-                [parentReportAction.reportActionID]: parentReportAction,
-            },
         } as unknown as KeyValueMapping);
 
         render(
