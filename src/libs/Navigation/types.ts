@@ -691,6 +691,8 @@ type SettingsNavigatorParamList = {
         policyID: string;
         transactionID?: string;
         reportID?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
