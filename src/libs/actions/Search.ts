@@ -102,7 +102,6 @@ type HandleActionButtonPressParams = {
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
-    userBillingGraceEndPeriodCollection?: OnyxCollection<BillingGraceEndPeriod>;
 };
 
 function handleActionButtonPress({
@@ -118,7 +117,6 @@ function handleActionButtonPress({
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
-    userBillingGraceEndPeriodCollection,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -130,14 +128,19 @@ function handleActionButtonPress({
         return;
     }
 
+    if (
+        [CONST.SEARCH.ACTION_TYPES.PAY, CONST.SEARCH.ACTION_TYPES.APPROVE, CONST.SEARCH.ACTION_TYPES.SUBMIT].some((action) => action === item.action) &&
+        snapshotReport.policyID &&
+        shouldRestrictUserBillableActions(snapshotReport.policyID)
+    ) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+        return;
+    }
+
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
-                return;
-            }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriodCollection)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, personalPolicyID);
@@ -151,19 +154,11 @@ function handleActionButtonPress({
                 onDEWModalOpen?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriodCollection)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
-                return;
-            }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
-                return;
-            }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriodCollection)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);

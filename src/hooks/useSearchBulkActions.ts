@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -52,7 +53,7 @@ import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
@@ -69,6 +70,12 @@ import useThemeStyles from './useThemeStyles';
 type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
 };
+
+function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>): string | undefined {
+    return items
+        .map((item) => item.policyID)
+        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
+}
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -361,18 +368,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const selectedPolicyIDList = selectedReports.length
-            ? selectedReports.map((report) => report.policyID)
-            : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
+        const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-        const restrictedPolicyID = selectedPolicyIDList.find(
-            (policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection),
-        );
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGraceEndPeriodCollection);
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
         }
 
+        const selectedPolicyIDList = selectedItems.map((item) => item.policyID);
         const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return hasDynamicExternalWorkflow(policy);
@@ -535,9 +539,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-            const restrictedPolicyID = selectedOptions
-                .map((item) => item.policyID)
-                .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
+            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGraceEndPeriodCollection);
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -829,9 +831,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = itemList
-                        .map((item) => item.policyID)
-                        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, userBillingGraceEndPeriodCollection));
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGraceEndPeriodCollection);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
