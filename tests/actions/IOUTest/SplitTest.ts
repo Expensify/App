@@ -1017,12 +1017,18 @@ describe('split expense', () => {
             },
         });
 
-        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+        let participantsPolicyTags: Record<string, PolicyTagLists> = {};
         await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
             waitForCollectionCallback: true,
-            callback: (value) => {
-                allPolicyTags = value;
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
             },
         });
 
@@ -1042,7 +1048,7 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            allPolicyTags,
+            participantsPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1227,16 +1233,6 @@ describe('split expense', () => {
 });
 
 describe('startSplitBill', () => {
-    let allPolicyTags: OnyxCollection<PolicyTagLists>;
-    beforeEach(async () => {
-        await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allPolicyTags = value;
-            },
-        });
-    });
     it('should update the policyRecentlyUsedTags when tag is provided', async () => {
         // Given a policy recently used tags
         const policyID = 'A';
@@ -1251,17 +1247,24 @@ describe('startSplitBill', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID}];
+        let participantsPolicyTags: Record<string, PolicyTagLists> = {};
         await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
             waitForCollectionCallback: true,
-            callback: (value) => {
-                allPolicyTags = value;
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
             },
         });
 
         // When doing a split bill with a receipt
         startSplitBill({
-            participants: [{isPolicyExpenseChat: true, policyID}],
+            participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             comment: '',
@@ -1274,7 +1277,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedTags,
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
-            allPolicyTags,
+            participantsPolicyTags,
         });
 
         waitForBatchedUpdates();
@@ -1300,9 +1303,24 @@ describe('startSplitBill', () => {
         const testCategory = 'Food';
         const testCurrency = CONST.CURRENCY.USD;
 
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}];
+        let participantsPolicyTags: Record<string, PolicyTagLists> = {};
+        await getOnyxData({
+            waitForCollectionCallback: true,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
+            },
+        });
+
         // When starting a split bill
         const {splitTransactionID} = startSplitBill({
-            participants: [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}],
+            participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             comment: testComment,
@@ -1315,7 +1333,7 @@ describe('startSplitBill', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            allPolicyTags,
+            participantsPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1344,9 +1362,24 @@ describe('startSplitBill', () => {
 
         await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, existingQuickAction);
 
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}];
+        let participantsPolicyTags: Record<string, PolicyTagLists> = {};
+        await getOnyxData({
+            waitForCollectionCallback: true,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
+            },
+        });
+
         // When starting a split bill
         const {splitTransactionID} = startSplitBill({
-            participants: [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}],
+            participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             comment: '',
@@ -1359,7 +1392,7 @@ describe('startSplitBill', () => {
             quickAction: existingQuickAction,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
-            allPolicyTags,
+            participantsPolicyTags,
         });
 
         await waitForBatchedUpdates();
