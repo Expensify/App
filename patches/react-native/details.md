@@ -221,6 +221,6 @@
 ### [react-native+0.83.1+029+fix-view-stealing-first-responder.patch](react-native+0.83.1+029+fix-view-stealing-first-responder.patch)
 
 - Reason: In RN 0.83, `RCTViewComponentView.canBecomeFirstResponder` unconditionally returns `YES` (added for the `enableImperativeFocus` feature). This causes UIKit to promote parent views to first responder after navigation transitions complete (`_promoteSelfOrDescendantToFirstResponderIfNecessary`), stealing focus from text inputs and triggering an immediate focus→blur cycle. The fix gates `canBecomeFirstResponder` behind the `enableImperativeFocus` feature flag, which defaults to `false`.
-- Upstream PR/issue: 🛑
-- E/App issue: 🛑
-- PR Introducing Patch: 🛑
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55908
+- E/App issue: https://github.com/Expensify/App/issues/75120
+- PR Introducing Patch: https://github.com/Expensify/App/pull/79962
