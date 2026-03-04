@@ -72,18 +72,17 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[taxCode];
     const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[taxCode]?.value !== taxValue;
 
-    const deletedTaxOption =
-        !hasTaxBeenDeleted && !hasTaxValueChanged
-            ? null
-            : {
-                  code: undefined,
-                  text: taxValue ?? '',
-                  keyForList: taxCode ?? '',
-                  searchText: taxValue ?? '',
-                  tooltipText: taxValue ?? '',
-                  isDisabled: true,
-                  isSelected: true,
-              };
+    const deletedTaxOption = !hasTaxBeenDeleted
+        ? null
+        : {
+              code: undefined,
+              text: taxValue ?? '',
+              keyForList: taxCode ?? '',
+              searchText: taxValue ?? '',
+              tooltipText: taxValue ?? '',
+              isDisabled: true,
+              isSelected: true,
+          };
 
     const selectedOptions = selectedTaxRate
         ? [
