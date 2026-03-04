@@ -373,9 +373,6 @@ type PureReportActionItemProps = {
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
-    /** Whether the room is a chronos report */
-    isChronosReport?: boolean;
-
     /** All cards */
     cardList?: OnyxTypes.CardList;
 
@@ -528,8 +525,6 @@ function PureReportActionItem({
     originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in memo comparator
-    isChronosReport,
     toggleEmojiReaction = () => {},
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
@@ -2177,7 +2172,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
