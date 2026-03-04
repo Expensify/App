@@ -15,7 +15,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -71,8 +70,6 @@ function ProfilePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('common.profile')}`);
-
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -202,7 +199,15 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
+                                    <AvatarSkeleton
+                                        size={CONST.AVATAR_SIZE.X_LARGE}
+                                        reasonAttributes={{
+                                            context: 'ProfilePage',
+                                            isPersonalDetailsEmpty: isEmptyObject(currentUserPersonalDetails),
+                                            isAccountIDInvalid: accountID === -1,
+                                            hasNoAvatarURL: !avatarURL,
+                                        }}
+                                    />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarButtonWithIcon

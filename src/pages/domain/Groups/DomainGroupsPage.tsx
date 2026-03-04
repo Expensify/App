@@ -1,5 +1,5 @@
 import type {DomainSecurityGroupWithID} from '@selectors/Domain';
-import {domainNameSelector, groupsSelector} from '@selectors/Domain';
+import {groupsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,7 +8,6 @@ import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
-import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,8 +28,6 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
-    useDomainDocumentTitle(domainName, 'domain.groups.title');
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 

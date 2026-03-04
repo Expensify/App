@@ -1,6 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
@@ -21,10 +20,11 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +69,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatThread,
+    isConciergeChatReport,
     isGroupChat,
     isHiddenForCurrentUser,
     isInvoiceReport,
@@ -166,12 +167,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
 
-    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`, {allowStaleData: true});
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {allowStaleData: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {allowStaleData: true});
+    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`);
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -276,7 +277,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
-    useDocumentTitle(report?.reportName ?? '');
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const prevReport = usePrevious(report);
@@ -284,7 +284,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
@@ -338,6 +339,14 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+
+    const isConciergeChat = isConciergeChatReport(report);
+    const {
+        isProcessing: isConciergeProcessing,
+        reasoningHistory: conciergeReasoningHistory,
+        statusLabel: conciergeStatusLabel,
+        kickoffWaitingIndicator,
+    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
 
     const {closeSidePanel} = useSidePanelActions();
 
@@ -527,8 +536,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, report, iouAction, currentReportTransaction.at(0));
-    }, [introSelected, report, reportID]);
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, report, iouAction, currentReportTransaction.at(0));
+    }, [introSelected, currentUserEmail, currentUserAccountID, report, reportID]);
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
@@ -754,7 +763,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
 
             Navigation.isNavigationReady().then(() => {
-                navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
             });
             return;
         }
@@ -806,9 +815,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, currentUserAccountID);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, currentUserAccountID]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
 
     useEffect(() => {
         if (!isValidReportIDFromPath(reportIDFromRoute)) {
@@ -930,8 +939,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(introSelected, report, undefined, transaction);
-    }, [introSelected, report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, report, undefined, transaction);
+    }, [introSelected, currentUserEmail, currentUserAccountID, report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
 
     const lastRoute = usePrevious(route);
 
@@ -1031,6 +1040,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 parentReportAction={parentReportAction}
                                                 transactionThreadReportID={transactionThreadReportID}
                                                 isReportTransactionThread={isTransactionThreadView}
+                                                isConciergeProcessing={isConciergeProcessing}
+                                                conciergeReasoningHistory={conciergeReasoningHistory}
+                                                conciergeStatusLabel={conciergeStatusLabel}
                                             />
                                         ) : null}
                                         {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -1055,6 +1067,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
                                                 isInSidePanel={isInSidePanel}
+                                                kickoffWaitingIndicator={kickoffWaitingIndicator}
                                             />
                                         ) : null}
                                     </View>

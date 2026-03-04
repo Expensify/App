@@ -28,7 +28,6 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
-import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
 import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
@@ -96,7 +95,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const policyID = policy?.id;
-    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.profile');
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
@@ -601,13 +599,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 if (!policyID) {
                                     return;
                                 }
-                                updateWorkspaceAvatar(policyID, file as File);
+                                updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
-                                deleteWorkspaceAvatar(policyID);
+                                deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}

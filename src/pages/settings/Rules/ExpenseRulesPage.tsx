@@ -5,9 +5,8 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -15,10 +14,9 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -49,13 +47,13 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const genericIllustration = useGenericEmptyStateIllustration();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
-    useDocumentTitle(`${translate('common.settings')} - ${translate('expenseRulesPage.title')}`);
 
     useEffect(() => {
         // Clear selection when rule is changed as hash is outdated
@@ -254,21 +252,26 @@ function ExpenseRulesPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButton}
+                {!shouldUseNarrowLayout && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldUseNarrowLayout && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
+                    <GenericEmptyStateComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        buttons={[
+                            {
+                                success: true,
+                                buttonAction: navigateToNewRulePage,
+                                icon: icons.Plus,
+                                buttonText: translate('expenseRulesPage.newRule'),
+                            },
+                        ]}
                     />
                 </ScrollView>
             )}
@@ -295,7 +298,7 @@ function ExpenseRulesPage() {
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
                     shouldUseDefaultRightHandSideCheckmark={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
                 />

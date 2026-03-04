@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Achternaam',
         scanning: 'Scannen',
         analyzing: 'Analyseren...',
+        thinking: 'Concierge denkt na...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
         phone: 'Telefoon',
@@ -514,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Let op!',
         submitTo: 'Indienen bij',
         forwardTo: 'Doorsturen naar',
+        approvalLimit: 'Goedkeuringslimiet',
+        overLimitForwardTo: 'Doorsturen bij overschrijding limiet',
         merge: 'Samenvoegen',
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
@@ -550,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Volg ons op Instagram',
         facebook: 'Volg ons op Facebook',
         linkedin: 'Volg ons op LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Redenering inklappen',
+        expandReasoning: 'Redenering uitklappen',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1041,6 +1048,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Aankomende taken verschijnen hier.',
             },
         },
+        upcomingTravel: 'Aankomende reizen',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vlucht naar ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trein naar ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Autoverhuur in ${destination}`,
+            inOneWeek: 'Over 1 week',
+            inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
+            today: 'Vandaag',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1369,6 +1386,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Voer een geldige afstand in voordat je verdergaat',
             invalidReadings: 'Voer zowel de begin- als eindstanden in',
             negativeDistanceNotAllowed: 'Eindstand moet hoger zijn dan beginstand',
+            distanceAmountTooLarge: 'Het totale bedrag is te hoog. Verlaag de afstand of verlaag het tarief.',
+            distanceAmountTooLargeReduceDistance: 'Het totale bedrag is te hoog. Verlaag de afstand.',
+            distanceAmountTooLargeReduceRate: 'Het totale bedrag is te hoog. Verlaag het tarief.',
+            odometerReadingTooLarge: (formattedMax: string) => `Kilometertellerstanden mogen niet hoger zijn dan ${formattedMax}.`,
             invalidIntegerAmount: 'Voer een volledig dollarbedrag in voordat je doorgaat',
             invalidTaxAmount: (amount: string) => `Maximale belastingbedrag is ${amount}`,
             invalidSplit: 'De som van de splitsingen moet gelijk zijn aan het totale bedrag',
@@ -1573,6 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `het is niet gelukt om het rapport in te dienen. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Je kunt afstandsvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
     },
     transactionMerge: {
         listPage: {
@@ -2011,6 +2033,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Kaart-activiteit en beheerdersacties in je domein(en).',
         areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
         onceLocked: 'Zodra deze wordt vergrendeld, wordt je account beperkt in afwachting van een deblokkeringsverzoek en een beveiligingscontrole',
+        unlockTitle: 'We hebben je verzoek ontvangen',
+        unlockDescription: 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Account vergrendelen mislukt',
@@ -8336,6 +8360,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         outstandingFilter: '<tooltip>Filter voor uitgaven\ndie <strong>goedkeuring nodig hebben</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Stuur deze bon om\n<strong>de proefrit te voltooien!</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS-tracking bezig! Als je klaar bent, stop dan hieronder met bijhouden.</tooltip>',
+        hasFilterNegation: '<tooltip>Zoek naar uitgaven zonder bonnen met <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
@@ -8508,7 +8533,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             resetDomain: 'Domein resetten',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Typ <strong>${domainName}</strong> om het resetten van het domein te bevestigen.`,
             enterDomainName: 'Voer hier je domeinnaam in',
-            resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <ul><li>Bedrijfskaartverbindingen en alle niet-gerapporteerde uitgaven van die kaarten</li> <li>SAML- en groepsinstellingen</li> </ul> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinlijst verwijderen door het bijbehorende e-mailadres te verwijderen uit je <a href="#">contactmethoden</a>.`,
+            resetDomainInfo: `Deze actie is <strong>definitief</strong> en de volgende gegevens worden verwijderd: <br/> <bullet-list><bullet-item>Bedrijfskaartverbindingen en alle niet-gerapporteerde uitgaven van die kaarten</bullet-item><bullet-item>SAML- en groepsinstellingen</bullet-item></bullet-list> Alle accounts, werkruimten, rapporten, uitgaven en andere gegevens blijven behouden. <br/><br/>Opmerking: je kunt dit domein uit je domeinlijst verwijderen door het bijbehorende e-mailadres te verwijderen uit je <a href="#">contactmethoden</a>.`,
         },
         domainMembers: 'Domeinleden',
         members: {
@@ -8527,8 +8552,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 other: 'Accounts veilig sluiten',
             }),
             closeAccountInfo: () => ({
-                one: 'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
-                other: 'We raden aan om de accounts veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <ul><li>Openstaande goedkeuringen</li><li>Actieve terugbetalingen</li><li>Geen alternatieve inlogmethoden</li></ul>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde accounts geforceerd sluiten.',
+                one: 'We raden aan om de account veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <bullet-list><bullet-item>Openstaande goedkeuringen</bullet-item><bullet-item>Actieve terugbetalingen</bullet-item><bullet-item>Geen alternatieve inlogmethoden</bullet-item></bullet-list>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde account geforceerd sluiten.',
+                other: 'We raden aan om de accounts veilig te sluiten om te vermijden dat je deze moet sluiten als er zijn: <bullet-list><bullet-item>Openstaande goedkeuringen</bullet-item><bullet-item>Actieve terugbetalingen</bullet-item><bullet-item>Geen alternatieve inlogmethoden</bullet-item></bullet-list>Anders kun je de bovenstaande veiligheidsmaatregelen negeren en de geselecteerde accounts geforceerd sluiten.',
             }),
             error: {
                 removeMember: 'Kan deze gebruiker niet verwijderen. Probeer het opnieuw.',
@@ -8537,6 +8562,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Je kunt geen vakantiemandataris instellen voor ${email} omdat die persoon momenteel gedelegeerde is voor de volgende leden:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Weet je het zeker? Hiermee wordt het account van <strong>${email}</strong> vergrendeld. <br /><br /> Ons team zal het account vervolgens beoordelen en ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moeten ze samenwerken met Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt:
+                'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
         },
         common: {
             settings: 'Instellingen',

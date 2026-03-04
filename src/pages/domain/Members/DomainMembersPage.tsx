@@ -6,7 +6,6 @@ import type {DomainMemberBulkActionType, DropdownOption} from '@components/Butto
 import DecisionModal from '@components/DecisionModal';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -53,7 +52,6 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
-    useDomainDocumentTitle(domainName, 'domain.domainMembers');
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -151,14 +149,18 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const getCustomRowProps = (accountID: number, email?: string) => {
         const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction;
+        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
 
         const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
         const accountIDErrors = domainErrors?.memberErrors?.[accountID];
+        const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
+        const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
+        const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
+
         const mergedErrors: DomainMemberErrors = {
-            errors: {...accountIDErrors?.errors, ...emailErrors?.errors},
-            vacationDelegateErrors: {...accountIDErrors?.vacationDelegateErrors, ...emailErrors?.vacationDelegateErrors},
-            twoFactorAuthExemptEmailsError: {...accountIDErrors?.twoFactorAuthExemptEmailsError, ...emailErrors?.twoFactorAuthExemptEmailsError},
+            errors: {...getLatestError(accountIDErrors?.errors), ...getLatestError(accountIDErrors?.lockAccountErrors), ...emailError},
+            vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
+            twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
         };
         const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 

@@ -7,13 +7,14 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +34,6 @@ type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamLi
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
-    useDocumentTitle(translate('common.search'));
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -42,6 +42,8 @@ function SearchPage({route}: SearchPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
+    const filterFormValues = useFilterFormValues(queryJSON);
+    useSearchFilterSync(filterFormValues);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);

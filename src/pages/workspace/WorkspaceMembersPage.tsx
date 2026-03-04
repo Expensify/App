@@ -30,7 +30,6 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
@@ -97,7 +96,6 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye'] as const);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
@@ -862,9 +860,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         textInputOptions={textInputOptions}
-                        showLoadingPlaceholder={isLoading}
+                        shouldShowLoadingPlaceholder={isLoading}
                         onDismissError={dismissError}
-                        showListEmptyContent={false}
+                        shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         shouldUseUserSkeletonView
                         shouldHeaderBeInsideList
