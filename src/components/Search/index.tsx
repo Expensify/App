@@ -227,7 +227,6 @@ function Search({
     const {isSmallScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const prevIsFocused = usePrevious(isFocused);
     const {markReportIDAsExpense} = useWideRHPActions();
     const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
         useSearchStateContext();
@@ -602,20 +601,6 @@ function Search({
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [handleSearch, isOffline, offset, queryJSON, searchKey, shouldCalculateTotals, validGroupBy]);
-
-    // When returning to a grouped search (e.g. Top Spenders after closing expense RHP), collapse expanded groups
-    // so the user must click the header row again to see the expense list (with updated data from refetch).
-    const [collapseExpandedGroupsTrigger, setCollapseExpandedGroupsTrigger] = useState(0);
-    useEffect(() => {
-        const didReturnToScreen = prevIsFocused === false && isFocused === true;
-        if (!didReturnToScreen || !validGroupBy || isOffline || searchResults?.search?.isLoading) {
-            return;
-        }
-        setCollapseExpandedGroupsTrigger((prev) => prev + 1);
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: false});
-        // Only run when screen gains focus (returning from RHP/modal); refetch and collapse so re-expand shows fresh data.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, prevIsFocused]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -1405,7 +1390,6 @@ function Search({
                     ref={searchListRef}
                     data={sortedData}
                     ListItem={ListItem}
-                    collapseExpandedGroupsTrigger={collapseExpandedGroupsTrigger}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
                     onAllCheckboxPress={toggleAllTransactions}

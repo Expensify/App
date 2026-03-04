@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -88,6 +89,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const {selectedTransactions} = useSearchStateContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const isScreenFocused = useIsFocused();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
@@ -158,7 +160,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // Search transactions - handles both refresh (offset 0) and pagination (current offset + pageSize)
-    const searchTransactions = (pageSize = 0, isRefresh = false) => {
+    const searchTransactions = useCallback((pageSize = 0, isRefresh = false) => {
         if (!groupItem.transactionsQueryJSON) {
             return;
         }
@@ -171,7 +173,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
         });
-    };
+    }, [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading, transactionsSnapshot?.search?.offset]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -193,6 +195,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
         searchTransactions(0, true);
     }, [newTransactionID, isExpanded, searchTransactions]);
+
+    const wasScreenFocusedRef = useRef(isScreenFocused);
+    useEffect(() => {
+        const didReturnToScreen = wasScreenFocusedRef.current === false && isScreenFocused === true;
+        wasScreenFocusedRef.current = isScreenFocused;
+
+        if (!didReturnToScreen || !isExpanded || isExpenseReportType) {
+            return;
+        }
+
+        // Keep expanded group rows in sync with updated grouped totals after returning from RHP flows.
+        searchTransactions(0, true);
+    }, [isScreenFocused, isExpanded, isExpenseReportType, searchTransactions]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
