@@ -1,5 +1,8 @@
+import Log from '@libs/Log';
 import type {FileObject} from '@src/types/utils/Attachment';
 import calculateStitchLayout from './stitchLayout';
+
+const JPEG_QUALITY = 0.9;
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
     const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
@@ -17,35 +20,40 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
             img.src = src;
         });
 
-    return Promise.all([loadImage(source1), loadImage(source2)]).then(([img1, img2]) => {
-        const {width, height, horizontal} = calculateStitchLayout(img1.width, img1.height, img2.width, img2.height);
+    return Promise.all([loadImage(source1), loadImage(source2)])
+        .then(([img1, img2]) => {
+            const {width, height, horizontal} = calculateStitchLayout(img1.width, img1.height, img2.width, img2.height);
 
-        const offscreenCanvas = document.createElement('canvas');
-        offscreenCanvas.width = width;
-        offscreenCanvas.height = height;
-        const ctx = offscreenCanvas.getContext('2d');
-        if (!ctx) {
+            const offscreenCanvas = document.createElement('canvas');
+            offscreenCanvas.width = width;
+            offscreenCanvas.height = height;
+            const ctx = offscreenCanvas.getContext('2d');
+            if (!ctx) {
+                return null;
+            }
+
+            ctx.drawImage(img1, 0, 0);
+            ctx.drawImage(img2, horizontal ? img1.width : 0, horizontal ? 0 : img1.height);
+
+            return new Promise<FileObject | null>((resolve) => {
+                offscreenCanvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            resolve(null);
+                            return;
+                        }
+                        const uri = URL.createObjectURL(blob);
+                        resolve({uri, name: 'stitched_image.jpg', type: 'image/jpeg'});
+                    },
+                    'image/jpeg',
+                    JPEG_QUALITY,
+                );
+            });
+        })
+        .catch((error) => {
+            Log.warn('stitchOdometerImages (web) failed', {error});
             return null;
-        }
-
-        ctx.drawImage(img1, 0, 0);
-        ctx.drawImage(img2, horizontal ? img1.width : 0, horizontal ? 0 : img1.height);
-
-        return new Promise<FileObject | null>((resolve) => {
-            offscreenCanvas.toBlob(
-                (blob) => {
-                    if (!blob) {
-                        resolve(null);
-                        return;
-                    }
-                    const uri = URL.createObjectURL(blob);
-                    resolve({uri, name: 'stitched_image.jpg', type: 'image/jpeg'});
-                },
-                'image/jpeg',
-                0.9,
-            );
         });
-    });
 }
 
 export default stitchOdometerImages;

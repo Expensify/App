@@ -30,6 +30,7 @@ import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
@@ -352,19 +353,12 @@ function IOURequestStepDistanceOdometer({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
-    // Navigate to next page following Manual tab pattern
     const navigateToNextPage = async () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-
-        // Store odometer readings in transaction.comment.odometerStart/odometerEnd
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
-
-        // Calculate total distance (endReading - startReading)
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
-
-        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         const stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
         if (stitchedImage ?? odometerStartImage ?? odometerEndImage) {
@@ -511,7 +505,11 @@ function IOURequestStepDistanceOdometer({
 
         // When validation passes, call navigateToNextPage
         setIsSubmitting(true);
-        navigateToNextPage().finally(() => setIsSubmitting(false));
+        navigateToNextPage()
+            .catch((error) => {
+                Log.warn('navigateToNextPage failed', {error});
+            })
+            .finally(() => setIsSubmitting(false));
     };
 
     const hasUnsavedChanges = useMemo(
