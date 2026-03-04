@@ -2,13 +2,14 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
+import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
     PersonalDetails,
     PersonalDetailsList,
+    PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
     ReportNameValuePairs,
@@ -281,7 +282,6 @@ function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -350,11 +350,21 @@ function updateReportsToDisplayInLHN({
     draftComments,
     transactions,
 }: UpdateReportsToDisplayInLHNProps) {
-    const displayedReportsCopy = {...displayedReports};
+    // Use a lazy copy to avoid creating a new object reference when no entries actually change.
+    let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
+    const getMutableCopy = (): ReportsToDisplayInLHN => {
+        if (!displayedReportsCopy) {
+            displayedReportsCopy = {...displayedReports};
+        }
+        return displayedReportsCopy;
+    };
+
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report) {
-            delete displayedReportsCopy[reportID];
+            if (reportID in displayedReports) {
+                delete getMutableCopy()[reportID];
+            }
             continue;
         }
 
@@ -378,20 +388,32 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
-        } else {
-            delete displayedReportsCopy[reportID];
+            const existingEntry = displayedReports[reportID];
+
+            if (hasAttentionOrError) {
+                if (
+                    existingEntry !== report ||
+                    existingEntry?.requiresAttention !== requiresAttention ||
+                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt
+                ) {
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
+                }
+            } else if (existingEntry !== report) {
+                getMutableCopy()[reportID] = report;
+            }
+        } else if (reportID in displayedReports) {
+            delete getMutableCopy()[reportID];
         }
     }
 
-    return displayedReportsCopy;
+    return displayedReportsCopy ?? displayedReports;
 }
 /**
  * Categorizes reports into their respective LHN groups
  */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ) {
@@ -420,7 +442,7 @@ function categorizeReportsForLHN(
 
         const reportID = report.reportID;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, conciergeReportID);
+        const displayName = getReportName({report, conciergeReportID});
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -429,8 +451,7 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!report?.requiresAttention;
-        const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
-        const hasDraft = !!draftComment;
+        const hasDraft = !!reportsDrafts?.[reportID];
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
@@ -554,7 +575,7 @@ function sortReportsToDisplayInLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
-    reportsDrafts: OnyxCollection<string> | undefined,
+    reportsDrafts: Record<string, boolean> | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
     conciergeReportID: string | undefined,
 ): string[] {
@@ -672,6 +693,8 @@ function getOptionData({
     currentUserAccountID,
     visibleReportActionsData,
     reportAttributesDerived,
+    policyTags,
+    currentUserLogin,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -694,6 +717,8 @@ function getOptionData({
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    policyTags?: OnyxEntry<PolicyTagLists>;
+    currentUserLogin: string;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -834,6 +859,8 @@ function getOptionData({
             isReportArchived,
             reportMetadata,
             reportAttributesDerived,
+            policyTags,
+            currentUserLogin,
             lastAction,
         });
     }
@@ -880,7 +907,7 @@ function getOptionData({
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName(lastActionReport) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1007,12 +1034,6 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
-        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
-            const displayName =
-                (lastMessageTextFromReport.length > 0 &&
-                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
-                lastActorDisplayName;
-            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -1081,6 +1102,12 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
+        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            const displayName =
+                (lastMessageTextFromReport.length > 0 &&
+                    getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, currentUserAccountID, personalDetails, visibleReportActionsData, lastAction)) ||
+                lastActorDisplayName;
+            result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
@@ -1127,7 +1154,7 @@ function getOptionData({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived, undefined, undefined, conciergeReportID);
+    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1237,7 +1264,7 @@ function getRoomWelcomeMessage(
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName(report);
+    const reportName = getReportName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
