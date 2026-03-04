@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
@@ -1671,6 +1672,25 @@ function buildFilterQueryWithSortDefaults(
     return getQueryWithUpdatedValues(queryString, true);
 }
 
+/**
+ * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
+ */
+function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+    const searchQuery = buildCannedSearchQuery({type});
+    const searchQueryJSON = buildSearchQueryJSON(searchQuery);
+    if (!searchQueryJSON) {
+        return;
+    }
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
+        value: {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            data,
+        },
+    };
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1697,4 +1717,5 @@ export {
     shouldSkipSuggestedSearchNavigation,
     shouldResetSortOrder,
     buildFilterQueryWithSortDefaults,
+    buildOptimisticSnapshotData,
 };
