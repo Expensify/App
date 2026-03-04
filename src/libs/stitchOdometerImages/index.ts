@@ -2,7 +2,9 @@ import Log from '@libs/Log';
 import type {FileObject} from '@src/types/utils/Attachment';
 import calculateStitchLayout from './stitchLayout';
 
-const JPEG_QUALITY = 0.9;
+// Tracks the single active stitched blob URL, so that we can revoke it on the next call so at most one
+// blob URL exists at a time - mirrors the native strategy of a single overwritten temp file
+let previousBlobUrl: string | null = null;
 
 function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
     const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
@@ -36,18 +38,18 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
             ctx.drawImage(img2, horizontal ? img1.width : 0, horizontal ? 0 : img1.height);
 
             return new Promise<FileObject | null>((resolve) => {
-                offscreenCanvas.toBlob(
-                    (blob) => {
-                        if (!blob) {
-                            resolve(null);
-                            return;
-                        }
-                        const uri = URL.createObjectURL(blob);
-                        resolve({uri, name: 'stitched_image.jpg', type: 'image/jpeg'});
-                    },
-                    'image/jpeg',
-                    JPEG_QUALITY,
-                );
+                offscreenCanvas.toBlob((blob) => {
+                    if (!blob) {
+                        resolve(null);
+                        return;
+                    }
+                    if (previousBlobUrl) {
+                        URL.revokeObjectURL(previousBlobUrl);
+                    }
+                    const uri = URL.createObjectURL(blob);
+                    previousBlobUrl = uri;
+                    resolve({uri, name: 'stitched_odometer.jpg', type: 'image/jpeg'});
+                }, 'image/jpeg');
             });
         })
         .catch((error) => {

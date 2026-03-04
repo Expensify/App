@@ -15,6 +15,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
     let skImage1 = null;
     let skImage2 = null;
     let surface = null;
+    let snapshot = null;
 
     try {
         const [buffer1, buffer2] = await Promise.all([fetch(source1).then((r) => r.arrayBuffer()), fetch(source2).then((r) => r.arrayBuffer())]);
@@ -38,12 +39,11 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         canvas.drawImage(skImage2, horizontal ? skImage1.width() : 0, horizontal ? 0 : skImage1.height());
         surface.flush();
 
-        const base64 = surface.makeImageSnapshot().encodeToBase64();
+        snapshot = surface.makeImageSnapshot();
+        const base64 = snapshot.encodeToBase64();
 
-        // Write to a temp file so the receipt is treated as a local file (same as camera receipts),
-        // ensuring compatibility with file system validation and display utilities.
-        // Fixed filename: RNFS.writeFile overwrites existing content, so at most 1 stitched
-        // temp file ever exists - no accumulation even across app restarts.
+        // Write to a temp file so the receipt is treated as a local file
+        // We use a fixed filename, so that RNFS.writeFile overwrites existing content, so at most 1 stitched temp file ever exists
         const filename = 'stitched_odometer.jpg';
         const tempPath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
         await RNFS.writeFile(tempPath, base64, 'base64');
@@ -55,6 +55,7 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
     } finally {
         skImage1?.dispose?.();
         skImage2?.dispose?.();
+        snapshot?.dispose?.();
         surface?.dispose?.();
     }
 }
