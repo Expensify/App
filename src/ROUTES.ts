@@ -2663,8 +2663,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
         route: 'workspaces/:policyID/distance-rates/new/upgrade',
-        getRoute: (policyID: string, transactionID?: string, reportID?: string, iouType?: string, action?: string) =>
-            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}${iouType ? `&iouType=${iouType}` : ''}${action ? `&action=${action}` : ''}` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
@@ -3999,6 +3999,10 @@ const ROUTES = {
     MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION: {
         route: 'multifactor-authentication/authorize-transaction/:transactionID',
         getRoute: (transactionID: string) => `multifactor-authentication/authorize-transaction/${transactionID}` as const,
+    },
+    DOMAIN_LOCK_ACCOUNT: {
+        route: 'domain/:domainAccountID/members/:accountID/lock-account',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,
     },
 } as const;
 

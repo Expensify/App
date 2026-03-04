@@ -1324,6 +1324,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
                             path: ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+                            path: ROUTES.DOMAIN_LOCK_ACCOUNT.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {

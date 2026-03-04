@@ -233,13 +233,13 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -300,7 +300,6 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactions: OnyxCollection<OnyxTypes.Transaction>;
 };
@@ -1220,7 +1219,6 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
-    isTrackDistanceExpense = false,
     isFromFloatingActionButton,
     currentIouRequestType,
     newIouRequestType,
@@ -1273,7 +1271,7 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -7722,7 +7720,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
-                ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
                 gpsCoordinates,
                 isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),

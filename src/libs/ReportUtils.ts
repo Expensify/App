@@ -4598,7 +4598,7 @@ function getTransactionDetails(
         taxCode: getTaxCode(transaction),
         currency: getCurrency(transaction),
         comment: getDescription(transaction),
-        merchant: getMerchant(transaction, policy),
+        merchant: getMerchant(transaction),
         waypoints: getWaypoints(transaction),
         customUnitRateID: getRateID(transaction),
         category: getCategory(transaction),
@@ -4931,15 +4931,15 @@ function canEditFieldOfMoneyRequest(
         );
     }
 
-    // Unreported transaction from OldDot can have the reportID as an empty string
-    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return (isExpenseReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
+        return isExpenseReport(moneyRequestReport) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        // Unreported transaction from OldDot can have the reportID as an empty string
+        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
         if (isUnreportedExpense) {
             return true;
         }
@@ -4991,6 +4991,7 @@ function canEditFieldOfMoneyRequest(
         return false;
     }
 
+    const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isUnreportedExpense && !isRequestor) {
         return false;
     }
@@ -11486,6 +11487,26 @@ type PrepareOnboardingOnyxDataParams = {
     betas?: OnyxEntry<Beta[]>;
 };
 
+function getBespokeWelcomeMessage(userReportedIntegration?: OnboardingAccounting): string {
+    // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
+    // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
+    let message =
+        "# Your free trial has started! Let's get you set up.\n" +
+        "👋 Hey there! I'm your Expensify setup specialist. " +
+        'For a small team like yours, the fastest way to get value is to set up a few expense categories, ' +
+        'invite your team members, and have them start snapping receipts right away. ' +
+        "I'm here to walk you through each step — just ask!";
+
+    if (userReportedIntegration && userReportedIntegration !== 'other') {
+        const friendlyName = CONST.ONBOARDING_ACCOUNTING_MAPPING[userReportedIntegration as keyof typeof CONST.ONBOARDING_ACCOUNTING_MAPPING];
+        if (friendlyName) {
+            message += `\n\nSince you use ${friendlyName}, I can help you connect it so your expenses sync automatically — just say the word!`;
+        }
+    }
+
+    return message;
+}
+
 function prepareOnboardingOnyxData({
     introSelected,
     engagementChoice,
@@ -11587,6 +11608,18 @@ function prepareOnboardingOnyxData({
         reportActionID: textCommentAction.reportActionID,
         reportComment: textComment.commentText,
     };
+
+    // When the user is MICRO and using followups, generate a bespoke welcome message from Concierge.
+    // The frontend displays it optimistically; the server uses it to generate suggested followups.
+    let bespokeWelcomeMessage: string | undefined;
+    let optimisticConciergeReportActionID: string | undefined;
+    let bespokeAction: OptimisticReportAction | undefined;
+
+    if (shouldUseFollowupsInsteadOfTasks && companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+        bespokeWelcomeMessage = getBespokeWelcomeMessage(userReportedIntegration);
+        optimisticConciergeReportActionID = rand64();
+        bespokeAction = buildOptimisticAddCommentReportAction(bespokeWelcomeMessage, undefined, CONST.ACCOUNT_ID.CONCIERGE, 2, targetChatReportID, optimisticConciergeReportActionID);
+    }
 
     let createWorkspaceTaskReportID;
     let addExpenseApprovalsTaskReportID;
@@ -11903,6 +11936,26 @@ function prepareOnboardingOnyxData({
         });
     }
 
+    if (bespokeAction && optimisticConciergeReportActionID) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [optimisticConciergeReportActionID]: bespokeAction.reportAction as ReportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+                value: {
+                    lastVisibleActionCreated: bespokeAction.reportAction.created,
+                    lastActorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                },
+            },
+        );
+    }
+
     if (!wasInvited) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11922,6 +11975,16 @@ function prepareOnboardingOnyxData({
             [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
         },
     });
+
+    if (bespokeAction && optimisticConciergeReportActionID) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [optimisticConciergeReportActionID]: {pendingAction: null, isOptimisticAction: null},
+            },
+        });
+    }
 
     let failureReport: Partial<Report> = {
         lastMessageText: '',
@@ -11975,6 +12038,18 @@ function prepareOnboardingOnyxData({
             } as ReportAction,
         },
     });
+
+    if (bespokeAction && optimisticConciergeReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [optimisticConciergeReportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+    }
 
     if (!wasInvited) {
         failureData.push({
@@ -12149,7 +12224,7 @@ function prepareOnboardingOnyxData({
         });
     }
 
-    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
+    return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, bespokeWelcomeMessage, optimisticConciergeReportActionID};
 }
 
 /**

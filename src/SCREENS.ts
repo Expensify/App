@@ -966,6 +966,7 @@ const SCREENS = {
         GROUPS: 'Domain_Groups',
         MEMBER_RESET_TWO_FACTOR_AUTH: 'Member_Reset_Two_Factor_Auth',
         MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
+        MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
