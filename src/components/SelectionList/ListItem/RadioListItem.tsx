@@ -25,7 +25,6 @@ function RadioListItem<TItem extends ListItem>({
     titleStyles,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
     accessibilityRole,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
@@ -51,7 +50,6 @@ function RadioListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
-            shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             accessibilityRole={accessibilityRole}
         >
             <>

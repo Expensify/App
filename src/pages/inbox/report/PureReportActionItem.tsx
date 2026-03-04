@@ -225,6 +225,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
+import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {
@@ -234,7 +235,6 @@ import {
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
 } from '@userActions/Report';
-import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
@@ -1196,7 +1196,13 @@ function PureReportActionItem({
 
                                     // If no childReportID exists, create transaction thread on-demand
                                     if (!action.childReportID) {
-                                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
+                                        const createdTransactionThreadReport = createTransactionThreadReport(
+                                            introSelected,
+                                            personalDetail.email ?? '',
+                                            personalDetail.accountID,
+                                            iouReport,
+                                            action,
+                                        );
                                         if (createdTransactionThreadReport?.reportID) {
                                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
                                             return;
