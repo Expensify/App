@@ -13048,7 +13048,7 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             return transaction.billable ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
-            return getExchangeRate(transaction);
+            return getExchangeRate(transaction, report?.currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:

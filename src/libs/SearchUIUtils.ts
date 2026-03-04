@@ -3099,8 +3099,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE) {
         return data.sort((a, b) => {
-            const aExchangeRate = getExchangeRate(a);
-            const bExchangeRate = getExchangeRate(b);
+            const aExchangeRate = getExchangeRate(a, a.report?.currency);
+            const bExchangeRate = getExchangeRate(b, b.report?.currency);
             return compareValues(aExchangeRate, bExchangeRate, sortOrder, sortBy, localeCompare, true);
         });
     }

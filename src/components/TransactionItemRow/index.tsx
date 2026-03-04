@@ -250,7 +250,7 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report, policy]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
         if (transactionItem.isCardFeedDeleted) {
