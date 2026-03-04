@@ -1363,7 +1363,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                openOldDotLink(`printablereport.php?promptPrint=true&reportID=${moneyRequestReport.reportID}`);
+                openOldDotLink(CONST.OLDDOT_URLS.PRINTABLE_REPORT(moneyRequestReport.reportID));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
