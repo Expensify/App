@@ -335,7 +335,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false, () => true);
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, () => true);
                                     return;
                                 }
 
