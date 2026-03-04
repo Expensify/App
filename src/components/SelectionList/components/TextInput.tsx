@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useStatusMessageAccessibilityAnnouncement from '@components/utils/useStatusMessageAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
@@ -50,6 +51,8 @@ type TextInputProps = {
     focusTextInput: () => void;
 };
 
+const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
+
 function TextInput({
     ref,
     options,
@@ -72,6 +75,9 @@ function TextInput({
     const noData = dataLength === 0 && !showLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+    const shouldUsePersistentLiveRegion = getPlatform() === CONST.PLATFORM.WEB;
+    const [liveRegionMessage, setLiveRegionMessage] = useState('');
+    const liveRegionToggleRef = useRef(false);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -111,6 +117,27 @@ function TextInput({
 
     useStatusMessageAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults);
 
+    useEffect(() => {
+        if (!shouldUsePersistentLiveRegion) {
+            return;
+        }
+
+        if (!shouldAnnounceNoResults) {
+            setLiveRegionMessage('');
+            return;
+        }
+
+        // Toggling content forces re-announcement even when the text doesn't change.
+        const suffix = liveRegionToggleRef.current ? '\u200B' : '';
+        liveRegionToggleRef.current = !liveRegionToggleRef.current;
+
+        // Clear first so screen readers detect a change, then set the message on next tick.
+        setLiveRegionMessage('');
+        const timeoutId = setTimeout(() => setLiveRegionMessage(`${headerMessage}${suffix}`), DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
+
+        return () => clearTimeout(timeoutId);
+    }, [headerMessage, shouldAnnounceNoResults, shouldUsePersistentLiveRegion]);
+
     if (!shouldShowTextInput) {
         return null;
     }
@@ -147,11 +174,19 @@ function TextInput({
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
                     <Text
                         style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                        accessibilityLiveRegion={!shouldUsePersistentLiveRegion && shouldAnnounceNoResults ? 'polite' : undefined}
                     >
                         {headerMessage}
                     </Text>
                 </View>
+            )}
+            {shouldUsePersistentLiveRegion && (
+                <Text
+                    style={[styles.accessibilityLiveRegionSROnly]}
+                    accessibilityLiveRegion="polite"
+                >
+                    {liveRegionMessage}
+                </Text>
             )}
         </>
     );

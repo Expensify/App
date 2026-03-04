@@ -966,6 +966,23 @@ const staticStyles = (theme: ThemeColors) =>
             height: 0,
         },
 
+        /**
+         * Visually hides live-region content while keeping it in the accessibility tree.
+         * Needed for platforms (e.g., macOS Safari) that require a pre-mounted live region.
+         */
+        accessibilityLiveRegionSROnly: {
+            position: 'absolute',
+            left: -9999,
+            top: 0,
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            padding: 0,
+            margin: 0,
+            borderWidth: 0,
+            opacity: 0,
+        },
+
         visibilityHidden: {
             ...visibility.hidden,
         },

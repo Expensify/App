@@ -24,6 +24,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -36,6 +37,8 @@ import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
+
+const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
 function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
@@ -1023,15 +1026,37 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder));
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
+    const shouldUsePersistentLiveRegion = getPlatform() === CONST.PLATFORM.WEB;
+    const [liveRegionMessage, setLiveRegionMessage] = useState('');
+    const liveRegionToggleRef = useRef(false);
 
     useStatusMessageAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults);
+
+    useEffect(() => {
+        if (!shouldUsePersistentLiveRegion) {
+            return;
+        }
+
+        if (!shouldAnnounceNoResults) {
+            setLiveRegionMessage('');
+            return;
+        }
+
+        const suffix = liveRegionToggleRef.current ? '\u200B' : '';
+        liveRegionToggleRef.current = !liveRegionToggleRef.current;
+
+        setLiveRegionMessage('');
+        const timeoutId = setTimeout(() => setLiveRegionMessage(`${headerMessage}${suffix}`), DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
+
+        return () => clearTimeout(timeoutId);
+    }, [headerMessage, shouldAnnounceNoResults, shouldUsePersistentLiveRegion]);
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text
                     style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                    accessibilityLiveRegion={shouldAnnounceNoResults ? 'polite' : undefined}
+                    accessibilityLiveRegion={!shouldUsePersistentLiveRegion && shouldAnnounceNoResults ? 'polite' : undefined}
                 >
                     {headerMessage}
                 </Text>
@@ -1054,6 +1079,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
+            {shouldUsePersistentLiveRegion && (
+                <Text
+                    style={[styles.accessibilityLiveRegionSROnly]}
+                    accessibilityLiveRegion="polite"
+                >
+                    {liveRegionMessage}
+                </Text>
+            )}
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
