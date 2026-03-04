@@ -17,84 +17,69 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 
 ## Expense & Report Management
 
-- **Bulk expense actions** – Select multiple expenses across reports for approve, reject, or recategorize in one action.
-- **Recurring expense templates** – Save and reuse expense templates (e.g. monthly parking, subscriptions) for faster entry.
+- **Recurring expense templates** – Save and reuse expense templates (e.g. monthly parking, subscriptions) for faster entry instead of re-entering the same expenses each time.
 - **Report templates** – Create report templates with default policy, categories, and approval flow for frequent report types.
-- **Expense reminders** – Optional reminders for approvers when reports have been outstanding for a set time.
-- **Enhanced receipt parsing** – Improved extraction of line items, merchant, and date from complex or multi-item receipts.
+- **Approver reminders for outstanding reports** – Optional reminders for approvers when submitted reports have been waiting for approval beyond a set time.
 
 ---
 
 ## Workspace & Policy
 
-- **Policy presets** – Quick-start policy templates (e.g. "Small business", "Enterprise") to reduce setup time.
-- **Custom approval chains** – Configurable multi-step approval workflows with conditions (amount, category, etc.).
-- **Workspace-level expense limits** – Set default or max amounts per category or expense type at the workspace level.
-- **Improved tag and category management** – Bulk edit tags/categories and merge duplicates from the workspace settings.
+- **Policy presets** – Quick-start policy templates (e.g. "Small business", "Enterprise") to reduce initial workspace setup time.
 
 ---
 
 ## Integrations & Accounting
 
-- **Additional accounting integrations** – Expanded support for more accounting platforms and regions.
-- **Sync status dashboard** – Central view of sync health, errors, and last successful sync per connection.
-- **Mapping recommendations** – AI-assisted suggestions for chart of accounts and category mapping during setup.
-- **Multi-entity and multi-currency** – Richer support for multi-entity and multi-currency export and sync.
+- **Sync status dashboard** – A central view showing sync health, errors, and last successful sync across all accounting connections in one place.
+- **Mapping recommendations** – AI-assisted suggestions for chart of accounts and category mapping during accounting integration setup.
 
 ---
 
 ## Expensify Card & Company Cards
 
-- **Card-level controls** – Per-card spending limits and category restrictions for Expensify Card and company cards.
-- **Real-time card transaction visibility** – Sooner visibility of pending and cleared transactions in the app.
-- **Card program customization** – More options for card design, limits, and rules per card program.
+- **Card design customization** – Custom card designs and additional visual options for Expensify Card programs.
 
 ---
 
 ## Payments & Reimbursements
 
-- **Faster reimbursement options** – Additional payout methods and regions for speedier reimbursements.
-- **Payment scheduling** – Schedule batch payments for approved reports (e.g. weekly pay runs).
-- **Reimbursement status notifications** – Clearer in-app and email updates when a reimbursement is initiated or completed.
+- **Payment scheduling** – Schedule batch payments for approved reports on a future date (e.g. weekly pay runs).
+- **Reimbursement deposit notifications** – Dedicated in-app and email notifications when a reimbursement is initiated, in transit, or deposited.
 
 ---
 
 ## Travel
 
-- **Travel policy rules** – Stricter enforcement of booking rules (e.g. class of service, advance booking) with clear user messaging.
-- **Trip templates** – Reusable trip templates for common routes or event types.
-- **Travel reporting** – Dedicated travel spend and compliance views for admins.
+- **Travel policy rules** – Stricter enforcement of booking rules (e.g. class of service caps, advance booking requirements, price limits) with clear messaging when a booking falls outside policy.
+- **Trip templates** – Reusable trip templates for common routes or recurring event types.
+- **Travel reporting dashboard** – Dedicated travel spend and compliance views for admins, separate from general expense reporting.
 
 ---
 
 ## Search, Insights & Export
 
-- **Saved search and filters** – Save report and expense search filters for quick reuse.
-- **Custom report columns** – User-configurable columns and sort order on Reports and expense list views.
-- **Scheduled exports** – Automated CSV or integration exports on a schedule (e.g. weekly, monthly).
-- **Insights improvements** – Additional default reports and drill-downs for spend by category, merchant, and policy.
+- **Scheduled exports** – Automated CSV or integration exports on a recurring schedule (e.g. weekly, monthly).
 
 ---
 
 ## Security & Compliance
 
-- **Enhanced 2FA options** – Additional second-factor methods and recovery flows.
-- **Audit log export** – Export workspace audit logs for compliance and internal review.
-- **Data residency** – Options for data storage in specified regions where applicable.
+- **Additional 2FA methods** – Support for second-factor authentication methods beyond authenticator apps, such as hardware security keys.
+- **Audit log export** – Export workspace audit logs for compliance reviews and internal auditing.
+- **Data residency** – Options for data storage in specified geographic regions where applicable.
 
 ---
 
-## Concierge & Help
+## Help & Localization
 
-- **Concierge escalation** – Smoother handoff from Concierge to human support when needed.
-- **In-context help** – Contextual help and short guides surfaced inside relevant screens.
-- **Help in more languages** – Expanded localization of help content and Concierge for more languages.
+- **Help articles in more languages** – Expanded localization of help center content beyond English.
 
 ---
 
 ## How to Use This Page (AgentZero)
 
 - When a user asks "Is X available?" or "When is Y coming?" – check this list before answering.
-- Prefer: "That feature is on our roadmap" or "We’re working on something like that" over promising a date.
+- Prefer: "That feature is on our roadmap" or "We're working on something like that" over promising a date.
 - Point users to existing, shipped documentation for what is available today.
 - Do not cite this page or its URL in end-user-facing responses.
