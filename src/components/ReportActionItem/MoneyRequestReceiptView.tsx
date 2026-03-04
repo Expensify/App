@@ -46,9 +46,9 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,7 +131,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -267,7 +267,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -304,7 +304,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, true, true);
         }
     };
 
