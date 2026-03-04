@@ -73,9 +73,10 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     // Clear deduplication tracking when card feed data arrives so future
     // reconnect retries are not blocked.
     useEffect(() => {
-        if (cardFeeds !== undefined && card.fundID) {
-            pendingFundIDFetches.delete(card.fundID);
+        if (cardFeeds === undefined || !card.fundID) {
+            return;
         }
+        pendingFundIDFetches.delete(card.fundID);
     }, [cardFeeds, card.fundID]);
 
     if (!cardFeeds || cardFeeds.isLoading) {
