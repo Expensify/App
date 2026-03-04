@@ -1638,6 +1638,7 @@ describe('ReportActionsUtils', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
                 reportActionID: '1',
                 created: '2025-09-29',
+                message: [{html: 'moved expense', type: 'COMMENT', text: 'moved expense'}],
                 originalMessage: {
                     fromPolicy: 'ABC123',
                     toPolicy: 'DEF456',
