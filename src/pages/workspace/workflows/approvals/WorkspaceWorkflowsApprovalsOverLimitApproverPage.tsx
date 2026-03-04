@@ -125,12 +125,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
             return;
         }
 
-        const policyMemberEmailsToAccountIDs = employeeList ? getMemberAccountIDsForWorkspace(employeeList) : {};
-        const selectedAccountID = Number(policyMemberEmailsToAccountIDs[selectedApprover.login] ?? '');
-        if (!selectedAccountID) {
-            return;
-        }
-
         setApprovalWorkflowApprover({
             approver: {
                 ...currentApprover,
