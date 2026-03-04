@@ -478,6 +478,13 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
+function getCameraViewfinderStyle(aspectRatio: number | undefined): ViewStyle {
+    if (aspectRatio) {
+        return {aspectRatio, minWidth: '100%', minHeight: '100%'};
+    }
+    return {flex: 1};
+}
+
 /**
  * Returns a style for text color
  */
@@ -1297,6 +1304,7 @@ const staticStyleUtils = {
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
+    getCameraViewfinderStyle,
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,

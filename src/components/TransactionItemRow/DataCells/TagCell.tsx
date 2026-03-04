@@ -15,7 +15,6 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
             showTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
             textStyle={[styles.textMicro, styles.mnh0]}
-            numberOfLines={2}
         />
     ) : (
         <TextWithTooltip

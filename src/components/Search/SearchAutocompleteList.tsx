@@ -405,7 +405,7 @@ function SearchAutocompleteList({
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, shouldUseNarrowLayout]);
+    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
