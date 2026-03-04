@@ -475,6 +475,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '验证',
         downloadAsPDF: '下载为 PDF',
         downloadAsCSV: '下载为 CSV',
+        print: '打印',
         help: '帮助',
         expenseReport: '报销报告',
         expenseReports: '报销报告',

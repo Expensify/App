@@ -495,6 +495,7 @@ const translations = {
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
+        print: 'Print',
         help: 'Help',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',

@@ -476,6 +476,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Valider',
         downloadAsPDF: 'Télécharger en PDF',
         downloadAsCSV: 'Télécharger au format CSV',
+        print: 'Imprimer',
         help: 'Aide',
         expenseReport: 'Note de frais',
         expenseReports: 'Notes de frais',
