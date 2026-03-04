@@ -154,6 +154,13 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        // In production, RAM-only keys don't exist on a fresh app start because they're never persisted to storage.
+        // In tests, however, unmounting and remounting <App /> doesn't restart the JS process,
+        // so RAM-only keys retain their values from the previous mount. We need to manually
+        // remove them to simulate a real app restart.
+        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, null);
+        await waitForBatchedUpdates();
+
         const url = getInitialURL();
         // User signs in automatically when the app is remounted because of the deep link.
         // This overrides the previous sign-in.
