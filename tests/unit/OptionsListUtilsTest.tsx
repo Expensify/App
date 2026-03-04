@@ -4326,6 +4326,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -4351,6 +4352,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -4377,6 +4379,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -4403,6 +4406,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -4426,6 +4430,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -4448,6 +4453,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
         });
@@ -4469,6 +4475,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -4490,6 +4497,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -4511,6 +4519,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -4532,6 +4541,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -4553,6 +4563,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -4578,6 +4589,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -4605,6 +4617,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -4623,6 +4636,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
         });
@@ -4653,6 +4667,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             const transactions = getReportTransactions(report.reportID);
             const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
@@ -4692,6 +4707,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe('');
         });
@@ -4743,6 +4759,7 @@ describe('OptionsListUtils', () => {
                     policy,
                     reportMetadata,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -4776,6 +4793,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -4806,6 +4824,7 @@ describe('OptionsListUtils', () => {
                     policy: undefined,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
@@ -6285,6 +6304,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             // The function should return a string (may be empty string)
@@ -6304,6 +6324,7 @@ describe('OptionsListUtils', () => {
                 policy: undefined,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             expect(typeof result).toBe('string');

@@ -82,6 +82,7 @@ import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -978,7 +979,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        ({paymentType: paymentMethod}: PaymentActionParams) => {
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -1217,7 +1218,7 @@ function MoneyRequestConfirmationList({
                     <View>
                         <ButtonWithDropdownMenu
                             pressOnEnter
-                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                             options={splitOrRequestOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}
@@ -1313,6 +1314,7 @@ function MoneyRequestConfirmationList({
                 policyTags={policyTags}
                 policyTagLists={policyTagLists}
                 rate={rate}
+                distanceRateName={mileageRate.name}
                 receiptFilename={receiptFilename}
                 receiptPath={receiptPath}
                 reportActionID={reportActionID}
