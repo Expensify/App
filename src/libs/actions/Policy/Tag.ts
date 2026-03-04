@@ -213,8 +213,10 @@ function createPolicyTag({
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
+    const isTaskForCurrentWorkspace = (taskReport: OnyxEntry<Report>) => !taskReport?.policyID || taskReport.policyID === policyID;
+
     // Complete the "Set up tags" onboarding task
-    if (setupTagsTaskReport && currentUserAccountID) {
+    if (setupTagsTaskReport && currentUserAccountID && isTaskForCurrentWorkspace(setupTagsTaskReport)) {
         getFinishOnboardingTaskOnyxData(
             setupTagsTaskReport,
             setupTagsTaskParentReport,
@@ -226,7 +228,7 @@ function createPolicyTag({
     }
 
     // Complete the combined "Set up categories and tags" task only if categories already exist
-    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID) {
+    if (setupCategoriesAndTagsTaskReport && policyHasCustomCategories && currentUserAccountID && isTaskForCurrentWorkspace(setupCategoriesAndTagsTaskReport)) {
         getFinishOnboardingTaskOnyxData(
             setupCategoriesAndTagsTaskReport,
             setupCategoriesAndTagsTaskParentReport,
