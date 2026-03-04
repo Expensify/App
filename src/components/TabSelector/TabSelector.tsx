@@ -5,8 +5,8 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {getIconTitleAndTestID, MEMOIZED_LAZY_TAB_SELECTOR_ICONS} from './getIconTitleAndTestID';
 import TabSelectorBase from './TabSelectorBase';
-import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 import ScrollableTabSelectorContextProvider from './TabSelectorContext';
+import type {TabSelectorBaseItem, TabSelectorProps} from './types';
 
 function TabSelector({
     state,

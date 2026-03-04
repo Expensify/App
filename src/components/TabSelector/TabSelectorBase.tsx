@@ -1,15 +1,15 @@
 import React, {useContext, useEffect, useMemo, useState} from 'react';
+import ScrollView from '@components/ScrollView';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 // eslint-disable-next-line no-restricted-imports
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import CONST from '@src/CONST';
-import ScrollView from '@components/ScrollView';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
+import {TabSelectorContext} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
 import type {TabSelectorBaseProps} from './types';
-import {TabSelectorContext} from './TabSelectorContext';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
