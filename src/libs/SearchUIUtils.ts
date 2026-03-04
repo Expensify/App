@@ -1691,6 +1691,9 @@ function getTransactionsSections({
     // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
+    // New Measurement Data
+    const averageCharacterLength = 7.68;
+    const averageCharacterLengthWithPadding = 8.45;
     const measurements = {
         date: 0,
         merchant: 0,
