@@ -60,13 +60,16 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file
+ * @param filename - The name of the file (path used for href)
+ * @param order - Optional order from front matter
+ * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getArticleObj(filename: string, order?: number): Article {
+function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
     const href = filename.replace('.md', '');
+    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
-        title: toTitleCase(href.replaceAll('-', ' ')),
+        title,
         order,
     };
 }
@@ -133,16 +136,16 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                     continue;
                 }
                 if (fs.statSync(entryPath).isDirectory()) {
-                    // One level: section/SubFolder/file.md -> href "SubFolder/file"
+                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = SubFolder (e.g. "Export Errors")
                     for (const file of fs.readdirSync(entryPath)) {
                         const filePath = `${entryPath}/${file}`;
                         if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
                             const order = getOrderFromArticleFrontMatter(filePath);
-                            articles.push(getArticleObj(`${entry}/${file}`, order));
+                            articles.push(getArticleObj(`${entry}/${file}`, order, entry));
                             continue;
                         }
                         if (fs.statSync(filePath).isDirectory()) {
-                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file"
+                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = NestedFolder (e.g. "Authentication and Login Errors")
                             for (const nestedFile of fs.readdirSync(filePath)) {
                                 if (!nestedFile.endsWith('.md')) {
                                     continue;
@@ -152,7 +155,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                                     continue;
                                 }
                                 const order = getOrderFromArticleFrontMatter(nestedPath);
-                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order));
+                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, file));
                             }
                         }
                     }
