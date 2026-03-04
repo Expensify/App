@@ -493,6 +493,7 @@ function MoneyReportHeaderSecondaryActions({
                 },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
+                // connectedIntegrationFallback is guaranteed non-null when EXPORT secondary action is present
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 text: translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegrationFallback!}),
                 icon: (() => {
@@ -909,6 +910,7 @@ function MoneyReportHeaderSecondaryActions({
                                 if (goBackRoute) {
                                     navigateOnDeleteExpense(goBackRoute);
                                 }
+                                // Defer deletion until after navigation animation completes
                                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
@@ -934,6 +936,7 @@ function MoneyReportHeaderSecondaryActions({
 
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
                             Navigation.goBack(backToRoute);
+                            // Defer heavy deletion until after navigation animation completes
                             // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 deleteAppReport(moneyRequestReport, selfDMReport, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);

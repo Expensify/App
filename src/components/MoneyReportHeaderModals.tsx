@@ -93,6 +93,7 @@ function MoneyReportHeaderModals({
     onRegisterTriggers,
 }: MoneyReportHeaderModalsProps) {
     const {translate} = useLocalize();
+    // isSmallScreenWidth needed for correct modal type selection (shouldUseNarrowLayout has different breakpoints)
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();

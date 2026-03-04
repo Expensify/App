@@ -815,7 +815,6 @@ function MoneyReportHeader({
                                     nextStep={nextStep}
                                     allTransactionViolations={allTransactionViolations}
                                     introSelected={introSelected}
-                                    betas={betas}
                                     isPaidAnimationRunning={isPaidAnimationRunning}
                                     isApprovedAnimationRunning={isApprovedAnimationRunning}
                                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
@@ -914,7 +913,6 @@ function MoneyReportHeader({
                                         nextStep={nextStep}
                                         allTransactionViolations={allTransactionViolations}
                                         introSelected={introSelected}
-                                        betas={betas}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
                                         isSubmittingAnimationRunning={isSubmittingAnimationRunning}

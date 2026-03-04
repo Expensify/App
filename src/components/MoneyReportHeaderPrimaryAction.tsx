@@ -168,224 +168,217 @@ function MoneyReportHeaderPrimaryAction({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
 
-    const renderAction = () => {
-        switch (primaryAction) {
-            case CONST.REPORT.PRIMARY_ACTIONS.SUBMIT:
-                return (
-                    <AnimatedSubmitButton
-                        success
-                        text={translate('common.submit')}
-                        onPress={() => {
-                            if (!moneyRequestReport || shouldBlockSubmit) {
-                                return;
-                            }
-                            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                                showConfirmModal({
-                                    confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
-                                    title: translate('customApprovalWorkflow.title'),
-                                    prompt: translate('customApprovalWorkflow.description'),
-                                    shouldShowCancelButton: false,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                                });
-                                return;
-                            }
-                            startSubmittingAnimation();
-                            submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
-                            if (currentSearchQueryJSON && !isOffline) {
-                                search({
-                                    searchKey: currentSearchKey,
-                                    shouldCalculateTotals,
-                                    offset: 0,
-                                    queryJSON: currentSearchQueryJSON,
-                                    isOffline,
-                                    isLoading: !!currentSearchResults?.search?.isLoading,
-                                });
-                            }
-                        }}
-                        isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                        onAnimationFinish={stopAnimation}
-                        isDisabled={shouldBlockSubmit}
-                    />
-                );
-
-            case CONST.REPORT.PRIMARY_ACTIONS.APPROVE:
-                return (
-                    <Button
-                        success
-                        onPress={confirmApproval}
-                        text={translate('iou.approve')}
-                        isDisabled={isBlockSubmitDueToPreventSelfApproval}
-                    />
-                );
-
-            case CONST.REPORT.PRIMARY_ACTIONS.PAY:
-                return (
-                    <AnimatedSettlementButton
-                        isPaidAnimationRunning={isPaidAnimationRunning}
-                        isApprovedAnimationRunning={isApprovedAnimationRunning}
-                        onAnimationFinish={stopAnimation}
-                        formattedAmount={totalAmount}
-                        canIOUBePaid
-                        onlyShowPayElsewhere={onlyShowPayElsewhere}
-                        currency={moneyRequestReport?.currency}
-                        confirmApproval={confirmApproval}
-                        policyID={moneyRequestReport?.policyID}
-                        chatReportID={chatReportID}
-                        iouReport={moneyRequestReport}
-                        onPress={confirmPayment}
-                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        shouldHidePaymentOptions={!shouldShowPayButton}
-                        shouldShowApproveButton={shouldShowApproveButton}
-                        shouldDisableApproveButton={shouldDisableApproveButton}
-                        isDisabled={isOffline && !canAllowSettlement}
-                        isLoading={!isOffline && !canAllowSettlement}
-                    />
-                );
-
-            case CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING: {
-                const connectedIntegration = getValidConnectedIntegration(policy);
-                const connectedIntegrationFallback = getConnectedIntegration(policy);
-                return (
-                    <Button
-                        success
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
-                        onPress={() => {
-                            if (!connectedIntegration || !moneyRequestReport) {
-                                return;
-                            }
-                            if (isExported) {
-                                showConfirmModal({
-                                    title: translate('workspace.exportAgainModal.title'),
-                                    prompt: translate('workspace.exportAgainModal.description', {
-                                        connectionName: connectedIntegration ?? connectedIntegrationFallback,
-                                        reportName: moneyRequestReport?.reportName ?? '',
-                                    }),
-                                    confirmText: translate('workspace.exportAgainModal.confirmText'),
-                                    cancelText: translate('workspace.exportAgainModal.cancelText'),
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
-                                });
-                                return;
-                            }
-                            exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
-                        }}
-                    />
-                );
-            }
-
-            case CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD:
-                return (
-                    <Button
-                        success
-                        text={translate('iou.unhold')}
-                        onPress={() => {
-                            if (isDelegateAccessRestricted) {
-                                showDelegateNoAccessModal();
-                                return;
-                            }
-
-                            const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
-                            const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
-
-                            if (IOUActions.length) {
-                                for (const action of IOUActions) {
-                                    changeMoneyRequestHoldStatus(action);
+    switch (primaryAction) {
+        case CONST.REPORT.PRIMARY_ACTIONS.SUBMIT:
+            return (
+                <AnimatedSubmitButton
+                    success
+                    text={translate('common.submit')}
+                    onPress={() => {
+                        if (!moneyRequestReport || shouldBlockSubmit) {
+                            return;
+                        }
+                        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+                            showConfirmModal({
+                                confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
+                                title: translate('customApprovalWorkflow.title'),
+                                prompt: translate('customApprovalWorkflow.description'),
+                                shouldShowCancelButton: false,
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
                                 }
-                                return;
-                            }
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            });
+                            return;
+                        }
+                        startSubmittingAnimation();
+                        submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                        if (currentSearchQueryJSON && !isOffline) {
+                            search({
+                                searchKey: currentSearchKey,
+                                shouldCalculateTotals,
+                                offset: 0,
+                                queryJSON: currentSearchQueryJSON,
+                                isOffline,
+                                isLoading: !!currentSearchResults?.search?.isLoading,
+                            });
+                        }
+                    }}
+                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                    onAnimationFinish={stopAnimation}
+                    isDisabled={shouldBlockSubmit}
+                />
+            );
 
-                            const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-                            if (!moneyRequestAction) {
-                                return;
-                            }
+        case CONST.REPORT.PRIMARY_ACTIONS.APPROVE:
+            return (
+                <Button
+                    success
+                    onPress={confirmApproval}
+                    text={translate('iou.approve')}
+                    isDisabled={isBlockSubmitDueToPreventSelfApproval}
+                />
+            );
 
-                            changeMoneyRequestHoldStatus(moneyRequestAction);
-                        }}
-                    />
-                );
+        case CONST.REPORT.PRIMARY_ACTIONS.PAY:
+            return (
+                <AnimatedSettlementButton
+                    isPaidAnimationRunning={isPaidAnimationRunning}
+                    isApprovedAnimationRunning={isApprovedAnimationRunning}
+                    onAnimationFinish={stopAnimation}
+                    formattedAmount={totalAmount}
+                    canIOUBePaid
+                    onlyShowPayElsewhere={onlyShowPayElsewhere}
+                    currency={moneyRequestReport?.currency}
+                    confirmApproval={confirmApproval}
+                    policyID={moneyRequestReport?.policyID}
+                    chatReportID={chatReportID}
+                    iouReport={moneyRequestReport}
+                    onPress={confirmPayment}
+                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    shouldHidePaymentOptions={!shouldShowPayButton}
+                    shouldShowApproveButton={shouldShowApproveButton}
+                    shouldDisableApproveButton={shouldDisableApproveButton}
+                    isDisabled={isOffline && !canAllowSettlement}
+                    isLoading={!isOffline && !canAllowSettlement}
+                />
+            );
 
-            case CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH: {
-                const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-                return (
-                    <Button
-                        success
-                        text={translate('iou.markAsCash')}
-                        onPress={() => {
-                            if (!requestParentReportAction) {
-                                return;
-                            }
-                            const reportID = transactionThreadReport?.reportID;
-                            if (!iouTransactionID || !reportID) {
-                                return;
-                            }
-                            markAsCashAction(iouTransactionID, reportID, transactionViolations);
-                        }}
-                    />
-                );
-            }
-
-            case CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED:
-                return (
-                    <Button
-                        success
-                        onPress={() => {
-                            if (!transaction?.transactionID) {
-                                return;
-                            }
-                            markRejectViolationAsResolved(transaction.transactionID, transactionThreadReport?.reportID);
-                        }}
-                        text={translate('iou.reject.markAsResolved')}
-                    />
-                );
-
-            case CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES:
-                return (
-                    <Button
-                        success
-                        text={translate('iou.reviewDuplicates')}
-                        onPress={() => {
-                            const duplicateTransaction = transactions.find((reportTransaction) =>
-                                isDuplicate(
-                                    reportTransaction,
-                                    email ?? '',
-                                    accountID,
-                                    moneyRequestReport,
-                                    policy,
-                                    allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-                                ),
-                            );
-
-                            let threadID = transactionThreadReportID ?? getThreadReportIDsForTransactions(reportActions, duplicateTransaction ? [duplicateTransaction] : []).at(0);
-
-                            if (!threadID && duplicateTransaction) {
-                                const transactionID = duplicateTransaction.transactionID;
-                                const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                                const createdTransactionThreadReport = createTransactionThreadReport(introSelected, moneyRequestReport, iouAction);
-                                threadID = createdTransactionThreadReport?.reportID;
-                            }
-                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
-                        }}
-                    />
-                );
-
-            default:
-                return null;
+        case CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING: {
+            const connectedIntegration = getValidConnectedIntegration(policy);
+            const connectedIntegrationFallback = getConnectedIntegration(policy);
+            return (
+                <Button
+                    success
+                    // connectedIntegration is guaranteed non-null when EXPORT_TO_ACCOUNTING primary action is active
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    text={translate('workspace.common.exportIntegrationSelected', {connectionName: connectedIntegration!})}
+                    onPress={() => {
+                        if (!connectedIntegration || !moneyRequestReport) {
+                            return;
+                        }
+                        if (isExported) {
+                            showConfirmModal({
+                                title: translate('workspace.exportAgainModal.title'),
+                                prompt: translate('workspace.exportAgainModal.description', {
+                                    connectionName: connectedIntegration ?? connectedIntegrationFallback,
+                                    reportName: moneyRequestReport?.reportName ?? '',
+                                }),
+                                confirmText: translate('workspace.exportAgainModal.confirmText'),
+                                cancelText: translate('workspace.exportAgainModal.cancelText'),
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                            });
+                            return;
+                        }
+                        exportToIntegration(moneyRequestReport.reportID, connectedIntegration);
+                    }}
+                />
+            );
         }
-    };
 
-    if (!primaryAction) {
-        return null;
+        case CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD:
+            return (
+                <Button
+                    success
+                    text={translate('iou.unhold')}
+                    onPress={() => {
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+
+                        const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
+                        const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
+
+                        if (IOUActions.length) {
+                            for (const action of IOUActions) {
+                                changeMoneyRequestHoldStatus(action);
+                            }
+                            return;
+                        }
+
+                        const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+                        if (!moneyRequestAction) {
+                            return;
+                        }
+
+                        changeMoneyRequestHoldStatus(moneyRequestAction);
+                    }}
+                />
+            );
+
+        case CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH: {
+            const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+            return (
+                <Button
+                    success
+                    text={translate('iou.markAsCash')}
+                    onPress={() => {
+                        if (!requestParentReportAction) {
+                            return;
+                        }
+                        const reportID = transactionThreadReport?.reportID;
+                        if (!iouTransactionID || !reportID) {
+                            return;
+                        }
+                        markAsCashAction(iouTransactionID, reportID, transactionViolations);
+                    }}
+                />
+            );
+        }
+
+        case CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED:
+            return (
+                <Button
+                    success
+                    onPress={() => {
+                        if (!transaction?.transactionID) {
+                            return;
+                        }
+                        markRejectViolationAsResolved(transaction.transactionID, transactionThreadReport?.reportID);
+                    }}
+                    text={translate('iou.reject.markAsResolved')}
+                />
+            );
+
+        case CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES:
+            return (
+                <Button
+                    success
+                    text={translate('iou.reviewDuplicates')}
+                    onPress={() => {
+                        const duplicateTransaction = transactions.find((reportTransaction) =>
+                            isDuplicate(
+                                reportTransaction,
+                                email ?? '',
+                                accountID,
+                                moneyRequestReport,
+                                policy,
+                                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
+                            ),
+                        );
+
+                        let threadID = transactionThreadReportID ?? getThreadReportIDsForTransactions(reportActions, duplicateTransaction ? [duplicateTransaction] : []).at(0);
+
+                        if (!threadID && duplicateTransaction) {
+                            const transactionID = duplicateTransaction.transactionID;
+                            const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
+                            const createdTransactionThreadReport = createTransactionThreadReport(introSelected, moneyRequestReport, iouAction);
+                            threadID = createdTransactionThreadReport?.reportID;
+                        }
+                        Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
+                    }}
+                />
+            );
+
+        default:
+            return null;
     }
-
-    return <>{renderAction()}</>;
 }
 
 MoneyReportHeaderPrimaryAction.displayName = 'MoneyReportHeaderPrimaryAction';
