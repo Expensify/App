@@ -37,7 +37,7 @@ import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
-import {SearchContext} from '@components/Search/SearchContext';
+import {SearchStateContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -75,6 +75,7 @@ import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMe
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -178,8 +179,6 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
-    isDynamicExternalWorkflowApproveFailedAction,
-    isDynamicExternalWorkflowSubmitFailedAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
     isMessageDeleted,
@@ -226,6 +225,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
+import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {
@@ -235,7 +235,6 @@ import {
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
 } from '@userActions/Report';
-import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
@@ -620,7 +619,7 @@ function PureReportActionItem({
     const isOnSearch = useIsOnSearch();
     let currentSearchHash: number | undefined;
     if (isOnSearch) {
-        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchStateContext);
         currentSearchHash = searchContextCurrentSearchHash;
     }
 
@@ -1360,12 +1359,6 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
-        } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            children = <ReportActionItemBasicMessage message={errorMessage} />;
-        } else if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
-            children = <ReportActionItemBasicMessage message={errorMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
@@ -1750,6 +1743,8 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
+            children = <ReportActionItemBasicMessage message={getActionableCard3DSTransactionApprovalMessage(translate, action)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
@@ -1876,6 +1871,7 @@ function PureReportActionItem({
                             accountIDs={oldestFourAccountIDs}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
+                            currentUserAccountID={currentUserAccountID}
                         />
                     </View>
                 )}
