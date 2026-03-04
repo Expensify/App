@@ -940,10 +940,6 @@ function getSuggestedSearches(
     };
 }
 
-function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
-    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
-}
-
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
  */
@@ -4608,7 +4604,6 @@ function applySelectionToItem(
 
 export {
     getSuggestedSearches,
-    getDefaultActionableSearchMenuItem,
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
