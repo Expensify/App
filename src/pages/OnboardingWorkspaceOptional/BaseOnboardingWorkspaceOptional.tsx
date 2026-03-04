@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -18,6 +19,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -44,6 +47,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const {onboardingMessages} = useOnboardingMessages();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -122,6 +129,81 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         betas,
     ]);
 
+    const createWorkspaceAndCompleteOnboarding = useCallback(() => {
+        if (!onboardingPurposeSelected) {
+            return;
+        }
+
+        const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+
+        const {adminsChatReportID, policyID} = shouldCreateWorkspace
+            ? createWorkspace({
+                  policyOwnerEmail: undefined,
+                  makeMeAdmin: true,
+                  policyName: generateDefaultWorkspaceName(session?.email),
+                  policyID: generatePolicyID(),
+                  engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                  currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                  file: undefined,
+                  shouldAddOnboardingTasks: false,
+                  introSelected,
+                  activePolicyID,
+                  currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                  currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                  shouldAddGuideWelcomeMessage: false,
+                  onboardingPurposeSelected,
+                  isSelfTourViewed,
+              })
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+        completeOnboardingReport({
+            engagementChoice: onboardingPurposeSelected,
+            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+            firstName: currentUserPersonalDetails.firstName,
+            lastName: currentUserPersonalDetails.lastName,
+            adminsChatReportID,
+            onboardingPolicyID: policyID,
+            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
+            introSelected,
+            betas,
+        });
+
+        setOnboardingAdminsChatReportID();
+        setOnboardingPolicyID();
+
+        navigateAfterOnboardingWithMicrotaskQueue(
+            isSmallScreenWidth,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            conciergeChatReportID,
+            archivedReportsIdSet,
+            policyID,
+            mergedAccountConciergeReportID,
+            false,
+        );
+    }, [
+        onboardingPurposeSelected,
+        allPolicies,
+        session?.email,
+        onboardingPolicyID,
+        onboardingAdminsChatReportID,
+        currentUserPersonalDetails.localCurrencyCode,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        currentUserPersonalDetails.firstName,
+        currentUserPersonalDetails.lastName,
+        introSelected,
+        activePolicyID,
+        isSelfTourViewed,
+        onboardingMessages,
+        betas,
+        isSmallScreenWidth,
+        isBetaEnabled,
+        conciergeChatReportID,
+        archivedReportsIdSet,
+        mergedAccountConciergeReportID,
+    ]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -187,6 +269,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             text={translate('onboarding.workspace.createWorkspace')}
                             onPress={() => {
                                 setOnboardingErrorMessage(null);
+                                if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+                                    createWorkspaceAndCompleteOnboarding();
+                                    return;
+                                }
                                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
