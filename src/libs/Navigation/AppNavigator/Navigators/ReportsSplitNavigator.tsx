@@ -31,11 +31,10 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
     const [initialReportID] = useState(() => {
-        // When navigated with explicit params (e.g. deep link, REPORT_WITH_ID), use them directly
-        // to skip the expensive findLastAccessedReport O(n) scan.
-        const routeReportID = (route.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] | undefined)?.reportID;
-        if (routeReportID) {
-            return routeReportID;
+        // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
+        // which lets us skip the O(n) findLastAccessedReport scan over all reports.
+        if (route.params?.screen === SCREENS.REPORT && route.params.params?.reportID) {
+            return route.params.params.reportID;
         }
 
         const currentURL = getCurrentUrl();
