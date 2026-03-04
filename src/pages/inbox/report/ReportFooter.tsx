@@ -70,6 +70,8 @@ type ReportFooterProps = {
 
     /** Whether to hide concierge status indicators (agent zero / typing) in the side panel */
     shouldHideStatusIndicators?: boolean;
+    /** Function to trigger optimistic waiting indicator for Concierge */
+    kickoffWaitingIndicator?: () => void;
 };
 
 function ReportFooter({
@@ -81,6 +83,7 @@ function ReportFooter({
     transactionThreadReportID,
     isInSidePanel,
     shouldHideStatusIndicators,
+    kickoffWaitingIndicator,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -265,6 +268,7 @@ function ReportFooter({
                             transactionThreadReportID={transactionThreadReportID}
                             isInSidePanel={isInSidePanel}
                             shouldHideStatusIndicators={shouldHideStatusIndicators}
+                            kickoffWaitingIndicator={kickoffWaitingIndicator}
                         />
                     </SwipeableView>
                 </View>
