@@ -1,5 +1,5 @@
-import {useContext, useRef} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useRef} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
     getCompanyCardFeed,
@@ -13,7 +13,7 @@ import {
 } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
-import useCurrencyList from './useCurrencyList';
+import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
@@ -55,7 +55,8 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const fetchCompanyCards = () => {
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, translate);
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     };
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
@@ -66,7 +67,8 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
 
-    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
@@ -142,9 +144,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {isOffline} = useNetwork();
 
     const policy = usePolicy(policyID);
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);

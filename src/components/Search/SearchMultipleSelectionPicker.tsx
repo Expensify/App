@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -12,6 +12,7 @@ import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 type SearchMultipleSelectionPickerItem = {
     name: string;
     value: string | string[];
+    leftElement?: React.ReactNode;
 };
 
 type SearchMultipleSelectionPickerProps = {
@@ -40,6 +41,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: true,
             value: item.value,
+            leftElement: item.leftElement,
         }));
 
     const remainingItemsSection = items
@@ -53,6 +55,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             keyForList: item.name,
             isSelected: false,
             value: item.value,
+            leftElement: item.leftElement,
         }));
 
     const noResultsFound = !selectedItemsSection.length && !remainingItemsSection.length;
@@ -78,7 +81,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         if (item.isSelected) {
             setSelectedItems(selectedItems?.filter((selectedItem) => selectedItem.name !== item.keyForList));
         } else {
-            setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value}]);
+            setSelectedItems([...(selectedItems ?? []), {name: item.text, value: item.value, leftElement: item.leftElement}]);
         }
     };
 
@@ -98,17 +101,16 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
     };
     return (
-        <SelectionList
+        <SelectionListWithSections
             sections={sections}
             ListItem={MultiSelectListItem}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSelectItem}
-            showLoadingPlaceholder={!noResultsFound}
+            shouldShowLoadingPlaceholder={!noResultsFound}
             shouldStopPropagation
             shouldShowTooltips
             canSelectMultiple
-            disableMaintainingScrollPosition
             footerContent={
                 <SearchFilterPageFooterButtons
                     applyChanges={applyChanges}

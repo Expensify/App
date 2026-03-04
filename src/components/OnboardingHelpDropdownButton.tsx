@@ -17,8 +17,6 @@ import ROUTES from '@src/ROUTES';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-// eslint-disable-next-line no-restricted-imports
-import {Close} from './Icon/Expensicons';
 
 type OnboardingHelpButtonProps = {
     /** The ID of onboarding chat report */
@@ -41,18 +39,17 @@ const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePair
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: reportNameValuePartsSelector,
-        canBeMissing: true,
     });
 
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
 
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Monitor']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Close', 'Monitor'] as const);
     const illustrations = useMemoizedLazyIllustrations(['HeadSet']);
 
     if (!reportID || !accountID) {
@@ -106,7 +103,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             text: translate('common.cancel'),
             value: CONST.ONBOARDING_HELP.CANCEL,
             onSelected: () => cancelBooking(latestScheduledCall),
-            icon: Close,
+            icon: icons.Close,
         });
     }
 

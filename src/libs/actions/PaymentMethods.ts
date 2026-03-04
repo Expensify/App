@@ -78,12 +78,12 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
 function getMakeDefaultPaymentOnyxData(
     bankAccountID: number,
-    fundID: number,
+    fundID?: number,
     previousPaymentMethod?: PaymentMethod,
     currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,
-): OnyxUpdate[] {
-    const onyxData: OnyxUpdate[] = [
+): Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> {
+    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> = [
         isOptimisticData
             ? {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -578,6 +578,7 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
+    getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,

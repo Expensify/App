@@ -189,7 +189,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Member.requestWorkspaceOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            Member.requestWorkspaceOwnerChange(fakePolicy, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
