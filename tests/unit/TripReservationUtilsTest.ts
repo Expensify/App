@@ -2337,6 +2337,112 @@ describe('TripReservationUtils', () => {
         });
     });
 
+    describe('cityName mapping', () => {
+        it('should set hotel cityName to address.locality, not chainName', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [hotelPnr],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const hotelReservation = result.at(0)?.reservation;
+            expect(hotelReservation?.type).toEqual(CONST.RESERVATION_TYPE.HOTEL);
+            expect(hotelReservation?.start?.cityName).toEqual('New York');
+            expect(hotelReservation?.end?.cityName).toEqual('New York');
+            expect(hotelReservation?.start?.cityName).not.toEqual('Premium Hotels');
+        });
+
+        it('should set car cityName to pickup and dropoff location locality', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [carPnr],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const carReservation = result.at(0)?.reservation;
+            expect(carReservation?.type).toEqual(CONST.RESERVATION_TYPE.CAR);
+            expect(carReservation?.start?.cityName).toEqual('Chicago');
+            expect(carReservation?.end?.cityName).toEqual('Chicago');
+        });
+
+        it('should preserve flight cityName in "CityName, StateCode, CountryName" format', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [airPnrDirect],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const flightReservation = result.at(0)?.reservation;
+            expect(flightReservation?.type).toEqual(CONST.RESERVATION_TYPE.FLIGHT);
+            expect(flightReservation?.start?.cityName).toEqual('Chicago, IL, USA');
+            expect(flightReservation?.end?.cityName).toEqual('San Francisco, CA, USA');
+        });
+
+        it('should preserve train cityName as clean city name', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: {
+                    ...basicTripData,
+                    pnrs: [railPnr],
+                },
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+            expect(result).toHaveLength(1);
+
+            const trainReservation = result.at(0)?.reservation;
+            expect(trainReservation?.type).toEqual(CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.start?.cityName).toEqual('City X');
+            expect(trainReservation?.end?.cityName).toEqual('City Y');
+        });
+
+        it('should set correct cityName for all reservation types in a mixed trip', () => {
+            const report = createRandomReport(1, undefined);
+            report.tripData = {
+                tripID: 'trip123',
+                payload: tripWithAllReservations,
+            };
+
+            const result = getReservationsFromTripReport(report, []);
+
+            const hotelReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.HOTEL);
+            expect(hotelReservation?.reservation.start?.cityName).toEqual('New York');
+
+            const carReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.CAR);
+            expect(carReservation?.reservation.start?.cityName).toEqual('Chicago');
+            expect(carReservation?.reservation.end?.cityName).toEqual('Chicago');
+
+            const flightReservations = result.filter((r) => r.reservation.type === CONST.RESERVATION_TYPE.FLIGHT);
+            expect(flightReservations.length).toBeGreaterThan(0);
+            for (const flight of flightReservations) {
+                expect(flight.reservation.start?.cityName).toMatch(/,/);
+            }
+
+            const trainReservation = result.find((r) => r.reservation.type === CONST.RESERVATION_TYPE.TRAIN);
+            expect(trainReservation?.reservation.start?.cityName).toEqual('City X');
+            expect(trainReservation?.reservation.end?.cityName).toEqual('City Y');
+        });
+    });
+
     describe('getPNRReservationDataFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
             const report = createRandomReport(1, undefined);
