@@ -50,6 +50,11 @@ import type {
     State,
 } from './types';
 
+type FocusedScreen = {
+    name: string;
+    params?: Record<string, unknown>;
+};
+
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
     SCREENS.TWO_FACTOR_AUTH.ROOT,
@@ -122,7 +127,7 @@ function getShouldPopToSidebar() {
  * Unlike findFocusedRoute, this also handles the case where the nested navigator
  * hasn't been mounted yet and the target screen is in params instead of state.
  */
-function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+function getDeepestFocusedScreen(route: NavigationRoute | NavigationState | PartialState<NavigationState> | undefined): FocusedScreen | undefined {
     if (!route) {
         return undefined;
     }
@@ -134,25 +139,26 @@ function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | 
         if ('index' in route && typeof route.index === 'number') {
             focusedRoute = route.routes[route.index];
         }
-        return getDeepestFocusedScreenName(focusedRoute);
+        return getDeepestFocusedScreen(focusedRoute);
     }
 
     // Route with nested state case
     if ('state' in route && route.state) {
-        return getDeepestFocusedScreenName(route.state);
+        return getDeepestFocusedScreen(route.state);
     }
 
     // Route with params.screen case (initial navigation before sidebar navigator mounts)
     if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
         const params = route.params as {screen?: string; params?: Record<string, unknown>};
         if (params.screen) {
-            return getDeepestFocusedScreenName({name: params.screen, params: params.params});
+            return getDeepestFocusedScreen({name: params.screen, params: params.params});
         }
     }
 
-    // Leaf route - return the name
+    // Leaf route - return the route data
     if ('name' in route) {
-        return route.name;
+        const params = 'params' in route && route.params && typeof route.params === 'object' ? (route.params as Record<string, unknown>) : undefined;
+        return {name: route.name, params};
     }
 
     return undefined;
@@ -960,4 +966,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreen, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
