@@ -52,7 +52,7 @@ function TestToolMenu() {
     const isAuthenticated = useIsAuthenticated();
 
     // Temporary hardcoded false, expected behavior: status fetched from the MultifactorAuthenticationContext
-    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', {registered: hasBiometricsRegistered});
+    const biometricsTitle = translate('multifactorAuthentication.biometricsTest.troubleshootBiometricsStatus', hasBiometricsRegistered);
 
     return (
         <>

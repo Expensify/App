@@ -5,10 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type MultifactorAuthenticationTranslationParams = {
-    authType?: string;
-    registered?: boolean;
-};
+// type MultifactorAuthenticationTranslationParams = {
+//     authType?: string;
+//     registered?: boolean;
+// };
 
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
@@ -184,7 +184,7 @@ type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverNam
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
-type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
+// type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
 
 type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
 
@@ -192,23 +192,23 @@ type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
 
 type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
 
-type UpdatedPolicyBudgetNotificationParams = {
-    budgetAmount: string;
-    budgetFrequency: string;
-    budgetName: string;
-    budgetTypeForNotificationMessage: string;
-    summaryLink?: string;
-    thresholdPercentage: number;
-    totalSpend: number;
-    unsubmittedSpend: number;
-    userEmail?: string;
-    awaitingApprovalSpend: number;
-    approvedReimbursedClosedSpend: number;
-};
+// type UpdatedPolicyBudgetNotificationParams = {
+//     budgetAmount: string;
+//     budgetFrequency: string;
+//     budgetName: string;
+//     budgetTypeForNotificationMessage: string;
+//     summaryLink?: string;
+//     thresholdPercentage: number;
+//     totalSpend: number;
+//     unsubmittedSpend: number;
+//     userEmail?: string;
+//     awaitingApprovalSpend: number;
+//     approvedReimbursedClosedSpend: number;
+// };
 
-type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
+// type UpdatedPolicyReimbursementChoiceParams = {newReimbursementChoice: string; oldReimbursementChoice: string};
 
-type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
+// type UpdatedPolicyDefaultTitleParams = {newDefaultTitle: string; oldDefaultTitle: string};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
@@ -506,10 +506,10 @@ export type {
     UpgradeSuccessMessageParams,
     WalletAgreementParams,
     NextStepParams,
-    UpdatedPolicyOwnershipParams,
+    // UpdatedPolicyOwnershipParams,
     UpdatedPolicyAutoHarvestingParams,
-    UpdatedPolicyBudgetNotificationParams,
-    UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyDefaultTitleParams,
-    MultifactorAuthenticationTranslationParams,
+    // UpdatedPolicyBudgetNotificationParams,
+    // UpdatedPolicyReimbursementChoiceParams,
+    // UpdatedPolicyDefaultTitleParams,
+    // MultifactorAuthenticationTranslationParams,
 };
