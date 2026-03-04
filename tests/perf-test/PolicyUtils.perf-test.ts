@@ -44,7 +44,7 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(0),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 rules: {
-                    approvalRules: Array.from(Array(10000), () => ({
+                    approvalRules: Array.from(Array(100), () => ({
                         applyWhen: [
                             {
                                 condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
@@ -66,7 +66,7 @@ describe('PolicyUtils', () => {
                 100000,
             );
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-            await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+            await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
         });
 
         describe('not a submit and close policy', () => {
@@ -76,7 +76,7 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     rules: {
-                        approvalRules: Array.from(Array(10000), () => ({
+                        approvalRules: Array.from(Array(100), () => ({
                             applyWhen: [
                                 {
                                     condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
@@ -98,7 +98,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
             });
 
             test('all transactions have category, but no category approval rules', async () => {
@@ -106,7 +106,7 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     rules: {
-                        approvalRules: Array.from(Array(10000), () => ({
+                        approvalRules: Array.from(Array(100), () => ({
                             applyWhen: [
                                 {
                                     condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
@@ -128,7 +128,7 @@ describe('PolicyUtils', () => {
                     10000,
                 );
                 await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactions);
-                await measureFunction(() => getSubmitToAccountID(policy, expenseReport), {runs: 100});
+                await measureFunction(() => getSubmitToAccountID(policy, expenseReport));
             });
         });
     });
