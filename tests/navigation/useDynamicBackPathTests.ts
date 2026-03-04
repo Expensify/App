@@ -11,6 +11,7 @@ jest.mock('@src/ROUTES', () => ({
     DYNAMIC_ROUTES: {
         VERIFY_ACCOUNT: {path: 'verify-account'},
         CUSTOM_TEST_ROUTE: {path: 'custom-test-route'},
+        ADDRESS_COUNTRY: {path: 'country'},
     },
 }));
 

@@ -3,6 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,15 +14,16 @@ import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type CountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
+type DynamicCountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY>;
 
-function CountrySelectionPage({route}: CountrySelectionPageProps) {
+function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-    const currentCountry = route.params.country;
+    const currentCountry = route.params?.country ?? '';
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADDRESS_COUNTRY.path);
 
     const countries = useMemo(
         () =>
@@ -42,17 +44,9 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
     const selectCountry = useCallback(
         (option: Option) => {
-            const backTo = route.params.backTo ?? '';
-
-            // Check the "backTo" parameter to decide navigation behavior
-            if (!backTo) {
-                Navigation.goBack();
-            } else {
-                // Set compareParams to false because we want to go back to this particular screen and update params (country).
-                Navigation.goBack(appendParam(backTo, 'country', option.value), {compareParams: false});
-            }
+            Navigation.goBack(appendParam(backPath, 'country', option.value), {compareParams: false});
         },
-        [route.params.backTo],
+        [backPath],
     );
 
     const textInputOptions = useMemo(
@@ -67,16 +61,14 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
 
     return (
         <ScreenWrapper
-            testID="CountrySelectionPage"
+            testID="DynamicCountrySelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('common.country')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    const backTo = route.params.backTo ?? '';
-                    const backToRoute = backTo ? `${backTo}?country=${currentCountry}` : '';
-                    Navigation.goBack(backToRoute as Route, {compareParams: false});
+                    Navigation.goBack(appendParam(backPath, 'country', currentCountry), {compareParams: false});
                 }}
             />
 
@@ -93,4 +85,4 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 }
 
-export default CountrySelectionPage;
+export default DynamicCountrySelectionPage;

@@ -56,6 +56,7 @@ const VERIFY_ACCOUNT = 'verify-account';
 type DynamicRouteConfig = {
     path: string;
     entryScreens: Screen[];
+    getRoute?: (...args: never[]) => string;
 };
 
 type DynamicRoutes = Record<string, DynamicRouteConfig>;
@@ -96,6 +97,11 @@ const DYNAMIC_ROUTES = {
     OWNER_SELECTOR: {
         path: 'owner-selector',
         entryScreens: [],
+    },
+    ADDRESS_COUNTRY: {
+        path: 'country',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.ADDRESS],
+        getRoute: (country: string) => `country?country=${country}`,
     },
 } as const satisfies DynamicRoutes;
 
@@ -516,12 +522,6 @@ const ROUTES = {
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
-    SETTINGS_ADDRESS_COUNTRY: {
-        route: 'settings/profile/address/country',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/address/country?country=${country}`, backTo),
-    },
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 

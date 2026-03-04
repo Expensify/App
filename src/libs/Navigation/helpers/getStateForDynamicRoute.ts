@@ -1,10 +1,12 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
+import splitPathAndQuery from './splitPathAndQuery';
 
 type LeafRoute = {
     name: string;
     path: string;
+    params?: Record<string, string>;
 };
 
 type NestedRoute = {
@@ -18,6 +20,19 @@ type NestedRoute = {
 type RouteNode = LeafRoute | NestedRoute;
 
 const configEntries = Object.entries(normalizedConfigs);
+
+function getParamsFromQuery(query: string | undefined): Record<string, string> | undefined {
+    if (!query) {
+        return undefined;
+    }
+
+    const entries = Array.from(new URLSearchParams(query).entries());
+    if (entries.length === 0) {
+        return undefined;
+    }
+
+    return Object.fromEntries(entries);
+}
 
 function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): string[] | null {
     // Search through normalized configs to find matching path and extract navigation hierarchy
@@ -33,6 +48,8 @@ function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): str
 
 function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES) {
     const routeConfig = getRouteNamesForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
+    const [, query] = splitPathAndQuery(path);
+    const params = getParamsFromQuery(query);
 
     if (!routeConfig) {
         throw new Error(`No route configuration found for dynamic route '${dynamicRouteName}'`);
@@ -47,6 +64,7 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
             return {
                 name: currentRoute ?? '',
                 path,
+                params,
             };
         }
 

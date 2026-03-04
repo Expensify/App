@@ -1,35 +1,54 @@
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
-const combinePathAndSuffix = (path: string, suffix: string): Route => {
-    const [normalizedPath, query] = splitPathAndQuery(path);
-
-    // This should never happen as the path should always be defined
-    if (!normalizedPath) {
-        Log.warn('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {path, suffix});
-        return suffix as Route;
+/**
+ * Merges two query strings into one. If both contain the same key,
+ * the suffix value wins and a warning is logged.
+ */
+const mergeQueryStrings = (baseQuery?: string, suffixQuery?: string): string => {
+    if (!baseQuery && !suffixQuery) {
+        return '';
     }
-
-    let newPath = normalizedPath === '/' ? `/${suffix}` : `${normalizedPath}/${suffix}`;
-
-    if (query) {
-        newPath += `?${query}`;
+    const params = new URLSearchParams(baseQuery ?? '');
+    const suffixParams = new URLSearchParams(suffixQuery ?? '');
+    for (const [key, value] of suffixParams.entries()) {
+        if (params.has(key)) {
+            Log.warn(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. Suffix value will override.`);
+        }
+        params.set(key, value);
     }
-    return newPath as Route;
+    const result = params.toString();
+    return result ? `?${result}` : '';
 };
 
-/** Adds dynamic route name to the current URL and returns it */
-const createDynamicRoute = (dynamicRouteSuffix: DynamicRouteSuffix): Route => {
-    if (!isDynamicRouteSuffix(dynamicRouteSuffix)) {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        throw new Error(`The route name ${dynamicRouteSuffix} is not supported in createDynamicRoute`);
+const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route => {
+    const [normalizedBasePath, baseQuery] = splitPathAndQuery(basePath);
+    const [suffixPath, suffixQuery] = splitPathAndQuery(suffixWithQuery);
+
+    if (!normalizedBasePath) {
+        Log.warn('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {basePath, suffixWithQuery});
+        return suffixWithQuery as Route;
+    }
+
+    const combinedPath = normalizedBasePath === '/' ? `/${suffixPath}` : `${normalizedBasePath}/${suffixPath}`;
+    const mergedQuery = mergeQueryStrings(baseQuery, suffixQuery);
+
+    return `${combinedPath}${mergedQuery}` as Route;
+};
+
+/** Adds dynamic route name (with optional query params) to the current URL and returns it */
+const createDynamicRoute = (dynamicRouteSuffixWithParams: string): Route => {
+    const [suffixPath] = splitPathAndQuery(dynamicRouteSuffixWithParams);
+
+    if (!suffixPath || !isDynamicRouteSuffix(suffixPath)) {
+        throw new Error(`The route name ${suffixPath} is not supported in createDynamicRoute`);
     }
 
     const activeRoute = Navigation.getActiveRoute();
-    return combinePathAndSuffix(activeRoute, dynamicRouteSuffix);
+    return combinePathAndSuffix(activeRoute, dynamicRouteSuffixWithParams);
 };
 
 export default createDynamicRoute;
