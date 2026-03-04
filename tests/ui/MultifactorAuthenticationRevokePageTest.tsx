@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import MultifactorAuthenticationRevokePage from '@pages/MultifactorAuthentication/RevokePage';
+import CONST from '@src/CONST';
+
+jest.mock('@libs/API');
+const mockAPI = API as jest.Mocked<typeof API>;
 
 let mockBiometricStatus = {
     localPublicKey: undefined as string | undefined,
@@ -439,5 +445,64 @@ describe('MultifactorAuthenticationRevokePage', () => {
 
             expect(capturedConfirmModalProps.title).toBe('multifactorAuthentication.revoke.cta');
         });
+    });
+});
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, @typescript-eslint/consistent-type-imports
+const {revokeMultifactorAuthenticationCredentials} = jest.requireActual<typeof import('@libs/actions/MultifactorAuthentication')>('@libs/actions/MultifactorAuthentication');
+
+describe('revokeMultifactorAuthenticationCredentials', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should call makeRequestWithSideEffects with correct command and onlyKeyID param', async () => {
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: 200});
+
+        await revokeMultifactorAuthenticationCredentials({onlyKeyID: 'key-123'});
+
+        expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {onlyKeyID: 'key-123'}, {});
+    });
+
+    it('should pass exceptKeyID when revoking other devices', async () => {
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: 200});
+
+        await revokeMultifactorAuthenticationCredentials({exceptKeyID: 'key-456'});
+
+        expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {exceptKeyID: 'key-456'}, {});
+    });
+
+    it('should pass empty params when revoking all devices', async () => {
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: 200});
+
+        await revokeMultifactorAuthenticationCredentials({});
+
+        expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, {}, {});
+    });
+
+    it('should return success response when API returns 200', async () => {
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: 200});
+
+        const result = await revokeMultifactorAuthenticationCredentials({});
+
+        expect(result.httpStatusCode).toBe(200);
+        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REVOKE_SUCCESSFUL);
+    });
+
+    it('should return error response when API returns non-200', async () => {
+        mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode: 500});
+
+        const result = await revokeMultifactorAuthenticationCredentials({});
+
+        expect(result.httpStatusCode).toBe(500);
+    });
+
+    it('should handle API throwing an error gracefully', async () => {
+        mockAPI.makeRequestWithSideEffects.mockRejectedValue(new Error('Network error'));
+
+        const result = await revokeMultifactorAuthenticationCredentials({onlyKeyID: 'key-123'});
+
+        expect(result.httpStatusCode).toBe(0);
+        expect(result.reason).toBe(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNKNOWN_RESPONSE);
     });
 });

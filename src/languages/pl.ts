@@ -734,7 +734,14 @@ const translations: TranslationDeepObject<typeof en> = {
             otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                return `${displayCount} ${otherDeviceCount === 1 ? 'inne urządzenie' : 'innych urządzeń'}`;
+                let deviceWord = 'innych urządzeń';
+
+                if (otherDeviceCount === 1) {
+                    deviceWord = 'inne urządzenie';
+                } else if (otherDeviceCount !== undefined && otherDeviceCount >= 2 && otherDeviceCount <= 4) {
+                    deviceWord = 'inne urządzenia';
+                }
+                return `${displayCount} ${deviceWord}`;
             },
             confirmationPromptThisDevice: 'Na pewno? Do następnej weryfikacji na tym urządzeniu będziesz potrzebować magicznego kodu.',
             confirmationPromptMultiple: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tych urządzeniach.',

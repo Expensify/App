@@ -124,8 +124,16 @@ function MultifactorAuthenticationRevokePage() {
                 return;
             }
             await revokeThisDevice(localPublicKey);
-        } else if (confirmMode === 'single' || confirmMode === 'multiple') {
-            if (localPublicKey) {
+        } else if (confirmMode === 'multiple') {
+            if (!localPublicKey) {
+                hideConfirmModal();
+                return;
+            }
+            await revokeOtherDevices(localPublicKey);
+        } else if (confirmMode === 'single') {
+            if (!localPublicKey) {
+                await revokeAll();
+            } else {
                 await revokeOtherDevices(localPublicKey);
             }
         } else if (confirmMode === 'all') {
@@ -137,7 +145,7 @@ function MultifactorAuthenticationRevokePage() {
     const confirmPromptKey = confirmPromptKeys[confirmMode];
 
     const otherDevicesConfirmMode = (): ConfirmMode => {
-        if (otherDeviceCount <= 1) {
+        if (otherDeviceCount === 1) {
             return 'single';
         }
 
