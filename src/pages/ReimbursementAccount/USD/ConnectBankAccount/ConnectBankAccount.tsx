@@ -34,9 +34,10 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, currentUserAccountID, true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
