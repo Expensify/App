@@ -21,7 +21,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -83,7 +83,7 @@ function WalletPage() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin, email} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
-    const {cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
 
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const hasSinglePolicy = activeAdminPolicies.length === 1;
@@ -625,12 +625,22 @@ function WalletPage() {
                                         shouldShowAddBankAccount={false}
                                         shouldShowAssignedCards
                                         onPress={assignedCardPressed}
-                                        onAddPersonalCardPress={isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) ? onAddPersonalCardPress : undefined}
                                         threeDotsMenuItems={cardThreeDotsMenuItems}
                                         style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                         listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                                     />
                                     <WalletTravelCVVSection />
+                                    {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                        <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                                            <MenuItem
+                                                onPress={onAddPersonalCardPress}
+                                                title={translate('personalCard.addPersonalCard')}
+                                                icon={icons.Plus}
+                                                wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                            />
+                                        </View>
+                                    )}
                                 </>
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
                                     <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>

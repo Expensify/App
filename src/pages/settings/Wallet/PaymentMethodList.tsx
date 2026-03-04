@@ -101,9 +101,6 @@ type PaymentMethodListProps = {
     /** Function to be called when the user presses the add bank account button */
     onAddBankAccountPress?: () => void;
 
-    /** Function to be called when the user presses the add personal card button */
-    onAddPersonalCardPress?: () => void;
-
     /** The icon to be displayed in the right side of the payment method item */
     itemIconRight?: IconAsset;
 
@@ -166,7 +163,6 @@ function PaymentMethodList({
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
-    onAddPersonalCardPress,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -202,7 +198,7 @@ function PaymentMethodList({
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
-    const shouldShowListFooterComponent = !!onAddPersonalCardPress || shouldShowAddBankAccount;
+    const shouldShowListFooterComponent = shouldShowAddBankAccount;
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -469,10 +465,6 @@ function PaymentMethodList({
     ]);
 
     const onPressItem = useCallback(() => {
-        if (onAddPersonalCardPress) {
-            onAddPersonalCardPress();
-            return;
-        }
         if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
             const path = Navigation.getActiveRoute();
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
@@ -483,20 +475,20 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation, onAddPersonalCardPress]);
+    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation]);
 
     const renderListFooterComponent = useCallback(
         () => (
             <MenuItem
                 onPress={onPressItem}
-                title={onAddPersonalCardPress ? translate('personalCard.addPersonalCard') : translate('bankAccount.addBankAccount')}
+                title={translate('bankAccount.addBankAccount')}
                 icon={expensifyIcons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 
-        [onPressItem, onAddPersonalCardPress, translate, expensifyIcons.Plus, styles.paymentMethod, listItemStyle],
+        [onPressItem, translate, expensifyIcons.Plus, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {

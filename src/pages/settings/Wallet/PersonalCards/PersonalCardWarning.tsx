@@ -5,7 +5,7 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 function PersonalCardWarning() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const {accountID} = useCurrentUserPersonalDetails();
     // All policies in which the current user is admin (active workspaces only)
     const adminPolicies = useActiveAdminPolicies();
@@ -29,7 +29,7 @@ function PersonalCardWarning() {
 
     const onPrimaryActionPress = () => {
         if (!isAdmin) {
-            const policyID = Object.keys(cardFeedsByPolicy).at(0);
+            const policyID = Object.keys(cardFeedsByPolicy).find((key) => !!key);
             if (!policyID) {
                 return;
             }
