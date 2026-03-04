@@ -5400,7 +5400,10 @@ function getReportPreviewMessage(
         }
     }
 
-    if (report.isWaitingOnBankAccount) {
+    // Check if the report is waiting on a bank account AND the policy doesn't have a verified business bank account (VBBA)
+        // This prevents showing the "waiting for bank account" message when the user already has a VBBA set up
+        const hasVBBA = !!policy?.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        if (report.isWaitingOnBankAccount && !hasVBBA) {
         const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
