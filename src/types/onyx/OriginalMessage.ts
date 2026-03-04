@@ -962,6 +962,9 @@ type OriginalMessageChangePolicy = {
 
     /** ID of the new policy */
     toPolicy: string;
+
+    /** Whether this policy change action should be hidden from the user */
+    hidden?: boolean;
 };
 
 /** Model of `UNREPORTED_TRANSACTION` report action */
