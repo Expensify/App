@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -74,6 +74,7 @@ function IOURequestStepDescription({
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -119,6 +120,13 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     }, [backTo]);
 
+    useEffect(() => {
+        if (!isSaved) {
+            return;
+        }
+        navigateBack();
+    }, [isSaved, navigateBack]);
+
     const updateHasUnsavedChanges = useCallback(
         (value: string) => {
             if (value === currentDescriptionInMarkdown) {
@@ -139,11 +147,13 @@ function IOURequestStepDescription({
         const newComment = value.moneyRequestComment.trim();
 
         if (newComment === currentDescriptionInMarkdown) {
+            setIsSaved(true);
             return;
         }
 
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
+            setIsSaved(true);
             return;
         }
 
@@ -164,6 +174,7 @@ function IOURequestStepDescription({
                 parentReportNextStep,
             });
         }
+        setIsSaved(true);
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
