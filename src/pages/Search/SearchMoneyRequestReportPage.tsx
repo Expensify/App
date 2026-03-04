@@ -72,7 +72,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const firstRenderRef = useRef(true);
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
     const [pendingExpenseCreateDestination] = useOnyx(ONYXKEYS.NVP_PENDING_EXPENSE_CREATE_DESTINATION);
     const hasEndedSubmitToDestinationRef = useRef(false);
@@ -89,7 +89,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     }, [pendingExpenseCreateDestination, reportIDFromRoute]);
 
     const parentReportAction = useParentReportAction(report);
-    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`, {allowStaleData: true});
+    const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
 
     const isFocused = useIsFocused();
@@ -151,8 +151,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {...report, currency: report.currency ?? snapshotReport?.currency};
     }, [report, snapshotReport?.currency]);
 
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {allowStaleData: true});
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isReportArchived = useReportIsArchived(report?.reportID);
