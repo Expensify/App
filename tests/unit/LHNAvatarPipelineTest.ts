@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getIcons, isChatThread, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
+import {getIcons, isChatThread, isExpenseRequest, isTaskReport, isTripRoom, isWorkspaceTaskReport, shouldReportShowSubscript} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -83,7 +83,8 @@ type AvatarResult = {
 function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = false, iouSenderID, delegateAccountID}: ComputeParams): AvatarResult {
     // Stage 1: SidebarUtils subscript + icon logic
     const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
-    const threadSuppression = isChatThread(report) && !isTripRoom(report);
+    const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
     const parentReportAction = getReportAction(report.parentReportID, report.parentReportActionID);
     const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
     const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -357,9 +358,9 @@ describe('LHN Avatar Pipeline', () => {
     });
 
     // ── Case 11: Expense Request Thread (with policy) ───────────────────
-    it('Expense Request Thread (with policy) → single (thread suppression)', () => {
+    it('Expense Request Thread (with workspace policy) → subscript (exception preserves it)', () => {
         // A CHAT-type thread whose parent is an expense report with a transaction thread action.
-        // On main, all chat threads outside trip rooms suppress subscript, including expense requests.
+        // Workspace expense request threads are excluded from thread suppression.
         const report: Report = {
             reportID: '110',
             type: CONST.REPORT.TYPE.CHAT,
@@ -372,9 +373,9 @@ describe('LHN Avatar Pipeline', () => {
         } as Report;
         const result = computeAvatarResult({report});
 
-        expect(result.shouldShowSubscript).toBe(false);
-        expect(result.avatarType).toBe('single');
-        expect(result.icons).toHaveLength(1);
+        expect(result.shouldShowSubscript).toBe(true);
+        expect(result.avatarType).toBe('subscript');
+        expect(result.icons).toHaveLength(2);
     });
 
     // ── Case 12: Task Report (workspace, online with chatReportID) → single

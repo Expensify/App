@@ -390,10 +390,10 @@ describe('LHNOptionsList', () => {
     });
 
     describe('Expense request thread avatar rendering', () => {
-        it('should render a single avatar for an expense request thread (thread suppression)', async () => {
+        it('should render a subscript avatar for a workspace expense request thread', async () => {
             // Given an expense request thread (chat thread whose parent is an expense report
-            // with a transaction action). On main, all chat threads outside trip rooms suppress
-            // subscript, so this renders as a single avatar.
+            // with a transaction action). Workspace expense request threads are excluded from
+            // thread suppression, so this renders as a subscript avatar.
             const policyID = 'expReqPolicy';
             const parentReportID = 'expReqParentReport';
             const reportID = 'expReqThread';
@@ -457,10 +457,9 @@ describe('LHNOptionsList', () => {
             // When the LHNOptionsList renders the expense request thread
             render(getLHNOptionsListElement({data: [threadReport]}));
 
-            // Then it should render a single avatar (thread suppression removes subscript)
+            // Then it should render a subscript avatar (workspace expense requests preserve subscript)
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
             });
         });
     });
