@@ -286,6 +286,7 @@ function IOURequestStepOdometerImage({
                             accessibilityLabel={translate('common.continue')}
                             style={[styles.p9, styles.pt5]}
                             onPress={capturePhoto}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
                         />
                     </View>
                 )}

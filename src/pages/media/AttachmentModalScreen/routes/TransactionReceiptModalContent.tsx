@@ -20,6 +20,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import getPlatform from '@libs/getPlatform';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -52,6 +53,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const policy = usePolicy(report?.policyID);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`);
@@ -288,8 +291,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionID: transaction.transactionID,
                         file,
                         source: imageUriResult,
+                        state: transaction.receipt?.state,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        isSameReceipt: true,
                     });
                 }
                 setIsRotating(false);
@@ -297,7 +302,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -540,19 +545,27 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     <Button
                         icon={expensifyIcons.Camera}
                         onPress={() => {
+                            const getDestinationRoute = () => {
+                                return isOdometerImage
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
+                                    : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                          action ?? CONST.IOU.ACTION.EDIT,
+                                          iouType,
+                                          draftTransactionID ?? transaction?.transactionID,
+                                          report?.reportID,
+                                          Navigation.getActiveRoute(),
+                                      );
+                            };
+                            if (isNative) {
+                                Navigation.goBack();
+                                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(getDestinationRoute());
+                                });
+                                return;
+                            }
+
                             Navigation.dismissModal({
-                                afterTransition: () =>
-                                    Navigation.navigate(
-                                        isOdometerImage
-                                            ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType)
-                                            : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                                  action ?? CONST.IOU.ACTION.EDIT,
-                                                  iouType,
-                                                  draftTransactionID ?? transaction?.transactionID,
-                                                  report?.reportID,
-                                                  Navigation.getActiveRoute(),
-                                              ),
-                                    ),
+                                callback: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
                         text={translate('common.replace')}
@@ -593,21 +606,22 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         draftTransactionID,
         transaction?.transactionID,
         report?.reportID,
+        isNative,
     ]);
 
     const customAttachmentContent = useMemo(() => {
-        if (!isCropping || !source) {
+        if (!isCropping || (!sourceUri && !source)) {
             return null;
         }
 
         return (
             <ReceiptCropView
-                imageUri={source as string}
+                imageUri={(sourceUri || source) as string}
                 onCropChange={handleCropChange}
-                isAuthTokenRequired={isAuthTokenRequired}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
         );
-    }, [isCropping, source, handleCropChange, isAuthTokenRequired]);
+    }, [isCropping, sourceUri, handleCropChange, isAuthTokenRequired, source]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({
