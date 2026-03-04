@@ -44,6 +44,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -478,10 +479,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const accountMenuItems = getMenuItemsSection(accountMenuItemsData);
     const generalMenuItems = getMenuItemsSection(generalMenuItemsData);
 
+    const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'InitialSettingsPage',
+        isPersonalDetailsEmpty,
+    };
+
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
-            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
+            {isPersonalDetailsEmpty ? (
+                <AccountSwitcherSkeletonView
+                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
+                    reasonAttributes={skeletonReasonAttributes}
+                />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
