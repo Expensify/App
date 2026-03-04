@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nazwisko',
         scanning: 'Skanowanie',
         analyzing: 'Trwa analizowanie...',
+        thinking: 'Concierge myśli...',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
         phone: 'Telefon',
@@ -514,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Uwaga!',
         submitTo: 'Przekaż do',
         forwardTo: 'Przekaż do',
+        approvalLimit: 'Limit zatwierdzenia',
+        overLimitForwardTo: 'Przekaż przy przekroczeniu limitu',
         merge: 'Scal',
         none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
@@ -543,7 +546,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Zduplikowany raport',
-        explain: 'Wyjaśnij',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -551,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Śledź nas na Instagram',
         facebook: 'Śledź nas na Facebook',
         linkedin: 'Śledź nas na LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Zwiń rozumowanie',
+        expandReasoning: 'Rozwiń rozumowanie',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1045,6 +1051,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: 'Nadchodzące zadania pojawią się tutaj.',
             },
         },
+        upcomingTravel: 'Nadchodząca podróż',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Lot do ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Pociąg do ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel w ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Wynajem samochodu w ${destination}`,
+            inOneWeek: 'Za 1 tydzień',
+            inDays: () => ({one: 'Za 1 dzień', other: (count: number) => `Za ${count} dni`}),
+            today: 'Dzisiaj',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -1371,6 +1387,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Wprowadź prawidłowy dystans przed kontynuowaniem',
             invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
             negativeDistanceNotAllowed: 'Końcowy odczyt musi być większy niż początkowy odczyt',
+            distanceAmountTooLarge: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans lub obniż stawkę.',
+            distanceAmountTooLargeReduceDistance: 'Łączna kwota jest zbyt wysoka. Zmniejsz dystans.',
+            distanceAmountTooLargeReduceRate: 'Łączna kwota jest zbyt wysoka. Obniż stawkę.',
+            odometerReadingTooLarge: (formattedMax: string) => `Odczyty licznika nie mogą przekraczać ${formattedMax}.`,
             invalidIntegerAmount: 'Przed kontynuowaniem wprowadź kwotę w pełnych dolarach',
             invalidTaxAmount: (amount: string) => `Maksymalna kwota podatku to ${amount}`,
             invalidSplit: 'Suma podziałów musi być równa całkowitej kwocie',
@@ -1557,6 +1577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Łączna kwota jest zbyt wysoka. Zmniejsz liczbę godzin lub obniż stawkę.',
         },
         correctRateError: 'Napraw błąd stawki i spróbuj ponownie.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Wyjaśnij</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Nie możesz duplikować wydatków z tytułu diet między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
         rulesModifiedFields: {
@@ -1571,6 +1592,12 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady wydatków prywatnych</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} przez <a href="${route}">zasady workspace’u</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `nie udało się przesłać raportu przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłki</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `nie udało się wysłać raportu. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
     },
     transactionMerge: {
         listPage: {
@@ -2008,6 +2035,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Dla administratorów domen: to również wstrzymuje całą aktywność Kart Expensify i działania administracyjne w twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeprowadzenia kontroli bezpieczeństwa',
+        unlockTitle: 'Otrzymaliśmy Twoją prośbę',
+        unlockDescription: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
@@ -8319,6 +8348,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
+        hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -8491,7 +8521,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             resetDomain: 'Resetuj domenę',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
             enterDomainName: 'Wprowadź tutaj swoją nazwę domeny',
-            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <ul><li>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</li> <li>Ustawień SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
+            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <bullet-list><bullet-item>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</bullet-item><bullet-item>Ustawień SAML i grup</bullet-item></bullet-list> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         domainMembers: 'Członkowie domeny',
         members: {
@@ -8510,8 +8540,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 other: 'Zamknij konta bezpiecznie',
             }),
             closeAccountInfo: () => ({
-                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
-                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
+                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
+                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
             }),
             error: {
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
@@ -8519,6 +8549,9 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 vacationDelegate: 'Nie można ustawić tego użytkownika jako zastępującego na czas nieobecności. Spróbuj ponownie.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Czy na pewno? To zablokuje konto użytkownika <strong>${email}</strong>. <br /><br /> Nasz zespół następnie przejrzy konto i usunie wszelki nieautoryzowany dostęp. Aby odzyskać dostęp, będą musieli współpracować z Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
         },
         common: {
             settings: 'Ustawienia',

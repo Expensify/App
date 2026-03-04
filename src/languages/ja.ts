@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓',
         scanning: 'スキャン中',
         analyzing: '分析中…',
+        thinking: 'Concierge が考えています...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話',
@@ -514,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'ご注意ください！',
         submitTo: '提出先',
         forwardTo: '転送先',
+        approvalLimit: '承認限度額',
+        overLimitForwardTo: '限度額超過時の転送先',
         merge: 'マージ',
         none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認して、もう一度お試しください。',
@@ -543,7 +546,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         duplicateReport: 'レポートを複製',
-        explain: '説明',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -551,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Instagramでフォロー',
         facebook: 'Facebookでフォロー',
         linkedin: 'LinkedInでフォロー',
+    },
+    concierge: {
+        collapseReasoning: '推論を折りたたむ',
+        expandReasoning: '推論を展開',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1037,6 +1043,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksDescription: '今後のやることがここに表示されます。',
             },
         },
+        upcomingTravel: '今後の出張',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `${destination} 行きのフライト`,
+            trainTo: ({destination}: {destination: string}) => `${destination} 行きの電車`,
+            hotelIn: ({destination}: {destination: string}) => `${destination}のホテル`,
+            carRentalIn: ({destination}: {destination: string}) => `${destination}でのレンタカー`,
+            inOneWeek: '1週間後',
+            inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
+            today: '今日',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1364,6 +1380,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: '続行する前に有効な距離を入力してください',
             invalidReadings: '開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
+            distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
+            distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
+            distanceAmountTooLargeReduceRate: '合計金額が大きすぎます。レートを下げてください。',
+            odometerReadingTooLarge: (formattedMax: string) => `オドメーターの読み取り値は${formattedMax}を超えることはできません。`,
             invalidIntegerAmount: '続行する前にドルの整数金額を入力してください',
             invalidTaxAmount: (amount: string) => `最大税額は${amount}です`,
             invalidSplit: '分割した金額の合計は合計金額と一致している必要があります',
@@ -1550,6 +1570,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
+        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
@@ -1563,6 +1584,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">個人経費ルール</a> 経由)`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">ワークスペースルール</a> 経由)`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を使ったレポートの送信に失敗しました。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `レポートの送信に失敗しました。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
+        cannotDuplicateDistanceExpense: '距離精算はワークスペースごとにレートが異なる可能性があるため、ワークスペース間で複製することはできません。',
     },
     transactionMerge: {
         listPage: {
@@ -2000,6 +2026,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン全体のすべての Expensify カードの利用と管理者による操作も一時停止されます。',
         areYouSure: 'Expensify アカウントをロックしてもよろしいですか？',
         onceLocked: 'ロックされると、解除リクエストとセキュリティ審査が完了するまでアカウントは制限されます',
+        unlockTitle: 'リクエストを受け付けました',
+        unlockDescription: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -8263,6 +8291,7 @@ ${reportName}
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
+        hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -8434,7 +8463,7 @@ ${reportName}
             resetDomain: 'ドメインをリセット',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `ドメインのリセットを確認するため、<strong>${domainName}</strong> と入力してください。`,
             enterDomainName: 'ここにドメイン名を入力してください',
-            resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <ul><li>会社カードの接続と、そのカードの未報告精算</li> <li>SAML およびグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
+            resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <bullet-list><bullet-item>会社カードの接続と、そのカードの未報告精算</bullet-item><bullet-item>SAML およびグループ設定</bullet-item></bullet-list> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
         domainMembers: 'ドメインメンバー',
         members: {
@@ -8453,8 +8482,8 @@ ${reportName}
                 other: 'アカウントを安全に閉じる',
             }),
             closeAccountInfo: () => ({
-                one: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
-                other: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
+                one: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <bullet-list><bullet-item>保留中の承認</bullet-item><bullet-item>進行中の払い戻し</bullet-item><bullet-item>代替ログイン方法なし</bullet-item></bullet-list>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
+                other: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <bullet-list><bullet-item>保留中の承認</bullet-item><bullet-item>進行中の払い戻し</bullet-item><bullet-item>代替ログイン方法なし</bullet-item></bullet-list>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
             }),
             error: {
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
@@ -8462,6 +8491,9 @@ ${reportName}
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `本当によろしいですか？これにより、<strong>${email}</strong> さんのアカウントがロックされます。<br /><br />その後、当社のチームがアカウントを確認し、不正アクセスを削除します。アクセスを回復するには、Concierge と連携して対応してもらう必要があります。`,
+            reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
         },
         common: {
             settings: '設定',

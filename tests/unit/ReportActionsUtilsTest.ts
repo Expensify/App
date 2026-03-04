@@ -1185,6 +1185,81 @@ describe('ReportActionsUtils', () => {
             // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED with harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    harvesting: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED without harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED with automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED without automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: false,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
