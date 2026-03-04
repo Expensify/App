@@ -17,6 +17,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<PlaybackStateContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
+    const [shareVersion, setShareVersion] = useState(0);
     const mountedVideoPlayersRef = useRef<string[]>([]);
     const playerStatus = useRef<VideoPlayerStatus>('loading');
 
@@ -69,6 +70,14 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         playerStatus.current = newStatus;
     }, []);
 
+    const requestDonorReRegistration = useCallback(() => {
+        // Reset currentRouteReportID so the reportID guard in shareVideoPlayerElements is bypassed,
+        // allowing the real donor (e.g. chat player) to re-register even if its reportID no longer
+        // matches the stale currentRouteReportID left behind by the non-shared (narrow) player.
+        setCurrentRouteReportID(NO_REPORT_ID);
+        setShareVersion((v) => v + 1);
+    }, []);
+
     const shareVideoPlayerElements: PlaybackActionsContextValues['shareVideoPlayerElements'] = useCallback(
         (
             videoPlayerRef: VideoPlayer | null,
@@ -78,7 +87,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             shouldNotAutoPlay: boolean,
             {shouldUseSharedVideoElement, url, reportID},
         ) => {
-            if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentRouteReportID) {
+            // When currentRouteReportID is NO_REPORT_ID it means a forced re-registration was requested
+            // (e.g. after narrow→wide resize). In that case we skip the reportID check so any non-shared
+            // player whose URL matches can reclaim the context refs.
+            const hasReportIDMismatch = currentRouteReportID !== NO_REPORT_ID && reportID !== currentRouteReportID;
+            if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || hasReportIDMismatch) {
                 return;
             }
 
@@ -133,6 +146,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         currentVideoViewRef: video.viewRef,
         mountedVideoPlayersRef,
         playerStatus,
+        shareVersion,
     };
 
     // Because of the React Compiler we don't need to memoize it manually
@@ -148,6 +162,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         checkIfVideoIsPlaying: video.isPlaying,
         resetVideoPlayerData: video.resetPlayerData,
         updatePlayerStatus,
+        requestDonorReRegistration,
     };
 
     return (

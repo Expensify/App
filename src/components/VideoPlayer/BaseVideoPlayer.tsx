@@ -54,8 +54,9 @@ function BaseVideoPlayer({
     onTap,
 }: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
-    const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
-    const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
+    const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus, shareVersion} = usePlaybackStateContext();
+    const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus, requestDonorReRegistration} =
+        usePlaybackActionsContext();
     const {isFullScreenRef} = useFullScreenState();
 
     const isOffline = useNetwork().isOffline;
@@ -362,6 +363,18 @@ function BaseVideoPlayer({
         [setCurrentlyPlayingURL],
     );
 
+    // When transitioning from non-shared to shared mode (e.g. narrow → wide viewport), the stale
+    // non-shared player refs remain in the context. Request all donors to re-register so the real
+    // donor (e.g. the chat player) reclaims the context refs.
+    const prevShouldUseSharedVideoElementRef = useRef(shouldUseSharedVideoElement);
+    useEffect(() => {
+        const wasShared = prevShouldUseSharedVideoElementRef.current;
+        if (shouldUseSharedVideoElement && !wasShared) {
+            requestDonorReRegistration();
+        }
+        prevShouldUseSharedVideoElementRef.current = shouldUseSharedVideoElement;
+    }, [shouldUseSharedVideoElement, requestDonorReRegistration, url]);
+
     // update shared video elements
     useEffect(() => {
         // On mobile safari, we need to auto-play when sharing video element here
@@ -380,6 +393,7 @@ function BaseVideoPlayer({
         currentlyPlayingURL,
         shouldUseSharedVideoElement,
         shareVideoPlayerElements,
+        shareVersion,
         url,
         isUploading,
         reportID,
