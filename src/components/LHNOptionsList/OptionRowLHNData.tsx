@@ -86,7 +86,7 @@ function OptionRowLHNData({
             currentUserAccountID,
             reportAttributesDerived,
             policyTags,
-            currentUserLogin: login,
+            currentUserLogin: login ?? '',
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;

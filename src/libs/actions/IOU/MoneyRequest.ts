@@ -137,6 +137,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
+    customUnitRateID: string;
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -552,6 +553,7 @@ function handleMoneyRequestStepDistanceNavigation({
     reportAttributesDerived,
     personalDetails,
     waypoints,
+    customUnitRateID,
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
@@ -638,7 +640,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         participant,
                     },
                     policyParams: {
-                        policy: policyForMovingExpenses,
+                        policy,
                     },
                     transactionParams: {
                         amount: 0,
@@ -650,12 +652,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         billable: false,
                         reimbursable: defaultReimbursable,
                         validWaypoints,
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
-                            reportID: report.reportID,
-                            isTrackDistanceExpense: true,
-                            policy: policyForMovingExpenses,
-                            isPolicyExpenseChat: false,
-                        }),
+                        customUnitRateID,
                         attendees: transaction?.comment?.attendees,
                         gpsCoordinates,
                         odometerStart,
