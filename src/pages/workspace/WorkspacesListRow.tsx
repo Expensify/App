@@ -351,10 +351,7 @@ function WorkspacesListRow({
                     </View>
                 </PressableWithoutFeedback>
 
-                <View
-                    role={isWide ? CONST.ROLE.CELL : undefined}
-                    style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}
-                >
+                <View style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}>
                     {isNarrow && ThreeDotsSection}
                     {!isNarrow && ThreeDotMenuOrPendingIcon}
                     {!isNarrow && (
