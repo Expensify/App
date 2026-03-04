@@ -820,7 +820,7 @@ describe('PolicyUtils', () => {
             expect(result).toBe(categoryApprover1AccountID);
         });
 
-        it('should return -1 if there is no employee or default approver', () => {
+        it('should return CONST.DEFAULT_NUMBER_ID if there is no employee or default approver', () => {
             const policy: Policy = {
                 ...createRandomPolicy(0),
                 type: CONST.POLICY.TYPE.TEAM,
@@ -834,7 +834,7 @@ describe('PolicyUtils', () => {
 
             const result = getManagerAccountID(policy, report);
 
-            expect(result).toBe(-1);
+            expect(result).toBe(CONST.DEFAULT_NUMBER_ID);
         });
 
         it('should return submitsTo account ID', () => {
