@@ -43,7 +43,7 @@ type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeo
 
 function IOURequestStepOdometerImage({
     route: {
-        params: {action, iouType, transactionID, reportID, imageType},
+        params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
@@ -77,10 +77,12 @@ function IOURequestStepOdometerImage({
     const icon = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? lazyIcons.OdometerStart : lazyIcons.OdometerEnd;
     const messageHTML = `<centered-text><muted-text-label>${message}</muted-text-label></centered-text>`;
 
-    const odometerRoute = ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID);
+    const goBackRoute = isEditingConfirmation
+        ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID)
+        : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action, iouType, transactionID, reportID, backToReport);
 
     const navigateBack = () => {
-        Navigation.goBack(odometerRoute);
+        Navigation.goBack(goBackRoute);
     };
 
     const handleImageSelected = (file: FileObject) => {
