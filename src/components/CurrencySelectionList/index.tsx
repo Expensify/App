@@ -108,6 +108,7 @@ function CurrencySelectionList({
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             showLoadingPlaceholder={!didScreenTransitionEnd}
+            isRowMultilineSupported={false}
         />
     );
 }
