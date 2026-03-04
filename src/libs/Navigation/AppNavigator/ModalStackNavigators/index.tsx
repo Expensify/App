@@ -91,7 +91,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
         animationTypeForReplace: 'push',
     },
-
+    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: {
         animationTypeForReplace: 'push',
     },
@@ -272,6 +274,7 @@ const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettin
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/WriteCapabilityPage').default,
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/VisibilityPage').default,
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportLayoutPage').default,
+    [SCREENS.REPORT_SETTINGS.COLUMNS]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportDetailsColumnsPage').default,
 });
 
 const WorkspaceConfirmationModalStackNavigator = createModalStackNavigator<WorkspaceConfirmationNavigatorParamList>({
@@ -435,7 +438,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/substeps/AccountFlowEntryPoint').default,
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
@@ -906,6 +909,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainRequireTwoFactorAuthPage').default,
     [SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/TwoFactorAuth/DomainMemberForceTwoFactorAuthPage').default,
     [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: () => require<ReactComponentModule>('../../../../pages/domain/Members/TwoFactorAuth/DomainMemberResetTwoFactorAuthPage').default,
+    [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainReportSuspiciousActivityPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
