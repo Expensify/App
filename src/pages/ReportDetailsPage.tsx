@@ -937,7 +937,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         // Handle task deletion navigation
         if (caseID === CASES.DEFAULT) {
-            urlToNavigateBack = getNavigationUrlOnTaskDelete(report);
+            urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
             if (urlToNavigateBack) {
                 navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
                 return;
@@ -1009,7 +1009,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
-    }, [caseID, report, requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
+    }, [
+        caseID,
+        report,
+        requestParentReportAction,
+        route.params.reportID,
+        moneyRequestReport,
+        iouTransactionID,
+        iouReport,
+        chatIOUReport,
+        isChatIOUReportArchived,
+        isSingleTransactionView,
+        conciergeReportID,
+    ]);
 
     const showDeleteModal = useCallback(async () => {
         const {action} = await showConfirmModal({
