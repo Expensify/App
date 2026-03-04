@@ -33,6 +33,7 @@ import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -773,26 +774,31 @@ function clearIssueNewCardError(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
-function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData): CardOnyxUpdate[] {
+function buildCardListUpdates(workspaceAccountID: number, cardID: number, cardUpdateData: CardListUpdateData, shouldUpdateCardList: boolean): CardOnyxUpdate[] {
     const workspaceKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}` as `${typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${string}`;
-
-    return [
+    const updates: CardOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: workspaceKey,
             value: {[cardID]: cardUpdateData},
         },
-        {
+    ];
+
+    if (shouldUpdateCardList) {
+        updates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
             value: {[cardID]: cardUpdateData},
-        },
-    ];
+        });
+    }
+
+    return updates;
 }
 
 function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID: number) {
     const cardID = card.cardID;
     const previousFrozen = card?.nameValuePairs?.frozen ?? null;
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
 
     const frozenData: CardListUpdateData = {
         state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
@@ -808,24 +814,34 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
         errors: null,
     };
 
-    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData);
-    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
-        nameValuePairs: {
-            pendingFields: {frozen: null},
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, frozenData, shouldUpdateCardList);
+    const successData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            nameValuePairs: {
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
         },
-        pendingAction: null,
-        isLoading: false,
-    });
-    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
-        state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
-        nameValuePairs: {
-            frozen: previousFrozen,
-            pendingFields: {frozen: null},
+        shouldUpdateCardList,
+    );
+    const failureData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.OPEN,
+            nameValuePairs: {
+                frozen: previousFrozen,
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         },
-        pendingAction: null,
-        isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    });
+        shouldUpdateCardList,
+    );
 
     const parameters: FreezeCardParams = {
         cardID,
@@ -838,9 +854,10 @@ function freezeCard(workspaceAccountID: number, card: Card, currentUserAccountID
     });
 }
 
-function unfreezeCard(workspaceAccountID: number, card: Card) {
+function unfreezeCard(workspaceAccountID: number, card: Card, currentUserAccountID: number) {
     const cardID = card.cardID;
     const previousFrozen = card?.nameValuePairs?.frozen ?? null;
+    const shouldUpdateCardList = card.accountID === currentUserAccountID;
 
     const unfrozenData: CardListUpdateData = {
         state: CONST.EXPENSIFY_CARD.STATE.OPEN,
@@ -853,24 +870,34 @@ function unfreezeCard(workspaceAccountID: number, card: Card) {
         errors: null,
     };
 
-    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData);
-    const successData = buildCardListUpdates(workspaceAccountID, cardID, {
-        nameValuePairs: {
-            pendingFields: {frozen: null},
+    const optimisticData = buildCardListUpdates(workspaceAccountID, cardID, unfrozenData, shouldUpdateCardList);
+    const successData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            nameValuePairs: {
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
         },
-        pendingAction: null,
-        isLoading: false,
-    });
-    const failureData = buildCardListUpdates(workspaceAccountID, cardID, {
-        state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
-        nameValuePairs: {
-            frozen: previousFrozen,
-            pendingFields: {frozen: null},
+        shouldUpdateCardList,
+    );
+    const failureData = buildCardListUpdates(
+        workspaceAccountID,
+        cardID,
+        {
+            state: card?.state ?? CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+            nameValuePairs: {
+                frozen: previousFrozen,
+                pendingFields: {frozen: null},
+            },
+            pendingAction: null,
+            isLoading: false,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         },
-        pendingAction: null,
-        isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-    });
+        shouldUpdateCardList,
+    );
 
     const parameters: FreezeCardParams = {
         cardID,
@@ -1158,13 +1185,14 @@ type DeletePersonalCardData = {
     card?: Card;
     allTransactions: OnyxCollection<Transaction>;
     allReports: OnyxCollection<Report>;
+    savedColumnLayout?: SavedCSVColumnLayoutData;
 };
 
 /**
  * Deletes a personal card (CSV-imported card) and its associated transactions.
  * The backend will handle deleting transactions on unsubmitted/open reports.
  */
-function deletePersonalCard({cardID, card, allTransactions, allReports}: DeletePersonalCardData) {
+function deletePersonalCard({cardID, card, allTransactions, allReports, savedColumnLayout}: DeletePersonalCardData) {
     // Find all transactions associated with this card that are on open/unsubmitted reports
     // This matches the backend logic which only deletes transactions on open reports
     const transactionsToDelete: Transaction[] = [];
@@ -1174,8 +1202,8 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
         }
     }
 
-    // Optimistically remove the card immediately for instant UI feedback
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    // Optimistically remove the card and its saved column layout immediately for instant UI feedback
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -1183,9 +1211,16 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
                 [cardID]: null,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+            value: {
+                [cardID]: null,
+            },
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
@@ -1198,6 +1233,17 @@ function deletePersonalCard({cardID, card, allTransactions, allReports}: DeleteP
             },
         },
     ];
+
+    // Restore the saved column layout on failure if it existed
+    if (savedColumnLayout) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST,
+            value: {
+                [cardID]: savedColumnLayout,
+            },
+        });
+    }
 
     // Optimistically delete transactions and prepare failure data to restore them
     for (const transaction of transactionsToDelete) {

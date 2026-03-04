@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nom de famille',
         scanning: 'Analyse en cours',
         analyzing: 'Analyse en cours...',
+        thinking: 'Concierge réfléchit...',
         addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
         perPerson: 'par personne',
         phone: 'Téléphone',
@@ -515,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attention !',
         submitTo: 'Soumettre à',
         forwardTo: 'Transférer à',
+        approvalLimit: "Limite d'approbation",
+        overLimitForwardTo: 'Transférer si dépassement de limite',
         merge: 'Fusionner',
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
@@ -551,6 +554,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Suivez-nous sur Instagram',
         facebook: 'Suivez-nous sur Facebook',
         linkedin: 'Suivez-nous sur LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Réduire le raisonnement',
+        expandReasoning: 'Développer le raisonnement',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -649,6 +656,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Veuillez vous reconnecter.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Examiner la transaction',
+            pleaseReview: 'Veuillez examiner cette transaction',
+            requiresYourReview: 'Une transaction par carte Expensify nécessite votre examen ci-dessous.',
+            transactionDetails: 'Détails de la transaction',
+            deny: 'Refuser',
+            approve: 'Approuver',
+            denyTransaction: 'Refuser la transaction',
+            transactionDenied: 'Transaction refusée',
+            transactionApproved: 'Transaction approuvée !',
+            areYouSureToDeny: 'Voulez-vous continuer ? La transaction sera refusée si vous fermez cet écran.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Vous pouvez réessayer chez le commerçant. Si vous n’êtes pas à l’origine de cette transaction, <concierge-link>contactez Concierge</concierge-link> pour signaler une fraude potentielle.',
+            youNeedToTryAgainAtMerchant: 'Cette transaction n’a pas été vérifiée, nous l’avons donc refusée. Vous devrez réessayer auprès du commerçant.',
+            goBackToTheMerchant: 'Retournez sur le site du commerçant pour continuer la transaction.',
+            attemptedTransaction: 'Transaction tentée',
+            transactionFailed: 'Échec de la transaction',
+            transactionCouldNotBeCompleted: 'Votre transaction n’a pas pu être effectuée. Veuillez réessayer chez le commerçant.',
+            transactionCouldNotBeCompletedReachOut:
+                'Votre transaction n’a pas pu être effectuée. Si vous n’êtes pas à l’origine de cette transaction, <concierge-link>contactez Concierge</concierge-link> pour signaler une éventuelle fraude.',
+            reviewFailed: 'Échec de l’examen',
+            alreadyReviewedSubtitle:
+                'Vous avez déjà examiné cette transaction. Veuillez vérifier votre <transaction-history-link>historique des transactions</transaction-history-link> ou contacter <concierge-link>Concierge</concierge-link> pour signaler tout problème.',
+        },
         biometricsTest: {
             biometricsTest: 'Test biométrique',
             authenticationSuccessful: 'Authentification réussie',
@@ -701,7 +732,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.`,
         },
         verificationFailed: 'Échec de la vérification',
     },
@@ -1021,6 +1052,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Tout est à jour',
                 fireworksDescription: 'Les prochaines tâches apparaîtront ici.',
             },
+        },
+        upcomingTravel: 'Voyages à venir',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Vol vers ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Train pour ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hôtel à ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Location de voiture à ${destination}`,
+            inOneWeek: 'Dans 1 semaine',
+            inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
+            today: 'Aujourd’hui',
         },
     },
     allSettingsScreen: {
@@ -1353,6 +1394,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Veuillez saisir une distance valide avant de continuer',
             invalidReadings: 'Veuillez saisir les relevés de début et de fin',
             negativeDistanceNotAllowed: 'Le relevé de fin doit être supérieur au relevé de début',
+            distanceAmountTooLarge: 'Le montant total est trop élevé. Réduisez la distance ou diminuez le taux.',
+            distanceAmountTooLargeReduceDistance: 'Le montant total est trop élevé. Réduisez la distance.',
+            distanceAmountTooLargeReduceRate: 'Le montant total est trop élevé. Diminuez le taux.',
+            odometerReadingTooLarge: (formattedMax: string) => `Les lectures du compteur kilométrique ne peuvent pas dépasser ${formattedMax}.`,
             invalidIntegerAmount: 'Veuillez saisir un montant entier en dollars avant de continuer',
             invalidTaxAmount: (amount: string) => `Le montant maximal de taxe est de ${amount}`,
             invalidSplit: 'La somme des répartitions doit être égale au montant total',
@@ -1556,6 +1601,12 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">règles de dépenses personnelles</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">règles d’espace de travail</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `échec de la soumission de la note de frais via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">soumissions différées</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `échec de la soumission de la note de frais. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) =>
+            `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
     },
     transactionMerge: {
         listPage: {
@@ -1994,6 +2045,8 @@ const translations: TranslationDeepObject<typeof en> = {
             "Pour les administrateurs de domaine : cela met également en pause toute l'activité de Carte Expensify et toutes les actions d'administration sur l’ensemble de votre (vos) domaine(s).",
         areYouSure: 'Voulez-vous vraiment verrouiller votre compte Expensify ?',
         onceLocked: 'Une fois verrouillé, votre compte sera restreint en attendant une demande de déverrouillage et un contrôle de sécurité',
+        unlockTitle: 'Nous avons bien reçu votre demande',
+        unlockDescription: 'Nous examinerons le compte pour vérifier qu’il est sûr de le déverrouiller et nous vous contacterons via Concierge si nous avons des questions.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -3945,6 +3998,7 @@ ${
             workspaceOwner: 'Responsable',
             workspaceType: 'Type d’espace de travail',
             workspaceAvatar: "Avatar de l'espace de travail",
+            keepMeAsAdmin: 'Me garder comme administrateur',
             clientID: 'ID client',
             clientIDInputHint: "Entrez l'identifiant unique du client",
             mustBeOnlineToViewMembers: 'Vous devez être en ligne pour voir les membres de cet espace de travail.',
@@ -7463,6 +7517,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème lié soit au remboursement, soit au règlement de la Carte Expensify. Veuillez corriger le problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} a quitté la discussion`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Ouvrez l'application mobile Expensify pour examiner votre transaction de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
@@ -7642,7 +7700,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
     },
     gps: {
-        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Appuyez sur Démarrer ci-dessous pour commencer le suivi.',
         error: {
             failedToStart: 'Échec du démarrage du suivi de la localisation.',
             failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.',
@@ -8361,6 +8418,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         outstandingFilter: '<tooltip>Filtrer les dépenses\nqui <strong>doivent être approuvées</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envoyez ce reçu pour\n<strong>terminer l’essai !</strong></tooltip>',
         gpsTooltip: '<tooltip>Suivi GPS en cours ! Lorsque vous avez terminé, arrêtez le suivi ci-dessous.</tooltip>',
+        hasFilterNegation: '<tooltip>Recherchez les dépenses sans reçus à l’aide de <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Ignorer les modifications ?',
@@ -8534,7 +8592,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             resetDomain: 'Réinitialiser le domaine',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Veuillez saisir <strong>${domainName}</strong> pour confirmer la réinitialisation du domaine.`,
             enterDomainName: 'Saisissez votre nom de domaine ici',
-            resetDomainInfo: `Cette action est <strong>définitive</strong> et les données suivantes seront supprimées : <br/> <ul><li>Connexions de cartes d’entreprise et toutes les dépenses non déclarées associées à ces cartes</li> <li>Paramètres SAML et de groupe</li> </ul> Tous les comptes, espaces de travail, notes de frais, dépenses et autres données seront conservés. <br/><br/>Remarque : vous pouvez supprimer ce domaine de votre liste de domaines en retirant l’adresse e-mail associée de vos <a href="#">méthodes de contact</a>.`,
+            resetDomainInfo: `Cette action est <strong>définitive</strong> et les données suivantes seront supprimées : <br/> <bullet-list><bullet-item>Connexions de cartes d’entreprise et toutes les dépenses non déclarées associées à ces cartes</bullet-item><bullet-item>Paramètres SAML et de groupe</bullet-item></bullet-list> Tous les comptes, espaces de travail, notes de frais, dépenses et autres données seront conservés. <br/><br/>Remarque : vous pouvez supprimer ce domaine de votre liste de domaines en retirant l’adresse e-mail associée de vos <a href="#">méthodes de contact</a>.`,
         },
         domainMembers: 'Membres du domaine',
         members: {
@@ -8553,8 +8611,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 other: 'Fermer les comptes en toute sécurité',
             }),
             closeAccountInfo: () => ({
-                one: 'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
-                other: 'Nous recommandons de fermer les comptes en toute sécurité afin d’éviter de les fermer dans le cas où il y aurait : <ul><li>Des validations en attente</li><li>Des remboursements actifs</li><li>Aucune autre méthode de connexion</li></ul>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture des comptes sélectionnés.',
+                one: 'Nous recommandons de fermer le compte en toute sécurité afin d’éviter de le fermer dans le cas où il y aurait : <bullet-list><bullet-item>Des validations en attente</bullet-item><bullet-item>Des remboursements actifs</bullet-item><bullet-item>Aucune autre méthode de connexion</bullet-item></bullet-list>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture du compte sélectionné.',
+                other: 'Nous recommandons de fermer les comptes en toute sécurité afin d’éviter de les fermer dans le cas où il y aurait : <bullet-list><bullet-item>Des validations en attente</bullet-item><bullet-item>Des remboursements actifs</bullet-item><bullet-item>Aucune autre méthode de connexion</bullet-item></bullet-list>Sinon, vous pouvez ignorer les précautions de sécurité ci-dessus et forcer la fermeture des comptes sélectionnés.',
             }),
             error: {
                 removeMember: 'Impossible de supprimer cet utilisateur. Veuillez réessayer.',
@@ -8563,6 +8621,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Voulez-vous continuer ? Cela va verrouiller le compte de <strong>${email}</strong>. <br /><br /> Notre équipe examinera ensuite le compte et supprimera tout accès non autorisé. Pour retrouver l’accès, il faudra collaborer avec Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt:
+                'Nous examinerons le compte pour vérifier qu’il est sûr de le déverrouiller et nous vous contacterons via Concierge si nous avons des questions.',
         },
         common: {
             settings: 'Paramètres',
