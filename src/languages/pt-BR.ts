@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Sobrenome',
         scanning: 'Escaneando',
         analyzing: 'Analisando...',
+        thinking: 'Concierge está pensando...',
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
         phone: 'Telefone',
@@ -550,6 +551,10 @@ const translations: TranslationDeepObject<typeof en> = {
         facebook: 'Siga-nos no Facebook',
         linkedin: 'Siga-nos no LinkedIn',
     },
+    concierge: {
+        collapseReasoning: 'Recolher raciocínio',
+        expandReasoning: 'Expandir raciocínio',
+    },
     supportalNoAccess: {
         title: 'Calma aí',
         descriptionWithCommand: ({
@@ -645,6 +650,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'Faça login novamente.',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: 'Analisar transação',
+            pleaseReview: 'Revise esta transação',
+            requiresYourReview: 'Uma transação com o Cartão Expensify requer sua revisão abaixo.',
+            transactionDetails: 'Detalhes da transação',
+            deny: 'Negar',
+            approve: 'Aprovar',
+            denyTransaction: 'Negar transação',
+            transactionDenied: 'Transação negada',
+            transactionApproved: 'Transação aprovada!',
+            areYouSureToDeny: 'Tem certeza? A transação será recusada se você fechar esta tela.',
+            youCanTryAgainAtMerchantOrReachOut:
+                'Você pode tentar novamente no estabelecimento. Se você não fez esta transação, <concierge-link>entre em contato com a Concierge</concierge-link> para relatar possível fraude.',
+            youNeedToTryAgainAtMerchant: 'Essa transação não foi verificada, então nós a negamos. Você precisará tentar novamente no estabelecimento.',
+            goBackToTheMerchant: 'Volte ao site do estabelecimento para continuar a transação.',
+            attemptedTransaction: 'Transação tentada',
+            transactionFailed: 'Transação falhou',
+            transactionCouldNotBeCompleted: 'Não foi possível concluir sua transação. Tente novamente no estabelecimento.',
+            transactionCouldNotBeCompletedReachOut:
+                'Sua transação não pôde ser concluída. Se você não tentou fazer essa transação, <concierge-link>entre em contato com o Concierge</concierge-link> para relatar possível fraude.',
+            reviewFailed: 'Falha na análise',
+            alreadyReviewedSubtitle:
+                'Você já revisou esta transação. Verifique seu <transaction-history-link>histórico de transações</transaction-history-link> ou entre em contato com o <concierge-link>Concierge</concierge-link> para relatar qualquer problema.',
+        },
         biometricsTest: {
             biometricsTest: 'Teste de biometria',
             authenticationSuccessful: 'Autenticação bem-sucedida',
@@ -696,7 +725,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,
         },
         verificationFailed: 'Falha na verificação',
     },
@@ -966,7 +995,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: 'Carteira',
             },
         },
-        assignedCards: 'Cartões atribuídos',
+        assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
         announcements: 'Comunicados',
         discoverSection: {
@@ -1015,6 +1044,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Tudo em dia',
                 fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
+        },
+        upcomingTravel: 'Próximas viagens',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Voo para ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trem para ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel em ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Aluguel de carro em ${destination}`,
+            inOneWeek: 'Em 1 semana',
+            inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
+            today: 'Hoje',
         },
     },
     allSettingsScreen: {
@@ -1342,6 +1381,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Insira uma distância válida antes de continuar',
             invalidReadings: 'Insira as leituras de início e fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
+            distanceAmountTooLarge: 'O valor total é muito alto. Diminua a distância ou reduza a tarifa.',
+            distanceAmountTooLargeReduceDistance: 'O valor total é muito alto. Diminua a distância.',
+            distanceAmountTooLargeReduceRate: 'O valor total é muito alto. Reduza a tarifa.',
+            odometerReadingTooLarge: (formattedMax: string) => `As leituras do hodômetro não podem exceder ${formattedMax}.`,
             invalidIntegerAmount: 'Insira um valor inteiro em dólares antes de continuar',
             invalidTaxAmount: (amount: string) => `O valor máximo de imposto é ${amount}`,
             invalidSplit: 'A soma das divisões deve ser igual ao valor total',
@@ -1413,6 +1456,8 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Alguns desses duplicados já foram aprovados ou pagos.',
         reviewDuplicates: 'Revisar duplicados',
         keepAll: 'Manter tudo',
+        noDuplicatesTitle: 'Tudo pronto!',
+        noDuplicatesDescription: 'Não há transações duplicadas para revisar aqui.',
         confirmApprove: 'Confirmar valor da aprovação',
         confirmApprovalAmount: 'Aprove apenas as despesas em conformidade ou aprove o relatório inteiro.',
         confirmApprovalAllHoldAmount: () => ({
@@ -1527,17 +1572,23 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
         AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
+        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
+        rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
-            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como “não faturável”'),
-            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para “${value}”`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            billable: (value: boolean) => (value ? 'marcou a despesa como "faturável"' : 'marcou a despesa como "não faturável"'),
+            tax: (value: string, isFirst: boolean) => (isFirst ? `definir a alíquota de imposto como "${value}"` : `alíquota de imposto para "${value}"`),
+            reportName: (value: string) => `moveu esta despesa para o relatório "${value}"`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `defina ${field} como "${value}"` : `${field} para "${value}"`;
             },
-            format: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do espaço de trabalho</a>`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras de despesas pessoais</a>`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} via <a href="${route}">regras do workspace</a>`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
+        failedToAutoSubmitViaDEW: (reason: string) => `falha ao enviar o relatório via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">adiar envios</a>. ${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `falha ao enviar o relatório. ${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
+        failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
     },
     transactionMerge: {
         listPage: {
@@ -1975,6 +2026,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Para admins de domínio: isso também pausa todas as atividades do Cartão Expensify e ações de administração em todo(s) o(s) seu(s) domínio(s).',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
         onceLocked: 'Depois de bloqueada, sua conta ficará restrita até que seja feita uma solicitação de desbloqueio e uma revisão de segurança',
+        unlockTitle: 'Recebemos sua solicitação',
+        unlockDescription: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -3907,6 +3960,7 @@ ${
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do workspace',
             workspaceOwner: 'Proprietário',
+            keepMeAsAdmin: 'Manter-me como administrador',
             workspaceType: 'Tipo de workspace',
             workspaceAvatar: 'Avatar do workspace',
             clientID: 'ID do cliente',
@@ -7395,6 +7449,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `a conta bancária empresarial ${maskedBankAccountNumber} foi bloqueada automaticamente devido a um problema com Reembolso ou liquidação do Cartão Expensify. Corrija o problema nas suas <a href="${linkURL}">configurações de workspace</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}saiu do chat`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Abra o app móvel da Expensify para revisar sua transação de${amountAndMerchantText ? ` ${amountAndMerchantText}` : ''}`;
+                },
             },
             error: {
                 invalidCredentials: 'Credenciais inválidas, verifique a configuração da sua conexão.',
@@ -7573,7 +7631,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
     },
     gps: {
-        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar a rastrear.',
         error: {
             failedToStart: 'Falha ao iniciar o rastreamento de localização.',
             failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.',
@@ -8291,6 +8348,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
+        hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
@@ -8463,7 +8521,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             resetDomain: 'Redefinir domínio',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Digite <strong>${domainName}</strong> para confirmar a redefinição do domínio.`,
             enterDomainName: 'Insira seu nome de domínio aqui',
-            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
+            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <bullet-list><bullet-item>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</bullet-item><bullet-item>Configurações de SAML e de grupo</bullet-item></bullet-list> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
         domainMembers: 'Membros do domínio',
         members: {
@@ -8482,8 +8540,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 other: 'Fechar contas com segurança',
             }),
             closeAccountInfo: () => ({
-                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
-                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
+                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
             }),
             error: {
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
@@ -8491,6 +8549,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
+
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Tem certeza? Isso irá bloquear a conta de <strong>${email}</strong>. <br /><br /> Nossa equipe irá então analisar a conta e remover qualquer acesso não autorizado. Para recuperar o acesso, será necessário que trabalhem com a Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
         },
         common: {
             settings: 'Configurações',

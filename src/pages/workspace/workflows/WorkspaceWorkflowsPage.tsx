@@ -113,8 +113,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const achData = reimbursementAccount?.achData;
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace);
-    }, [achData, isNonUSDWorkspace]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
+    }, [achData, isNonUSDWorkspace, policy?.id]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
@@ -377,6 +377,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         policyID: route.params.policyID,
                         reimbursementChoice: newReimbursementChoice,
                         reimburserEmail: newReimburserEmail ?? '',
+                        bankAccountID: policy?.achAccount?.bankAccountID,
+                        accountNumber: policy?.achAccount?.accountNumber,
+                        addressName: policy?.achAccount?.addressName,
+                        bankName: policy?.achAccount?.bankName,
+                        state: policy?.achAccount?.state,
                     });
                 },
                 subMenuItems: (

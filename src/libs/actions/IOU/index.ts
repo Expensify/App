@@ -231,15 +231,15 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
-import {removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
@@ -573,6 +573,8 @@ type RequestMoneyInformation = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    draftTransactionIDs: string[];
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -838,8 +840,10 @@ type ReplaceReceipt = {
     transactionID: string;
     file?: File;
     source: string;
+    state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>;
+    isSameReceipt?: boolean;
 };
 
 type GetSearchOnyxUpdateParams = {
@@ -891,6 +895,7 @@ type PayMoneyRequestFunctionParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountID: number;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     paymentPolicyID?: string;
     full?: boolean;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
@@ -3372,6 +3377,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         rate,
         unit,
         customUnit,
+        waypoints,
+        odometerStart,
+        odometerEnd,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3531,6 +3539,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             rate,
             unit,
             customUnit,
+            waypoints,
+            odometerStart,
+            odometerEnd,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -6588,6 +6599,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionViolations,
         quickAction,
         policyRecentlyUsedCurrencies,
+        existingTransactionDraft,
+        draftTransactionIDs,
         isSelfTourViewed,
         betas,
         personalDetails,
@@ -6633,14 +6646,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
-    const existingTransactionID =
-        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
-            ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-            : undefined;
-    const existingTransaction =
-        action === CONST.IOU.ACTION.SUBMIT
-            ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
-            : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransactionID = existingTransactionDraft?.transactionID;
+    const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -6773,6 +6780,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
                       companySize: undefined,
                       isSelfTourViewed,
+                      betas,
                   })?.guidedSetupData
                 : undefined;
 
@@ -6824,7 +6832,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (shouldHandleNavigation) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+        InteractionManager.runAfterInteractions(() => removeDraftTransactionsByIDs(draftTransactionIDs));
 
         const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
         if (trackReport?.key) {
@@ -8468,6 +8476,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 billable,
                 reimbursable,
                 attendees,
+                waypoints: validWaypoints,
+                odometerStart,
+                odometerEnd,
             },
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserAccountID,
@@ -10572,13 +10583,14 @@ function approveMoneyRequest(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
     full?: boolean,
 ) {
     if (!expenseReport) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11454,11 +11466,12 @@ function submitReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
 ) {
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11934,6 +11947,7 @@ function cancelPayment(
 function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
 ) {
@@ -11968,18 +11982,32 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
+        betas,
     });
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
-    const {paymentType, chatReport, iouReport, introSelected, iouReportCurrentNextStepDeprecated, currentUserAccountID, paymentPolicyID, full = true, activePolicy, policy, betas} = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
+    const {
+        paymentType,
+        chatReport,
+        iouReport,
+        introSelected,
+        iouReportCurrentNextStepDeprecated,
+        currentUserAccountID,
+        paymentPolicyID,
+        userBillingGraceEndPeriods,
+        full = true,
+        activePolicy,
+        policy,
+        betas,
+    } = params;
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected);
+    completePaymentOnboarding(paymentSelected, introSelected, betas);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -12054,7 +12082,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected);
+    completePaymentOnboarding(paymentSelected, introSelected, betas);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -12215,7 +12243,7 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
     API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-function replaceReceipt({transactionID, file, source, transactionPolicy, transactionPolicyCategories}: ReplaceReceipt) {
+function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
     if (!file) {
         return;
     }
@@ -12225,7 +12253,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
     };
     const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
@@ -12324,6 +12352,8 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
     const parameters: ReplaceReceiptParams = {
         transactionID,
         receipt: file,
+        receiptState: state,
+        isSameReceipt,
     };
 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});

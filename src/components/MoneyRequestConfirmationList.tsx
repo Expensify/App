@@ -42,6 +42,7 @@ import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
@@ -81,6 +82,7 @@ import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -321,6 +323,15 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
+    const hasEndedListReadySpan = useRef(false);
+    useEffect(() => {
+        if (hasEndedListReadySpan.current || !transaction?.transactionID) {
+            return;
+        }
+        hasEndedListReadySpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+    }, [transaction?.transactionID]);
+
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
@@ -547,7 +558,7 @@ function MoneyRequestConfirmationList({
     }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
 
     // Calculate and set tax amount in transaction draft
-    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
+    const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : Math.abs(transaction?.amount ?? 0);
     // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
     const taxPercentage =
         getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
@@ -965,7 +976,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        ({paymentType: paymentMethod}: PaymentActionParams) => {
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -1034,6 +1045,11 @@ function MoneyRequestConfirmationList({
                 const decimals = getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
+                    return;
+                }
+
+                if (isDistanceRequest && Math.abs(iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
+                    setFormError('iou.error.distanceAmountTooLarge');
                     return;
                 }
 
@@ -1199,7 +1215,7 @@ function MoneyRequestConfirmationList({
                     <View>
                         <ButtonWithDropdownMenu
                             pressOnEnter
-                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                             options={splitOrRequestOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}
@@ -1295,6 +1311,7 @@ function MoneyRequestConfirmationList({
                 policyTags={policyTags}
                 policyTagLists={policyTagLists}
                 rate={rate}
+                distanceRateName={mileageRate.name}
                 receiptFilename={receiptFilename}
                 receiptPath={receiptPath}
                 reportActionID={reportActionID}
