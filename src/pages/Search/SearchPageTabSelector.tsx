@@ -11,6 +11,8 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {setSearchContext} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import todosReportCountsSelector from '@src/selectors/Todos';
+import {getItemBadgeText} from '@libs/SearchUIUtils';
 
 type SearchPageTabSelectorProps = {
     queryJSON?: SearchQueryJSON;
@@ -21,6 +23,7 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
         'ChatBubbles',
@@ -44,10 +47,13 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
 
     for (const item of flattenedItems) {
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+        const todoItemsCount = getItemBadgeText(item.key, reportCounts);
+        const title = translate(item.translationPath);
+
         tabItems.push({
             key: item.key,
             icon,
-            title: translate(item.translationPath),
+            title: todoItemsCount ? `${title} (${todoItemsCount})` : title,
         });
         queryMap.set(item.key, {query: item.searchQuery});
         if (queryJSON && item.similarSearchHash === queryJSON.similarSearchHash) {
