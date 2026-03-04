@@ -145,7 +145,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const isTouchScreen = canUseTouchScreen();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Fullscreen', 'Plus']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -461,22 +461,6 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                             />
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, !hovered && !isTouchScreen && styles.opacity0]}>
-                                    <PressableWithFeedback
-                                        onPress={() =>
-                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly))
-                                        }
-                                        style={styles.primaryMediumIcon}
-                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                                        role={CONST.ROLE.BUTTON}
-                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
-                                    >
-                                        <Icon
-                                            src={lazyIcons.Fullscreen}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    </PressableWithFeedback>
                                     <AttachmentPicker>
                                         {({openPicker}) => (
                                             <PressableWithFeedback
@@ -503,14 +487,30 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
                                             >
                                                 <Icon
-                                                    src={lazyIcons.Plus}
-                                                    height={16}
-                                                    width={16}
+                                                    src={lazyIcons.ReceiptPlus}
+                                                    height={variables.iconSizeSmall}
+                                                    width={variables.iconSizeSmall}
                                                     fill={theme.icon}
                                                 />
                                             </PressableWithFeedback>
                                         )}
                                     </AttachmentPicker>
+                                    <PressableWithFeedback
+                                        onPress={() =>
+                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly))
+                                        }
+                                        style={styles.primaryMediumIcon}
+                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                        role={CONST.ROLE.BUTTON}
+                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
+                                    >
+                                        <Icon
+                                            src={lazyIcons.Expand}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                            fill={theme.icon}
+                                        />
+                                    </PressableWithFeedback>
                                 </View>
                             )}
                         </View>
