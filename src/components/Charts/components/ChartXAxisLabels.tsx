@@ -2,6 +2,7 @@ import {Group, Text as SkiaText, vec} from '@shopify/react-native-skia';
 import type {SkFont} from '@shopify/react-native-skia';
 import React, {useMemo} from 'react';
 import {AXIS_LABEL_GAP} from '@components/Charts/constants';
+import type {LabelRotation} from '@components/Charts/types';
 import {measureTextWidth, rotatedLabelCenterCorrection, rotatedLabelYOffset} from '@components/Charts/utils';
 
 type ChartXAxisLabelsProps = {
@@ -9,7 +10,7 @@ type ChartXAxisLabelsProps = {
     labels: string[];
 
     /** Label rotation in degrees (e.g. 0, 45, 90). */
-    labelRotation: number;
+    labelRotation: LabelRotation;
 
     /** Show every Nth label (1 = all, 2 = every other, etc.). */
     labelSkipInterval: number;

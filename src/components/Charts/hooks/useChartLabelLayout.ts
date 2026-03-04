@@ -1,6 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MIN_TRUNCATED_CHARS, SIN_45} from '@components/Charts/constants';
-import type {ChartDataPoint} from '@components/Charts/types';
+import type {ChartDataPoint, LabelRotation} from '@components/Charts/types';
 import {edgeLabelsFit, edgeMaxLabelWidth, effectiveHeight, effectiveWidth, maxVisibleCount, measureTextWidth, truncateLabel} from '@components/Charts/utils';
 
 type LabelLayoutConfig = {
@@ -28,7 +28,7 @@ type LabelLayoutConfig = {
 
 function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTickLeftSpace = Infinity, lastTickRightSpace = Infinity, allowTightDiagonalPacking = false}: LabelLayoutConfig) {
     if (!font || data.length === 0 || tickSpacing <= 0 || labelAreaWidth <= 0) {
-        return {labelRotation: 0, labelSkipInterval: 1, truncatedLabels: [] as string[]};
+        return {labelRotation: LABEL_ROTATIONS.HORIZONTAL, labelSkipInterval: 1, truncatedLabels: [] as string[]};
     }
 
     const fontMetrics = font.getMetrics();
@@ -53,7 +53,7 @@ function useChartLabelLayout({data, font, tickSpacing, labelAreaWidth, firstTick
     const lastMinTrunc = lastLabel.length <= MIN_TRUNCATED_CHARS ? lastLabelWidth : measureTextWidth(lastLabel.slice(0, MIN_TRUNCATED_CHARS) + ELLIPSIS, font);
 
     // Pick rotation (prefer 0° → 45° → 90°)
-    let rotation: number = LABEL_ROTATIONS.VERTICAL;
+    let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
 
     const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);
     const hFitsInTicks = hWidth + LABEL_PADDING <= tickSpacing && maxVisibleCount(labelAreaWidth, hWidth) >= data.length;

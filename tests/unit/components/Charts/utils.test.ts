@@ -1,4 +1,4 @@
-import {SIN_45} from '@components/Charts/constants';
+import {LABEL_ROTATIONS, SIN_45} from '@components/Charts/constants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     edgeLabelsFit,
@@ -46,29 +46,29 @@ describe('truncateLabel', () => {
 
 describe('effectiveWidth', () => {
     it('returns labelWidth at 0°', () => {
-        expect(effectiveWidth(100, LINE_HEIGHT, 0)).toBe(100);
+        expect(effectiveWidth(100, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL)).toBe(100);
     });
 
     it('returns labelWidth * sin(45°) at 45°', () => {
-        expect(effectiveWidth(100, LINE_HEIGHT, 45)).toBeCloseTo(100 * SIN_45);
+        expect(effectiveWidth(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL)).toBeCloseTo(100 * SIN_45);
     });
 
     it('returns lineHeight at 90°', () => {
-        expect(effectiveWidth(100, LINE_HEIGHT, 90)).toBe(LINE_HEIGHT);
+        expect(effectiveWidth(100, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL)).toBe(LINE_HEIGHT);
     });
 });
 
 describe('effectiveHeight', () => {
     it('returns lineHeight at 0°', () => {
-        expect(effectiveHeight(100, LINE_HEIGHT, 0)).toBe(LINE_HEIGHT);
+        expect(effectiveHeight(100, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL)).toBe(LINE_HEIGHT);
     });
 
     it('returns (labelWidth + lineHeight) * sin(45°) at 45°', () => {
-        expect(effectiveHeight(100, LINE_HEIGHT, 45)).toBeCloseTo((100 + LINE_HEIGHT) * SIN_45);
+        expect(effectiveHeight(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL)).toBeCloseTo((100 + LINE_HEIGHT) * SIN_45);
     });
 
     it('returns labelWidth at 90°', () => {
-        expect(effectiveHeight(100, LINE_HEIGHT, 90)).toBe(100);
+        expect(effectiveHeight(100, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL)).toBe(100);
     });
 });
 
@@ -89,30 +89,38 @@ describe('maxVisibleCount', () => {
 
 describe('labelOverhang', () => {
     it('returns symmetric halves at 0° (horizontal)', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, 0, false);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL, false);
         expect(result.left).toBe(50);
         expect(result.right).toBe(50);
     });
 
     it('returns symmetric overhang at 45° when centered', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, 45, false);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false);
         expect(result.left).toBeCloseTo(result.right);
     });
 
     it('returns asymmetric overhang at 45° when right-aligned', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, 45, true);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true);
         expect(result.left).toBeGreaterThan(result.right);
     });
 
     it('returns lineHeight/2 on both sides at 90°', () => {
-        const result = labelOverhang(100, LINE_HEIGHT, 90, false);
+        const result = labelOverhang(100, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL, false);
         expect(result.left).toBe(LINE_HEIGHT / 2);
         expect(result.right).toBe(LINE_HEIGHT / 2);
     });
 });
 
 describe('edgeLabelsFit', () => {
-    const base = {firstLabelWidth: 40, lastLabelWidth: 40, lineHeight: LINE_HEIGHT, rotation: 0, firstTickLeftSpace: 30, lastTickRightSpace: 30, rightAligned: false};
+    const base = {
+        firstLabelWidth: 40,
+        lastLabelWidth: 40,
+        lineHeight: LINE_HEIGHT,
+        rotation: LABEL_ROTATIONS.HORIZONTAL,
+        firstTickLeftSpace: 30,
+        lastTickRightSpace: 30,
+        rightAligned: false,
+    };
 
     it('returns true when both edges have enough space', () => {
         expect(edgeLabelsFit(base)).toBe(true);
@@ -129,32 +137,32 @@ describe('edgeLabelsFit', () => {
 
 describe('edgeMaxLabelWidth', () => {
     it('returns 2 * edgeSpace at 0°', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, 0, false, 'first')).toBe(100);
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.HORIZONTAL, false, 'first')).toBe(100);
     });
 
     it('returns Infinity at 90° (overhang is constant)', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, 90, false, 'first')).toBe(Infinity);
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.VERTICAL, false, 'first')).toBe(Infinity);
     });
 
     it('returns finite value at 45° for first label when centered', () => {
-        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, 45, false, 'first');
+        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false, 'first');
         expect(result).toBeGreaterThan(0);
         expect(result).not.toBe(Infinity);
     });
 
     it('returns Infinity at 45° for last label when right-aligned', () => {
-        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, 45, true, 'last')).toBe(Infinity);
+        expect(edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true, 'last')).toBe(Infinity);
     });
 
     it('returns finite value at 45° for first label when right-aligned', () => {
-        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, 45, true, 'first');
+        const result = edgeMaxLabelWidth(50, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, true, 'first');
         expect(result).toBeGreaterThan(0);
         expect(result).not.toBe(Infinity);
     });
 
     it('returns 0 when edgeSpace is too small at 45° centered', () => {
         // edgeSpace/SIN_45 - halfLH ≤ 0 → Math.max(0, ...) = 0
-        expect(edgeMaxLabelWidth(1, LINE_HEIGHT, 45, false, 'first')).toBe(0);
+        expect(edgeMaxLabelWidth(1, LINE_HEIGHT, LABEL_ROTATIONS.DIAGONAL, false, 'first')).toBe(0);
     });
 });
 

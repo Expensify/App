@@ -1,7 +1,7 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
-import type {ChartDataPoint, PieSlice} from './types';
+import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
  * Expensify Chart Color Palette.
@@ -195,7 +195,7 @@ function truncateLabel(label: string, labelWidth: number, maxWidth: number, elli
 }
 
 /** Horizontal footprint of a label at a given rotation angle (for inter-tick overlap checks). */
-function effectiveWidth(labelWidth: number, lineHeight: number, rotation: number): number {
+function effectiveWidth(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
     if (rotation === LABEL_ROTATIONS.VERTICAL) {
         return lineHeight;
     }
@@ -206,7 +206,7 @@ function effectiveWidth(labelWidth: number, lineHeight: number, rotation: number
 }
 
 /** Vertical footprint of a label at a given rotation angle. */
-function effectiveHeight(labelWidth: number, lineHeight: number, rotation: number): number {
+function effectiveHeight(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
     if (rotation === LABEL_ROTATIONS.VERTICAL) {
         return labelWidth;
     }
@@ -225,7 +225,7 @@ function maxVisibleCount(areaWidth: number, itemWidth: number): number {
  * How far a label extends beyond its tick position after rotation.
  * Accounts for the rotatedLabelCenterCorrection translateX applied during rendering.
  */
-function labelOverhang(labelWidth: number, lineHeight: number, rotation: number, rightAligned: boolean): {left: number; right: number} {
+function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean): {left: number; right: number} {
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return {left: labelWidth / 2, right: labelWidth / 2};
     }
@@ -256,7 +256,7 @@ function edgeLabelsFit({
     firstLabelWidth: number;
     lastLabelWidth: number;
     lineHeight: number;
-    rotation: number;
+    rotation: LabelRotation;
     firstTickLeftSpace: number;
     lastTickRightSpace: number;
     rightAligned: boolean;
@@ -270,7 +270,7 @@ function edgeLabelsFit({
  * Maximum label width that fits within the available edge space at a given rotation.
  * Returns Infinity when the overhang at that edge doesn't depend on label width.
  */
-function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: number, rightAligned: boolean, edge: 'first' | 'last'): number {
+function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean, edge: 'first' | 'last'): number {
     const halfLH = lineHeight / 2;
     if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
         return 2 * edgeSpace;
