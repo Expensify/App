@@ -9,10 +9,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import {setSearchContext} from '@libs/actions/Search';
+import {getItemBadgeText} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import todosReportCountsSelector from '@src/selectors/Todos';
-import {getItemBadgeText} from '@libs/SearchUIUtils';
 
 type SearchPageTabSelectorProps = {
     queryJSON?: SearchQueryJSON;
