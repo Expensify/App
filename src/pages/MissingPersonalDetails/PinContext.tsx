@@ -16,6 +16,12 @@ type PinContextType = {
 
     /** Set whether the user is on the PIN confirmation step */
     setIsConfirmStep: (isConfirmStep: boolean) => void;
+
+    /** Whether the PIN input is hidden */
+    isPinHidden: boolean;
+
+    /** Toggle PIN visibility */
+    togglePinVisibility: () => void;
 };
 
 const defaultPinContext: PinContextType = {
@@ -24,6 +30,8 @@ const defaultPinContext: PinContextType = {
     clearPin: () => {},
     isConfirmStep: false,
     setIsConfirmStep: () => {},
+    isPinHidden: true,
+    togglePinVisibility: () => {},
 };
 
 const PinContext = createContext<PinContextType>(defaultPinContext);
@@ -39,11 +47,21 @@ type PinContextProviderProps = {
  */
 function PinContextProvider({children}: PinContextProviderProps) {
     const [pin, setPin] = useState('');
-    const [isConfirmStep, setIsConfirmStep] = useState(false);
+    const [isConfirmStep, setIsConfirmStepInternal] = useState(false);
+    const [isPinHidden, setIsPinHidden] = useState(true);
+
+    const setIsConfirmStep = useCallback((value: boolean) => {
+        setIsConfirmStepInternal(value);
+        setIsPinHidden(true);
+    }, []);
 
     const clearPin = useCallback(() => {
         setPin('');
         setIsConfirmStep(false);
+    }, [setIsConfirmStep]);
+
+    const togglePinVisibility = useCallback(() => {
+        setIsPinHidden((prev) => !prev);
     }, []);
 
     // Clear PIN when the context provider unmounts (user leaves the flow)
@@ -60,8 +78,10 @@ function PinContextProvider({children}: PinContextProviderProps) {
             clearPin,
             isConfirmStep,
             setIsConfirmStep,
+            isPinHidden,
+            togglePinVisibility,
         }),
-        [pin, clearPin, isConfirmStep],
+        [pin, clearPin, isConfirmStep, setIsConfirmStep, isPinHidden, togglePinVisibility],
     );
 
     return <PinContext.Provider value={value}>{children}</PinContext.Provider>;

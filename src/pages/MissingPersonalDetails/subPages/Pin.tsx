@@ -19,10 +19,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function Pin({onNext}: CustomSubPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {pin: savedPin, setPin, isConfirmStep, setIsConfirmStep} = usePin();
+    const {pin: savedPin, setPin, isConfirmStep, setIsConfirmStep, isPinHidden, togglePinVisibility} = usePin();
     const [enteredPin, setEnteredPin] = useState(savedPin);
     const [confirmPin, setConfirmPin] = useState(savedPin);
-    const [isPinHidden, setIsPinHidden] = useState(true);
     const [error, setError] = useState('');
 
     const handlePinChange = useCallback(
@@ -72,10 +71,6 @@ function Pin({onNext}: CustomSubPageProps) {
         setPin(confirmPin);
         onNext();
     }, [validatePin, isConfirmStep, setPin, confirmPin, onNext, setIsConfirmStep]);
-
-    const togglePinVisibility = useCallback(() => {
-        setIsPinHidden((prev) => !prev);
-    }, []);
 
     const currentPin = isConfirmStep ? confirmPin : enteredPin;
     const title = isConfirmStep ? translate('cardPage.confirmYourPin') : translate('cardPage.setYourPin');

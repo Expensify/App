@@ -2677,7 +2677,7 @@ describe('CardUtils', () => {
             expect(isExpensifyCardUkEuSupported(undefined)).toBe(false);
         });
 
-        it('should return false for non-Expensify Card with feedCountry GB', () => {
+        it('should return false for non-Expensify Card even with feedCountry GB', () => {
             const card: Card = {
                 accountID: 18439984,
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -2686,17 +2686,14 @@ describe('CardUtils', () => {
                 domainName: 'expensify-policy41314f4dc5ce25af.exfy',
                 fraud: 'none',
                 lastFourPAN: '2554',
-                lastUpdated: '',
                 lastScrape: '2024-11-27 11:00:53',
-                scrapeMinDate: '2024-10-17',
+                lastUpdated: '',
                 state: 3,
                 nameValuePairs: {
                     feedCountry: CONST.COUNTRY.GB,
                 } as Card['nameValuePairs'],
             };
-            // Even with UK/EU feedCountry, non-Expensify cards don't qualify
-            // This tests only the feedCountry check, which should still return true
-            expect(isExpensifyCardUkEuSupported(card)).toBe(true);
+            expect(isExpensifyCardUkEuSupported(card)).toBe(false);
         });
     });
 

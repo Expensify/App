@@ -143,11 +143,11 @@ function isExpensifyCard(card?: Card) {
  * @param card - The card to check.
  * @returns boolean
  */
-function isExpensifyCardUkEuSupported(card: {nameValuePairs?: {feedCountry?: string}} | null | undefined): boolean {
+function isExpensifyCardUkEuSupported(card: Card | null | undefined): boolean {
     if (!card) {
         return false;
     }
-    return card.nameValuePairs?.feedCountry === CONST.COUNTRY.GB;
+    return card.nameValuePairs?.feedCountry === CONST.COUNTRY.GB && isExpensifyCard(card);
 }
 
 /**
