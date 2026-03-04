@@ -177,7 +177,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             const ascent = Math.abs(fontMetrics.ascent);
             const descent = Math.abs(fontMetrics.descent);
             // center of label when looking vertically
-            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 2;
+            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 3;
             if (angleRad === 0) {
                 return (
                     args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
@@ -385,59 +385,62 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 title={title}
                 titleIcon={titleIcon}
             />
-            <View
-                style={[styles.lineChartChartContainer, dynamicChartStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        actionsRef={actionsRef}
-                        customGestures={customGestures}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        renderOutside={renderOutsideComponents}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
-                        }}
-                        yAxis={[
-                            {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
-                                lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points}) => (
-                            <Line
-                                points={points.y}
-                                color={DEFAULT_CHART_COLOR}
-                                strokeWidth={2}
-                                curveType="linear"
-                            />
-                        )}
-                    </CartesianChart>
-                )}
-                {isTooltipActive && !!tooltipData && (
-                    <ChartTooltip
-                        label={tooltipData.label}
-                        amount={tooltipData.amount}
-                        percentage={tooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                )}
-            </View>
+            <GestureDetector gesture={hoverGesture}>
+                <View
+                    style={[styles.lineChartChartContainer, dynamicChartStyle]}
+                    onLayout={handleLayout}
+                >
+                    {chartWidth > 0 && (
+                        <CartesianChart
+                            xKey="x"
+                            padding={{top: CHART_PADDING, left: CHART_PADDING, right: CHART_PADDING, bottom: (xAxisLabelHeight ?? 0) + CHART_PADDING}}
+                            yKeys={['y']}
+                            domainPadding={domainPadding}
+                            actionsRef={actionsRef}
+                            customGestures={customGestures}
+                            onChartBoundsChange={handleChartBoundsChange}
+                            onScaleChange={handleScaleChange}
+                            renderOutside={renderOutsideComponents}
+                            xAxis={{
+                                tickCount: data.length,
+                                lineWidth: X_AXIS_LINE_WIDTH,
+                            }}
+                            yAxis={[
+                                {
+                                    font,
+                                    labelColor: theme.textSupporting,
+                                    formatYLabel: formatValue,
+                                    tickCount: Y_AXIS_TICK_COUNT,
+                                    lineWidth: Y_AXIS_LINE_WIDTH,
+                                    lineColor: theme.border,
+                                    labelOffset: AXIS_LABEL_GAP,
+                                    domain: yAxisDomain,
+                                },
+                            ]}
+                            frame={{lineWidth: 0}}
+                            data={chartData}
+                        >
+                            {({points}) => (
+                                <Line
+                                    points={points.y}
+                                    color={DEFAULT_CHART_COLOR}
+                                    strokeWidth={2}
+                                    curveType="linear"
+                                />
+                            )}
+                        </CartesianChart>
+                    )}
+                    {isTooltipActive && !!tooltipData && (
+                        <ChartTooltip
+                            label={tooltipData.label}
+                            amount={tooltipData.amount}
+                            percentage={tooltipData.percentage}
+                            chartWidth={chartWidth}
+                            initialTooltipPosition={initialTooltipPosition}
+                        />
+                    )}
+                </View>
+            </GestureDetector>
         </View>
     );
 }
