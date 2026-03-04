@@ -644,6 +644,7 @@ export {
     getSubscriptionPrice,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
+    hasInsufficientFundsError,
 };
 
 export type {SubscriptionPlanIllustrations};
