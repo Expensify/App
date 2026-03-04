@@ -15,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {isBankAccountInSetupOrVerifyingState, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userActions/PaymentMethods';
@@ -98,6 +98,10 @@ function isAccountInSetupState(account: PaymentMethodItem) {
     return !!(account.accountData && 'state' in account.accountData && isBankAccountPartiallySetup(account.accountData.state));
 }
 
+function isAccountInSetupOrVerifyingState(account: PaymentMethodItem) {
+    return !!(account.accountData && 'state' in account.accountData && isBankAccountInSetupOrVerifyingState(account.accountData.state));
+}
+
 function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems, listItemStyle}: PaymentMethodListItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'FreezeCard', 'QuestionMark']);
     const theme = useTheme();
@@ -107,7 +111,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInSetupState = isAccountInSetupState(item);
-    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupState;
+    const isInSetupOrVerifyingState = isAccountInSetupOrVerifyingState(item);
+    const showThreeDotsMenu = item.shouldShowThreeDotsMenu !== false && !!threeDotsMenuItems && !isInSetupOrVerifyingState;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -116,7 +121,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         !!(item.accountData?.additionalData?.plaidAccountID ?? item.accountData?.plaidAccountID);
 
     const handleRowPress = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress)) {
+        if (!showThreeDotsMenu || (item.cardID && item.onThreeDotsMenuPress) || isInSetupState) {
             item.onPress?.(e);
         } else if (threeDotsMenuRef.current) {
             threeDotsMenuRef.current.onThreeDotsPress();
