@@ -1,7 +1,8 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {openPolicyCompanyCardsPage} from '@libs/actions/CompanyCards';
@@ -15,6 +16,10 @@ import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import FixCompanyCardConnectionSkeleton from './FixCompanyCardConnectionSkeleton';
+
+// Tracks in-flight fundID fetches to prevent duplicate API calls when multiple
+// broken cards share the same fundID and mount in the same render cycle.
+const pendingFundIDFetches = new Set<string>();
 
 type FixCompanyCardConnectionProps = {
     /** The card with broken connection */
@@ -35,8 +40,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
     // Get the card feeds data to access custom nicknames
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`);
 
-    // Fetch card feed data if not available so custom feed names can be resolved
-    useEffect(() => {
+    const fetchCardFeeds = useCallback(() => {
         if (cardFeeds !== undefined || !card.fundID || !policy?.workspaceAccountID) {
             return;
         }
@@ -46,9 +50,33 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
             return;
         }
 
+        if (pendingFundIDFetches.has(card.fundID)) {
+            return;
+        }
+        pendingFundIDFetches.add(card.fundID);
+
         const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
         openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
     }, [cardFeeds, card.fundID, policy?.workspaceAccountID, policy?.employeeList, policyID, translate]);
+
+    const {isOffline} = useNetwork({
+        onReconnect: fetchCardFeeds,
+    });
+
+    useEffect(() => {
+        if (isOffline) {
+            return;
+        }
+        fetchCardFeeds();
+    }, [fetchCardFeeds, isOffline]);
+
+    // Clear deduplication tracking when card feed data arrives so future
+    // reconnect retries are not blocked.
+    useEffect(() => {
+        if (cardFeeds !== undefined && card.fundID) {
+            pendingFundIDFetches.delete(card.fundID);
+        }
+    }, [cardFeeds, card.fundID]);
 
     if (!cardFeeds || cardFeeds.isLoading) {
         return <FixCompanyCardConnectionSkeleton />;
