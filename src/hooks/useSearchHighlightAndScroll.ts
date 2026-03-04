@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {search} from '@libs/actions/Search';
 import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/actions/Transaction';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
@@ -63,13 +63,17 @@ function useSearchHighlightAndScroll({
     });
     const searchResultsData = searchResults?.data;
 
-    const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
+    // Derive newTransactions from search results rather than live COLLECTION.TRANSACTION.
+    // This avoids triggering Search re-renders when the live collection changes.
     const newTransactions: Transaction[] = [];
-    if (prevTransactionsIDs.length > 0) {
-        const previousIDs = new Set(prevTransactionsIDs);
-        for (const [id, transaction] of Object.entries(transactions ?? {})) {
-            if (!previousIDs.has(id) && transaction) {
-                newTransactions.push(transaction);
+    if (previousSearchResults && searchResultsData) {
+        const previousTxnIDs = new Set(extractTransactionIDsFromSearchResults(previousSearchResults));
+        for (const currentID of extractTransactionIDsFromSearchResults(searchResultsData)) {
+            if (!previousTxnIDs.has(currentID)) {
+                const txn = searchResultsData[`${ONYXKEYS.COLLECTION.TRANSACTION}${currentID}`];
+                if (txn && 'transactionID' in txn) {
+                    newTransactions.push(txn);
+                }
             }
         }
     }
@@ -280,7 +284,7 @@ function useSearchHighlightAndScroll({
     /**
      * Callback to handle scrolling to the new search result.
      */
-    const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle | null) => {
+    const handleSelectionListScroll = (data: SearchListItem[], ref: {scrollToIndex: (index: number, animated?: boolean) => void} | null) => {
         // Early return if there's no ref, new transaction wasn't brought in by this hook
         // or there's no new search result key
         const newSearchResultKey = newSearchResultKeys?.values().next().value;

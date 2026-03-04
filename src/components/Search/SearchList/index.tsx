@@ -15,6 +15,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
+import {useSearchHighlightContext} from '@components/Search/SearchHighlightContext';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
@@ -118,8 +119,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
 
-    newTransactions?: Transaction[];
-
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
@@ -217,7 +216,6 @@ function SearchList({
     onLayout,
     shouldAnimate,
     isMobileSelectionModeEnabled,
-    newTransactions = [],
     violations,
     customCardNames,
     onDEWModalOpen,
@@ -228,8 +226,40 @@ function SearchList({
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {newSearchResultKeys, newTransactions, handleSelectionListScroll} = useSearchHighlightContext();
 
     const {hash, groupBy, type} = queryJSON;
+    const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+    // Apply highlight animation flags from SearchHighlightContext.
+    // This was previously computed in Search/index.tsx as part of sortedData.
+    const highlightedData = useMemo(
+        () =>
+            data.map((item) => {
+                const baseKey = isChat
+                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+
+                const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
+
+                const isAnyTransactionMatch =
+                    !isChat &&
+                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                        return !!newSearchResultKeys?.has(transactionKey);
+                    });
+
+                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
+
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
+
+                return {...item, shouldAnimateInHighlight, hash};
+            }),
+        [data, isChat, newSearchResultKeys, hash],
+    );
+
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -285,7 +315,10 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
+    const itemsWithSelection = useMemo(
+        () => highlightedData.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)),
+        [highlightedData, canSelectMultiple, selectedTransactions],
+    );
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -400,6 +433,12 @@ function SearchList({
     );
 
     useImperativeHandle(ref, () => ({scrollToIndex}), [scrollToIndex]);
+
+    // Wrap the parent onLayout to also trigger scroll-to-new-item from SearchHighlightContext
+    const handleLayout = useCallback(() => {
+        onLayout?.();
+        handleSelectionListScroll(highlightedData, {scrollToIndex});
+    }, [onLayout, handleSelectionListScroll, highlightedData, scrollToIndex]);
 
     const renderItem = useCallback(
         (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
@@ -521,7 +560,7 @@ function SearchList({
                 </View>
             )}
             <BaseSearchList
-                data={data}
+                data={highlightedData}
                 renderItem={renderItem}
                 onSelectRow={onSelectRow}
                 keyExtractor={keyExtractor}
@@ -535,7 +574,7 @@ function SearchList({
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={onLayout}
+                onLayout={handleLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
