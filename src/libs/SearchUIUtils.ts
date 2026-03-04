@@ -1672,8 +1672,8 @@ function getTransactionsSections({
     cardFeeds,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -1690,6 +1690,29 @@ function getTransactionsSections({
 
     // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+
+    const measurements = {
+        date: 0,
+        merchant: 0,
+        category: 0,
+        tag: 0,
+        amount: 0,
+        exchangeRate: 0,
+        description: 0,
+        card: 0,
+        billable: 0,
+        title: 0,
+        taxRate: 0,
+        tax: 0,
+        reportID: 0,
+        reimbursable: 0,
+        originalAmount: 0,
+        longReportID: 0,
+        exportedDate: 0,
+        submittedDate: 0,
+        approvedDate: 0,
+        postedDate: 0,
+    };
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
