@@ -4,9 +4,11 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {PolicyCategories} from '@src/types/onyx';
+import {type Policy, type PolicyTagLists, type Report} from '@src/types/onyx';
 import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type PolicyData from './types';
 
 /**
@@ -37,8 +39,8 @@ function usePolicyData(policyID?: string): PolicyData {
         [policyID, allReportsTransactionsAndViolations],
     );
 
-    const [tags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, undefined, [policyID]);
-    const [categories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, undefined, [policyID]);
+    const [tags = getEmptyObject<PolicyTagLists>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, undefined, [policyID]);
+    const [categories = getEmptyObject<PolicyCategories>()] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, undefined, [policyID]);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelectorCallback}, [policyID, allReportsTransactionsAndViolations]);
     const transactionsAndViolations = useMemo(() => {
         if (!reports || !allReportsTransactionsAndViolations) {
@@ -51,13 +53,18 @@ function usePolicyData(policyID?: string): PolicyData {
             return acc;
         }, {});
     }, [reports, allReportsTransactionsAndViolations]);
-    return {
-        transactionsAndViolations,
-        tags: tags ?? {},
-        categories: categories ?? {},
-        policy: policy as OnyxValueWithOfflineFeedback<Policy>,
-        reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
-    };
+
+    const response = useMemo(() => {
+        return {
+            tags,
+            categories,
+            transactionsAndViolations,
+            policy: policy as OnyxValueWithOfflineFeedback<Policy>,
+            reports: Object.values(reports ?? {}) as Array<OnyxValueWithOfflineFeedback<Report>>,
+        };
+    }, [transactionsAndViolations, tags, categories, policy, reports]);
+
+    return response;
 }
 
 export default usePolicyData;
