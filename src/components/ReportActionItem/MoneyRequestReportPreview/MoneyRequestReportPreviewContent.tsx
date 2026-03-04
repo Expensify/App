@@ -24,6 +24,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -885,26 +886,12 @@ function MoneyRequestReportPreviewContent({
                                                     (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                             {shouldShowReportStatus && (
-                                                                <View
-                                                                    style={[
-                                                                        styles.reportStatusContainer,
-                                                                        styles.mr1,
-                                                                        {
-                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    <Text
-                                                                        style={[
-                                                                            styles.reportStatusText,
-                                                                            {
-                                                                                color: reportStatusColorStyle?.textColor,
-                                                                            },
-                                                                        ]}
-                                                                    >
-                                                                        {reportStatus}
-                                                                    </Text>
-                                                                </View>
+                                                                <StatusBadge
+                                                                    text={reportStatus}
+                                                                    backgroundColor={reportStatusColorStyle?.backgroundColor}
+                                                                    textColor={reportStatusColorStyle?.textColor}
+                                                                    badgeStyles={styles.mr1}
+                                                                />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                                                         </View>
