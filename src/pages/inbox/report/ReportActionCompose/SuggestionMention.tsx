@@ -242,8 +242,8 @@ function SuggestionMention({
                 suggestionValues.atSignIndex + Math.max(mentionToReplace.length, suggestionValues.mentionPrefix.length + suggestionValues.prefixType.length),
             );
 
-            updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend}${trimLeadingSpace(commentAfterMention)}`, true);
-            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
+            updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend} ${trimLeadingSpace(commentAfterMention)}`, true);
+            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + dotToAppend.length + CONST.SPACE_LENGTH;
             setSelection({
                 start: selectionPosition,
                 end: selectionPosition,
