@@ -1,12 +1,6 @@
 import {cardByIdSelector} from '@selectors/Card';
 import React, {useMemo} from 'react';
-import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import cardScarf from '@assets/images/card-scarf.svg';
-import Button from '@components/Button';
-import CardPreview from '@components/CardPreview';
-import Icon from '@components/Icon';
-import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,16 +9,19 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Button from './Button';
+import Icon from './Icon';
+import Text from './Text';
 
-type FrozenCardIndicatorProps = {
+type FrozenCardHeaderProps = {
     cardID: string;
+    cardPreview: React.ReactNode;
     onUnfreezePress: () => void;
 };
 
-function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps) {
+function FrozenCardHeader({cardID, cardPreview, onUnfreezePress}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -34,9 +31,8 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
 
-    const frozenData = card?.nameValuePairs?.frozen;
-    const frozenByAccountID = frozenData?.byAccountID;
-    const frozenDate = frozenData?.date;
+    const frozenByAccountID = card?.nameValuePairs?.frozen?.byAccountID;
+    const frozenDate = card?.nameValuePairs?.frozen?.date;
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
     const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
@@ -49,23 +45,9 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
         return translate('cardPage.frozenBy', {date: formattedDate, person: frozenByName});
     }, [formattedDate, frozenByName, isCurrentUser, translate]);
 
-    const scarfOverlayStyle = useMemo<ViewStyle>(
-        () => ({
-            top: 0,
-            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
-            zIndex: variables.cardScarfOverlayZIndex,
-            width: variables.cardScarfOverlayWidth,
-            height: variables.cardScarfOverlayHeight,
-        }),
-        [],
-    );
-
     return (
-        <View style={[styles.ph5, styles.pb5, styles.mt9]}>
-            <CardPreview
-                overlayImage={cardScarf}
-                overlayContainerStyle={scarfOverlayStyle}
-            />
+        <View style={[styles.ph5, styles.pb5]}>
+            {cardPreview}
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt9]}>
                 <Icon
                     src={icons.FreezeCard}
@@ -85,4 +67,4 @@ function FrozenCardIndicator({cardID, onUnfreezePress}: FrozenCardIndicatorProps
     );
 }
 
-export default FrozenCardIndicator;
+export default FrozenCardHeader;
