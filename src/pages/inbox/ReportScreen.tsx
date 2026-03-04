@@ -25,6 +25,7 @@ import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
@@ -277,6 +278,8 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         [reportOnyx, reportNameValuePairsOnyx?.private_isArchived],
     );
     const reportID = report?.reportID;
+
+    useDocumentTitle(report?.reportName ?? '');
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const prevReport = usePrevious(report);

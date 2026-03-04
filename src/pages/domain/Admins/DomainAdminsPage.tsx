@@ -1,8 +1,9 @@
-import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +24,8 @@ type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamL
 
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    useDomainDocumentTitle(domainName, 'domain.domainAdmins');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

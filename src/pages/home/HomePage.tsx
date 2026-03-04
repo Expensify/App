@@ -9,6 +9,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ function HomePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    useDocumentTitle(translate('common.home'));
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
