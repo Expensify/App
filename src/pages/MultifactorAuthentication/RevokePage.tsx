@@ -51,7 +51,6 @@ function MultifactorAuthenticationRevokePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
-    const [confirmAction, setConfirmAction] = useState<(() => Promise<void>) | undefined>();
     const [confirmMode, setConfirmMode] = useState<ConfirmMode>('single');
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
     const [isThisDeviceLoading, setIsThisDeviceLoading] = useState(false);
@@ -69,21 +68,13 @@ function MultifactorAuthenticationRevokePage() {
         Navigation.goBack();
     };
 
-    const showConfirmModal = (revokeAction: () => Promise<void>, mode: ConfirmMode) => {
-        setConfirmAction(() => revokeAction);
+    const showConfirmModal = (mode: ConfirmMode) => {
         setConfirmMode(mode);
         setConfirmModalVisibility(true);
     };
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
-    };
-
-    const handleRevokeConfirm = async () => {
-        if (confirmAction) {
-            await confirmAction();
-        }
-        hideConfirmModal();
     };
 
     const executeRevoke = useCallback(
@@ -125,6 +116,25 @@ function MultifactorAuthenticationRevokePage() {
         };
         await executeRevoke({}, setLoading);
     }, [executeRevoke]);
+
+    const handleRevokeConfirm = async () => {
+        if (confirmMode === 'thisDevice') {
+            if (!localPublicKey) {
+                hideConfirmModal();
+                return;
+            }
+            await revokeThisDevice(localPublicKey);
+        } else if (confirmMode === 'single' || confirmMode === 'multiple') {
+            if (!localPublicKey) {
+                hideConfirmModal();
+                return;
+            }
+            await revokeOtherDevices(localPublicKey);
+        } else if (confirmMode === 'all') {
+            await revokeAll();
+        }
+        hideConfirmModal();
+    };
 
     const confirmPromptKey = confirmPromptKeys[confirmMode];
 
@@ -180,7 +190,7 @@ function MultifactorAuthenticationRevokePage() {
                                                     if (!localPublicKey) {
                                                         return;
                                                     }
-                                                    showConfirmModal(() => revokeThisDevice(localPublicKey), 'thisDevice');
+                                                    showConfirmModal('thisDevice');
                                                 }}
                                             />
                                         </View>
@@ -199,7 +209,12 @@ function MultifactorAuthenticationRevokePage() {
                                                 small
                                                 isLoading={isOtherDevicesLoading}
                                                 text={translate('multifactorAuthentication.revoke.revoke')}
-                                                onPress={() => showConfirmModal(() => revokeOtherDevices(localPublicKey), otherDevicesConfirmMode())}
+                                                onPress={() => {
+                                                    if (!localPublicKey) {
+                                                        return;
+                                                    }
+                                                    showConfirmModal(otherDevicesConfirmMode());
+                                                }}
                                             />
                                         </View>
                                     }
@@ -221,7 +236,7 @@ function MultifactorAuthenticationRevokePage() {
                             danger
                             style={styles.flex1}
                             isLoading={isThisDeviceLoading && isOtherDevicesLoading}
-                            onPress={() => showConfirmModal(revokeAll, revokeAllConfirmMode())}
+                            onPress={() => showConfirmModal(revokeAllConfirmMode())}
                             text={translate(hasMultipleKeys ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                         />
                     ) : (
@@ -247,6 +262,7 @@ function MultifactorAuthenticationRevokePage() {
                 }}
                 onCancel={hideConfirmModal}
                 shouldShowCancelButton
+                isConfirmLoading={isThisDeviceLoading || isOtherDevicesLoading}
             />
         </ScreenWrapper>
     );

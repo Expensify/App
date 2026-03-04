@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
@@ -17,7 +17,6 @@ import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/Use
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isAccountLoadingSelector} from '@src/selectors/Account';
 import Button from './Button';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
@@ -33,7 +32,7 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
-    const [isAccountLoading = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector});
+    const [isLoading, setIsLoading] = useState(false);
     const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
 
     const {singleExecution} = useSingleExecution();
@@ -129,11 +128,13 @@ function TestToolMenu() {
                             {isCurrentDeviceRegistered && !!localPublicKey && (
                                 <Button
                                     danger
-                                    isLoading={isAccountLoading}
+                                    isLoading={isLoading}
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
-                                    onPress={() => {
-                                        revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
+                                    onPress={async () => {
+                                        setIsLoading(true);
+                                        await revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
+                                        setIsLoading(false);
                                     }}
                                 />
                             )}

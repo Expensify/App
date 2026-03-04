@@ -190,40 +190,8 @@ async function troubleshootMultifactorAuthentication({signedChallenge, authentic
 }
 
 async function revokeMultifactorAuthenticationCredentials(params: RevokeMultifactorAuthenticationCredentialsParams) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
     try {
-        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {
-            optimisticData,
-            successData,
-            failureData,
-        });
-
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS, params ?? {}, {});
         const {jsonCode, message} = response ?? {};
 
         return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP, message);
