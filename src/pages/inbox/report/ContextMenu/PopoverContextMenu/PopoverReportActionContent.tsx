@@ -34,9 +34,34 @@ import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/Co
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from '.';
 
-function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOpen, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
+type PopoverReportActionContentProps = {
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    originalReportID: string | undefined;
+    draftMessage: string | undefined;
+    selection: string;
+    contextMenuTargetNode: HTMLDivElement | null;
+    onEmojiPickerToggle: ((state: boolean) => void) | undefined;
+    hideAndRun: (callback?: () => void) => void;
+    setLocalShouldKeepOpen: (value: boolean) => void;
+    contentRef: RefObject<ViewType | null>;
+    shouldEnableArrowNavigation: boolean;
+};
+
+function PopoverReportActionContent({
+    reportID,
+    reportActionID,
+    originalReportID,
+    draftMessage,
+    selection,
+    contextMenuTargetNode,
+    onEmojiPickerToggle,
+    hideAndRun,
+    setLocalShouldKeepOpen,
+    contentRef,
+    shouldEnableArrowNavigation,
+}: PopoverReportActionContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -46,28 +71,28 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
 
     const data = useReportActionContextMenuData({
-        reportID: menuState.reportID,
-        reportActionID: menuState.reportActionID,
-        originalReportID: menuState.originalReportID,
-        draftMessage: menuState.draftMessage ?? '',
-        selection: menuState.selection ?? '',
+        reportID,
+        reportActionID,
+        originalReportID,
+        draftMessage: draftMessage ?? '',
+        selection: selection ?? '',
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-        anchor: {current: menuState.contextMenuTargetNode ?? null},
+        anchor: {current: contextMenuTargetNode ?? null},
     });
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRefParam: RefObject<ViewType | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
-            selection: menuState.selection ?? '',
+            selection: selection ?? '',
             contextMenuAnchor: anchorRefParam?.current as ViewType | RNText | null,
             report: {
-                reportID: menuState.reportID,
-                originalReportID: menuState.originalReportID,
+                reportID,
+                originalReportID,
             },
             reportAction: {
                 reportActionID: data.reportAction?.reportActionID,
-                draftMessage: menuState.draftMessage,
+                draftMessage,
             },
             callbacks: {
                 onShow: undefined,
@@ -315,7 +340,7 @@ function PopoverReportActionContent({menuState, hideAndRun, setLocalShouldKeepOp
         reportAction: data.reportAction,
         currentUserAccountID,
         openContextMenu: () => setLocalShouldKeepOpen(true),
-        setIsEmojiPickerActive: menuState.onEmojiPickerToggle,
+        setIsEmojiPickerActive: onEmojiPickerToggle,
         hideAndRun,
     });
 

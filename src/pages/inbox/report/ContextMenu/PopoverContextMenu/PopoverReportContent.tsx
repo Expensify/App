@@ -1,4 +1,7 @@
+import type {RefObject} from 'react';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
@@ -23,11 +26,19 @@ import createPinAction, {shouldShowPinAction} from '@pages/inbox/report/ContextM
 import createUnpinAction, {shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/unpinAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import type {PopoverContentProps} from '.';
+
+type PopoverReportContentProps = {
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    originalReportID: string | undefined;
+    hideAndRun: (callback?: () => void) => void;
+    contentRef: RefObject<ViewType | null>;
+    shouldEnableArrowNavigation: boolean;
+};
 
 const EMPTY_SET = new Set<string>();
 
-function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableArrowNavigation}: PopoverContentProps) {
+function PopoverReportContent({reportID, reportActionID, originalReportID, hideAndRun, contentRef, shouldEnableArrowNavigation}: PopoverReportContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -36,10 +47,6 @@ function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableAr
     const {isProduction} = useEnvironment();
 
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
-
-    const reportID = menuState.reportID;
-    const reportActionID = menuState.reportActionID;
-    const originalReportID = menuState.originalReportID;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);

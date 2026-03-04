@@ -1,4 +1,6 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,9 +13,13 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from '.';
 
-function PopoverTextContent({menuState, contentRef}: PopoverContentProps) {
+type PopoverTextContentProps = {
+    selection: string;
+    contentRef: React.RefObject<ViewType | null>;
+};
+
+function PopoverTextContent({selection, contentRef}: PopoverTextContentProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -22,7 +28,7 @@ function PopoverTextContent({menuState, contentRef}: PopoverContentProps) {
 
     const handlePress = () => {
         interceptAnonymousUser(() => {
-            Clipboard.setString(menuState.selection);
+            Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         }, true);
     };

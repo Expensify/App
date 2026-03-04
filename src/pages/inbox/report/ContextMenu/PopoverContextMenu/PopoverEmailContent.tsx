@@ -1,4 +1,6 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import ContextMenuItem from '@components/ContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,9 +14,13 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {PopoverContentProps} from '.';
 
-function PopoverEmailContent({menuState, contentRef}: PopoverContentProps) {
+type PopoverEmailContentProps = {
+    selection: string;
+    contentRef: React.RefObject<ViewType | null>;
+};
+
+function PopoverEmailContent({selection, contentRef}: PopoverEmailContentProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -23,13 +29,13 @@ function PopoverEmailContent({menuState, contentRef}: PopoverContentProps) {
 
     const handlePress = () => {
         interceptAnonymousUser(() => {
-            Clipboard.setString(EmailUtils.trimMailTo(menuState.selection));
+            Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         }, true);
     };
 
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
-    const description = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(menuState.selection ?? ''));
+    const description = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? ''));
 
     return (
         <View

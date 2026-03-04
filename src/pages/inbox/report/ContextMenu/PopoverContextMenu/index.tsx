@@ -1,4 +1,3 @@
-import type {RefObject} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, NativeTouchEvent, View as ViewType} from 'react-native';
@@ -18,8 +17,8 @@ import CONST from '@src/CONST';
 import ConfirmDeleteReportActionModal from './ConfirmDeleteReportActionModal';
 import PopoverEmailContent from './PopoverEmailContent';
 import PopoverLinkContent from './PopoverLinkContent';
-import PopoverReportContent from './PopoverReportContent';
 import PopoverReportActionContent from './PopoverReportActionContent';
+import PopoverReportContent from './PopoverReportContent';
 import PopoverTextContent from './PopoverTextContent';
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
@@ -48,15 +47,6 @@ type PopoverContextMenuState = {
     position: PopoverPosition;
     contextMenuTargetNode: HTMLDivElement | null;
     onEmojiPickerToggle: ((state: boolean) => void) | undefined;
-};
-
-type PopoverContentProps = {
-    menuState: PopoverContextMenuState;
-    hideAndRun: (callback?: () => void) => void;
-    setLocalShouldKeepOpen: (value: boolean) => void;
-    transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
-    contentRef: RefObject<ViewType | null>;
-    shouldEnableArrowNavigation: boolean;
 };
 
 type PopoverContextMenuProps = {
@@ -365,52 +355,45 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
         >
             {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (
                 <PopoverReportActionContent
-                    menuState={menuState}
+                    reportID={menuState.reportID}
+                    reportActionID={menuState.reportActionID}
+                    originalReportID={menuState.originalReportID}
+                    draftMessage={menuState.draftMessage}
+                    selection={menuState.selection}
+                    contextMenuTargetNode={menuState.contextMenuTargetNode}
+                    onEmojiPickerToggle={menuState.onEmojiPickerToggle}
                     hideAndRun={hideAndRun}
                     setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    transitionActionSheetState={transitionActionSheetState}
                     contentRef={contentRef}
                     shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
             {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT && (
                 <PopoverReportContent
-                    menuState={menuState}
+                    reportID={menuState.reportID}
+                    reportActionID={menuState.reportActionID}
+                    originalReportID={menuState.originalReportID}
                     hideAndRun={hideAndRun}
-                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    transitionActionSheetState={transitionActionSheetState}
                     contentRef={contentRef}
                     shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
             {menuState?.type === CONST.CONTEXT_MENU_TYPES.LINK && (
                 <PopoverLinkContent
-                    menuState={menuState}
-                    hideAndRun={hideAndRun}
-                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    transitionActionSheetState={transitionActionSheetState}
+                    selection={menuState.selection}
                     contentRef={contentRef}
-                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
             {menuState?.type === CONST.CONTEXT_MENU_TYPES.EMAIL && (
                 <PopoverEmailContent
-                    menuState={menuState}
-                    hideAndRun={hideAndRun}
-                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    transitionActionSheetState={transitionActionSheetState}
+                    selection={menuState.selection}
                     contentRef={contentRef}
-                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
             {menuState?.type === CONST.CONTEXT_MENU_TYPES.TEXT && (
                 <PopoverTextContent
-                    menuState={menuState}
-                    hideAndRun={hideAndRun}
-                    setLocalShouldKeepOpen={setLocalShouldKeepOpen}
-                    transitionActionSheetState={transitionActionSheetState}
+                    selection={menuState.selection}
                     contentRef={contentRef}
-                    shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
         </PopoverWithMeasuredContent>
@@ -420,4 +403,4 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
 PopoverContextMenu.displayName = 'PopoverContextMenu';
 
 export default PopoverContextMenu;
-export type {PopoverPosition, PopoverContextMenuState, PopoverContentProps};
+export type {PopoverPosition, PopoverContextMenuState};
