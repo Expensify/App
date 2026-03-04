@@ -23,6 +23,7 @@ import type {
 } from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
+    ApprovalRule,
     ConnectionLastSync,
     ConnectionName,
     Connections,
@@ -1011,6 +1012,69 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
     return [...new Set([...categoryApprovers, ...tagApprovers])];
 }
 
+function getFirstRuleApprover(approvalRules: ApprovalRule[], expenseReport: OnyxEntry<Report>) {
+    // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
+    // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
+    const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
+
+    for (let i = 0; i < approvalRules.length; i++) {
+        const rule = approvalRules.at(i);
+        if (!rule) {
+            continue;
+        }
+        for (let j = 0; j < rule.applyWhen.length; j++) {
+            const applyWhen = rule.applyWhen.at(j);
+            if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
+                continue;
+            }
+            if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
+                rulesMap[applyWhen.field][applyWhen.value] = rule.approver;
+            }
+        }
+    }
+
+    if (isEmptyObject(rulesMap.category) && isEmptyObject(rulesMap.tag)) {
+        return '';
+    }
+
+    const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
+
+    if (!allReportTransactions.length) {
+        return '';
+    }
+
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginByAccountID(employeeAccountID);
+
+    let firstCategoryApprover = '';
+    let firstTagApprover = '';
+
+    for (let i = 0; i < allReportTransactions.length; i++) {
+        const transaction = allReportTransactions.at(i);
+        const category = getCategory(transaction);
+        const categoryApprover = rulesMap.category[category];
+
+        // Category approvers take strict priority over tag approvers.
+        // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
+        if (categoryApprover && categoryApprover !== employeeLogin) {
+            firstCategoryApprover = categoryApprover;
+            break;
+        }
+
+        // Only look for a tag approver if we haven't found one yet — no need to re-check on subsequent transactions.
+        if (!firstTagApprover) {
+            const tag = getTag(transaction);
+            const tagApprover = rulesMap.tag[tag];
+
+            if (tagApprover && tagApprover !== employeeLogin) {
+                firstTagApprover = tagApprover;
+            }
+        }
+    }
+
+    return firstCategoryApprover || firstTagApprover;
+}
+
 function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report> | {ownerAccountID: number}) {
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginByAccountID(employeeAccountID) ?? '';
@@ -1035,67 +1099,10 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
 function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
     const approvalRules = policy?.rules?.approvalRules;
 
-    // Skip rule evaluation entirely for "Submit & Close" policies and policies with no approval rules.
     if (!isSubmitAndClose(policy) && approvalRules?.length) {
-        // Pre-build a lookup map of { category: { value → approver }, tag: { value → approver } }
-        // from the policy's approval rules so that each transaction's category/tag can be resolved in O(1).
-        const rulesMap: Record<'category' | 'tag', Record<string, string>> = {category: {}, tag: {}};
-
-        for (let i = 0; i < approvalRules.length; i++) {
-            const rule = approvalRules.at(i);
-            if (!rule) {
-                continue;
-            }
-            for (let j = 0; j < rule.applyWhen.length; j++) {
-                const applyWhen = rule.applyWhen.at(j);
-                if (!applyWhen || applyWhen.condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES) {
-                    continue;
-                }
-                if (applyWhen.field === CONST.POLICY.FIELDS.CATEGORY || applyWhen.field === CONST.POLICY.FIELDS.TAG) {
-                    rulesMap[applyWhen.field][applyWhen.value] = rule.approver;
-                }
-            }
-        }
-
-        if (!isEmptyObject(rulesMap.category) || !isEmptyObject(rulesMap.tag)) {
-            const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
-
-            // Skip rule evaluation if the report has no transactions — there is nothing to match rules against.
-            if (allReportTransactions.length) {
-                const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-                const employeeLogin = getLoginByAccountID(employeeAccountID);
-
-                let firstCategoryApprover = '';
-                let firstTagApprover = '';
-
-                for (let i = 0; i < allReportTransactions.length; i++) {
-                    const transaction = allReportTransactions.at(i);
-                    const category = getCategory(transaction);
-                    const categoryApprover = rulesMap.category[category];
-
-                    // Category approvers take strict priority over tag approvers.
-                    // Break immediately on the first match so we don't keep scanning transactions unnecessarily.
-                    if (categoryApprover && categoryApprover !== employeeLogin) {
-                        firstCategoryApprover = categoryApprover;
-                        break;
-                    }
-
-                    // Only look for a tag approver if we haven't found one yet — no need to re-check on subsequent transactions.
-                    if (!firstTagApprover) {
-                        const tag = getTag(transaction);
-                        const tagApprover = rulesMap.tag[tag];
-
-                        if (tagApprover && tagApprover !== employeeLogin) {
-                            firstTagApprover = tagApprover;
-                        }
-                    }
-                }
-
-                const ruleApprover = firstCategoryApprover || firstTagApprover;
-                if (ruleApprover) {
-                    return getPersonalDetailByEmail(ruleApprover)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                }
-            }
+        const ruleApprover = getFirstRuleApprover(approvalRules, expenseReport);
+        if (ruleApprover) {
+            return getPersonalDetailByEmail(ruleApprover)?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         }
     }
 
