@@ -1718,6 +1718,50 @@ function getTransactionsSections({
     };
 
     for (const key of transactionKeys) {
+        const transaction = data[key];
+        const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const reportAction = moneyRequestReportActionsByTransactionID.get(transaction.transactionID);
+        const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transaction.reportID}`);
+
+        let shouldShowTransaction = !!transaction.transactionID;
+
+        if (currentQueryJSON && !isActionLoading && shouldShowTransaction) {
+            if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+                const status = currentQueryJSON.status;
+                if (Array.isArray(status)) {
+                    shouldShowTransaction = status.some((expenseStatus) => {
+                        return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
+                    });
+                } else {
+                    shouldShowTransaction = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
+                }
+            }
+        }
+
+        if (!shouldShowTransaction) {
+            continue;
+        }
+
+        const shouldShowBlankTo = !report || isOpenExpenseReport(report);
+        const transactionViolations = getTransactionViolations(allViolations, transaction, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
+
+        const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
+        const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+        const to = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
+
+        const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
+        const isCardFeedDeleted = cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds);
+
+        const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            transaction,
+            from,
+            to,
+            policy,
+            formatPhoneNumber,
+            report,
+        );
+
         // Handle the date
         measurements.date = Math.max(measurements.date);
 
@@ -1780,32 +1824,8 @@ function getTransactionsSections({
 
         
 
-        // const transactionItem = data[key];
-        // const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
-
-        // let shouldShow = true;
-
-        // const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`);
-        // if (currentQueryJSON && !isActionLoading) {
-        //     if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        //         const status = currentQueryJSON.status;
-        //         if (Array.isArray(status)) {
-        //             shouldShow = status.some((expenseStatus) => {
-        //                 return isValidExpenseStatus(expenseStatus) ? expenseStatusActionMapping[expenseStatus](report) : false;
-        //             });
-        //         } else {
-        //             shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](report) : false;
-        //         }
-        //     }
-        // }
-
-        // if (!transactionItem.transactionID) {
-        //     shouldShow = false;
-        // }
 
         // if (shouldShow) {
-        //     const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
-        //     const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         //     const shouldShowBlankTo = !report || isOpenExpenseReport(report);
         //     const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
         //     // Use Map.get() for faster lookups with default values
