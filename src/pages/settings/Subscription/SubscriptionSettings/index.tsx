@@ -238,30 +238,6 @@ function SubscriptionSettings() {
                                 isDisabled
                             />
                         </View>
-                        {shouldShowExpensifyCodeSection && (
-                            <MenuItemWithTopDescription
-                                description={translate('subscription.expensifyCode.title')}
-                                shouldShowRightIcon={!isExpensifyCodeApplied}
-                                onPress={onExpensifyCodePress}
-                                interactive={!isExpensifyCodeApplied}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                style={styles.mt5}
-                                title={privateSubscription?.promoCode}
-                            />
-                        )}
-                        <MenuItemWithTopDescription
-                            description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                requestTaxExempt();
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
-                            }}
-                            icon={icons.Coins}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            style={styles.mb5}
-                            titleStyle={privateTaxExempt ? undefined : styles.textBold}
-                            title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
-                        />
                     </>
                 ) : (
                     <>
@@ -323,33 +299,32 @@ function SubscriptionSettings() {
                                 </OfflineWithFeedback>
                             </>
                         ) : null}
-
-                        {shouldShowExpensifyCodeSection && (
-                            <MenuItemWithTopDescription
-                                description={translate('subscription.expensifyCode.title')}
-                                shouldShowRightIcon={!isExpensifyCodeApplied}
-                                onPress={onExpensifyCodePress}
-                                interactive={!isExpensifyCodeApplied}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                style={styles.mt5}
-                                title={privateSubscription?.promoCode}
-                            />
-                        )}
-                        <MenuItemWithTopDescription
-                            description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                requestTaxExempt();
-                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
-                            }}
-                            icon={icons.Coins}
-                            wrapperStyle={styles.sectionMenuItemTopDescription}
-                            style={styles.mb5}
-                            titleStyle={privateTaxExempt ? undefined : styles.textBold}
-                            title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
-                        />
                     </>
                 )}
+                {shouldShowExpensifyCodeSection && (
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.expensifyCode.title')}
+                        shouldShowRightIcon={!isExpensifyCodeApplied}
+                        onPress={onExpensifyCodePress}
+                        interactive={!isExpensifyCodeApplied}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={privateSubscription?.promoCode}
+                    />
+                )}
+                <MenuItemWithTopDescription
+                    description={privateTaxExempt ? translate('subscription.details.taxExemptStatus') : undefined}
+                    shouldShowRightIcon
+                    onPress={() => {
+                        requestTaxExempt();
+                        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                    }}
+                    icon={icons.Coins}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mb5}
+                    titleStyle={privateTaxExempt ? undefined : styles.textBold}
+                    title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
+                />
             </ScrollView>
         </ScreenWrapper>
     );
