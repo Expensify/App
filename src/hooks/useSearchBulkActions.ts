@@ -44,6 +44,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
@@ -362,6 +363,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const selectedPolicyIDList = selectedReports.length
             ? selectedReports.map((report) => report.policyID)
             : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
+
+        const restrictedPolicyID = selectedPolicyIDList.find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+        if (restrictedPolicyID) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+            return;
+        }
+
         const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return hasDynamicExternalWorkflow(policy);
@@ -521,8 +529,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const activeRoute = Navigation.getActiveRoute();
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+            const restrictedPolicyID = selectedOptions.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+            if (restrictedPolicyID) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                return;
+            }
+
+            const activeRoute = Navigation.getActiveRoute();
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
@@ -806,6 +821,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
+
+                    const restrictedPolicyID = itemList.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID));
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
 
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
