@@ -62,6 +62,7 @@ const REASON = {
         ALREADY_REVIEWED: 'Transaction already reviewed',
         TRANSACTION_APPROVED: 'Transaction approved successfully',
         TRANSACTION_DENIED: 'Transaction denied successfully',
+        PIN_REVEALED: 'PIN revealed successfully',
     },
     CHALLENGE: {
         CHALLENGE_MISSING: 'Challenge is missing',
@@ -183,6 +184,13 @@ const API_RESPONSE_MAP = {
 
     SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN: {
         [HTTP_STATUS.SUCCESS]: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+        },
+    },
+
+    REVEAL_CARD_PIN: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.PIN_REVEALED,
         [HTTP_STATUS.CLIENT_ERROR]: {
             ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
         },

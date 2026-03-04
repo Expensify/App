@@ -13,6 +13,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -28,6 +29,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
+import {clearRevealedPIN, useRevealedPIN} from '@libs/CardPINStore';
 import {formatCardExpiration, getDomainCards, getTranslationKeyForLimitType, isCardFrozen, maskCard, maskPin} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -99,6 +101,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const {executeScenario} = useMultifactorAuthentication();
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
     const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -130,12 +133,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {cardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardState();
     const {setCardsDetails} = useExpensifyCardActions();
+    const revealedPIN = useRevealedPIN(cardID);
 
-    // Resets card details when navigating away from the page.
+    // Resets card details and revealed PIN when navigating away from the page.
     useFocusEffect(
         useCallback(() => {
             return () => {
                 setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+                clearRevealedPIN(cardID);
             };
         }, [cardID, setCardsDetails]),
     );
@@ -425,9 +430,23 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 {shouldShowPIN && (
                                     <MenuItemWithTopDescription
                                         description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin()}
+                                        title={maskPin(revealedPIN)}
                                         interactive={false}
                                         titleStyle={styles.walletCardNumber}
+                                        shouldShowRightComponent={!revealedPIN}
+                                        rightComponent={
+                                            !revealedPIN ? (
+                                                <Button
+                                                    text={translate('cardPage.revealPin')}
+                                                    onPress={() => {
+                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                            cardID: String(currentPhysicalCard?.cardID),
+                                                        });
+                                                    }}
+                                                    isDisabled={isOffline}
+                                                />
+                                            ) : undefined
+                                        }
                                     />
                                 )}
                                 <MenuItem

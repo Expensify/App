@@ -1352,6 +1352,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHORIZE_TRANSACTION: 'AuthorizeTransaction',
     DENY_TRANSACTION: 'DenyTransaction',
     GET_TRANSACTIONS_PENDING_3DS_REVIEW: 'GetTransactionsPending3DSReview',
+    REVEAL_CARD_PIN: 'RevealCardPIN',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -1388,6 +1389,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

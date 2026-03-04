@@ -266,6 +266,23 @@ async function setPersonalDetailsAndShipExpensifyCardsWithPIN(params: Multifacto
         return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS_WITH_PIN, undefined);
     }
 }
+async function revealPINForCard({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-PIN']) {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN, {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod}, {});
+
+        const {jsonCode, message, pin} = response ?? {};
+        const parsed = parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, message);
+
+        return {
+            ...parsed,
+            body: {pin: String(pin ?? '')},
+        };
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to reveal PIN for card', {error});
+        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_PIN, undefined);
+    }
+}
+
 /** Check whether a given transaction is still pending review and update the transactionsPending3DSReview key in Onyx */
 async function isTransactionStillPending3DSReview(transactionID: string) {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW, null, {});
@@ -352,6 +369,7 @@ export {
     markHasAcceptedSoftPrompt,
     clearLocalMFAPublicKeyList,
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
+    revealPINForCard,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

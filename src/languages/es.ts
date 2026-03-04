@@ -589,6 +589,9 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {
             didNotShipCard: 'No enviamos tu tarjeta. Por favor, inténtalo de nuevo.',
         },
+        revealPin: {
+            authenticationCanceled: 'No pudimos revelar tu PIN. Por favor, inténtalo de nuevo.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',

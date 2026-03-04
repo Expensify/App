@@ -743,6 +743,9 @@ const translations = {
         setPin: {
             didNotShipCard: 'We didn’t ship your card. Please try again.',
         },
+        revealPin: {
+            authenticationCanceled: 'We couldn’t reveal your PIN. Please try again.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

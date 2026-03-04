@@ -5,6 +5,8 @@ import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransactio
 import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
 import {customConfig} from './DefaultUserInterface';
+import type {Payload as RevealPinPayload} from './RevealPin';
+import RevealPin from './RevealPin';
 import type {Payload as SetPinOrderCardPayload} from './SetPinOrderCard';
 import SetPinOrderCard from './SetPinOrderCard';
 
@@ -16,6 +18,7 @@ type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPinOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPinPayload;
 };
 
 /**
@@ -25,6 +28,7 @@ const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPinOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: customConfig(RevealPin),
 } as const satisfies MultifactorAuthenticationScenarioConfigRecord;
 
 export default Configs;

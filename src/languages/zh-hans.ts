@@ -718,6 +718,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         verificationFailed: '验证失败',
         setPin: {didNotShipCard: '我们未能寄出您的卡。请重试。'},
+        revealPin: {authenticationCanceled: "We couldn't reveal your PIN. Please try again."},
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
