@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -92,16 +91,14 @@ function VacationDelegatePage() {
             includeSafeAreaPaddingBottom={false}
             testID="VacationDelegatePage"
         >
-            <FullPageOfflineBlockingView>
-                <BaseVacationDelegateSelectionComponent
-                    vacationDelegate={vacationDelegate}
-                    onSelectRow={onSelectRow}
-                    headerTitle={translate('common.vacationDelegate')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
-                    cannotSetDelegateMessage={translate('statusPage.cannotSetVacationDelegate')}
-                    includeCurrentUser={false}
-                />
-            </FullPageOfflineBlockingView>
+            <BaseVacationDelegateSelectionComponent
+                vacationDelegate={vacationDelegate}
+                onSelectRow={onSelectRow}
+                headerTitle={translate('common.vacationDelegate')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
+                cannotSetDelegateMessage={translate('statusPage.cannotSetVacationDelegate')}
+                includeCurrentUser={false}
+            />
         </ScreenWrapper>
     );
 }

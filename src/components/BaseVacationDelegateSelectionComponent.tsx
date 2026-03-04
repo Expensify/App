@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -163,33 +164,35 @@ function BaseVacationDelegateSelectionComponent({
                 title={headerTitle}
                 onBackButtonPress={onBackButtonPress}
             />
-            {hasActiveDelegations ? (
-                <View style={styles.mt6}>
-                    <DelegatorList
-                        delegators={vacationDelegate?.delegatorFor}
-                        message={cannotSetDelegateMessage}
-                    />
-                </View>
-            ) : (
-                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                    <SelectionList
-                        sections={areOptionsInitialized ? sections : []}
-                        ListItem={UserListItem}
-                        onSelectRow={(item) => {
-                            // Clear search to prevent "No results found" after selection
-                            setSearchTerm('');
+            <FullPageOfflineBlockingView>
+                {hasActiveDelegations ? (
+                    <View style={styles.mt6}>
+                        <DelegatorList
+                            delegators={vacationDelegate?.delegatorFor}
+                            message={cannotSetDelegateMessage}
+                        />
+                    </View>
+                ) : (
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <SelectionList
+                            sections={areOptionsInitialized ? sections : []}
+                            ListItem={UserListItem}
+                            onSelectRow={(item) => {
+                                // Clear search to prevent "No results found" after selection
+                                setSearchTerm('');
 
-                            onSelectRow(item);
-                        }}
-                        textInputOptions={textInputOptions}
-                        showLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
-                        onEndReached={onListEndReached}
-                        shouldSingleExecuteRowSelect
-                        shouldShowTextInput
-                    />
-                </View>
-            )}
+                                onSelectRow(item);
+                            }}
+                            textInputOptions={textInputOptions}
+                            showLoadingPlaceholder={!areOptionsInitialized}
+                            isLoadingNewOptions={!!isSearchingForReports}
+                            onEndReached={onListEndReached}
+                            shouldSingleExecuteRowSelect
+                            shouldShowTextInput
+                        />
+                    </View>
+                )}
+            </FullPageOfflineBlockingView>
         </>
     );
 }
