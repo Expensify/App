@@ -72,9 +72,7 @@ type UseSearchBulkActionsParams = {
 };
 
 function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>): string | undefined {
-    return items
-        .map((item) => item.policyID)
-        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
+    return items.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
