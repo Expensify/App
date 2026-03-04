@@ -1178,7 +1178,7 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
     };
 }
 
-type OpenReportParams = {
+type OpenReportOptions = {
     reportID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
     reportActionID?: string;
@@ -1218,7 +1218,7 @@ function openReport({
     optimisticSelfDMReport,
     currentUserLogin,
     currentUserAccountID,
-}: OpenReportParams) {
+}: OpenReportOptions) {
     if (!reportID) {
         return;
     }
