@@ -1511,6 +1511,37 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it('should return false for change policy action with hidden flag', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromPolicy: 'ABC123',
+                    toPolicy: 'DEF456',
+                    hidden: true,
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for change policy action without hidden flag', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromPolicy: 'ABC123',
+                    toPolicy: 'DEF456',
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
         it('should return true for moved transaction if the report destination is available', async () => {
             // Given a moved transaction action but the report destination is available
             const report: Report = createRandomReport(2, undefined);
