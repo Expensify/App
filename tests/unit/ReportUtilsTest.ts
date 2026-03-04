@@ -2375,7 +2375,7 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected this report');
+                    expect(reportName).toBe('rejected');
                 });
 
                 test('should handle integration sync failed action', () => {
