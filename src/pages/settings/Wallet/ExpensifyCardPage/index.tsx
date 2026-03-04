@@ -183,7 +183,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         [currentCard?.fundID],
     );
     const [policyIDForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policyIDSelector}, [policyIDSelector]);
-    
+
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
             top: 0,
