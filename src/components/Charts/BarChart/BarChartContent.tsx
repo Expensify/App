@@ -14,7 +14,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -103,6 +103,9 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
+    /** Pixel-space X position of each tick, filled by onScaleChange and used for label hit-testing */
+    const tickXPositions = useSharedValue<number[]>([]);
+
     const handleChartBoundsChange = useCallback(
         (bounds: ChartBounds) => {
             const domainWidth = bounds.right - bounds.left;
@@ -116,11 +119,23 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     );
 
     const handleScaleChange = useCallback(
-        (_xScale: Scale, yScale: Scale) => {
+        (xScale: Scale, yScale: Scale) => {
             yZero.set(yScale(0));
+            tickXPositions.set(data.map((_, i) => xScale(i)));
         },
-        [yZero],
+        [yZero, data, tickXPositions],
     );
+
+    // Measure label widths for custom positioning in `renderOutside`
+    const labelWidths = useMemo(() => {
+        if (!font) {
+            return [] as number[];
+        }
+        return truncatedLabels.map((label) => measureTextWidth(label, font));
+    }, [font, truncatedLabels]);
+
+    // Convert hook's degree rotation to radians for hover label testing
+    const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
     const checkIsOverBar = useCallback(
         (args: HitTestArgs) => {
@@ -134,11 +149,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             const barLeft = args.targetX - currentBarWidth / 2;
             const barRight = args.targetX + currentBarWidth / 2;
 
-            const isInLabelArea = args.chartBottom > 0 && args.cursorY >= args.chartBottom && args.cursorX >= barLeft && args.cursorX <= barRight;
-            if (isInLabelArea) {
-                return true;
-            }
-
             // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
             // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
             const barTop = Math.min(args.targetY, currentYZero);
@@ -149,9 +159,81 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         [barWidth, yZero],
     );
 
-    const {actionsRef, customGestures, outerHoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const checkIsOverLabel = useCallback(
+        (args: HitTestArgs, activeIndex: number) => {
+            'worklet';
+
+            const labelWidth = labelWidths.at(activeIndex) ?? 0;
+            const fontMetrics = font?.getMetrics();
+            if (!fontMetrics) {
+                return false;
+            }
+            const ascent = Math.abs(fontMetrics.ascent);
+            const descent = Math.abs(fontMetrics.descent);
+            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 2;
+            console.log('label position x y', args.targetX, labelY, args.chartBottom);
+            console.log('cursor position', args.cursorX, args.cursorY);
+            if (angleRad === 0) {
+                return (
+                    args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
+                    args.cursorY <= labelY + variables.iconSizeExtraSmall / 2 &&
+                    args.cursorX >= args.targetX - labelWidth / 2 &&
+                    args.cursorX <= args.targetX + labelWidth / 2
+                );
+            }
+            if (angleRad < 1) {
+                return (
+                    args.cursorX >= args.targetX - labelWidth / 2 &&
+                    args.cursorX <= args.targetX + labelWidth / 2 &&
+                    args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
+                    args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
+                );
+            }
+            return (
+                args.cursorX >= args.targetX - labelWidth / 2 &&
+                args.cursorX <= args.targetX + labelWidth / 2 &&
+                args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
+                args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
+            );
+        },
+        [labelWidths, angleRad, font],
+    );
+
+    /**
+     * Scans every visible label's bounding box using its own tick X as the anchor.
+     * Returns that tick's X position when the cursor is inside, otherwise returns
+     * the raw cursor X unchanged.
+     * Used to correct Victory's nearest-point-by-X algorithm for rotated labels whose
+     * bounding boxes can extend past the midpoint to the adjacent tick.
+     */
+    const findLabelCursorX = useCallback(
+        (cursorX: number, cursorY: number): number => {
+            'worklet';
+
+            const positions = tickXPositions.get();
+            const currentChartBottom = chartBottom.get();
+            for (let i = 0; i < positions.length; i++) {
+                if (i % labelSkipInterval !== 0) {
+                    continue;
+                }
+                const tickX = positions.at(i);
+                if (tickX === undefined) {
+                    continue;
+                }
+                if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+                    return tickX;
+                }
+            }
+            return cursorX;
+        },
+        [tickXPositions, chartBottom, labelSkipInterval, checkIsOverLabel],
+    );
+
+    const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
+        checkIsOverLabel,
+        resolveLabelTouchX: findLabelCursorX,
         chartBottom,
         yZero,
     });
@@ -206,7 +288,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 title={title}
                 titleIcon={titleIcon}
             />
-            <GestureDetector gesture={outerHoverGesture}>
+            <GestureDetector gesture={hoverGesture}>
                 <View
                     style={[styles.barChartChartContainer, dynamicChartStyle]}
                     onLayout={handleLayout}
