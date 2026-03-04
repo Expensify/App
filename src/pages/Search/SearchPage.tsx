@@ -7,12 +7,14 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +40,8 @@ function SearchPage({route}: SearchPageProps) {
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
+    const filterFormValues = useFilterFormValues(currentSearchQueryJSON);
+    useSearchFilterSync(filterFormValues);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);

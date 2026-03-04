@@ -20,6 +20,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
@@ -937,8 +938,15 @@ function filterAllInactiveCards(cards: CardList | undefined) {
         return {};
     }
 
-    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
+    const filteredCards = filterObject(cards, (_key, card) => {
+        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
+            // Only include suspended cards that are frozen.
+            return !!card.nameValuePairs?.frozen;
+        }
+
+        return !closedStates.has(card.state);
+    });
 
     return filteredCards;
 }
@@ -1069,6 +1077,21 @@ function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCol
  */
 function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
+}
+
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    if (feedCountry) {
+        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
+        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
+            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+        }
+    }
+
+    return cardSettings;
 }
 
 function isCardPendingIssue(card?: Card) {
@@ -1376,6 +1399,7 @@ export {
     normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
+    getCardSettings,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
