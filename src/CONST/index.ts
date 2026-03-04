@@ -9050,6 +9050,8 @@ const CONST = {
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
         /** Onyx prefix for vacation delegate */
         PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
+        /** Onyx prefix for lock account IDs */
+        PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {

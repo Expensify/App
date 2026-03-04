@@ -42,6 +42,7 @@ import {
     isMerchantMissing,
     isScanning,
     isTimeRequest,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -107,6 +108,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    policy?: Policy;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
@@ -172,6 +174,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 function TransactionItemRow({
     transactionItem,
     report,
+    policy,
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
@@ -250,7 +253,9 @@ function TransactionItemRow({
             return '';
         }
 
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
+        const policyParam = policy ?? transactionItem.policy;
+        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -262,11 +267,12 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
+            } else if (isCustomUnitOutOfPolicy) {
+                error = translate('violations.customUnitOutOfPolicy');
             }
-
             return error;
         }
-    }, [transactionItem, translate, report]);
+    }, [transactionItem, translate, report, policy]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
