@@ -66,7 +66,7 @@ import {
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
-import {cancelSubmitToDestinationVisibleSpan, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
+import {cancelSubmitToDestinationVisibleSpan, getPendingExpenseCreateDestination, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
@@ -1241,7 +1241,10 @@ function Search({
     const cancelNavigationSpans = useCallback(() => {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
-        cancelSubmitToDestinationVisibleSpan();
+        // Only cancel submit-to-destination-visible when Search is the pending destination (e.g. we're bailing to error/empty). Otherwise we'd cancel a span intended for MODAL_DISMISS or another destination.
+        if (getPendingExpenseCreateDestination()?.destinationType === CONST.TELEMETRY.DESTINATION_TYPE.SEARCH) {
+            cancelSubmitToDestinationVisibleSpan();
+        }
         spanExistedOnMount.current = false;
     }, []);
 
@@ -1351,7 +1354,9 @@ function Search({
 
     if (shouldShowChartView && isGroupedItemArray(sortedData)) {
         cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
-        cancelSubmitToDestinationVisibleSpan();
+        if (getPendingExpenseCreateDestination()?.destinationType === CONST.TELEMETRY.DESTINATION_TYPE.SEARCH) {
+            cancelSubmitToDestinationVisibleSpan();
+        }
         let chartTitle = translate(`search.chartTitles.${validGroupBy}`);
         if (savedSearch) {
             if (savedSearch.name !== savedSearch.query) {
