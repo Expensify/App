@@ -67,6 +67,7 @@ function WalletPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -283,10 +284,11 @@ function WalletPage() {
         });
 
         if (result.action === ModalActions.CONFIRM) {
-            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
+            const savedColumnLayout = savedColumnLayouts?.[selectedCard.cardID];
+            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports, savedColumnLayout});
         }
         setSelectedCard(undefined);
-    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports]);
+    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports, savedColumnLayouts]);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader

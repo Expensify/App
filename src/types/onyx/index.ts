@@ -64,6 +64,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -139,6 +140,7 @@ import type Request from './Request';
 import type {AnyRequest} from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
+import type {SavedCSVColumnLayoutData, SavedCSVColumnLayoutList} from './SavedCSVColumnLayout';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
@@ -206,6 +208,7 @@ export type {
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -261,6 +264,8 @@ export type {
     QuickAction,
     ShareBankAccount,
     RecentWaypoint,
+    SavedCSVColumnLayoutList,
+    SavedCSVColumnLayoutData,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
