@@ -218,7 +218,7 @@ Option 2:
 
 ---
 
-# Still Need Help?
+## Still Need Help?
 
 If you’ve confirmed all configurations and are still experiencing issues:
 
