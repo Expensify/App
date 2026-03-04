@@ -70,6 +70,7 @@ type AvatarResult = {
     icons: Icon[];
     shouldShowSubscript: boolean;
     avatarType: 'single' | 'subscript' | 'diagonal';
+    delegateTooltipAccountID: number | undefined;
 };
 
 /**
@@ -106,8 +107,10 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
     }
 
     // Stage 3: OptionRowLHN — Delegate icon replacement
-    const skipDelegate = report.type === CONST.REPORT.TYPE.CHAT || report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
+    const skipDelegate = report.type === CONST.REPORT.TYPE.INVOICE || (isTaskReport(report) && !report.chatReportID);
+    let delegateTooltipAccountID: number | undefined;
     if (delegateAccountID && PERSONAL_DETAILS[delegateAccountID] && icons.length > 0 && !skipDelegate) {
+        delegateTooltipAccountID = Number(icons.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID);
         const delegateDetails = PERSONAL_DETAILS[delegateAccountID];
         const firstIcon = icons.at(0);
         if (firstIcon && delegateDetails) {
@@ -125,7 +128,7 @@ function computeAvatarResult({report, policy = TEST_POLICY, isReportArchived = f
         avatarType = 'diagonal';
     }
 
-    return {icons, shouldShowSubscript, avatarType};
+    return {icons, shouldShowSubscript, avatarType, delegateTooltipAccountID};
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -594,6 +597,55 @@ describe('LHN Avatar Pipeline', () => {
         } as Report;
         const result = computeAvatarResult({report, delegateAccountID: 5});
 
+        expect(result.icons.at(0)?.id).not.toBe(5);
+    });
+
+    // ── Case 24: Delegate applied for chat reports ──────────────────
+    it('Delegate applied for chat report (not skipped)', () => {
+        const report = createRegularChat(128, [CURRENT_USER_ACCOUNT_ID, 2]);
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.icons.at(0)?.id).toBe(5);
+        expect(result.icons.at(0)?.name).toBe('Delegate User');
+        expect(result.icons.at(0)?.source).toBe('https://avatar/5');
+    });
+
+    // ── Case 25: delegateTooltipAccountID preserves original actor ──
+    it('delegateTooltipAccountID returns original actor ID when delegate is active', () => {
+        const report = {
+            ...createExpenseReport(129),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+        };
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.delegateTooltipAccountID).toBe(2);
+        expect(result.icons.at(0)?.id).toBe(5);
+    });
+
+    // ── Case 26: delegateTooltipAccountID undefined without delegate ─
+    it('delegateTooltipAccountID is undefined when no delegate', () => {
+        const report = {
+            ...createExpenseReport(130),
+            policyID: POLICY_ID,
+            ownerAccountID: 2,
+        };
+        const result = computeAvatarResult({report});
+
+        expect(result.delegateTooltipAccountID).toBeUndefined();
+    });
+
+    // ── Case 27: delegateTooltipAccountID undefined when skipDelegate ─
+    it('delegateTooltipAccountID is undefined when skipDelegate is true', () => {
+        const report = {
+            ...createInvoiceReport(131),
+            policyID: POLICY_ID,
+            chatReportID: 'invoiceRoom',
+            parentReportID: 'invoiceRoom',
+        } as Report;
+        const result = computeAvatarResult({report, delegateAccountID: 5});
+
+        expect(result.delegateTooltipAccountID).toBeUndefined();
         expect(result.icons.at(0)?.id).not.toBe(5);
     });
 });
