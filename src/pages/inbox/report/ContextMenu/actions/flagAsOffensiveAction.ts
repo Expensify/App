@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type FlagAsOffensiveActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

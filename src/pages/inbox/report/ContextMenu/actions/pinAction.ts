@@ -1,9 +1,9 @@
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {togglePinnedState} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type PinActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

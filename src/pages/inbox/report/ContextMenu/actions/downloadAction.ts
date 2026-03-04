@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {Download as DownloadOnyx, ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getActionHtml} from './actionConfig';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type DownloadActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;

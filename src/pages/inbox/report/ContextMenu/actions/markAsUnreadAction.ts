@@ -6,7 +6,7 @@ import {markCommentAsUnread} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type MarkAsUnreadActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

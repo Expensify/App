@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
@@ -13,9 +13,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {canWriteInReport, isUnread} from '@libs/ReportUtils';
-import {ACTION_IDS, RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import {CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
-import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionTypes';
+import {ACTION_IDS, CONTEXT_MENU_ICON_NAMES, RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import createCopyOnyxDataAction, {shouldShowCopyOnyxDataAction} from '@pages/inbox/report/ContextMenu/actions/copyOnyxDataAction';
 import createDebugAction, {shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
 import createMarkAsReadAction, {shouldShowMarkAsReadAction} from '@pages/inbox/report/ContextMenu/actions/markAsReadAction';
@@ -83,28 +82,25 @@ function PopoverReportContent({menuState, hideAndRun, contentRef, shouldEnableAr
     const copyOnyxDataActionItem = showCopyOnyxData ? createCopyOnyxDataAction({report, translate, copyIcon: icons.Copy, checkmarkIcon: icons.Checkmark}) : undefined;
     const debugActionItem = showDebug && reportAction ? createDebugAction({reportID, reportAction, translate, bugIcon: icons.Bug}) : undefined;
 
-    const visibleActions = useMemo(() => {
-        const items: ContextMenuAction[] = [];
-        if (markAsReadActionItem) {
-            items.push(markAsReadActionItem);
-        }
-        if (markAsUnreadActionItem) {
-            items.push(markAsUnreadActionItem);
-        }
-        if (pinActionItem) {
-            items.push(pinActionItem);
-        }
-        if (unpinActionItem) {
-            items.push(unpinActionItem);
-        }
-        if (copyOnyxDataActionItem) {
-            items.push(copyOnyxDataActionItem);
-        }
-        if (debugActionItem) {
-            items.push(debugActionItem);
-        }
-        return items;
-    }, [markAsReadActionItem, markAsUnreadActionItem, pinActionItem, unpinActionItem, copyOnyxDataActionItem, debugActionItem]);
+    const visibleActions: ContextMenuAction[] = [];
+    if (markAsReadActionItem) {
+        visibleActions.push(markAsReadActionItem);
+    }
+    if (markAsUnreadActionItem) {
+        visibleActions.push(markAsUnreadActionItem);
+    }
+    if (pinActionItem) {
+        visibleActions.push(pinActionItem);
+    }
+    if (unpinActionItem) {
+        visibleActions.push(unpinActionItem);
+    }
+    if (copyOnyxDataActionItem) {
+        visibleActions.push(copyOnyxDataActionItem);
+    }
+    if (debugActionItem) {
+        visibleActions.push(debugActionItem);
+    }
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,

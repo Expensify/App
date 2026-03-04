@@ -6,7 +6,7 @@ import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import CONST from '@src/CONST';
 import type {Policy, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type HoldActionParams = BaseContextMenuActionParams & {
     moneyRequestAction: ReportAction | undefined;

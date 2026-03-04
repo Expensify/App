@@ -3,7 +3,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type MarkAsReadActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

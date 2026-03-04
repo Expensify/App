@@ -1,13 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type DebugActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

@@ -10,7 +10,7 @@ import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActi
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type CopyLinkActionParams = BaseContextMenuActionParams & {
     reportAction: ReportAction;

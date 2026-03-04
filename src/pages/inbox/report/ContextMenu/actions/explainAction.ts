@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {ReportAction, Report as ReportType} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type ExplainActionParams = BaseContextMenuActionParams & {
     childReport: OnyxEntry<ReportType>;

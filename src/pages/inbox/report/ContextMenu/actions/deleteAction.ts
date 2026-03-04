@@ -5,7 +5,7 @@ import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import CONST from '@src/CONST';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type DeleteActionParams = BaseContextMenuActionParams & {
     reportID: string | undefined;

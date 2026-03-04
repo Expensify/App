@@ -3,7 +3,7 @@ import type {GestureResponderEvent, View} from 'react-native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionTypes';
+import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type OverflowMenuDescriptor = ContextMenuAction & {
     buttonRef: RefObject<View | null>;
