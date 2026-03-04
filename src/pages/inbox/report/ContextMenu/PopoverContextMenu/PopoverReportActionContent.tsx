@@ -142,7 +142,7 @@ function PopoverReportActionContent({
         });
     };
 
-    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? 0;
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const isDisabled = (id: string) => disabledActionIDs.has(id);
 

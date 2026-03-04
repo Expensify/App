@@ -1,8 +1,8 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
-import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import Icon from '@components/Icon';
+import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';

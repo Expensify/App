@@ -550,4 +550,4 @@ function createCopyMessageAction({translate, copyIcon, checkmarkIcon, ...clipboa
 }
 
 export default createCopyMessageAction;
-export {shouldShowCopyMessageAction};
+export {shouldShowCopyMessageAction, copyMessageToClipboard};

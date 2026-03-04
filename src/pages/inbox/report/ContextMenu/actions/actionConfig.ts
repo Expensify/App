@@ -2,8 +2,8 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReportAction} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 const CONTEXT_MENU_ICON_NAMES = [
     'Bell',

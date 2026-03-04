@@ -1,6 +1,8 @@
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+import {copyMessageToClipboard} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
 import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 
 jest.mock(
     'expo-web-browser',
@@ -36,32 +38,31 @@ const mockClipboard = Clipboard as {
 };
 const mockGetClipboardText = getClipboardText as jest.Mock;
 
-type ContextMenuAction = {
-    sentryLabel?: string;
-    onPress?: (closePopover: boolean, payload: Record<string, unknown>) => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const {default: ContextMenuActions} = require('@pages/inbox/report/ContextMenu/ContextMenuActions') as {default: ContextMenuAction[]};
-
-const copyMessageAction = ContextMenuActions.find((action) => action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);
-
-const createPayload = (selection: string): Record<string, unknown> => ({
+const createParams = (selection: string) => ({
     reportAction: {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         message: [{html: selection}],
-    },
+    } as unknown as ReportAction,
+    transaction: undefined,
     selection,
-    report: {},
-    originalReport: {},
+    report: undefined,
+    card: undefined,
+    originalReport: undefined,
+    isHarvestReport: false,
+    isTryNewDotNVPDismissed: false,
+    movedFromReport: undefined,
+    movedToReport: undefined,
+    childReport: undefined,
+    policy: undefined,
     getLocalDateFromDatetime: jest.fn(),
-    policyTags: {},
-    translate: (translateKey: string) => translateKey,
+    policyTags: undefined,
+    translate: ((translateKey: string) => translateKey) as unknown as Parameters<typeof copyMessageToClipboard>[0]['translate'],
+    harvestReport: undefined,
     currentUserPersonalDetails: {
         accountID: 1,
         login: 'user@expensify.com',
         email: 'user@expensify.com',
-    },
+    } as unknown as Parameters<typeof copyMessageToClipboard>[0]['currentUserPersonalDetails'],
 });
 
 describe('ContextMenuActions copy message', () => {
@@ -74,11 +75,7 @@ describe('ContextMenuActions copy message', () => {
         mockClipboard.canSetHtml.mockReturnValue(false);
         mockGetClipboardText.mockReturnValue('Expensify');
 
-        if (!copyMessageAction?.onPress) {
-            throw new Error('Copy message context menu action was not found');
-        }
-
-        copyMessageAction.onPress(false, createPayload(selection));
+        copyMessageToClipboard(createParams(selection));
 
         expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
         expect(mockClipboard.setString).toHaveBeenCalledWith('Expensify');
@@ -90,11 +87,7 @@ describe('ContextMenuActions copy message', () => {
         mockClipboard.canSetHtml.mockReturnValue(true);
         mockGetClipboardText.mockReturnValue('Expensify');
 
-        if (!copyMessageAction?.onPress) {
-            throw new Error('Copy message context menu action was not found');
-        }
-
-        copyMessageAction.onPress(false, createPayload(selection));
+        copyMessageToClipboard(createParams(selection));
 
         expect(mockGetClipboardText).toHaveBeenCalledWith(selection);
         expect(mockClipboard.setHtml).toHaveBeenCalledWith(selection, 'Expensify');

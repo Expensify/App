@@ -48,15 +48,7 @@ type MiniContextMenuItemProps = WithSentryLabel & {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function MiniContextMenuItem({
-    tooltipText,
-    onPress,
-    children,
-    isDelayButtonStateComplete = true,
-    shouldPreventDefaultFocusOnPress = true,
-    ref,
-    sentryLabel,
-}: MiniContextMenuItemProps) {
+function MiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref, sentryLabel}: MiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
