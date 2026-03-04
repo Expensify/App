@@ -45,8 +45,9 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const isReportArchived = useReportIsArchived(reportID);
-    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportID, reportAction, actionReportActions)}`);
-    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportID, reportAction, actionReportActions));
+    const originalReportID = getOriginalReportID(reportID, reportAction, actionReportActions);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportAction);
 
     const transactionIDs: string[] = [];
