@@ -3,7 +3,7 @@ import React, {createContext, useRef} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, View} from 'react-native';
 import scrollToTabUtil from './scrollToTab';
 
-type ScrollableTabSelectorContextValue = {
+type TabSelectorContextValue = {
     containerRef: React.RefObject<RNScrollView | null>;
     onContainerLayout: (event: LayoutChangeEvent) => void;
     onContainerScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -12,12 +12,12 @@ type ScrollableTabSelectorContextValue = {
     onTabLayout: (tabKey: string, event: LayoutChangeEvent) => void;
 };
 
-type ScrollableTabSelectorContextProviderProps = {
+type TabSelectorContextProviderProps = {
     activeTabKey: string;
     children: React.ReactNode;
 };
 
-const defaultValue: ScrollableTabSelectorContextValue = {
+const defaultValue: TabSelectorContextValue = {
     containerRef: {current: null},
     onContainerLayout: () => {},
     onContainerScroll: () => {},
@@ -26,9 +26,9 @@ const defaultValue: ScrollableTabSelectorContextValue = {
     onTabLayout: () => {},
 };
 
-const ScrollableTabSelectorContext = createContext<ScrollableTabSelectorContextValue>(defaultValue);
+const TabSelectorContext = createContext<TabSelectorContextValue>(defaultValue);
 
-function ScrollableTabSelectorContextProvider({children, activeTabKey}: ScrollableTabSelectorContextProviderProps) {
+function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {ref: HTMLDivElement | View | null; width: number; x: number}>>({});
@@ -75,11 +75,18 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
 
     // React Compiler auto-memoization
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue = {containerRef, registerTab, onTabLayout, onContainerLayout, onContainerScroll, scrollToTab};
+    const contextValue = {
+        containerRef,
+        registerTab,
+        onTabLayout,
+        onContainerLayout,
+        onContainerScroll,
+        scrollToTab,
+    };
 
-    return <ScrollableTabSelectorContext.Provider value={contextValue}>{children}</ScrollableTabSelectorContext.Provider>;
+    return <TabSelectorContext.Provider value={contextValue}>{children}</TabSelectorContext.Provider>;
 }
 
-export default ScrollableTabSelectorContextProvider;
+export default TabSelectorContextProvider;
 
-export {ScrollableTabSelectorContext};
+export {TabSelectorContext};
