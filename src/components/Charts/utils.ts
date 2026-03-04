@@ -1,6 +1,7 @@
 import type { SkFont } from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import type { ChartDataPoint, PieSlice } from './types';
+import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
+import type { ChartDataPoint, LabelRotation, PieSlice } from './types';
 
 /**
  * Expensify Chart Color Palette.
@@ -185,6 +186,109 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
         ).slices;
 }
 
+/** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
+function truncateLabel(label: string, labelWidth: number, maxWidth: number, ellipsisWidth: number): string {
+    if (labelWidth <= maxWidth) {
+        return label;
+    }
+    const available = maxWidth - ellipsisWidth;
+    if (available <= 0) {
+        return ELLIPSIS;
+    }
+    const maxChars = Math.max(1, Math.floor(label.length * (available / labelWidth)));
+    return label.slice(0, maxChars) + ELLIPSIS;
+}
+
+/** Horizontal footprint of a label at a given rotation angle (for inter-tick overlap checks). */
+function effectiveWidth(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
+    if (rotation === LABEL_ROTATIONS.VERTICAL) {
+        return lineHeight;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        return labelWidth * SIN_45;
+    }
+    return labelWidth;
+}
+
+/** Vertical footprint of a label at a given rotation angle. */
+function effectiveHeight(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
+    if (rotation === LABEL_ROTATIONS.VERTICAL) {
+        return labelWidth;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        return labelWidth * SIN_45 + lineHeight * SIN_45;
+    }
+    return lineHeight;
+}
+
+/** How many labels fit side-by-side in `areaWidth` given each takes `itemWidth`. */
+function maxVisibleCount(areaWidth: number, itemWidth: number): number {
+    return Math.floor(areaWidth / (itemWidth + LABEL_PADDING));
+}
+
+/**
+ * How far a label extends beyond its tick position after rotation.
+ * Accounts for the rotatedLabelCenterCorrection translateX applied during rendering.
+ */
+function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean): {left: number; right: number} {
+    if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
+        return {left: labelWidth / 2, right: labelWidth / 2};
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        const halfLH = lineHeight / 2;
+        if (rightAligned) {
+            return {
+                left: (labelWidth + halfLH) * SIN_45,
+                right: halfLH * SIN_45,
+            };
+        }
+        const overhang = (labelWidth / 2 + halfLH) * SIN_45;
+        return {left: overhang, right: overhang};
+    }
+    return {left: lineHeight / 2, right: lineHeight / 2};
+}
+
+/** Check if first and last labels fit within the available canvas edge space. */
+function edgeLabelsFit({
+    firstLabelWidth,
+    lastLabelWidth,
+    lineHeight,
+    rotation,
+    firstTickLeftSpace,
+    lastTickRightSpace,
+    rightAligned,
+}: {
+    firstLabelWidth: number;
+    lastLabelWidth: number;
+    lineHeight: number;
+    rotation: LabelRotation;
+    firstTickLeftSpace: number;
+    lastTickRightSpace: number;
+    rightAligned: boolean;
+}): boolean {
+    const first = labelOverhang(firstLabelWidth, lineHeight, rotation, rightAligned);
+    const last = labelOverhang(lastLabelWidth, lineHeight, rotation, rightAligned);
+    return first.left <= firstTickLeftSpace && last.right <= lastTickRightSpace;
+}
+
+/**
+ * Maximum label width that fits within the available edge space at a given rotation.
+ * Returns Infinity when the overhang at that edge doesn't depend on label width.
+ */
+function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, rightAligned: boolean, edge: 'first' | 'last'): number {
+    const halfLH = lineHeight / 2;
+    if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
+        return 2 * edgeSpace;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        if (rightAligned) {
+            return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - halfLH) : Infinity;
+        }
+        return Math.max(0, 2 * (edgeSpace / SIN_45 - halfLH));
+    }
+    return Infinity;
+}
+
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
@@ -196,4 +300,11 @@ export {
     isAngleInSlice,
     findSliceAtPosition,
     processDataIntoSlices,
+    truncateLabel,
+    effectiveWidth,
+    effectiveHeight,
+    maxVisibleCount,
+    labelOverhang,
+    edgeLabelsFit,
+    edgeMaxLabelWidth,
 };
