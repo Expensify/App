@@ -9,6 +9,7 @@ import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockHandleMoneyRequestStepScanParticipants = jest.fn();
+const mockGetMoneyRequestParticipantOptions = jest.fn().mockReturnValue([]);
 const mockDismissProductTraining = jest.fn();
 const mockRemoveDraftTransactions = jest.fn();
 const mockRemoveTransactionReceipt = jest.fn();
@@ -39,6 +40,7 @@ jest.mock('@libs/TransactionUtils', () => ({
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepScanParticipants: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
+    getMoneyRequestParticipantOptions: (...args: unknown[]) => mockGetMoneyRequestParticipantOptions(...args),
 }));
 
 jest.mock('@libs/actions/Welcome', () => ({
