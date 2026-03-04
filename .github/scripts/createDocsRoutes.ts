@@ -136,16 +136,16 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                     continue;
                 }
                 if (fs.statSync(entryPath).isDirectory()) {
-                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = SubFolder (e.g. "Export Errors")
+                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = "Troubleshoot SubFolder"
                     for (const file of fs.readdirSync(entryPath)) {
                         const filePath = `${entryPath}/${file}`;
                         if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
                             const order = getOrderFromArticleFrontMatter(filePath);
-                            articles.push(getArticleObj(`${entry}/${file}`, order, entry));
+                            articles.push(getArticleObj(`${entry}/${file}`, order, `Troubleshoot ${entry}`));
                             continue;
                         }
                         if (fs.statSync(filePath).isDirectory()) {
-                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = NestedFolder (e.g. "Authentication and Login Errors")
+                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = "Troubleshoot NestedFolder" (e.g. "Troubleshoot Export Errors")
                             for (const nestedFile of fs.readdirSync(filePath)) {
                                 if (!nestedFile.endsWith('.md')) {
                                     continue;
@@ -155,7 +155,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
                                     continue;
                                 }
                                 const order = getOrderFromArticleFrontMatter(nestedPath);
-                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, file));
+                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, `Troubleshoot ${file}`));
                             }
                         }
                     }
