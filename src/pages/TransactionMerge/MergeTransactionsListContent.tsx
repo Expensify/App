@@ -86,44 +86,34 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const shouldShowTextInput = data.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    const filteredData = useMemo(() => {
-        if (!debouncedSearchValue.trim() || !shouldShowTextInput) {
-            return data;
-        }
-        return tokenizedSearch(data, debouncedSearchValue, (transaction) => {
-            const searchableFields: string[] = [];
-            const merchant = getMerchant(transaction);
-            if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
-                searchableFields.push(merchant);
-            }
-            const description = getDescription(transaction);
-            if (description.trim()) {
-                searchableFields.push(description);
-            }
-            const amount = getAmount(transaction);
-            const currency = getCurrency(transaction);
-            searchableFields.push(convertToDisplayString(amount, currency));
-            searchableFields.push((amount / 100).toString());
-            return searchableFields;
-        });
-    }, [data, debouncedSearchValue, shouldShowTextInput]);
+    const filteredData =
+        !debouncedSearchValue.trim() || !shouldShowTextInput
+            ? data
+            : tokenizedSearch(data, debouncedSearchValue, (transaction) => {
+                  const searchableFields: string[] = [];
+                  const merchant = getMerchant(transaction);
+                  if (merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) {
+                      searchableFields.push(merchant);
+                  }
+                  const description = getDescription(transaction);
+                  if (description.trim()) {
+                      searchableFields.push(description);
+                  }
+                  const amount = getAmount(transaction);
+                  const currency = getCurrency(transaction);
+                  searchableFields.push(convertToDisplayString(amount, currency));
+                  searchableFields.push((amount / 100).toString());
+                  return searchableFields;
+              });
 
-    const headerMessage = useMemo(() => {
-        if (debouncedSearchValue.trim() && filteredData.length === 0) {
-            return translate('common.noResultsFound');
-        }
-        return '';
-    }, [debouncedSearchValue, filteredData.length, translate]);
+    const headerMessage = debouncedSearchValue.trim() && filteredData.length === 0 ? translate('common.noResultsFound') : '';
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: shouldShowTextInput ? translate('common.search') : undefined,
-            onChangeText: setSearchValue,
-            headerMessage,
-        }),
-        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
-    );
+    const textInputOptions = {
+        value: searchValue,
+        label: shouldShowTextInput ? translate('common.search') : undefined,
+        onChangeText: setSearchValue,
+        headerMessage,
+    };
 
     const handleSelectRow = (item: MergeTransactionListItemType) => {
         // Clear the merge transaction data when select a new source transaction to merge
