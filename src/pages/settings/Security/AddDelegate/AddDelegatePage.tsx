@@ -39,6 +39,7 @@ function AddDelegatePage() {
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        prioritizeSelectedOnToggle: false,
         onSingleSelect: (option) => {
             Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
         },

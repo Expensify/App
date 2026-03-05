@@ -1,10 +1,11 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {GetOptionsConfig, Options, SearchOption} from '@libs/OptionsListUtils';
 import {getEmptyOptions, getSearchOptions, getSearchValueForPhoneOrEmail, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {moveInitialSelectionToTopByKey} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -67,6 +68,15 @@ type UseSearchSelectorConfig = {
 
     /** Additional contact options to merge (used by platform-specific implementations) */
     contactOptions?: Array<SearchOption<PersonalDetails>>;
+
+    /** Whether to prioritize currently selected options when toggling (defaults to true to preserve existing behavior) */
+    prioritizeSelectedOnToggle?: boolean;
+
+    /** Optional snapshot of initially selected option keys to use when prioritization should remain frozen */
+    initialSelectedKeys?: string[];
+
+    /** Custom key extractor for ordering when initialSelectedKeys is provided */
+    getKeyForOption?: (option: OptionData) => string;
 };
 
 type ContactState = {
@@ -147,6 +157,9 @@ function useSearchSelectorBase({
     shouldInitialize = true,
     contactOptions,
     includeCurrentUser = false,
+    prioritizeSelectedOnToggle = true,
+    initialSelectedKeys,
+    getKeyForOption,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
@@ -166,6 +179,15 @@ function useSearchSelectorBase({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
+    const [initialSelectedKeysSnapshot, setInitialSelectedKeysSnapshot] = useState<string[]>(() =>
+        initialSelectedKeys ??
+        (initialSelected ?? []).map((option) => {
+            if (getKeyForOption) {
+                return getKeyForOption(option);
+            }
+            return option.login ?? option.reportID ?? option.accountID?.toString() ?? option.text ?? '';
+        }),
+    );
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -189,6 +211,68 @@ function useSearchSelectorBase({
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     }, [debouncedSearchTerm, countryCode]);
     const trimmedSearchInput = debouncedSearchTerm.trim();
+
+    const optionKeyExtractor = useCallback(
+        (option: OptionData) => {
+            if (getKeyForOption) {
+                return getKeyForOption(option);
+            }
+            return option.login ?? option.reportID ?? option.accountID?.toString() ?? option.text ?? '';
+        },
+        [getKeyForOption],
+    );
+
+    const selectedOptionKeys = useMemo(() => selectedOptions.map(optionKeyExtractor), [selectedOptions, optionKeyExtractor]);
+
+    useEffect(() => {
+        setInitialSelectedKeysSnapshot(
+            initialSelectedKeys ??
+                (initialSelected ?? []).map((option) => {
+                    const key = optionKeyExtractor(option);
+                    return key;
+                }),
+        );
+    }, [initialSelectedKeys, initialSelected, optionKeyExtractor]);
+
+    const keysForPrioritization = prioritizeSelectedOnToggle ? selectedOptionKeys : initialSelectedKeysSnapshot;
+
+    const reorderOptions = useCallback(
+        (optionsList: OptionData[]) => {
+            if (
+                debouncedSearchTerm ||
+                !keysForPrioritization.length ||
+                optionsList.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD
+            ) {
+                return optionsList;
+            }
+
+            const optionKeys = optionsList.map(optionKeyExtractor);
+            const orderedKeys = moveInitialSelectionToTopByKey(optionKeys, keysForPrioritization);
+            const optionsByKey = new Map<string, OptionData[]>();
+
+            optionsList.forEach((option) => {
+                const key = optionKeyExtractor(option);
+                const bucket = optionsByKey.get(key) ?? [];
+                bucket.push(option);
+                optionsByKey.set(key, bucket);
+            });
+
+            const reordered: OptionData[] = [];
+            orderedKeys.forEach((key) => {
+                const bucket = optionsByKey.get(key);
+                if (!bucket || bucket.length === 0) {
+                    return;
+                }
+                const nextOption = bucket.shift();
+                if (nextOption) {
+                    reordered.push(nextOption);
+                }
+            });
+
+            return reordered;
+        },
+        [debouncedSearchTerm, keysForPrioritization, optionKeyExtractor],
+    );
 
     const baseOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -332,16 +416,20 @@ function useSearchSelectorBase({
     }, [selectedOptions]);
 
     const searchOptions = useMemo(() => {
+        const mappedPersonalDetails = baseOptions.personalDetails.map((option) => ({
+            ...option,
+            isSelected: isOptionSelected(option),
+        }));
+
+        const mappedRecentReports = baseOptions.recentReports.map((option) => ({
+            ...option,
+            isSelected: isOptionSelected(option),
+        }));
+
         return {
             ...baseOptions,
-            personalDetails: baseOptions.personalDetails.map((option) => ({
-                ...option,
-                isSelected: isOptionSelected(option),
-            })),
-            recentReports: baseOptions.recentReports.map((option) => ({
-                ...option,
-                isSelected: isOptionSelected(option),
-            })),
+            personalDetails: reorderOptions(mappedPersonalDetails),
+            recentReports: reorderOptions(mappedRecentReports),
             userToInvite: baseOptions.userToInvite
                 ? {
                       ...baseOptions.userToInvite,
@@ -349,7 +437,7 @@ function useSearchSelectorBase({
                   }
                 : null,
         };
-    }, [baseOptions, isOptionSelected]);
+    }, [baseOptions, isOptionSelected, reorderOptions]);
 
     const availableOptions = useMemo(() => {
         const unselectedRecentReports = searchOptions.recentReports.filter((option) => !option.isSelected);
