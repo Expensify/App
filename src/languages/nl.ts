@@ -7523,6 +7523,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
+        contextMenuAvailable: 'Contextmenu beschikbaar. Druk op Shift+F10 om het te openen.',
         selectAllFeatures: 'Selecteer alle functies',
         selectAllTransactions: 'Selecteer alle transacties',
         selectAllItems: 'Alle items selecteren',

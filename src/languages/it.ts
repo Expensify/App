@@ -7545,6 +7545,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         scrollToNewestMessages: 'Scorri ai messaggi più recenti',
         preStyledText: 'Testo preformattato',
         viewAttachment: 'Visualizza allegato',
+        contextMenuAvailable: 'Menu contestuale disponibile. Premi Shift+F10 per aprirlo.',
         selectAllFeatures: 'Seleziona tutte le funzionalità',
         selectAllTransactions: 'Seleziona tutte le transazioni',
         selectAllItems: 'Seleziona tutti gli elementi',

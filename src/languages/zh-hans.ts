@@ -7341,6 +7341,7 @@ ${reportName}
         scrollToNewestMessages: '滚动到最新消息',
         preStyledText: '预设样式文本',
         viewAttachment: '查看附件',
+        contextMenuAvailable: '上下文菜单可用。按 Shift+F10 打开。',
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
