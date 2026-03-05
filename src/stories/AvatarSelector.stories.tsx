@@ -21,7 +21,6 @@ const story: Meta<typeof AvatarSelector> = {
 function Template(props: AvatarSelectorProps) {
     const [selected, setSelected] = useState(props.selectedID);
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <AvatarSelector
             {...props}
