@@ -187,14 +187,16 @@ function MoneyRequestReportTransactionList({
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, undefined, undefined, lastDistanceExpenseType),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, lastDistanceExpenseType],
+        () =>
+            getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, undefined, undefined, lastDistanceExpenseType),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -310,19 +312,24 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
+    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
+    // the effect only re-fires when the actual content changes.
+    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
-    }, [visualOrderTransactionIDs]);
-
-    useEffect(() => {
         return () => {
             clearActiveTransactionIDs();
         };
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
+    }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();

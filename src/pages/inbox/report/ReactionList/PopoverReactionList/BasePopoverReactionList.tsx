@@ -15,7 +15,6 @@ type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopove
 function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails, ref}: PopoverReactionListProps) {
     const {preferredLocale} = useLocalize();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reactionReportActionID = reportActionID || CONST.DEFAULT_NUMBER_ID;
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reactionReportActionID}`);
     const {isPopoverVisible, hideReactionList, showReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({

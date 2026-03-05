@@ -11,17 +11,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {setTransactionReport} from '@libs/actions/Transaction';
-import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -76,12 +73,11 @@ function IOURequestStepDestination({
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
-    const defaultExpensePolicy = useDefaultExpensePolicy();
-    const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
@@ -114,14 +110,15 @@ function IOURequestStepDestination({
         if (isEmptyObject(customUnit)) {
             return;
         }
-        let targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
-        let targetIouType = iouType;
-        let transactionReportID;
+        const targetReport: OnyxEntry<Report> = explicitPolicyID && transaction?.isFromGlobalCreate ? policyExpenseReport : report;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
+                setTransactionReport(transactionID, {reportID: targetReport?.reportID}, true);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID, false);
+                } else {
+                    setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID);
+                }
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
@@ -133,7 +130,7 @@ function IOURequestStepDestination({
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, targetReport?.reportID ?? reportID));
         }
     };
 

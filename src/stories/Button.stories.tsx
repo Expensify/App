@@ -19,7 +19,6 @@ const story: Meta<typeof Button> = {
 };
 
 function Template(props: ButtonProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <Button {...props} />;
 }
 
@@ -36,7 +35,6 @@ function PressOnEnter(props: ButtonProps) {
     return (
         <Button
             {...props}
-            // eslint-disable-next-line react/prop-types
             text={text}
             onPress={onPress}
         />
