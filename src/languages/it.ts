@@ -516,8 +516,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attenzione!',
         submitTo: 'Invia a',
         forwardTo: 'Inoltra a',
-        approvalLimit: 'Limite di approvazione',
-        overLimitForwardTo: 'Inoltra se supera il limite',
         merge: 'Unisci',
         none: 'Nessuno',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la rete e riprova.',
@@ -547,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delega ferie',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Report duplicato',
+        approver: 'Approvante',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -1354,7 +1353,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `non approvata`,
         automaticallyForwarded: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: `approvato`,
-        rejectedThisReport: 'ha rifiutato questo report',
+        rejectedThisReport: 'rifiutato',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -2181,12 +2180,36 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Aggiungi carta personale',
+        addCompanyCard: 'Aggiungi carta aziendale',
+        lookingForCompanyCards: 'Devi aggiungere carte aziendali?',
+        lookingForCompanyCardsDescription: 'Collega le tue carte da oltre 10.000 banche in tutto il mondo.',
+        personalCardAdded: 'Carta personale aggiunta!',
+        personalCardAddedDescription: 'Congratulazioni, inizieremo a importare le transazioni dalla tua carta.',
+        isPersonalCard: 'È una carta personale?',
+        thisIsPersonalCard: 'Questa è una carta personale',
+        thisIsCompanyCard: 'Questa è una carta aziendale',
+        askAdmin: 'Chiedi al tuo amministratore',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Se sì, ottimo! Ma se è una carta <strong>aziendale</strong>, ${isAdmin ? 'assegnala dal tuo spazio di lavoro.' : 'chiedi al tuo amministratore di assegnartela dallo spazio di lavoro.'}`,
+        bankConnectionError: 'Problema di connessione bancaria',
+        bankConnectionDescription: 'Riprova ad aggiungere le tue carte. Altrimenti puoi',
+        connectWithPlaid: 'connetterti tramite Plaid.',
         fixCard: 'Correggi carta',
         brokenConnection: 'La connessione della tua carta è interrotta.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
+        addAdditionalCards: 'Aggiungi altre carte',
+        upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crea uno spazio di lavoro per usare questa funzione, o <a href="${subscriptionLink}">scopri di più</a> su piani e prezzi.</muted-text>`,
+        workspaceCreated: 'Spazio di lavoro creato',
+        newWorkspace: 'Hai creato uno spazio di lavoro!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Ora puoi aggiungere altre carte. <a href="${subscriptionLink}">Visualizza l'abbonamento</a> per i dettagli.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -5265,6 +5288,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         title: (amount: string) => `Pagare il saldo di ${amount}?`,
                         body: 'Il pagamento verrà messo in coda ed elaborato a breve. Questa azione non può essere annullata una volta avviata.',
                     },
+                    enabled: 'Fatturazione centralizzata abilitata!',
+                    enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora centralizzate in una fattura mensile.',
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },
