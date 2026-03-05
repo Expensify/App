@@ -8,7 +8,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -460,10 +460,10 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 onLoadFailure={() => setIsLoading(false)}
                             />
                             {canShowReceiptActions && (
-                                <View style={[styles.receiptActionButtonsContainer, !hovered && !isTouchScreen && styles.opacity0]}>
+                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isTouchScreen && styles.opacity0]}>
                                     <AttachmentPicker>
                                         {({openPicker}) => (
-                                            <PressableWithFeedback
+                                            <PressableWithoutFeedback
                                                 onPress={() => {
                                                     openPicker({
                                                         onPicked: (files) => {
@@ -481,36 +481,40 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                         },
                                                     });
                                                 }}
-                                                style={styles.primaryMediumIcon}
+                                                style={styles.receiptActionButton}
                                                 accessibilityLabel={translate('reportActionCompose.addAttachment')}
                                                 role={CONST.ROLE.BUTTON}
                                                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
                                             >
-                                                <Icon
-                                                    src={lazyIcons.ReceiptPlus}
-                                                    height={variables.iconSizeSmall}
-                                                    width={variables.iconSizeSmall}
-                                                    fill={theme.icon}
-                                                />
-                                            </PressableWithFeedback>
+                                                <View style={styles.primaryMediumIcon}>
+                                                    <Icon
+                                                        src={lazyIcons.ReceiptPlus}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </View>
+                                            </PressableWithoutFeedback>
                                         )}
                                     </AttachmentPicker>
-                                    <PressableWithFeedback
+                                    <PressableWithoutFeedback
                                         onPress={() =>
                                             Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly))
                                         }
-                                        style={styles.primaryMediumIcon}
+                                        style={styles.receiptActionButton}
                                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                         role={CONST.ROLE.BUTTON}
                                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
                                     >
-                                        <Icon
-                                            src={lazyIcons.Expand}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            fill={theme.icon}
-                                        />
-                                    </PressableWithFeedback>
+                                        <View style={styles.primaryMediumIcon}>
+                                            <Icon
+                                                src={lazyIcons.Expand}
+                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeSmall}
+                                                fill={theme.icon}
+                                            />
+                                        </View>
+                                    </PressableWithoutFeedback>
                                 </View>
                             )}
                         </View>

@@ -3630,6 +3630,13 @@ const staticStyles = (theme: ThemeColors) =>
             gap: 8,
         },
 
+        receiptActionButton: {
+            width: 40,
+            height: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         bgGreenSuccess: {
             backgroundColor: colors.green400,
         },
