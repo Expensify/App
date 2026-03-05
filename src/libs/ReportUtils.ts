@@ -360,7 +360,6 @@ type BuildOptimisticAddCommentReportActionParams = {
     file?: FileObject;
     actorAccountID?: number;
     createdOffset?: number;
-    shouldEscapeText?: boolean;
     reportID?: string;
     reportActionID?: string;
     attachmentID?: string;
@@ -11589,7 +11588,7 @@ function prepareOnboardingOnyxData({
     if (shouldUseFollowupsInsteadOfTasks && companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
         bespokeWelcomeMessage = getBespokeWelcomeMessage(userReportedIntegration);
         optimisticConciergeReportActionID = rand64();
-        bespokeAction = buildOptimisticAddCommentReportAction(bespokeWelcomeMessage, undefined, CONST.ACCOUNT_ID.CONCIERGE, 2, targetChatReportID, optimisticConciergeReportActionID);
+        bespokeAction = buildOptimisticAddCommentReportAction({text: bespokeWelcomeMessage, actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, createdOffset: 2, reportID: targetChatReportID, reportActionID: optimisticConciergeReportActionID});
     }
 
     let createWorkspaceTaskReportID;
