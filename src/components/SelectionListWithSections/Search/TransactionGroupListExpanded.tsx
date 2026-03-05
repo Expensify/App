@@ -58,6 +58,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
 
     const transactionsSnapshotMetadata = transactionsSnapshot?.search;
@@ -112,7 +113,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(transactionItem, backTo, transactionItem?.reportAction?.childReportID);
+                createAndOpenSearchTransactionThread(
+                    transactionItem,
+                    introSelected,
+                    backTo,
+                    currentUserDetails.email ?? '',
+                    currentUserDetails.accountID,
+                    transactionItem?.reportAction?.childReportID,
+                );
                 return;
             }
             markReportIDAsExpense(reportID);
@@ -196,6 +204,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 const transactionRow = (
                     <TransactionItemRow
                         report={transaction.report}
+                        policy={transaction.policy}
                         transactionItem={transaction}
                         violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
                         isSelected={!!transaction.isSelected}

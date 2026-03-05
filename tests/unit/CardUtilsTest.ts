@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -25,6 +26,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardsByCardholderName,
+    getCardSettings,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -43,6 +45,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
@@ -1736,6 +1739,57 @@ describe('CardUtils', () => {
             const filteredCards = getFilteredCardList(undefined, accountList, mockAllWorkspaceCards);
             expect(filteredCards).toStrictEqual([{cardName: unassignedCard, cardID: unassignedCard}]);
         });
+
+        it('Should filter parent cards only when a child card has matching digits for Amex Direct (FDX) feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 11111', 'Platinum Card - JOHN SMITH - 33333'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - JANE DOE - 11111', cardID: 'Platinum Card - JANE DOE - 11111'},
+                {cardName: 'Platinum Card - JOHN SMITH - 33333', cardID: 'Platinum Card - JOHN SMITH - 33333'},
+            ]);
+        });
+
+        it('Should not filter parent cards when no child card has matching digits for Amex Direct feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 22222', 'Platinum Card - JOHN SMITH - 33333'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - 11111', cardID: 'Platinum Card - 11111'},
+                {cardName: 'Platinum Card - JANE DOE - 22222', cardID: 'Platinum Card - JANE DOE - 22222'},
+                {cardName: 'Platinum Card - JOHN SMITH - 33333', cardID: 'Platinum Card - JOHN SMITH - 33333'},
+            ]);
+        });
+
+        it('Should filter multiple parent cards across card programs for Amex Direct feeds', () => {
+            const amexDirectFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}11111#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['Platinum Card - 11111', 'Platinum Card - JANE DOE - 11111', 'Gold Card - 44444', 'Gold Card - JOHN SMITH - 44444'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, amexDirectFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Platinum Card - JANE DOE - 11111', cardID: 'Platinum Card - JANE DOE - 11111'},
+                {cardName: 'Gold Card - JOHN SMITH - 44444', cardID: 'Gold Card - JOHN SMITH - 44444'},
+            ]);
+        });
+
+        it('Should not filter cards for non-Amex Direct feeds', () => {
+            const chaseFeedName = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#domain123` as CompanyCardFeedWithDomainID;
+            const accountList = ['CREDIT CARD...6607', 'CREDIT CARD...5501'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined, chaseFeedName);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'CREDIT CARD...6607', cardID: 'CREDIT CARD...6607'},
+                {cardName: 'CREDIT CARD...5501', cardID: 'CREDIT CARD...5501'},
+            ]);
+        });
+
+        it('Should not filter cards when feedName is not provided', () => {
+            const accountList = ['Card 1', 'Card 2', 'Card 3'];
+            const cardsList = getFilteredCardList(undefined, accountList, undefined);
+            expect(cardsList).toStrictEqual([
+                {cardName: 'Card 1', cardID: 'Card 1'},
+                {cardName: 'Card 2', cardID: 'Card 2'},
+                {cardName: 'Card 3', cardID: 'Card 3'},
+            ]);
+        });
     });
 
     describe('hasOnlyOneCardToAssign', () => {
@@ -2123,6 +2177,27 @@ describe('CardUtils', () => {
             };
             const description = getCardDescription(card, translateLocal);
             expect(description).toBe('Visa • 2554');
+        });
+
+        it('should return the CSV card display name instead of card ID', () => {
+            const card: Card = {
+                accountID: 18439984,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CSV,
+                cardID: 21310091,
+                cardName: 'CSV_CARD_ID_123',
+                domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                fraud: 'none',
+                lastFourPAN: '123',
+                lastUpdated: '',
+                lastScrape: '2024-11-27 11:00:53',
+                scrapeMinDate: '2024-10-17',
+                state: 3,
+                nameValuePairs: {
+                    cardTitle: 'Marketing Team Card',
+                } as Card['nameValuePairs'],
+            };
+            const description = getCardDescription(card, translateLocal);
+            expect(description).toBe('Marketing Team Card');
         });
 
         it('should return the correct card description for Expensify card', () => {
@@ -3160,5 +3235,225 @@ describe('CardUtils', () => {
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
             expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
+    });
+
+    describe('isCardAlreadyAssigned', () => {
+        it('should detect Plaid card assigned in the same workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should detect Plaid card assigned in a different workspace with the same feed', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Workspace 100 checking, card is assigned in workspace 200 — should be detected
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should not match Plaid card from a different institution', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_99`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different institution feed (plaid.ins_19 vs plaid.ins_99)
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect commercial card assigned in the same domain', () => {
+            const workspaceCardFeeds = {
+                cards_100_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100, 'vcf')).toBe(true);
+        });
+
+        it('should not match commercial card with same display name in a different domain', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_DOMAIN_200',
+                        state: 3,
+                        domainName: 'other-company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different domain, different encrypted number — should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_DOMAIN_100', workspaceCardFeeds, 100, 'vcf')).toBe(false);
+        });
+
+        it('should not match card pending deletion', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect OAuth card assigned in a different workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_oauth.chase.com`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'CREDIT CARD...6607',
+                        encryptedCardNumber: 'CREDIT CARD...6607',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(true);
+        });
+
+        it('should fall back to domain-scoped check when feedName is not provided', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'other.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Without feedName, falls back to domain-scoped — domain 100 vs 200, should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100)).toBe(false);
+            // Same domain should match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 200)).toBe(true);
+        });
+    });
+    describe('getCardSettings', () => {
+        const flatSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            currentBalance: 1000,
+            remainingLimit: 49000,
+        } as ExpensifyCardSettings;
+
+        const nestedSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            US: {
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            },
+            TRAVEL_US: {
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            },
+        } as ExpensifyCardSettings;
+
+        it('should return undefined when cardSettings is undefined', () => {
+            expect(getCardSettings(undefined)).toBeUndefined();
+        });
+
+        it('should return undefined when cardSettings is null', () => {
+            // OnyxEntry may resolve to undefined rather than null,
+            // but we cast to cover runtime safety
+            expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
+        });
+
+        it('should return flat root when feedCountry is not provided', () => {
+            const result = getCardSettings(flatSettings);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return flat root when feedCountry is undefined', () => {
+            const result = getCardSettings(flatSettings, undefined);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return nested object when feedCountry matches a nested key', () => {
+            const result = getCardSettings(nestedSettings, 'US');
+            expect(result).toEqual({
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            });
+        });
+
+        it('should fall back to flat root when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA');
+            expect(result).toBe(nestedSettings);
+        });
+
+        it('should return TRAVEL_US nested settings when feedCountry is TRAVEL_US', () => {
+            const result = getCardSettings(nestedSettings, 'TRAVEL_US');
+            expect(result).toEqual({
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            });
+        });
+
+        it('should not return primitive values as nested settings', () => {
+            const result = getCardSettings(nestedSettings, 'limit');
+            expect(result).toBe(nestedSettings);
+        });
+    });
+});
+
+describe('formatMaskedCardName', () => {
+    it('pads a 4-digit card name with leading Xs and groups into 4-char segments', () => {
+        expect(formatMaskedCardName('3191')).toBe('XXXX-XXXX-XXXX-3191');
+    });
+
+    it('groups a full 16-char masked card name into 4-char segments', () => {
+        expect(formatMaskedCardName('553312XXXXXX3223')).toBe('5533-12XX-XXXX-3223');
+    });
+
+    it('returns non-commercial card names unchanged', () => {
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });
