@@ -212,6 +212,23 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                 close(showOfflineModal);
                                 return;
                             }
+                            if (isTrackingGPS) {
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                close(async () => {
+                                    const result = await showGpsInProgressModal();
+
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+
+                                    stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((stopError) =>
+                                        console.error('[GPS distance request] Failed to stop location tracking', stopError),
+                                    );
+
+                                    connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                                });
+                                return;
+                            }
                             connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
                         },
                     });
