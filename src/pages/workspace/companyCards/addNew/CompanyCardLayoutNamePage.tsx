@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidInputLength} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -44,9 +44,9 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM> => {
         const errors = getFieldRequiredErrors(values, requiredFields, translate);
-        const length = values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME].length;
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            addErrorMessage(errors, INPUT_IDS.COMPANY_CARD_LAYOUT_NAME, translate('common.error.characterLimitExceedCounter', length, CONST.STANDARD_LENGTH_LIMIT));
+        const {isValid, byteLength} = isValidInputLength(values[INPUT_IDS.COMPANY_CARD_LAYOUT_NAME], CONST.STANDARD_LENGTH_LIMIT);
+        if (!isValid) {
+            addErrorMessage(errors, INPUT_IDS.COMPANY_CARD_LAYOUT_NAME, translate('common.error.characterLimitExceedCounter', byteLength, CONST.STANDARD_LENGTH_LIMIT));
         }
         return errors;
     };

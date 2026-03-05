@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -40,7 +40,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const layoutType = useMemo(() => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`, [prefilledLayoutType]);
     const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
 
-    const columnNames = useMemo(() => generateColumnNames(spreadsheet?.data?.length ?? 0), [spreadsheet?.data?.length]);
+    const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
     const columnRoles: ColumnRole[] = useMemo(() => {
         const baseRoles: ColumnRole[] = [
@@ -69,9 +69,9 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         return [...baseRoles, ...advancedRoles];
     }, [shouldUseAdvancedFields, translate]);
 
-    const requiredColumns = useMemo(() => columnRoles.filter((role) => role.isRequired), [columnRoles]);
+    const requiredColumns = columnRoles.filter((role) => role.isRequired);
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
@@ -90,11 +90,11 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             }
         }
         return errors;
-    }, [spreadsheet?.columns, requiredColumns, translate]);
+    };
 
-    const validationErrors = useMemo(() => validate(), [validate]);
+    const validationErrors = validate();
 
-    const importTransactions = useCallback(() => {
+    const importTransactions = () => {
         const errors = validate();
         if (Object.keys(errors).length > 0) {
             return;
@@ -109,10 +109,9 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
         // Transform columns-based data to rows-based data.
         const columns = spreadsheet?.data ?? [];
-        const shouldOmitHeaderRow = !(spreadsheet?.containsHeader ?? true);
         const rows: string[][] = [];
         if (columns.length > 0) {
-            const startRowIndex = shouldOmitHeaderRow ? 1 : 0;
+            const startRowIndex = spreadsheet?.containsHeader ? 1 : 0;
             for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
                 const row: string[] = [];
                 for (const column of columns) {
@@ -134,20 +133,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,
         });
-    }, [
-        validate,
-        layoutName,
-        columnNames,
-        spreadsheet?.columns,
-        spreadsheet?.data,
-        spreadsheet?.containsHeader,
-        policyID,
-        layoutType,
-        workspaceAccountID,
-        existingCardsList,
-        lastSelectedFeed,
-        workspaceCardFeeds,
-    ]);
+    };
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return null;
