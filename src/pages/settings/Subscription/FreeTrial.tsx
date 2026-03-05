@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import {Star} from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,21 +24,21 @@ type FreeTrialProps = {
 
 function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success = true, inARow = false}: FreeTrialProps) {
     const styles = useThemeStyles();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const privateSubscription = usePrivateSubscription();
 
-    const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
-    useEffect(() => {
+    const freeTrialText = useMemo(() => {
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial));
+        return getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
     }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
 
     if (!freeTrialText) {
@@ -47,7 +47,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const freeTrial = pressable ? (
         <Button
-            icon={Star}
+            icon={icons.Star}
             success={success}
             text={freeTrialText}
             iconWrapperStyles={[styles.mw100]}
@@ -56,6 +56,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     ) : (
         <Badge
             success={success}
+            isCondensed
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />

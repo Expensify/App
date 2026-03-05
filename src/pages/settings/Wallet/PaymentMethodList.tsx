@@ -6,10 +6,9 @@ import type {ReactElement} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
@@ -19,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -37,11 +37,13 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, Policy} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -168,33 +170,40 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines'] as const);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
-        canBeMissing: true,
     });
-    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const cardDomains = shouldShowAssignedCards
-        ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !!card.domainName)
-              .map((card) => card.domainName)
-        : [];
+    const cardDomains = useMemo(
+        () =>
+            shouldShowAssignedCards
+                ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
+                      .filter((card) => !!card.domainName)
+                      .map((card) => card.domainName)
+                : [],
+        [shouldShowAssignedCards, isLoadingCardList, cardList],
+    );
+    const policiesForDomainCardsSelectorFactory = useMemo(() => createPoliciesForDomainCardsSelector(cardDomains), [cardDomains]);
+    const policiesForDomainCardsSelector = useCallback((policies: OnyxCollection<Policy>) => policiesForDomainCardsSelectorFactory(policies), [policiesForDomainCardsSelectorFactory]);
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: createPoliciesForDomainCardsSelector(cardDomains),
+        selector: policiesForDomainCardsSelector,
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+    const shouldShowListFooterComponent = shouldShowAddBankAccount;
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -227,7 +236,7 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
+                } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
@@ -364,7 +373,22 @@ function PaymentMethodList({
                 });
             }
 
-            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped];
+            const travelCardGrouped: PaymentMethodItem[] = [];
+            const travelCard = getTravelInvoicingCard(workspaceCardList);
+            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), workspaceCardList) && travelCard) {
+                travelCardGrouped.push({
+                    title: translate('walletPage.travelCVV.title'),
+                    description: translate('walletPage.travelCVV.subtitle'),
+                    icon: expensifyIcons.LuggageWithLines,
+                    iconFill: colors.productLight100,
+                    iconStyles: styles.travelInvoicingIcon,
+                    shouldShowRightIcon: true,
+                    shouldShowThreeDotsMenu: false,
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV),
+                });
+            }
+
+            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped, ...travelCardGrouped];
             const personalCards = [translate('workspace.common.personalCards'), ...personalCardsGrouped];
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
@@ -446,18 +470,21 @@ function PaymentMethodList({
         filterCurrency,
         isLoadingCardList,
         cardList,
+        workspaceCardList,
+        isBetaEnabled,
+        onPress,
+        policiesForAssignedCards,
         illustrations,
         companyCardFeedIcons,
         shouldShowRbrForFeedNameWithDomainID,
         privatePersonalDetails,
-        onPress,
         shouldShowRightIcon,
-        itemIconRight,
-        expensifyIcons.ThreeDots,
         activePaymentMethodID,
+        expensifyIcons.LuggageWithLines,
+        expensifyIcons.ThreeDots,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
-        policiesForAssignedCards,
+        itemIconRight,
     ]);
 
     const onPressItem = useCallback(() => {
@@ -478,13 +505,13 @@ function PaymentMethodList({
             <MenuItem
                 onPress={onPressItem}
                 title={translate('bankAccount.addBankAccount')}
-                icon={Expensicons.Plus}
+                icon={expensifyIcons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 
-        [onPressItem, translate, styles.paymentMethod, listItemStyle],
+        [onPressItem, translate, expensifyIcons.Plus, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {
@@ -548,13 +575,13 @@ function PaymentMethodList({
     );
 
     return (
-        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
+        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowListFooterComponent ? 1 : 0)) * variables.optionRowHeight}]}>
             <FlashList<PaymentMethod | string>
                 data={itemsToRender}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={listHeaderComponent}
-                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
+                ListFooterComponent={shouldShowListFooterComponent ? renderListFooterComponent : null}
                 onContentSizeChange={onListContentSizeChange}
             />
         </View>

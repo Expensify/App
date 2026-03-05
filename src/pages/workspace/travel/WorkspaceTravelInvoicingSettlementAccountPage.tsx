@@ -1,4 +1,7 @@
 import React from 'react';
+import BankAccountVerificationView from '@components/BankAccountVerificationView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
@@ -8,9 +11,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {setTravelInvoicingSettlementAccount, toggleTravelInvoicing} from '@libs/actions/TravelInvoicing';
+import {configureTravelInvoicingForPolicy, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
@@ -25,21 +28,37 @@ import type {BankName} from '@src/types/onyx/Bank';
 
 type WorkspaceTravelInvoicingSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT>;
 
-/**
- * Settlement account selection page for Travel Invoicing.
- * Uses the SettlementAccountSelector component for the selection UI.
- */
 function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelInvoicingSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isLoading = !!cardSettings?.isLoading;
+    const isSuccess = !!cardSettings?.isSuccess;
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const paymentBankAccountID = travelSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
+
+    const getVerificationState = () => {
+        if (cardOnWaitlist) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
+        }
+        if (isSuccess) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
+        }
+        if (isLoading) {
+            return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING;
+        }
+        return '';
+    };
+
+    const verificationState = getVerificationState();
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts?.map((bankAccount) => {
         const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -59,21 +78,18 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [];
 
     const handleSelectAccount = (value: number) => {
-        // If the same account is already selected, just close the page without making an API call
         if (value === paymentBankAccountID) {
             Navigation.goBack();
             return;
         }
 
-        const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
-        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
-
-        // If Travel Invoicing is not yet enabled, enable it after setting the settlement account
-        // Backend requires settlement account to be configured before enabling
-        if (!getIsTravelInvoicingEnabled(cardSettings)) {
-            toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        if (!isTravelInvoicingEnabled) {
+            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, value);
+            return;
         }
 
+        const previousPaymentBankAccountID = cardSettings?.previousPaymentBankAccountID ?? cardSettings?.paymentBankAccountID;
+        setTravelInvoicingSettlementAccount(policyID, workspaceAccountID, value, previousPaymentBankAccountID);
         Navigation.goBack();
     };
 
@@ -89,6 +105,18 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
 
     const customHeaderContent = <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>;
 
+    const getHeaderTitle = () => {
+        switch (verificationState) {
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST:
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING:
+                return translate('workspace.expensifyCard.verifyingHeader');
+            case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
+                return translate('workspace.moreFeatures.travel.travelInvoicing.enabled');
+            default:
+                return translate('workspace.expensifyCard.settlementAccount');
+        }
+    };
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -99,19 +127,31 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
                 testID="WorkspaceTravelInvoicingSettlementAccountPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
+                shouldShowOfflineIndicator={false}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.expensifyCard.settlementAccount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <SettlementAccountSelector
-                    listOptions={listOptions}
-                    onSelectAccount={handleSelectAccount}
-                    onAddNewBankAccount={handleAddNewBankAccount}
-                    showAddNewAccountOption
-                    customHeaderContent={customHeaderContent}
-                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
-                />
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
+                    <HeaderWithBackButton
+                        title={getHeaderTitle()}
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                    <BankAccountVerificationView
+                        verificationState={verificationState}
+                        onVerifiedButtonPress={() => Navigation.goBack()}
+                        verifiedTitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabled')}
+                        verifiedSubtitle={translate('workspace.moreFeatures.travel.travelInvoicing.enabledDescription')}
+                    >
+                        <FullPageOfflineBlockingView addBottomSafeAreaPadding>
+                            <SettlementAccountSelector
+                                listOptions={listOptions}
+                                onSelectAccount={handleSelectAccount}
+                                onAddNewBankAccount={handleAddNewBankAccount}
+                                showAddNewAccountOption
+                                customHeaderContent={customHeaderContent}
+                                initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                            />
+                        </FullPageOfflineBlockingView>
+                    </BankAccountVerificationView>
+                </DelegateNoAccessWrapper>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

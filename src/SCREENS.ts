@@ -40,6 +40,7 @@ const SCREENS = {
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
+        MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'Travel_MissingPersonalDetails_ConfirmMagicCode',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -60,6 +61,7 @@ const SCREENS = {
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
         ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
         ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_EXPORTED_TO_RHP: 'Search_Advanced_Filters_Exported_To_RHP',
         ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_WITHDRAWN_RHP: 'Search_Advanced_Filters_Withdrawn_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
@@ -178,7 +180,6 @@ const SCREENS = {
 
         WALLET: {
             ROOT: 'Settings_Wallet',
-            VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
             DOMAIN_CARD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_DomainCard_ConfirmMagicCode',
             CARD_MISSING_DETAILS: 'Settings_Wallet_Card_MissingDetails',
@@ -204,6 +205,8 @@ const SCREENS = {
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
             PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
             PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
+            PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
+            PERSONAL_CARD_UPGRADE: 'Settings_Wallet_PersonalCard_Upgrade',
         },
 
         EXIT_SURVEY: {
@@ -444,6 +447,7 @@ const SCREENS = {
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         REPORT_LAYOUT: 'Report_Settings_Report_Layout',
+        COLUMNS: 'Report_Settings_Columns',
     },
 
     NEW_TASK: {
@@ -485,7 +489,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
@@ -507,6 +511,9 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
+            QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Configuration',
+            QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Vendor_Select',
+            QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Account_Select',
@@ -724,6 +731,7 @@ const SCREENS = {
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
+        CLIENT_ID: 'Workspace_Overview_Client_ID',
         CATEGORY_CREATE: 'Category_Create',
         CATEGORY_EDIT: 'Category_Edit',
         CATEGORY_PAYROLL_CODE: 'Category_Payroll_Code',
@@ -751,6 +759,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
         TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
+        TRAVEL_MISSING_PERSONAL_DETAILS: 'Travel_Missing_Personal_Details',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
@@ -948,6 +957,9 @@ const SCREENS = {
         MEMBERS_SETTINGS: 'Members_Settings',
         MEMBERS_SETTINGS_TWO_FACTOR_AUTH: 'Members_Settings_Two_Factor_Auth',
         GROUPS: 'Domain_Groups',
+        MEMBER_RESET_TWO_FACTOR_AUTH: 'Member_Reset_Two_Factor_Auth',
+        MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
+        MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
@@ -957,6 +969,7 @@ const SCREENS = {
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',
+        AUTHORIZE_TRANSACTION: 'Multifactor_Authentication_Authorize_Transaction',
     },
 } as const;
 

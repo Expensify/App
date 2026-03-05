@@ -54,8 +54,8 @@ type BankConnectionProps = {
 function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConnectionFlow, onRefreshComplete}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
