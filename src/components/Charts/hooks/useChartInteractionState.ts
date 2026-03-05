@@ -1,25 +1,12 @@
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
-import {makeMutable, useAnimatedReaction} from 'react-native-reanimated';
+import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-
-/**
- * Input field type - matches Victory Native's InputFieldType
- */
-type InputFieldType = string | number | Date;
-
-/**
- * Initial values for chart interaction state
- */
-type ChartInteractionStateInit = {
-    x: InputFieldType;
-    y: Record<string, number>;
-};
 
 /**
  * Chart interaction state structure - compatible with Victory's handleTouch function
  */
-type ChartInteractionState<Init extends ChartInteractionStateInit> = {
+type ChartInteractionState = {
     /** Whether interaction (hover/press) is currently active */
     isActive: SharedValue<boolean>;
 
@@ -28,18 +15,17 @@ type ChartInteractionState<Init extends ChartInteractionStateInit> = {
 
     /** X-axis value and position */
     x: {
-        value: SharedValue<Init['x']>;
+        value: SharedValue<number>;
         position: SharedValue<number>;
     };
 
-    /** Y-axis values and positions for each y key */
-    y: Record<
-        keyof Init['y'],
-        {
+    /** Y-axis value and position */
+    y: {
+        y: {
             value: SharedValue<number>;
             position: SharedValue<number>;
-        }
-    >;
+        };
+    };
 
     /** Y index for stacked bar charts */
     yIndex: SharedValue<number>;
@@ -52,67 +38,57 @@ type ChartInteractionState<Init extends ChartInteractionStateInit> = {
 };
 
 /**
- * Hook to track whether interaction is active as React state
+ * Creates shared state for chart interactions (hover, tap, press).
+ * Compatible with Victory Native's handleTouch function exposed via actionsRef.
  */
-function useIsInteractionActive<Init extends ChartInteractionStateInit>(state: ChartInteractionState<Init>): boolean {
-    const [isInteractionActive, setIsInteractionActive] = useState(() => state.isActive.get());
+function useChartInteractionState(): {
+    state: ChartInteractionState;
+    isActive: boolean;
+} {
+    const isActiveValue = useSharedValue(false);
+    const matchedIndex = useSharedValue(-1);
+    const xValue = useSharedValue(0);
+    const xPosition = useSharedValue(0);
+    const yValue = useSharedValue(0);
+    const yPosition = useSharedValue(0);
+    const yIndex = useSharedValue(-1);
+    const cursorX = useSharedValue(0);
+    const cursorY = useSharedValue(0);
+
+    const [isActive, setIsActive] = useState(false);
 
     useAnimatedReaction(
-        () => state.isActive.get(),
+        () => isActiveValue.get(),
         (val, oldVal) => {
             if (val === oldVal) {
                 return;
             }
-            scheduleOnRN(setIsInteractionActive, val);
+            scheduleOnRN(setIsActive, val);
         },
     );
 
-    return isInteractionActive;
-}
-
-/**
- * Creates shared state for chart interactions (hover, tap, press).
- * Compatible with Victory Native's handleTouch function exposed via actionsRef.
- */
-function useChartInteractionState<Init extends ChartInteractionStateInit>(
-    initialValues: Init,
-): {
-    state: ChartInteractionState<Init>;
-    isActive: boolean;
-} {
-    const keys = Object.keys(initialValues.y).join(',');
-
-    const state = useMemo(() => {
-        const yState = {} as Record<keyof Init['y'], {value: SharedValue<number>; position: SharedValue<number>}>;
-
-        for (const [key, initVal] of Object.entries(initialValues.y)) {
-            yState[key as keyof Init['y']] = {
-                value: makeMutable(initVal),
-                position: makeMutable(0),
-            };
-        }
-
-        return {
-            isActive: makeMutable(false),
-            matchedIndex: makeMutable(-1),
-            x: {
-                value: makeMutable(initialValues.x),
-                position: makeMutable(0),
+    const state: ChartInteractionState = {
+        isActive: isActiveValue,
+        matchedIndex,
+        x: {
+            value: xValue,
+            position: xPosition,
+        },
+        y: {
+            y: {
+                value: yValue,
+                position: yPosition,
             },
-            y: yState,
-            yIndex: makeMutable(-1),
-            cursor: {
-                x: makeMutable(0),
-                y: makeMutable(0),
-            },
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- keys is a stable string representation of y keys
-    }, [keys]);
-
-    const isActive = useIsInteractionActive(state);
+        },
+        yIndex,
+        cursor: {
+            x: cursorX,
+            y: cursorY,
+        },
+    };
 
     return {state, isActive};
 }
 
 export {useChartInteractionState};
-export type {ChartInteractionState, ChartInteractionStateInit};
+export type {ChartInteractionState};

@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -21,6 +21,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import StatusBadge from './StatusBadge';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -86,8 +87,9 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
     const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
@@ -116,7 +118,7 @@ function ParentNavigationSubtitle({
 
     const onPress = () => {
         const parentAction = getReportAction(parentReportID, parentReportActionID);
-        const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
+        const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
 
         const focusedNavigatorState = currentFocusedNavigator?.state;
         const currentReportIndex = focusedNavigatorState?.index;
@@ -188,18 +190,12 @@ function ParentNavigationSubtitle({
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
             {!!statusText && (
-                <View
-                    style={[
-                        styles.reportStatusContainer,
-                        styles.mr1,
-                        {
-                            backgroundColor: statusTextBackgroundColor,
-                        },
-                        statusTextContainerStyles,
-                    ]}
-                >
-                    <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
-                </View>
+                <StatusBadge
+                    text={statusText}
+                    backgroundColor={statusTextBackgroundColor}
+                    textColor={statusTextColor}
+                    badgeStyles={[styles.mr1, statusTextContainerStyles]}
+                />
             )}
             <Text
                 style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}

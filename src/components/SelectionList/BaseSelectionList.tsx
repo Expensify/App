@@ -67,8 +67,8 @@ function BaseSelectionList<TItem extends ListItem>({
     isLoadingNewOptions,
     isRowMultilineSupported = false,
     addBottomSafeAreaPadding,
-    showListEmptyContent = true,
-    showLoadingPlaceholder,
+    shouldShowListEmptyContent = true,
+    shouldShowLoadingPlaceholder,
     showScrollIndicator = true,
     canSelectMultiple = false,
     disableKeyboardShortcuts = false,
@@ -80,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
+    shouldScrollToFocusedIndexOnMount = true,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
@@ -180,7 +181,7 @@ function BaseSelectionList<TItem extends ListItem>({
         setShouldDisableHoverStyle(true);
     }, [setShouldDisableHoverStyle]);
 
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
@@ -312,21 +313,11 @@ function BaseSelectionList<TItem extends ListItem>({
                 dataLength={data.length}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
         );
     };
-
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
         const isItemDisabled = isDisabled || item.isDisabled;
@@ -335,58 +326,49 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
-            <View
-                onMouseMove={() => setCurrentHoverIndex(index)}
-                onMouseEnter={() => setCurrentHoverIndex(index)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
+            <ListItemRenderer
+                ListItem={ListItem}
+                selectRow={selectRow}
+                showTooltip={shouldShowTooltips}
+                item={{
+                    shouldAnimateInHighlight: isItemHighlighted,
+                    isSelected: selected,
+                    ...item,
                 }}
-            >
-                <ListItemRenderer
-                    ListItem={ListItem}
-                    selectRow={selectRow}
-                    showTooltip={shouldShowTooltips}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        isSelected: selected,
-                        ...item,
-                    }}
-                    setFocusedIndex={setFocusedIndex}
-                    index={index}
-                    isFocused={isItemFocused}
-                    isDisabled={isItemDisabled}
-                    canSelectMultiple={canSelectMultiple}
-                    onDismissError={onDismissError}
-                    onLongPressRow={onLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    rightHandSideComponent={rightHandSideComponent}
-                    isMultilineSupported={isRowMultilineSupported}
-                    isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
-                    alternateTextNumberOfLines={alternateNumberOfSupportedLines}
-                    shouldIgnoreFocus={shouldIgnoreFocus}
-                    titleStyles={style?.listItemTitleStyles}
-                    wrapperStyle={style?.listItemWrapperStyle}
-                    titleContainerStyles={style?.listItemTitleContainerStyles}
-                    singleExecution={singleExecution}
-                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                    shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
-                    shouldShowRightCaret={shouldShowRightCaret}
-                />
-            </View>
+                setFocusedIndex={setFocusedIndex}
+                index={index}
+                isFocused={isItemFocused}
+                isDisabled={isItemDisabled}
+                canSelectMultiple={canSelectMultiple}
+                onDismissError={onDismissError}
+                onLongPressRow={onLongPressRow}
+                onCheckboxPress={onCheckboxPress}
+                shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
+                isMultilineSupported={isRowMultilineSupported}
+                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
+                alternateTextNumberOfLines={alternateNumberOfSupportedLines}
+                shouldIgnoreFocus={shouldIgnoreFocus}
+                titleStyles={style?.listItemTitleStyles}
+                wrapperStyle={style?.listItemWrapperStyle}
+                titleContainerStyles={style?.listItemTitleContainerStyles}
+                errorRowStyles={style?.listItemErrorRowStyles}
+                singleExecution={singleExecution}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+                shouldShowRightCaret={shouldShowRightCaret}
+            />
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
-        if (showListEmptyContent) {
+        if (shouldShowListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -505,7 +487,7 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
@@ -525,7 +507,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         onEndReachedThreshold={onEndReachedThreshold}
                         style={style?.listStyle}
                         contentContainerStyle={styles.pb3}
-                        initialScrollIndex={initialFocusedIndex}
+                        initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
                         onScrollBeginDrag={onScrollBeginDrag}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
                         ListHeaderComponent={

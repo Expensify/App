@@ -1,5 +1,5 @@
-import React, {useRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -12,11 +12,12 @@ import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormInputErrors, FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -64,6 +65,8 @@ type FormWrapperProps = ChildrenProps &
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+        ref?: ForwardedRef<FormWrapperRef>;
     };
 
 function FormWrapper({
@@ -96,12 +99,14 @@ function FormWrapper({
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
+    sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
+    ref,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
 
@@ -136,6 +141,13 @@ function FormWrapper({
         focusInput?.focus?.();
     };
 
+    const scrollToEnd = () => {
+        // We need to wait for the keyboard animation to complete before scrolling to the end
+        setTimeout(() => {
+            formRef.current?.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -158,6 +170,10 @@ function FormWrapper({
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
     });
+
+    useImperativeHandle(ref, () => ({
+        scrollToEnd,
+    }));
 
     const SubmitButton = isSubmitButtonVisible && (
         <FormAlertWithSubmitButton
@@ -183,6 +199,7 @@ function FormWrapper({
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
             shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
+            sentryLabel={sentryLabel}
         />
     );
 

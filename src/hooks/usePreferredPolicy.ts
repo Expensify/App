@@ -17,9 +17,9 @@ type UsePreferredPolicyResult = {
  * Hook to get the preferred policy settings from the user's domain security group
  */
 function usePreferredPolicy(): UsePreferredPolicyResult {
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
-    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
+    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Get the user's domain from their email
     const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;

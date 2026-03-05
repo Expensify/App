@@ -43,18 +43,22 @@ const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean =>
 };
 
 /** Returns true if user passed first step of flow for non USD VBBA */
-const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
-    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.created;
 };
 
 /** Returns true if VBBA flow is in progress */
-const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, policyID?: string) => {
+    if (achData?.policyID !== policyID) {
+        return false;
+    }
+
     if (isNonUSDWorkspace) {
-        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+        return hasInProgressNonUSDVBBA(achData);
     }
 
     return hasInProgressUSDVBBA(achData);
 };
 
-export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, hasInProgressUSDVBBA, hasInProgressVBBA, hasInProgressNonUSDVBBA};
+export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
 export type {ReimbursementAccountStepToOpen};

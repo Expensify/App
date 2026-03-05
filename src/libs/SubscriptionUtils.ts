@@ -60,22 +60,22 @@ Onyx.connect({
     },
 });
 
-let amountOwed: OnyxEntry<number>;
+let privateAmountOwed: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (amountOwed = value),
+    callback: (value) => (privateAmountOwed = value),
 });
 
-let ownerBillingGraceEndPeriod: OnyxEntry<number>;
+let ownerBillingGraceEndPeriodDeprecated: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (ownerBillingGraceEndPeriod = value),
+    callback: (value) => (ownerBillingGraceEndPeriodDeprecated = value),
 });
 
-let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+let deprecatedUserBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (userBillingGraceEndPeriodCollection = value),
+    callback: (value) => (deprecatedUserBillingGraceEndPeriodCollection = value),
     waitForCollectionCallback: true,
 });
 
@@ -87,45 +87,17 @@ Onyx.connect({
 });
 
 /**
- * @returns The date when the grace period ends.
- */
-function getOverdueGracePeriodDate(): OnyxEntry<number> {
-    return ownerBillingGraceEndPeriod;
-}
-
-/**
- * @returns Whether the workspace owner has an overdue grace period.
- */
-function hasOverdueGracePeriod(): boolean {
-    return !!ownerBillingGraceEndPeriod;
-}
-
-/**
  * @returns Whether the workspace owner's grace period is overdue.
  */
-function hasGracePeriodOverdue(): boolean {
-    return !!ownerBillingGraceEndPeriod && Date.now() > new Date(ownerBillingGraceEndPeriod).getTime();
-}
-
-/**
- * @returns The amount owed by the workspace owner.
- */
-function getAmountOwed(): number {
-    return amountOwed ?? 0;
-}
-
-/**
- * @returns Whether there is an amount owed by the workspace owner.
- */
-function hasAmountOwed(): boolean {
-    return !!amountOwed;
+function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
+    return !!gracePeriodEnd && Date.now() > new Date(gracePeriodEnd).getTime();
 }
 
 /**
  * @returns Whether there is a card authentication error.
  */
-function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>) {
-    return stripeCustomerId?.status === 'authentication_required' && getAmountOwed() === 0;
+function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>, amountOwed: number) {
+    return stripeCustomerId?.status === 'authentication_required' && amountOwed === 0;
 }
 
 /**
@@ -138,15 +110,15 @@ function hasBillingDisputePending(billingDisputePending: number | undefined) {
 /**
  * @returns Whether there is a card expired error.
  */
-function hasCardExpiredError(billingStatus: OnyxEntry<BillingStatus>) {
+function hasCardExpiredError(billingStatus: OnyxEntry<BillingStatus>, amountOwed: number) {
     return billingStatus?.declineReason === 'expired_card' && amountOwed !== 0;
 }
 
 /**
  * @returns Whether there is an insufficient funds error.
  */
-function hasInsufficientFundsError(billingStatus: OnyxEntry<BillingStatus>) {
-    return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
+function hasInsufficientFundsError(billingStatus: OnyxEntry<BillingStatus>, amountOwed: OnyxEntry<number>) {
+    return billingStatus?.declineReason === 'insufficient_funds' && amountOwed !== 0;
 }
 
 function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): boolean {
@@ -278,11 +250,13 @@ function getSubscriptionStatus(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
+    ownerBillingGraceEndPeriod: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
-    if (hasOverdueGracePeriod()) {
-        if (hasAmountOwed()) {
+    if (ownerBillingGraceEndPeriod) {
+        if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
-            if (!hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -290,7 +264,7 @@ function getSubscriptionStatus(
             }
 
             // 2. Policy owner with amount owed, overdue (past grace period)
-            if (hasGracePeriodOverdue()) {
+            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
                 return {
                     isError: true,
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
@@ -298,7 +272,7 @@ function getSubscriptionStatus(
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (!hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                     isError: true,
@@ -306,7 +280,7 @@ function getSubscriptionStatus(
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue()) {
+            if (hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                     isError: true,
@@ -323,7 +297,7 @@ function getSubscriptionStatus(
     }
 
     // 6. Card not authenticated
-    if (hasCardAuthenticatedError(stripeCustomerId)) {
+    if (hasCardAuthenticatedError(stripeCustomerId, amountOwed)) {
         return {
             status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
             isError: true,
@@ -331,7 +305,7 @@ function getSubscriptionStatus(
     }
 
     // 7. Insufficient funds
-    if (hasInsufficientFundsError(billingStatus)) {
+    if (hasInsufficientFundsError(billingStatus, amountOwed)) {
         return {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
             isError: true,
@@ -339,7 +313,7 @@ function getSubscriptionStatus(
     }
 
     // 8. Card expired
-    if (hasCardExpiredError(billingStatus)) {
+    if (hasCardExpiredError(billingStatus, amountOwed)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRED,
             isError: true,
@@ -382,8 +356,13 @@ function hasSubscriptionRedDotError(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
+    ownerBillingGraceEndPeriod: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError ?? false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+            ?.isError ?? false
+    );
 }
 
 /**
@@ -396,8 +375,13 @@ function hasSubscriptionGreenDotInfo(
     retryBillingFailed: boolean | undefined,
     fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
+    amountOwed: number,
+    ownerBillingGraceEndPeriod: OnyxEntry<number>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError === false;
+    return (
+        getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus, amountOwed, ownerBillingGraceEndPeriod)
+            ?.isError === false
+    );
 }
 
 /**
@@ -436,7 +420,7 @@ function getFreeTrialText(
         return translate('subscription.billingBanner.preTrial.title');
     }
     if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
+        return translate('subscription.billingBanner.trialStarted.title', calculateRemainingFreeTrialDays(lastDayFreeTrial));
     }
 
     return undefined;
@@ -483,7 +467,12 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 /**
  * Whether the user's billable actions should be restricted.
  */
-function shouldRestrictUserBillableActions(policyID: string): boolean {
+function shouldRestrictUserBillableActions(
+    policyID: string,
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriodCollection,
+    amountOwed: OnyxEntry<number> = privateAmountOwed,
+    ownerBillingGraceEndPeriod: OnyxEntry<number> = ownerBillingGraceEndPeriodDeprecated,
+): boolean {
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -611,12 +600,11 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
-    getAmountOwed,
     getCardForSubscriptionBilling,
     getFreeTrialText,
-    getOverdueGracePeriodDate,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
+    hasGracePeriodOverdue,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,

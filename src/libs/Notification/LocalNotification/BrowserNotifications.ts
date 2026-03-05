@@ -115,7 +115,7 @@ export default {
         if (isRoomOrGroupChat) {
             // Will be fixed in https://github.com/Expensify/App/issues/76852
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = ReportUtils.getReportName({report});
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -130,13 +130,14 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false}: LocalNotificationModifiedExpensePushParams) {
+    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false, currentUserLogin}: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
             reportAction,
             policyID: report.policyID,
             movedFromReport,
             movedToReport,
+            currentUserLogin,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
