@@ -73,7 +73,7 @@ function RoomInvitePage({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const isFocused = useIsFocused();
-    const hasUserInteractedRef = useRef(false);
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
@@ -147,14 +147,14 @@ function RoomInvitePage({
                 .filter(Boolean),
         [selectedOptions],
     );
-    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteractedRef.current);
-    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0;
+    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteracted);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0 && !hasUserInteracted;
 
     useEffect(() => {
         if (!isFocused) {
             return;
         }
-        hasUserInteractedRef.current = false;
+        setHasUserInteracted(false);
     }, [isFocused]);
 
     const {personalDetails, userToInvite} = inviteOptions;
@@ -215,7 +215,7 @@ function RoomInvitePage({
     );
 
     const toggleOption = (option: MemberForList) => {
-        hasUserInteractedRef.current = true;
+        setHasUserInteracted(true);
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions: OptionData[];

@@ -246,7 +246,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const isFocused = useIsFocused();
-    const hasUserInteractedRef = useRef(false);
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -274,7 +274,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         if (!isFocused) {
             return;
         }
-        hasUserInteractedRef.current = false;
+        setHasUserInteracted(false);
     }, [isFocused]);
 
     const selectedKeys = useMemo(
@@ -284,8 +284,8 @@ function NewChatPage({ref}: NewChatPageProps) {
                 .filter(Boolean),
         [selectedOptions],
     );
-    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteractedRef.current);
-    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0;
+    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteracted);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0 && !hasUserInteracted;
 
     const sections: Section[] = [];
     let firstKeyForList = '';
@@ -355,7 +355,7 @@ function NewChatPage({ref}: NewChatPageProps) {
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
-        hasUserInteractedRef.current = true;
+        setHasUserInteracted(true);
         const isOptionInList = !!option.isSelected;
 
         let newSelectedOptions: SelectedOption[];
