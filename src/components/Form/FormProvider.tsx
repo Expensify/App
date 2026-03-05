@@ -1,10 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import type {ValueOf} from 'type-fest';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
