@@ -1117,6 +1117,7 @@ function MoneyRequestConfirmationListFooter({
                         style={styles.h100}
                     >
                         <PDFThumbnail
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
                             style={styles.h100}
                             onLoadError={onPDFLoadError}
