@@ -360,6 +360,7 @@ function MoneyRequestReportPreviewContent({
                 iouReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
+                amountOwed,
                 true,
             );
         }
