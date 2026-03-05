@@ -1099,8 +1099,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
     // Auto-detect: try known card programs in priority order so callers that
     // don't pass feedCountry still get the right program sub-object when the
     // backend sends nested settings (Phase 2 of fixing shared Onyx key).
-    const result =
-        getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
     if (result) {
         return result;
     }
