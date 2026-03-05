@@ -1228,23 +1228,42 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
+
+    const isDirectFeedType = isDirectFeed(feedName);
 
     return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
         }
 
-        const cardFeedKeyParts = key.split('_');
-        const feedDomainID = Number(cardFeedKeyParts.at(1));
-        if (cardFeedKeyParts.length !== 3 || cardFeedKeyParts.at(0) !== ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST || Number.isNaN(feedDomainID)) {
+        // Strip the collection prefix and split on the first underscore only,
+        // so feed names containing underscores (e.g., "plaid.ins_123456") are preserved.
+        const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const separatorIndex = feedKey.indexOf('_');
+        if (separatorIndex === -1) {
             return false;
         }
 
-        if (feedDomainID !== domainOrWorkspaceAccountID) {
+        const feedDomainID = Number(feedKey.substring(0, separatorIndex));
+        const feedBankName = feedKey.substring(separatorIndex + 1);
+
+        if (Number.isNaN(feedDomainID) || !feedBankName) {
+            return false;
+        }
+
+        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
+        // because the same Plaid card should not be assignable to multiple workspaces.
+        // For commercial feeds: restrict to the current domain only, because different domains
+        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
+        if (isDirectFeedType) {
+            if (feedName && feedBankName !== feedName) {
+                return false;
+            }
+        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
             return false;
         }
 

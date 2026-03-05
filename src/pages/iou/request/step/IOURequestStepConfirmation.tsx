@@ -58,6 +58,7 @@ import {
     generateReportID,
     getReportOrDraftReport,
     hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport,
     isProcessingReport,
     isReportOutstanding,
     isSelectedManagerMcTest,
@@ -138,7 +139,6 @@ function IOURequestStepConfirmation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
     const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
@@ -176,6 +176,7 @@ function IOURequestStepConfirmation({
     const canUseReport = !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
 
     const shouldUseTransactionReport = !!transactionReport && (canUseReport || !reportWithDraftFallback);
+    const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
     const isTransactionReportDifferentFromRoute = useMemo(
         () => !!transaction?.reportID && !!reportWithDraftFallback?.reportID && transaction.reportID !== reportWithDraftFallback.reportID,
         [reportWithDraftFallback?.reportID, transaction?.reportID],
@@ -1596,6 +1597,7 @@ function IOURequestStepConfirmation({
                         isTimeRequest={isTimeRequest}
                         iouTimeCount={transaction?.comment?.units?.count}
                         iouTimeRate={transaction?.comment?.units?.rate}
+                        shouldHideToSection={shouldHideToSection}
                     />
                 </View>
             </DragAndDropProvider>
