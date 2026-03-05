@@ -22,7 +22,21 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
-    const {attachmentID, type, source: sourceParam, isAuthTokenRequired, attachmentLink, originalFileName, accountID, reportID, reportActionID, hashKey, headerTitle, onShow, onClose} = route.params;
+    const {
+        attachmentID,
+        type,
+        source: sourceParam,
+        isAuthTokenRequired,
+        attachmentLink,
+        originalFileName,
+        accountID,
+        reportID,
+        reportActionID,
+        hashKey,
+        headerTitle,
+        onShow,
+        onClose,
+    } = route.params;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,

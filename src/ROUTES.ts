@@ -4023,7 +4023,7 @@ function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAtt
         return url;
     }
 
-    const {source, attachmentID, type, reportID,reportActionID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
+    const {source, attachmentID, type, reportID, reportActionID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
 
     const sourceParam = `?source=${encodeURIComponent(source as string)}`;
     const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
