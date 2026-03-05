@@ -43,7 +43,6 @@ import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUt
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import WalletTravelCVVSection from '@pages/settings/Wallet/TravelCVVPage/WalletTravelCVVSection';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
