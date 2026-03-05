@@ -458,7 +458,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {shouldShowBankAccount && !isAccountInSetupState && (
+                        {shouldShowBankAccount && (
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.reimburser}
                                 shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
