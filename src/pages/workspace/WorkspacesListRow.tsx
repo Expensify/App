@@ -203,7 +203,7 @@ function WorkspacesListRow({
             <Badge
                 text={translate('workspace.common.requested')}
                 textStyles={styles.textStrong}
-                badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                badgeStyles={styles.alignSelfCenter}
                 icon={icons.Hourglass}
             />
         </View>
@@ -219,7 +219,7 @@ function WorkspacesListRow({
                 <Badge
                     text={translate('common.default')}
                     textStyles={styles.textStrong}
-                    badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                    badgeStyles={styles.alignSelfCenter}
                 />
             </View>
         </Tooltip>
