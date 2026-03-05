@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 // Needed for testing usage with jest.spyOn
+// eslint-disable-next-line no-restricted-imports
 import * as Environment from '@src/libs/Environment/Environment';
 import {
     getIsTravelInvoicingEnabled,

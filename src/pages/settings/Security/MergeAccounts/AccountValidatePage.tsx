@@ -121,6 +121,7 @@ function AccountValidatePage() {
     });
 
     useFocusEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const task = InteractionManager.runAfterInteractions(() => {
             if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                 return;

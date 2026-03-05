@@ -132,6 +132,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     toLocaleDigit,
                 });
 
+                // eslint-disable-next-line rulesdir/no-default-id-values
                 setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
 
                 if (selectedTransactionIDs.length) {

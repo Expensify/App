@@ -933,6 +933,7 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
             if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
+            // eslint-disable-next-line rulesdir/no-default-id-values
             return policy.employeeList[email]?.employeeUserID ?? '';
         }
         // payrollid/customfield2 returns employeePayrollID from policy.employeeList
@@ -943,6 +944,7 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
             if (!isGlCodesEnabled || !email || !policy?.employeeList) {
                 return '';
             }
+            // eslint-disable-next-line rulesdir/no-default-id-values
             return policy.employeeList[email]?.employeePayrollID ?? '';
         }
         default:

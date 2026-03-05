@@ -33,6 +33,7 @@ const defaultListOptions = {
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
 
 function getSelectedOptionData(option: Option): OptionData {
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const reportID = option.reportID ?? '-1';
     return {...option, selected: true, reportID, keyForList: option.keyForList ?? reportID};
 }

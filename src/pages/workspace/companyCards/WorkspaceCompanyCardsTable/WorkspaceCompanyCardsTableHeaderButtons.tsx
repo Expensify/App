@@ -5,6 +5,7 @@ import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';

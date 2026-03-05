@@ -5,6 +5,7 @@ import type GetOperatingSystem from './types';
  * Reads the current operating system when running on Web/Mobile-Web
  */
 const getOperatingSystem: GetOperatingSystem = () => {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const {userAgent, platform} = window.navigator;
     const macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'];
     const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];

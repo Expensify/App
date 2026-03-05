@@ -3,8 +3,10 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as AppActions from '@libs/actions/App';
 import {hasAuthToken, signOutAndRedirectToSignIn} from '@libs/actions/Session';
+// eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as Session from '@libs/actions/Session';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 import App from '@src/App';

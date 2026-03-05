@@ -206,6 +206,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 closeImportPageAndModal={closeImportPageAndModal}
                 shouldHandleNavigationBack={false}
                 onModalHide={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

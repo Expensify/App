@@ -154,6 +154,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(screen.getByText(ReportUtils.getReportName({report: mockIOUReport}))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {

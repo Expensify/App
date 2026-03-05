@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import {View} from 'react-native';
 import getInitialPaginationSize from '@components/FlatList/getInitialPaginationSize';

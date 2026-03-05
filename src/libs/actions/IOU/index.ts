@@ -65,6 +65,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1158,6 +1159,7 @@ function handleNavigateAfterExpenseCreate({
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
             Navigation.dismissModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
             });
@@ -10589,7 +10591,8 @@ function approveMoneyRequest(
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
         ? null
-        : buildNextStepNew({
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          buildNextStepNew({
               report: expenseReport,
               policy,
               currentUserAccountIDParam,

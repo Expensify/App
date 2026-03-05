@@ -11,6 +11,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/inbox/HeaderView';
 import {joinRoom} from '@userActions/Report';
+// eslint-disable-next-line no-restricted-syntax
 import type * as ReportType from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

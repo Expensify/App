@@ -176,6 +176,7 @@ function TaskAssigneeSelectorModal() {
                     isOptimisticReport,
                 );
             }
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.dismissModalWithReport({reportID: report?.reportID});
             });

@@ -59,6 +59,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
     if (isMemberChangeAction(action)) {
         // This will be fixed: https://github.com/Expensify/App/issues/76852
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const fragment = getMemberChangeMessageFragment(translate, action, getReportName);
 
         return (

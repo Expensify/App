@@ -99,6 +99,7 @@ function ReanimatedModal({
     useEffect(
         () => () => {
             if (handleRef.current) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 

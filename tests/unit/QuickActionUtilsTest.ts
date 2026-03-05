@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-restricted-syntax
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isQuickActionAllowed} from '@libs/QuickActionUtils';
 import CONST from '@src/CONST';

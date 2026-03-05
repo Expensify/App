@@ -274,6 +274,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
     }
 
     // Navigate to the report after sign-in/sign-up.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI

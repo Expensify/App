@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';

@@ -75,6 +75,7 @@ class OpenAIUtils {
                     model,
                     input,
                     instructions,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     prompt_cache_key: promptCacheKey,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -100,6 +101,7 @@ class OpenAIUtils {
         // 1. Create a thread
         const thread = await retryWithBackoff(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.create({
                     messages: [{role: OpenAIUtils.USER, content: userMessage}],
                 }),
@@ -109,6 +111,7 @@ class OpenAIUtils {
         // 2. Create a run on the thread
         let run = await retryWithBackoff(
             () =>
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 this.client.beta.threads.runs.create(thread.id, {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     assistant_id: assistantID,
@@ -130,6 +133,7 @@ class OpenAIUtils {
                 continue;
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;

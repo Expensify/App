@@ -26,6 +26,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     const styles = useThemeStyles();
 
     const openPolicyExpenseReport = useCallback(() => {
+        // eslint-disable-next-line rulesdir/no-default-id-values
         const reportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));

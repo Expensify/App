@@ -8,6 +8,7 @@ import type {ListItem as NewListItem, UserListItemProps} from '@components/Selec
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
+// eslint-disable-next-line no-restricted-imports
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';

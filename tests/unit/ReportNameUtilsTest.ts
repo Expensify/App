@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
+    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
     computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,

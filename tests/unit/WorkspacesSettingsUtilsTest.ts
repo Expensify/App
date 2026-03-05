@@ -46,6 +46,7 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
+            // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
 
             // The result should be 'error' because there is at least one IOU action associated with a transaction that has a violation.
@@ -67,6 +68,7 @@ describe('WorkspacesSettingsUtils', () => {
             await waitForBatchedUpdates();
             const reportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
+            // eslint-disable-next-line rulesdir/no-default-id-values
             const result = getBrickRoadForPolicy(report?.reportID ?? '', reportAttributes?.reports);
 
             // Then the result should be 'undefined' since no IOU action is linked to a transaction with a violation.

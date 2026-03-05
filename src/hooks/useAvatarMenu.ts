@@ -1,5 +1,6 @@
 import {useCallback, useContext} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';

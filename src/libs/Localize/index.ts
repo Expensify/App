@@ -12,6 +12,7 @@ import type {Locale} from '@src/types/onyx';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,

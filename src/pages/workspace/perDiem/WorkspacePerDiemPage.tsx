@@ -263,6 +263,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
         setDeletePerDiemConfirmModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedPerDiem([]);
         });

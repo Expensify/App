@@ -13,6 +13,7 @@ import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {MaxHeap} from '@libs/MaxHeap';
@@ -384,7 +385,8 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
-        : translateLocal('common.you');
+        : // eslint-disable-next-line @typescript-eslint/no-deprecated
+          translateLocal('common.you');
 }
 
 function shouldShowLastActorDisplayName(
@@ -961,6 +963,7 @@ function createOption(
     const result: SearchOptionData = {
         // Core identification - used in SearchOption context
         // We use empty string as a default for reportID as in many places the application uses conditional checks that test for reportID existence with truthiness operators
+        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: report?.reportID ?? '',
         accountID: 0, // Set conditionally below
         login: undefined, // Set conditionally below

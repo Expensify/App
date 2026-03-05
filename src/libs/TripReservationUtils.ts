@@ -485,6 +485,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
     const pnrMap = new Map<string, ReservationPNRData>();
 
     for (const reservation of reservations) {
+        // eslint-disable-next-line rulesdir/no-default-id-values
         const pnrID = reservation.reservation.reservationID ?? '';
         if (!pnrMap.has(pnrID)) {
             pnrMap.set(pnrID, {

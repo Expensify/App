@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getSecondaryExportReportActions,

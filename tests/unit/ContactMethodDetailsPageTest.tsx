@@ -1,6 +1,7 @@
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
+// eslint-disable-next-line no-restricted-syntax
 import * as UserActions from '@libs/actions/User';
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
 import ONYXKEYS from '@src/ONYXKEYS';

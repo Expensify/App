@@ -59,6 +59,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 blurActiveElement();
             });

@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+// eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetails from '@userActions/PersonalDetails';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');

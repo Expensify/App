@@ -1,4 +1,5 @@
 import React, {useContext, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';

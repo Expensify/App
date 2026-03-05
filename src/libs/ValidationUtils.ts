@@ -131,6 +131,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             continue;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translate('common.error.fieldRequired');
     }
 
@@ -219,6 +220,7 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -230,8 +232,10 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
@@ -244,6 +248,7 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -251,6 +256,7 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 

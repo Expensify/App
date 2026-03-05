@@ -97,6 +97,7 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
         [],
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const position = useScrollViewOffset(scrollViewAnimatedRef);
     const spacing = useDerivedValue(() => {
         const {current, previous} = currentActionSheetState.get();

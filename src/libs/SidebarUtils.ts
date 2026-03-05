@@ -144,6 +144,7 @@ import {
     getReceiptUploadErrorReason,
     getReportDescription,
     getReportMetadata,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -442,6 +443,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const displayName = getReportName({report, conciergeReportID});
         const miniReport: MiniReport = {
             reportID,
@@ -914,6 +916,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
@@ -1160,6 +1163,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
 
     result.text = reportName;
@@ -1280,6 +1284,7 @@ function getRoomWelcomeMessage(
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName({report});
 
     if (report?.description) {

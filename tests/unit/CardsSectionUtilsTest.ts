@@ -1,5 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+// eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
