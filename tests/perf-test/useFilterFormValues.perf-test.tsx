@@ -6,12 +6,21 @@ import {measureFunction, measureRenders} from 'reassure';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {SearchQueryJSON} from '@src/components/Search/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+function buildSearchQueryJSONOrThrow(query: string): SearchQueryJSON {
+    const result = buildSearchQueryJSON(query);
+    if (!result) {
+        throw new Error(`Failed to parse query string: ${query}`);
+    }
+    return result;
+}
 
 const POLICY_COUNT = 500;
 const REPORT_COUNT = 500;
@@ -103,10 +112,7 @@ describe('useFilterFormValues', () => {
 
     describe('buildFilterFormValuesFromQuery execution', () => {
         test('buildFilterFormValuesFromQuery with 500 policies, reports, categories, tags', async () => {
-            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
+            const queryJSON = buildSearchQueryJSONOrThrow('type:expense status:all category:Category0 tag:Tag0');
 
             const policies = createCollection<Policy>(
                 (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
@@ -152,10 +158,7 @@ describe('useFilterFormValues', () => {
 
     describe('hook render duration with unrelated Onyx changes', () => {
         test('with selectors - render duration when policies change', async () => {
-            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
+            const queryJSON = buildSearchQueryJSONOrThrow('type:expense status:all category:Category0 tag:Tag0');
 
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
@@ -214,10 +217,7 @@ describe('useFilterFormValues', () => {
         });
 
         test('without selectors - render duration when policies change', async () => {
-            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
-            if (!queryJSON) {
-                throw new Error('Failed to parse query string');
-            }
+            const queryJSON = buildSearchQueryJSONOrThrow('type:expense status:all category:Category0 tag:Tag0');
 
             function TestComponent() {
                 const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
