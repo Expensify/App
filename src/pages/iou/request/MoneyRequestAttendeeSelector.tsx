@@ -18,7 +18,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
     formatSectionsFromSearchTerm,
@@ -83,7 +83,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         login: attendee.email || attendee.displayName,
         ...getPersonalDetailByEmail(attendee.email),
     }));
@@ -124,7 +123,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     });
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     let orderedAvailableOptions;
@@ -164,7 +163,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
 
-    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
@@ -272,7 +271,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
 
-    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
@@ -294,12 +293,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            showListEmptyContent={shouldShowListEmptyContent}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
-            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple

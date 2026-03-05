@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
@@ -45,6 +45,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const policy = usePolicy(onboardingPolicyID);
     const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -85,7 +86,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const welcomeNote = translate('workspace.common.welcomeNote');
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const sections: Sections = [];
@@ -128,6 +129,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             isInvitedAccountant,
             onboardingPurposeSelected,
             introSelected,
+            betas,
         });
 
         setOnboardingAdminsChatReportID();
@@ -155,7 +157,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         if (!isValid || !onboardingPolicyID) {
             return;
         }
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         for (const option of selectedOptions) {
@@ -252,7 +254,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 ListItem={InviteMemberListItem}
                 onSelectRow={toggleSelection}
                 shouldShowTextInput
-                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 style={{
                     sectionTitleStyles: onboardingIsMediumOrLargerScreenWidth ? styles.ph3 : undefined,

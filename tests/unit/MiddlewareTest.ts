@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
-import CONST from '@src/CONST';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -45,14 +44,16 @@ describe('Middleware', () => {
             await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
             await waitForBatchedUpdates();
 
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const mockResponse = {
                 jsonCode: 200,
                 lastUpdateID: 100,
                 previousUpdateID: 99,
                 transactionsPending3DSReview: {
-                    txn123: {amount: 500, currency: 'USD', created: '2026-02-23', expires: '2026-02-24', lastFourPAN: 1234, merchant: 'TestMerchant'},
+                    // an ID map key is not a name!
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    1234: {amount: 500, currency: 'USD', created: '2026-02-23', expires: '2026-02-24', lastFourPAN: '1234', merchant: 'TestMerchant', transactionID: '1234'},
                 },
             };
             jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(mockResponse);
@@ -71,7 +72,7 @@ describe('Middleware', () => {
 
     describe('HandleUnusedOptimisticID', () => {
         test('Normal request', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -106,7 +107,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'OpenReport',
@@ -121,10 +122,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -155,7 +154,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'RequestMoney',
@@ -174,10 +173,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -219,7 +216,7 @@ describe('Middleware', () => {
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
+            Request.addMiddleware(handleUnusedOptimisticID);
             const requests = [
                 {
                     command: 'MoveIOUReportToExistingPolicy',
@@ -230,10 +227,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -274,8 +269,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const requests = [
                 {
@@ -291,11 +286,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock)
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -311,7 +304,6 @@ describe('Middleware', () => {
                 }))
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -394,8 +386,8 @@ describe('Middleware', () => {
                 },
             });
 
-            Request.addMiddleware(handleUnusedOptimisticID, CONST.TELEMETRY.MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID);
-            Request.addMiddleware(SaveResponseInOnyx, 'SaveResponseInOnyx');
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
 
             const requests = [
                 {
@@ -407,10 +399,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [

@@ -6,7 +6,7 @@ import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {FullScreenContextProvider} from '@components/VideoPlayerContexts/FullScreenContext';
+import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
