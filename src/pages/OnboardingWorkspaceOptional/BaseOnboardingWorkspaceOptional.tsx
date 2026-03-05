@@ -158,8 +158,8 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
         completeOnboardingReport({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
             firstName: currentUserPersonalDetails.firstName,
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID,
