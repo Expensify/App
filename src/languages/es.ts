@@ -380,8 +380,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
-        approvalLimit: 'Límite de aprobación',
-        overLimitForwardTo: 'Reenviar si excede el límite',
         merge: 'Fusionar',
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
