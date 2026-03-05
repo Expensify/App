@@ -1289,7 +1289,6 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 }
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | OnyxTypes.Transaction) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const amount = Math.abs(Number(transactionItem.modifiedAmount) || transactionItem.amount);
     return isAmountTooLong(amount);
 }
@@ -1642,7 +1641,6 @@ function getToFieldValueForTransaction(
                     report?.managerID ?? CONST.DEFAULT_NUMBER_ID,
                     report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
                     personalDetailsList,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     Number(transactionItem.modifiedAmount) || transactionItem.amount,
                 )?.to ?? emptyPersonalDetails
             );
@@ -1878,7 +1876,6 @@ function getActions(
     }
 
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
@@ -2007,7 +2004,6 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -2142,7 +2138,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                 reportActionItems.push({
                     ...reportAction,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -3408,7 +3403,6 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
 }
 
 function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): TranslationPaths {
-    // eslint-disable-next-line default-case
     switch (columnId) {
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return 'common.date';
@@ -4318,7 +4312,6 @@ function getColumnsToShow(
             columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] && !isIOUReportReportUtil(report);
             columns[CONST.SEARCH.TABLE_COLUMNS.TAG] = columns[CONST.SEARCH.TABLE_COLUMNS.TAG] && !isIOUReportReportUtil(report);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const toFieldValue = getToFieldValueForTransaction(transaction, report, data.personalDetailsList, reportAction);
             if (toFieldValue.accountID && toFieldValue.accountID !== currentAccountID && !columns[CONST.SEARCH.TABLE_COLUMNS.TO]) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TO] = !!report && !isOpenReport(report);
@@ -4424,7 +4417,6 @@ function getSettlementStatusBadgeProps(
  */
 function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
     // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const {
         keyForList,
         action,

@@ -135,7 +135,6 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
                                     addNewCard.data.statementPeriodEndDay,
                                     '',
                                 );
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
                                         cardToAssign: {
@@ -180,7 +179,6 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onExit={() => {
                         onExit?.();
                         handleBackButtonPress();

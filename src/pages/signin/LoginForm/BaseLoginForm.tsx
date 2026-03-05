@@ -218,7 +218,6 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });
@@ -273,7 +272,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention,@typescript-eslint/prefer-nullish-coalescing
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
                 />
             )}

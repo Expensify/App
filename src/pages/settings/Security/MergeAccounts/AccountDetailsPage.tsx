@@ -83,7 +83,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -98,7 +97,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -112,7 +110,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;

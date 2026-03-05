@@ -25,10 +25,8 @@ import type {
 } from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -5347,7 +5345,6 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
                         category: 'Employee Meals Remote (Fringe Benefit)',
@@ -5421,7 +5418,6 @@ describe('SearchUIUtils', () => {
                         displayName: 'You',
                         login: 'you@expensifail.com',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2074551': {
                         accountID: 2074551,
                         avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
@@ -5429,7 +5425,6 @@ describe('SearchUIUtils', () => {
                         login: 'jason@expensifail.com',
                     },
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 policy_137DA25D273F2423: {
                     approvalMode: 'ADVANCED',
                     approver: '',
@@ -5456,7 +5451,6 @@ describe('SearchUIUtils', () => {
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: true,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
@@ -5478,7 +5472,6 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     unheldTotal: -1000,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
                     cardID: undefined,

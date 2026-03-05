@@ -55,7 +55,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
         Navigation.dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
         });
@@ -69,7 +68,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         // Mark as deleting to prevent the useEffect from clearing the workflow and causing a blink
         isDeleting.current = true;
         Navigation.dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
             removeApprovalWorkflow(initialApprovalWorkflow, policy);

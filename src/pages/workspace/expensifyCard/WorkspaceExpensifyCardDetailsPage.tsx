@@ -101,7 +101,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
         shouldGoBack.current = true;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
         });

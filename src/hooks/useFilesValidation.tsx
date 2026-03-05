@@ -104,7 +104,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const hideModalAndReset = () => {
         setIsErrorModalVisible(false);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
@@ -361,7 +360,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // the error modal is dismissed before opening the attachment modal
         if (isValidatingReceipts === false && fileError) {
             setIsErrorModalVisible(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);

@@ -33,7 +33,6 @@ const defaultListOptions = {
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
 
 function getSelectedOptionData(option: Option): OptionData {
-    // eslint-disable-next-line rulesdir/no-default-id-values
     const reportID = option.reportID ?? '-1';
     return {...option, selected: true, reportID, keyForList: option.keyForList ?? reportID};
 }
@@ -44,13 +43,10 @@ function getSelectedOptionData(option: Option): OptionData {
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         alternateText: attendee.email || attendee.displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
         keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
@@ -322,7 +318,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         login: identifier,
                         displayName: identifier,
                         accountID: CONST.DEFAULT_NUMBER_ID,
-                        // eslint-disable-next-line rulesdir/no-default-id-values
                         reportID: '-1',
                         selected: true,
                         icons: [],
@@ -343,7 +338,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
     const handleParticipantSelection = useCallback(

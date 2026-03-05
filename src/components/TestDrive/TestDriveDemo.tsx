@@ -63,7 +63,6 @@ function TestDriveDemo() {
     }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setIsVisible(true);
         });
@@ -71,7 +70,6 @@ function TestDriveDemo() {
 
     const closeModal = useCallback(() => {
         setIsVisible(false);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Navigation.goBack();
 

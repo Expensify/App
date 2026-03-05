@@ -221,7 +221,6 @@ function FeatureTrainingModal({
     const {isKeyboardActive} = useKeyboardState();
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!isModalDisabled) {
                 setIsModalVisible(false);
@@ -347,7 +346,6 @@ function FeatureTrainingModal({
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 

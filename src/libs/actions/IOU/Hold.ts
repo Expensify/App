@@ -6,7 +6,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
@@ -245,7 +244,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -456,7 +454,6 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             policy,

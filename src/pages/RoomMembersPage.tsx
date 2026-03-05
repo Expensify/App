@@ -149,7 +149,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -440,7 +439,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     subtitle={StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(getReportName({report: reportForSubtitle})) : getReportName({report: reportForSubtitle}))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {

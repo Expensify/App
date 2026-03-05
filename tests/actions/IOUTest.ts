@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -59,7 +58,6 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
@@ -137,7 +135,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -151,7 +148,6 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -10064,7 +10060,6 @@ describe('actions/IOU', () => {
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
         });
 
@@ -10118,7 +10113,6 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -10264,7 +10258,6 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -14838,7 +14831,6 @@ describe('actions/IOU', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
         beforeEach(async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
             await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {

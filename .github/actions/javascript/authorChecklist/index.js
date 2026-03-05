@@ -15501,7 +15501,6 @@ function detectReactComponent(code, filename) {
             }
             if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
                 path.traverse({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     JSXElement() {
                         isReactComponent = true;
                         path.stop();
@@ -15509,7 +15508,6 @@ function detectReactComponent(code, filename) {
                 });
             }
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         ClassDeclaration(path) {
             const { superClass } = path.node;
             if (superClass &&
@@ -15679,7 +15677,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -15856,7 +15854,6 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
-    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions

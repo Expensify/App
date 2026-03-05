@@ -140,7 +140,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
@@ -155,7 +154,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
@@ -181,7 +179,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const turnOnDeleteModal = useCallback(() => {
         const openDeleteModal = async () => {
             const result = await showRemoveContactMethodModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 validateCodeFormRef.current?.focusLastSelected?.();
             });
@@ -193,7 +190,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         };
 
         if (canUseTouchScreen()) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(openDeleteModal);
             Keyboard.dismiss();
             return;
@@ -291,7 +287,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });

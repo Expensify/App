@@ -3,7 +3,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
-    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
     computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
@@ -66,7 +65,6 @@ describe('ReportNameUtils', () => {
             pronouns: 'She/her',
         },
     ].reduce((acc, detail) => {
-        // eslint-disable-next-line no-param-reassign
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);

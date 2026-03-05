@@ -56,7 +56,6 @@ type ReportActionsViewProps = {
     isLoadingInitialReportActions?: boolean;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
     /** If the report has newer actions to load */
@@ -269,7 +268,6 @@ function ReportActionsView({
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const allReportActionIDs = useMemo(() => {
@@ -309,7 +307,6 @@ function ReportActionsView({
             setNavigatingToLinkedMessage(true);
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // Using a short delay to ensure the view is updated after interactions
                 timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);

@@ -199,7 +199,6 @@ function RoomInvitePage({
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName({report});
 
     const ancestors = useAncestors(report);

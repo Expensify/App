@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowSubmitError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -113,7 +112,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report: emptyReport,
                     policy,
@@ -150,7 +148,6 @@ describe('libs/NextStepUtils', () => {
                         text: 'fix the issues',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -189,7 +186,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -236,7 +232,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -281,7 +276,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -327,7 +321,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -373,7 +366,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -420,7 +412,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -466,7 +457,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -513,7 +503,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -557,7 +546,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy: {
@@ -605,7 +593,6 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -650,7 +637,6 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -704,7 +690,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -753,7 +738,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -782,7 +766,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -826,7 +809,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -870,7 +852,6 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -901,7 +882,6 @@ describe('libs/NextStepUtils', () => {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -944,7 +924,6 @@ describe('libs/NextStepUtils', () => {
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStepNew({
                     report,
                     policy,
@@ -993,7 +972,6 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,
@@ -1019,7 +997,6 @@ describe('libs/NextStepUtils', () => {
                             text: 'No further action required!',
                         },
                     ];
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
                         report,
                         policy,

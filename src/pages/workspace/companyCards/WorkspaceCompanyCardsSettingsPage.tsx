@@ -85,7 +85,6 @@ function WorkspaceCompanyCardsSettingsPage({
             const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
                 (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, feed, cardIDs, feedToOpen);
             });

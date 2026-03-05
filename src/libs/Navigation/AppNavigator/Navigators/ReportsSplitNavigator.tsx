@@ -52,7 +52,6 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), isOpenOnAdminRoom, undefined, archivedReportsIdSet);
-        // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
 

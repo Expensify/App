@@ -2,7 +2,6 @@ import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding'
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';

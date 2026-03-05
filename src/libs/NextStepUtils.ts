@@ -104,7 +104,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const nextStepFixOrPayExpense: ReportNextStep = {
         messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        // eslint-disable-next-line rulesdir/no-default-id-values
         actorAccountID: shouldShowFixMessage ? ownerAccountID : (policy?.ownerAccountID ?? -1),
     };
 
@@ -815,6 +814,5 @@ export {
     buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };

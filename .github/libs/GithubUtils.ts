@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
@@ -246,7 +246,6 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
-    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow: string | number): Promise<number> {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions

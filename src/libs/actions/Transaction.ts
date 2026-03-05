@@ -233,7 +233,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         ...currentTransaction,
         comment: {
             ...currentTransaction?.comment,
@@ -522,7 +521,6 @@ function dismissDuplicateTransactionViolation({
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -965,7 +963,6 @@ function changeTransactionsReport({
     let shouldFixViolations = false;
 
     // TODO: Replace getPolicyTagsData with useOnyx hook (https://github.com/Expensify/App/issues/72720)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
@@ -1572,7 +1569,6 @@ function changeTransactionsReport({
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
         const nextStepOnyxReportID = shouldUseUnreportedNextStepKey ? reportID : affectedReportID;
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepForCollection = buildNextStepNew({
             report: updatedReport,
             policy,

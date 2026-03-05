@@ -246,7 +246,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
                 }}
             />

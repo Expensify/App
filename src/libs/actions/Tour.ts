@@ -5,7 +5,6 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected} from './Report';
 
 function startTestDrive(introSelected: IntroSelected | undefined, hasUserBeenAddedToNudgeMigration: boolean, isUserPaidPolicyMember: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         if (
             hasUserBeenAddedToNudgeMigration ||

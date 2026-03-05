@@ -82,7 +82,6 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         // It is possible that we optimistically created a DM/group-DM for a set of users for which a report already exists.
         // Or we optimistically created a transaction thread chat report for an IOU report action that already has an associated child chat report.

@@ -183,7 +183,6 @@ function IOURequestStepDistance({
 
             const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -191,8 +190,7 @@ function IOURequestStepDistance({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);

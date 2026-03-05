@@ -7,7 +7,6 @@ import {
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
 // We need to import API because it is used in the tests
-// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';

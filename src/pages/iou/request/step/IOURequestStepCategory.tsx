@@ -90,7 +90,6 @@ function IOURequestStepCategory({
     const shouldShowCategory =
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -203,7 +202,6 @@ function IOURequestStepCategory({
                                     if (!policy?.areCategoriesEnabled) {
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
                                             ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(

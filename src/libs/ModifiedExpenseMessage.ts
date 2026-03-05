@@ -13,7 +13,6 @@ import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {formatList, translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
@@ -31,7 +30,6 @@ import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -48,7 +46,6 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let storedCurrentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -201,7 +198,6 @@ function getMovedFromOrToReportMessage(
     }
 
     if (movedFromReport) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const originReportName = getReportName({report: movedFromReport});
         return translate('iou.movedFromReport', originReportName ?? '');
     }
@@ -298,7 +294,6 @@ function getForReportAction({
         return '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
@@ -331,26 +326,21 @@ function getForReportAction({
         // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
         // We check the merchant is in distance format (includes @) as a sanity check
         if (hasModifiedMerchant && (reportActionOriginalMessage?.merchant ?? '').includes('@')) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getForDistanceRequest(translateLocal, reportActionOriginalMessage?.merchant ?? '', reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, amount, oldAmount, translateLocal('iou.amount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let descriptionLabel = translateLocal('common.description');
 
         // Add attribution suffix based on AI-generated descriptions
         if (reportActionOriginalMessage?.aiGenerated) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
         }
 
         buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
@@ -365,11 +355,9 @@ function getForReportAction({
     if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
         const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
         buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             reportActionOriginalMessage.created,
             formattedOldCreated,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('common.date'),
             false,
             setFragments,
@@ -380,11 +368,9 @@ function getForReportAction({
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             reportActionOriginalMessage?.merchant ?? '',
             reportActionOriginalMessage?.oldMerchant ?? '',
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('common.merchant'),
             true,
             setFragments,
@@ -395,31 +381,25 @@ function getForReportAction({
 
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let categoryLabel = translateLocal('common.category').toLowerCase();
 
         // Add attribution suffix based on source
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const policy = getPolicy(policyID);
             const isAdmin = isPolicyAdmin(policy, currentUserLogin);
 
             // For admins, create a hyperlink to the workspace rules page
             if (isAdmin && policy?.id) {
                 const rulesLink = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policy.id)}`;
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink})}`;
             } else {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink: ''})}`;
             }
         }
 
         buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
             getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
@@ -441,7 +421,6 @@ function getForReportAction({
         const oldTransactionTag = reportActionOriginalMessage?.oldTag ?? '';
         const splittedTag = getTagArrayFromName(transactionTag);
         const splittedOldTag = getTagArrayFromName(oldTransactionTag);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
@@ -453,7 +432,6 @@ function getForReportAction({
 
             if (newTag !== oldTag) {
                 buildMessageFragmentForValue(
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     translateLocal,
                     getCleanedTagName(newTag),
                     getCleanedTagName(oldTag),
@@ -475,18 +453,15 @@ function getForReportAction({
         const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
         const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedTaxRate = isReportActionOriginalMessageAnObject && 'oldTaxRate' in reportActionOriginalMessage && 'taxRate' in reportActionOriginalMessage;
     if (hasModifiedTaxRate) {
         buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal,
             reportActionOriginalMessage?.taxRate ?? '',
             reportActionOriginalMessage?.oldTaxRate ?? '',
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.taxRate'),
             false,
             setFragments,
@@ -497,50 +472,23 @@ function getForReportAction({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
-        buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal,
-            newBillable,
-            oldBillable,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        buildMessageFragmentForValue(translateLocal, newBillable, oldBillable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         const oldReimbursable =
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         const newReimbursable =
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
-        buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal,
-            newReimbursable,
-            oldReimbursable,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        buildMessageFragmentForValue(translateLocal, newReimbursable, oldReimbursable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
         const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
@@ -548,7 +496,6 @@ function getForReportAction({
     if (hasPersonalRulesModifiedFields) {
         const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
         if (personalRulesModifiedFields) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, personalRulesModifiedFields, true);
         }
     }
@@ -559,31 +506,24 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && rulePolicyID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const rulePolicy = getPolicy(rulePolicyID);
             const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, currentUserLogin);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, policyRulesModifiedFields, false, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
     const message =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.changed')}`, changeFragments) +
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.set')}`, setFragments) +
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
         // If we don't have enough structured information to build a detailed message but we
         // know the change was AI-generated, fall back to an AI-attributed generic summary so
         // users can still understand that Concierge updated the expense automatically.
         if (reportActionOriginalMessage?.aiGenerated) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;

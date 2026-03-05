@@ -100,7 +100,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName({report: reportForTitle}) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
@@ -165,7 +164,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={icons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}

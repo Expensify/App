@@ -96,7 +96,6 @@ function TermsStep(props: TermsStepProps) {
                         setError(false);
                         acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            // eslint-disable-next-line rulesdir/no-default-id-values
                             reportID: walletTerms?.chatReportID ?? '',
                         });
                     }}

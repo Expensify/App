@@ -67,7 +67,6 @@ function NetSuiteImportCustomFieldPage({
         params: {importCustomField},
     },
 }: NetSuiteImportCustomFieldPageProps) {
-    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();

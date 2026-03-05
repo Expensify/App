@@ -3303,7 +3303,6 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData(report, undefined, policy, 1, '', false, true, undefined);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             expect(buildNextStepNew).toHaveBeenCalledWith({
                 report,
                 policy,
@@ -3627,7 +3626,6 @@ describe('actions/Report', () => {
     describe('navigateToConciergeChat', () => {
         const CONCIERGE_REPORT_ID = '123456';
         const TEST_USER_ACCOUNT_ID = 1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
 
         beforeEach(async () => {
@@ -3775,7 +3773,6 @@ describe('actions/Report', () => {
         const CONCIERGE_REPORT_ID = '123456';
         const REPORT_ID = '789';
         const TEST_USER_ACCOUNT_ID = 1;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const mockNavigation: {navigate: jest.Mock; dismissModalWithReport: jest.Mock; goBack: jest.Mock; popToSidebar: jest.Mock} = jest.requireMock('@libs/Navigation/Navigation');
 
         beforeEach(async () => {

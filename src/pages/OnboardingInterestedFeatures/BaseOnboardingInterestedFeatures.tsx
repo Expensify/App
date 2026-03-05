@@ -229,7 +229,6 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             });
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();

@@ -100,9 +100,7 @@ async function run() {
     const assistantID = getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
     const openAI = new OpenAIUtils(apiKey);
 
-    /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
-    /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
 
     // DUPLICATE PROPOSAL DETECTION
@@ -148,7 +146,6 @@ async function run() {
             const duplicateCheckPrompt = PROPOSAL_POLICE_TEMPLATES.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse<DuplicateProposalResponse>(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -189,7 +186,6 @@ async function run() {
         : PROPOSAL_POLICE_TEMPLATES.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse<AssistantResponse>(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);

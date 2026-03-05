@@ -17,7 +17,6 @@ function AdminTestDriveModal() {
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);

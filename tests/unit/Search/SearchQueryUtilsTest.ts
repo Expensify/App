@@ -2,7 +2,6 @@
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import {

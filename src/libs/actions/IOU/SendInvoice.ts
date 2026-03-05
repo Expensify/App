@@ -651,7 +651,6 @@ function getSendInvoiceInformation({
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
         policyRecentlyUsedTags,
         transactionTags: tag,
@@ -801,7 +800,6 @@ function sendInvoice({
 
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
     handleNavigateAfterExpenseCreate({

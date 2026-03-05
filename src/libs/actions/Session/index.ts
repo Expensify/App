@@ -378,7 +378,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             HybridAppModule.switchAccount({
                 newDotCurrentAccountEmail: stashedSession.email ?? '',
                 authToken: stashedSession.authToken ?? '',
-                // eslint-disable-next-line rulesdir/no-default-id-values
                 policyID: activePolicyID ?? '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
@@ -1330,7 +1329,6 @@ function waitForUserSignIn(): Promise<boolean> {
 }
 
 function handleExitToNavigation(exitTo: Route) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {

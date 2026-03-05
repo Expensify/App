@@ -765,7 +765,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
             return;
         }
         dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             navigate(reportRoute);
         });

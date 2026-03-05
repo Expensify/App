@@ -11654,9 +11654,7 @@ async function run() {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
     const assistantID = (0, core_1.getInput)('PROPOSAL_POLICE_ASSISTANT_ID', { required: true });
     const openAI = new OpenAIUtils_1.default(apiKey);
-    /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
-    /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
     // DUPLICATE PROPOSAL DETECTION
     if (isCommentCreatedEvent(payload)) {
@@ -11697,7 +11695,6 @@ async function run() {
             const duplicateCheckPrompt = proposalPolice_1.default.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
             const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
             let similarityPercentage = 0;
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
             const parsedDuplicateCheckResponse = openAI.parseAssistantResponse(duplicateCheckResponse);
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
@@ -11735,7 +11732,6 @@ async function run() {
         ? proposalPolice_1.default.getPromptForNewProposalTemplateCheck(payload.comment?.body)
         : proposalPolice_1.default.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- TODO: refactor `parseAssistantResponse` to use `promptResponses` instead
     const parsedAssistantResponse = openAI.parseAssistantResponse(assistantResponse);
     core.startGroup('Parsed Assistant Response');
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
@@ -11988,7 +11984,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(42186));
 const utils_1 = __nccwpck_require__(73030);
 const plugin_paginate_rest_1 = __nccwpck_require__(64193);
@@ -12165,7 +12161,6 @@ class GithubUtils {
     /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
-    /* eslint-disable rulesdir/no-default-id-values */
     static getLatestWorkflowRunID(workflow) {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
@@ -12554,15 +12549,11 @@ class OpenAIUtils {
      */
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
-        const thread = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.create({
+        const thread = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.create({
             messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         // 2. Create a run on the thread
-        let run = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        this.client.beta.threads.runs.create(thread.id, {
+        let run = await (0, retryWithBackoff_1.default)(() => this.client.beta.threads.runs.create(thread.id, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             assistant_id: assistantID,
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
@@ -12570,7 +12561,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -12579,7 +12570,6 @@ class OpenAIUtils {
                 });
                 continue;
             }
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;

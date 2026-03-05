@@ -48,7 +48,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
 
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
 
-        // eslint-disable-next-line rulesdir/no-default-id-values
         setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
 
         if (policy?.areCategoriesEnabled) {

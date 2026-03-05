@@ -591,7 +591,6 @@ function PureReportActionItem({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
@@ -751,7 +750,6 @@ function PureReportActionItem({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
                 transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
@@ -1863,7 +1861,6 @@ function PureReportActionItem({
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         signOutAndRedirectToSignIn();
                                     });
@@ -2101,7 +2098,6 @@ function PureReportActionItem({
                                 <OfflineWithFeedback
                                     onClose={onClose}
                                     dismissError={dismissError}
-                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                     pendingAction={
                                         draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                     }

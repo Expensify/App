@@ -21,7 +21,6 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     // This is default value for the input to be display
-    /* eslint-disable-next-line rulesdir/no-default-id-values */
     const defaultCompanyTaxID = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';

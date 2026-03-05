@@ -47,7 +47,6 @@ function NetSuiteImportAddCustomSegmentContent({policy, draftValues}: NetSuiteIm
     const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
     const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
     const handleFinishStep = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             const updatedCustomSegments = customSegments.concat([
                 {

@@ -61,7 +61,6 @@ function ReceiptView({route}: ReceiptViewProps) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 if (receipts.length === 1) {

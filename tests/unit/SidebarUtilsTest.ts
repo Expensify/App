@@ -6,7 +6,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
@@ -72,7 +71,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -194,7 +192,6 @@ describe('SidebarUtils', () => {
                 reportID: '1',
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -282,7 +279,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -419,7 +415,6 @@ describe('SidebarUtils', () => {
                 },
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': MOCK_REPORT_ACTION,
             };
             const MOCK_TRANSACTIONS = {};
@@ -552,7 +547,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -629,7 +623,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -728,7 +721,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -801,7 +793,6 @@ describe('SidebarUtils', () => {
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -1015,7 +1006,6 @@ describe('SidebarUtils', () => {
                 reportID: '1',
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2491,7 +2481,6 @@ describe('SidebarUtils', () => {
                     childReportNotificationPreference: 'always',
                 };
                 const MOCK_REPORT_ACTIONS: ReportActions = {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     [lastAction.reportActionID]: lastAction,
                     [deletedAction.reportActionID]: deletedAction,
                 };

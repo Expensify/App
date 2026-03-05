@@ -250,7 +250,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     });
                     if (action === ModalActions.CONFIRM) {
                         deletePolicyTags(policyData, selectedTags);
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setSelectedTags([]);
                         });

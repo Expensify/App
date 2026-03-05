@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
@@ -469,7 +468,6 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
  * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
  * This bypasses browser Image API which may downsample large images on mobile browsers.
  */
-// eslint-disable-next-line no-bitwise
 const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
     return new Promise((resolve) => {
         const reader = new FileReader();
