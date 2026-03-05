@@ -5,7 +5,7 @@ import AttachmentDeletedIndicator from '@components/AttachmentDeletedIndicator';
 import Icon from '@components/Icon';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -31,6 +31,8 @@ type VideoPlayerThumbnailProps = {
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Play'] as const);
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
         <View style={styles.flex1}>
@@ -45,37 +47,33 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                 </View>
             )}
             {!isDeleted ? (
-                <ShowContextMenuContext.Consumer>
-                    {({anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, onShowContextMenu, shouldDisplayContextMenu}) => (
-                        <PressableWithoutFeedback
-                            style={[styles.videoThumbnailContainer]}
-                            accessibilityLabel={accessibilityLabel}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            onPress={onPress}
-                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                            onPressOut={() => ControlSelection.unblock()}
-                            onLongPress={(event) => {
-                                if (isDisabled || !shouldDisplayContextMenu) {
-                                    return;
-                                }
-                                onShowContextMenu(() => {
-                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
-                                });
-                            }}
-                            shouldUseHapticsOnLongPress
-                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.THUMBNAIL}
-                        >
-                            <View style={[styles.videoThumbnailPlayButton]}>
-                                <Icon
-                                    src={icons.Play}
-                                    fill="white"
-                                    width={variables.iconSizeXLarge}
-                                    height={variables.iconSizeXLarge}
-                                />
-                            </View>
-                        </PressableWithoutFeedback>
-                    )}
-                </ShowContextMenuContext.Consumer>
+                <PressableWithoutFeedback
+                    style={[styles.videoThumbnailContainer]}
+                    accessibilityLabel={accessibilityLabel}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    onPress={onPress}
+                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => {
+                        if (isDisabled || !shouldDisplayContextMenu) {
+                            return;
+                        }
+                        onShowContextMenu(() => {
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                        });
+                    }}
+                    shouldUseHapticsOnLongPress
+                    sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.THUMBNAIL}
+                >
+                    <View style={[styles.videoThumbnailPlayButton]}>
+                        <Icon
+                            src={icons.Play}
+                            fill="white"
+                            width={variables.iconSizeXLarge}
+                            height={variables.iconSizeXLarge}
+                        />
+                    </View>
+                </PressableWithoutFeedback>
             ) : (
                 <AttachmentDeletedIndicator containerStyles={{borderRadius: variables.componentBorderRadiusNormal}} />
             )}

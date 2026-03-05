@@ -187,8 +187,7 @@ function IOURequestStepDistanceMap({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);
@@ -303,13 +302,13 @@ function IOURequestStepDistanceMap({
             iouType,
             report,
             policy,
-            policyForMovingExpenses,
             transaction,
             reportID,
             transactionID,
             reportAttributesDerived,
             personalDetails,
             waypoints,
+            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backTo,
@@ -329,6 +328,7 @@ function IOURequestStepDistanceMap({
             activePolicyID,
             privateIsArchived: reportNameValuePairs?.private_isArchived,
             selfDMReport,
+            policyForMovingExpenses,
             betas,
             recentWaypoints,
         });
@@ -342,6 +342,7 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         personalDetails,
         waypoints,
+        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
         backTo,

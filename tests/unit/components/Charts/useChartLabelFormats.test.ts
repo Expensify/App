@@ -84,7 +84,7 @@ describe('formatLabel', () => {
     });
 
     it('ignores truncatedLabels when rotation is vertical', () => {
-        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, truncatedLabels: ['J', 'F'], labelRotation: -90}));
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, truncatedLabels: ['J', 'F'], labelRotation: 90}));
 
         expect(result.current.formatLabel(0)).toBe('Jan');
         expect(result.current.formatLabel(1)).toBe('Feb');
