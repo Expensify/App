@@ -9,12 +9,14 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
+import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -60,6 +62,7 @@ function SearchPageWide({
     ErrorModal,
     shouldShowFooter,
 }: SearchPageWideProps) {
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -113,16 +116,20 @@ function SearchPageWide({
                                 queryJSON={queryJSON}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                searchResults={searchResults}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                onSearchListScroll={scrollHandler}
-                                onSortPressedCallback={onSortPressedCallback}
-                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            />
+                            {shouldShowLoadingSkeleton ? (
+                                <SearchLoadingSkeleton containerStyle={styles.mt3} />
+                            ) : (
+                                <Search
+                                    key={queryJSON.hash}
+                                    queryJSON={queryJSON}
+                                    searchResults={searchResults}
+                                    handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    onSearchListScroll={scrollHandler}
+                                    onSortPressedCallback={onSortPressedCallback}
+                                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                />
+                            )}
                             {shouldShowFooter && (
                                 <SearchPageFooter
                                     count={footerData.count}

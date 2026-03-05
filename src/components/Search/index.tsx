@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -37,7 +37,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {openSearch, setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -52,6 +52,7 @@ import {
     getSections,
     getSortedSections,
     getSuggestedSearches,
+    getValidGroupBy,
     getWideAmountIndicators,
     isGroupedItemArray,
     isReportActionListItemType,
@@ -229,16 +230,8 @@ function Search({
     const {markReportIDAsExpense} = useWideRHPActions();
     const {currentSearchHash, selectedTransactions, shouldTurnOffSelectionMode, lastSearchType, areAllMatchingItemsSelected, shouldResetSearchQuery, shouldUseLiveData} =
         useSearchStateContext();
-    const {
-        setCurrentSearchHashAndKey,
-        setCurrentSearchQueryJSON,
-        setSelectedTransactions,
-        clearSelectedTransactions,
-        setShouldShowFiltersBarLoading,
-        setShouldShowSelectAllMatchingItems,
-        selectAllMatchingItems,
-        setShouldResetSearchQuery,
-    } = useSearchActionsContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
+        useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -302,22 +295,7 @@ function Search({
         }
     }, [onDEWModalOpen, showConfirmModal, translate]);
 
-    const clearTransactionsAndSetHashAndKey = useCallback(() => {
-        clearSelectedTransactions(hash);
-        setCurrentSearchHashAndKey(hash, recentSearchHash, searchKey);
-        setCurrentSearchQueryJSON(queryJSON);
-    }, [hash, recentSearchHash, searchKey, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON, queryJSON]);
-
-    useFocusEffect(clearTransactionsAndSetHashAndKey);
-
-    useEffect(() => {
-        clearTransactionsAndSetHashAndKey();
-
-        // Trigger once on mount (e.g., on page reload), when RHP is open and screen is not focused
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const validGroupBy = getValidGroupBy(groupBy);
     const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
 
@@ -364,17 +342,6 @@ function Search({
         // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
-
-    useEffect(() => {
-        openSearch({includePartiallySetupBankAccounts: true});
-    }, []);
-
-    useEffect(() => {
-        if (!prevIsOffline || isOffline) {
-            return;
-        }
-        openSearch({includePartiallySetupBankAccounts: true});
-    }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
@@ -1184,11 +1151,6 @@ function Search({
         spanExistedOnMount.current = false;
     }, []);
 
-    const onLayoutSkeleton = useCallback(() => {
-        hasHadFirstLayout.current = true;
-        endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
-    }, []);
-
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
@@ -1206,22 +1168,6 @@ function Search({
             spanExistedOnMount.current = false;
         }, [shouldShowLoadingState]),
     );
-
-    if (shouldShowLoadingState) {
-        return (
-            <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-                style={[styles.flex1]}
-                onLayout={onLayoutSkeleton}
-            >
-                <SearchRowSkeleton
-                    shouldAnimate
-                    containerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3}
-                />
-            </Animated.View>
-        );
-    }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');

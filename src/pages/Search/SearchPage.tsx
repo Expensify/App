@@ -13,6 +13,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,6 +46,7 @@ function SearchPage({route}: SearchPageProps) {
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useConfirmReadyToOpenApp();
+    useSearchPageSetup(queryJSON);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {

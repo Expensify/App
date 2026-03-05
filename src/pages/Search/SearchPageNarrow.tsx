@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
+import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -21,6 +22,7 @@ import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -55,6 +57,7 @@ type SearchPageNarrowProps = {
 };
 
 function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -238,16 +241,20 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 )}
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
-                        <Search
-                            searchResults={searchResults}
-                            key={queryJSON.hash}
-                            queryJSON={queryJSON}
-                            onSearchListScroll={scrollHandler}
-                            contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
-                            handleSearch={handleSearchAction}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                        />
+                        {shouldShowLoadingSkeleton ? (
+                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles} />
+                        ) : (
+                            <Search
+                                searchResults={searchResults}
+                                key={queryJSON.hash}
+                                queryJSON={queryJSON}
+                                onSearchListScroll={scrollHandler}
+                                contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
+                                handleSearch={handleSearchAction}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                            />
+                        )}
                     </View>
                 )}
                 {shouldShowFooter && !searchRouterListVisible && (
