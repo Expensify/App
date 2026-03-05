@@ -806,7 +806,7 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
  * A utility that ensures unreported transactions are unheld.
  * For distance expenses, it also updates the `customUnit` and recalculates the transaction's `amount`, `merchant`, and `currency`
  */
-function recalcUnreportedTransactionDetails(
+function recalculateUnreportedTransactionDetails(
     transaction: OnyxEntry<Transaction>,
     destinationCurrency: string | undefined,
     translate: LocaleContextProps['translate'],
@@ -1058,7 +1058,7 @@ function changeTransactionsReport({
         };
 
         const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = isUnreported
-            ? recalcUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
+            ? recalculateUnreportedTransactionDetails(transaction, destinationCurrency, translate, toLocaleDigit)
             : {};
 
         // 1. Optimistically change the reportID on the passed transactions
@@ -1699,5 +1699,5 @@ export {
     setTransactionReport,
     mergeTransactionIdsHighlightOnSearchRoute,
     getDuplicateTransactionDetails,
-    recalcUnreportedTransactionDetails,
+    recalculateUnreportedTransactionDetails,
 };
