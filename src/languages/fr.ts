@@ -516,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attention !',
         submitTo: 'Soumettre à',
         forwardTo: 'Transférer à',
+        approvalLimit: "Limite d'approbation",
+        overLimitForwardTo: 'Transférer si dépassement de limite',
         merge: 'Fusionner',
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
@@ -545,6 +547,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Note de frais en double',
+        approver: 'Approbateur',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -909,8 +912,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'en tant que copilote pour',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `a créé cette note de frais pour regrouper toutes les dépenses de <a href="${reportUrl}">${reportName}</a> qui n'ont pas pu être soumises à la fréquence que vous avez choisie`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `a créé cette note de frais pour toutes les dépenses en attente de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `a créé cette note de frais pour toutes les dépenses retenues de la note de frais supprimée n°${reportID}`
+                : `a créé cette note de frais pour toutes les dépenses retenues provenant de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',
@@ -1356,7 +1361,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: `approuvé`,
-        rejectedThisReport: 'a rejeté cette note de frais',
+        rejectedThisReport: 'rejeté',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1453,6 +1458,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Expliquez pourquoi vous retenez cette dépense.',
             other: 'Expliquez pourquoi vous retenez ces dépenses.',
         }),
+        explainHoldApprover: () => ({
+            one: "Expliquez ce dont vous avez besoin avant d'approuver cette dépense.",
+            other: "Expliquez ce dont vous avez besoin avant d'approuver ces dépenses.",
+        }),
         retracted: 'Retiré',
         retract: 'Retirer',
         reopened: 'rouvert',
@@ -1547,7 +1556,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Les dépenses en attente sont laissées de côté lorsque vous approuvez une note de frais entière.',
             rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
             reasonPageTitle: 'Rejeter la dépense',
-            reasonPageDescription: 'Expliquez pourquoi vous rejetez cette dépense.',
+            reasonPageDescription: "Expliquez pourquoi vous n'approuverez pas cette dépense.",
             rejectReason: 'Motif de rejet',
             markAsResolved: 'Marquer comme résolu',
             rejectedStatus: 'Cette dépense a été rejetée. Nous attendons que vous corrigiez les problèmes et la marquiez comme résolue pour permettre la soumission.',
@@ -1604,6 +1613,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) =>
             `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
     },
     transactionMerge: {
         listPage: {
@@ -2181,12 +2191,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Ajouter une carte personnelle',
+        addCompanyCard: "Ajouter une carte d'entreprise",
+        lookingForCompanyCards: "Vous devez ajouter des cartes d'entreprise ?",
+        lookingForCompanyCardsDescription: 'Connectez vos propres cartes auprès de plus de 10 000 banques dans le monde.',
+        personalCardAdded: 'Carte personnelle ajoutée!',
+        personalCardAddedDescription: 'Félicitations, nous allons commencer à importer les transactions de votre carte.',
+        isPersonalCard: "S'agit-il d'une carte personnelle?",
+        thisIsPersonalCard: "Il s'agit d'une carte personnelle",
+        thisIsCompanyCard: "Il s'agit d'une carte d'entreprise",
+        askAdmin: 'Demander à votre administrateur',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Si oui, parfait ! Mais si c'est une carte d'<strong>entreprise</strong>, veuillez ${isAdmin ? "l'assigner depuis votre espace de travail." : "demander à votre administrateur de vous l'assigner depuis l'espace de travail."}`,
+        bankConnectionError: 'Problème de connexion bancaire',
+        bankConnectionDescription: "Veuillez réessayer d'ajouter vos cartes. Sinon, vous pouvez",
+        connectWithPlaid: 'vous connecter via Plaid.',
         fixCard: 'Réparer la carte',
         brokenConnection: 'La connexion de votre carte est rompue.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connexion de votre carte ${cardName} est rompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour corriger la carte.`
                 : `La connexion de votre carte ${cardName} est rompue. Connectez-vous à votre banque pour corriger la carte.`,
+        addAdditionalCards: "Ajouter d'autres cartes",
+        upgradeDescription: "Vous devez ajouter plus de cartes ? Créez un espace de travail pour ajouter des cartes personnelles ou assigner des cartes d'entreprise à toute l'équipe.",
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponible dans le forfait Collect, à <strong>${formattedPrice}</strong> par membre et par mois.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Créez un espace de travail pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos forfaits et tarifs.</muted-text>`,
+        workspaceCreated: 'Espace de travail créé',
+        newWorkspace: 'Vous avez créé un espace de travail !',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Vous pouvez maintenant ajouter d'autres cartes. <a href="${subscriptionLink}">Voir votre abonnement</a> pour plus de détails.</centered-text>`,
     },
     walletPage: {
         balance: 'Solde',
