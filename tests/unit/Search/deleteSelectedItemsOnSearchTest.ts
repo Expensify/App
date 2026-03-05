@@ -606,7 +606,6 @@ describe('bulkDeleteReports', () => {
             expect(deleteAppReport).not.toHaveBeenCalled();
 
             // Should call API.write with DELETE_MONEY_REQUEST_ON_SEARCH with all transaction IDs
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH,
                 expect.objectContaining({
@@ -695,7 +694,6 @@ describe('bulkDeleteReports', () => {
             );
 
             // Should NOT call API.write with DELETE_MONEY_REQUEST_ON_SEARCH since all transactions belong to the report being deleted
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(write).not.toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, expect.anything(), expect.anything());
         });
 
@@ -736,7 +734,6 @@ describe('bulkDeleteReports', () => {
             });
 
             // Should call API.write with DELETE_MONEY_REQUEST_ON_SEARCH for transaction with no reportID
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(write).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH,
                 expect.objectContaining({
