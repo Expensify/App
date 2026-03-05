@@ -162,10 +162,22 @@ function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackFrom?: str
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackFrom?: string, fallbackTo?: string) {
+function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackFrom?: string, fallbackTo?: string, shouldHideCurrentYearForRange = false) {
     const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackFrom, fallbackTo);
     if (rangeBoundaries.from && rangeBoundaries.to) {
-        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+        if (!shouldHideCurrentYearForRange) {
+            return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
+        }
+
+        const shouldShowFullYear = DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
+        const formattedRange = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear);
+
+        if (shouldShowFullYear) {
+            return formattedRange;
+        }
+
+        const currentYearSuffix = `, ${new Date().getFullYear()}`;
+        return formattedRange.endsWith(currentYearSuffix) ? formattedRange.slice(0, -currentYearSuffix.length) : formattedRange;
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;

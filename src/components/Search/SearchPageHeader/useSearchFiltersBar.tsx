@@ -157,24 +157,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const isOptions = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
-    const getTopBarRangeDisplayValue = (rangeValue: string): string => {
-        const [startDate = '', endDate = ''] = rangeValue.split(',', 2);
-
-        if (!startDate || !endDate) {
-            return getDateRangeDisplayValueFromFormValue(rangeValue);
-        }
-
-        const shouldShowFullYear = DateUtils.doesDateBelongToAPastYear(startDate) || DateUtils.doesDateBelongToAPastYear(endDate);
-        const formattedRange = DateUtils.getFormattedDateRangeForSearch(startDate, endDate, shouldShowFullYear);
-
-        if (shouldShowFullYear) {
-            return formattedRange;
-        }
-
-        const currentYearSuffix = `, ${new Date().getFullYear()}`;
-        return formattedRange.endsWith(currentYearSuffix) ? formattedRange.slice(0, -currentYearSuffix.length) : formattedRange;
-    };
-
     const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
@@ -194,7 +176,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
         }
         if (value.Range) {
-            const rangeDisplay = getTopBarRangeDisplayValue(value.Range);
+            const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range, undefined, undefined, true);
             if (rangeDisplay) {
                 displayText.push(rangeDisplay);
             }
