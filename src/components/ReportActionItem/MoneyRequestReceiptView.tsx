@@ -2,7 +2,7 @@ import mapValues from 'lodash/mapValues';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -46,22 +46,20 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
-import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
+import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
-
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -93,23 +91,15 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
-function MoneyRequestReceiptView({
-    allReports,
-    report,
-    readonly = false,
-    updatedTransaction,
-    fillSpace = false,
-    mergeTransactionID,
-    isDisplayedInWideRHP = false,
-}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, fillSpace = false, mergeTransactionID, isDisplayedInWideRHP = false}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`];
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
     });
@@ -133,6 +123,7 @@ function MoneyRequestReceiptView({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${moneyRequestReport?.policyID}`);
 
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const hasReceipt = hasReceiptTransactionUtils(updatedTransaction ?? transaction);
@@ -140,7 +131,7 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -276,7 +267,7 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -313,7 +304,7 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, true, true);
         }
     };
 
@@ -336,6 +327,20 @@ function MoneyRequestReceiptView({
             <ReceiptAuditMessages notes={receiptImageViolations} />
         </View>
     );
+
+    const setReceiptFile = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
+        const file = files.at(0);
+
+        if (!file || !linkedTransactionID) {
+            return;
+        }
+        const source = URL.createObjectURL(file as Blob);
+        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+    };
 
     // For empty receipt should be fullHeight
     // For the rest, expand to match the content
@@ -369,6 +374,7 @@ function MoneyRequestReceiptView({
                         isInMoneyRequestView
                         style={receiptStyle}
                         isDisplayedInWideRHP={isDisplayedInWideRHP}
+                        setReceiptFile={setReceiptFile}
                     />
                 </OfflineWithFeedback>
             )}

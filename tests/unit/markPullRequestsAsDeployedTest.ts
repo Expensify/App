@@ -108,7 +108,6 @@ beforeAll(() => {
     const mockOctokit = {
         rest: {
             issues: {
-                // eslint-disable-next-line @typescript-eslint/require-await
                 listForRepo: jest.fn().mockImplementation(async () => ({
                     data: [
                         {
@@ -116,7 +115,6 @@ beforeAll(() => {
                         },
                     ],
                 })),
-                // eslint-disable-next-line @typescript-eslint/require-await
                 listEvents: jest.fn().mockImplementation(async () => ({
                     data: [{event: 'closed', actor: {login: 'thor'}}],
                 })),

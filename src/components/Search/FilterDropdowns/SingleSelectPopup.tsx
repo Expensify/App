@@ -126,7 +126,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     textInputOptions={textInputOptions}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    showLoadingPlaceholder={!noResultsFound}
+                    shouldShowLoadingPlaceholder={!noResultsFound}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
