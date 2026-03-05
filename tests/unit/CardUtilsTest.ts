@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -25,6 +26,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardsByCardholderName,
+    getCardSettings,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -3232,5 +3234,89 @@ describe('CardUtils', () => {
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
             expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
+    });
+
+    describe('getCardSettings', () => {
+        const flatSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            currentBalance: 1000,
+            remainingLimit: 49000,
+        } as ExpensifyCardSettings;
+
+        const nestedSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            US: {
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            },
+            TRAVEL_US: {
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            },
+        } as ExpensifyCardSettings;
+
+        it('should return undefined when cardSettings is undefined', () => {
+            expect(getCardSettings(undefined)).toBeUndefined();
+        });
+
+        it('should return undefined when cardSettings is null', () => {
+            // OnyxEntry may resolve to undefined rather than null,
+            // but we cast to cover runtime safety
+            expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
+        });
+
+        it('should return flat root when feedCountry is not provided', () => {
+            const result = getCardSettings(flatSettings);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return flat root when feedCountry is undefined', () => {
+            const result = getCardSettings(flatSettings, undefined);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return nested object when feedCountry matches a nested key', () => {
+            const result = getCardSettings(nestedSettings, 'US');
+            expect(result).toEqual({
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            });
+        });
+
+        it('should fall back to flat root when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA');
+            expect(result).toBe(nestedSettings);
+        });
+
+        it('should return TRAVEL_US nested settings when feedCountry is TRAVEL_US', () => {
+            const result = getCardSettings(nestedSettings, 'TRAVEL_US');
+            expect(result).toEqual({
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            });
+        });
+
+        it('should not return primitive values as nested settings', () => {
+            const result = getCardSettings(nestedSettings, 'limit');
+            expect(result).toBe(nestedSettings);
+        });
+    });
+});
+
+describe('formatMaskedCardName', () => {
+    it('pads a 4-digit card name with leading Xs and groups into 4-char segments', () => {
+        expect(formatMaskedCardName('3191')).toBe('XXXX-XXXX-XXXX-3191');
+    });
+
+    it('groups a full 16-char masked card name into 4-char segments', () => {
+        expect(formatMaskedCardName('553312XXXXXX3223')).toBe('5533-12XX-XXXX-3223');
+    });
+
+    it('returns non-commercial card names unchanged', () => {
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });
