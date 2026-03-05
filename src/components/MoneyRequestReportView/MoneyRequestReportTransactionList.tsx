@@ -188,6 +188,7 @@ function MoneyRequestReportTransactionList({
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
@@ -201,12 +202,13 @@ function MoneyRequestReportTransactionList({
                 report?.reportID,
                 policy,
                 userBillingGraceEndPeriodCollection,
+                amountOwed,
                 ownerBillingGraceEndPeriod,
                 undefined,
                 undefined,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod, lastDistanceExpenseType],
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -396,7 +398,7 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(introSelected, report, iouAction, transaction);
+                const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserDetails.email ?? '', currentUserDetails.accountID, report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -414,7 +416,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected, currentUserDetails.email, currentUserDetails.accountID],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -550,6 +552,7 @@ function MoneyRequestReportTransactionList({
                                           shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                                           columns={columnsToShow}
                                           report={report}
+                                          policy={policy}
                                           isSelectionModeEnabled={isMobileSelectionModeEnabled}
                                           toggleTransaction={toggleTransaction}
                                           isSelected={isTransactionSelected(transaction.transactionID)}
@@ -573,6 +576,7 @@ function MoneyRequestReportTransactionList({
                           shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                           columns={columnsToShow}
                           report={report}
+                          policy={policy}
                           isSelectionModeEnabled={isMobileSelectionModeEnabled}
                           toggleTransaction={toggleTransaction}
                           isSelected={isTransactionSelected(transaction.transactionID)}
