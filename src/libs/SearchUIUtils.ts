@@ -3250,8 +3250,8 @@ function getSortedReportData(
         // When sorting by total, apply the backend logic:
         // IOU reports have positive amounts, expense reports have negative amounts
         if (sortingProperty === 'total' && typeof aValue === 'number' && typeof bValue === 'number') {
-            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -(aValue as number);
-            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -(bValue as number);
+            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -aValue;
+            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -bValue;
         }
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);
