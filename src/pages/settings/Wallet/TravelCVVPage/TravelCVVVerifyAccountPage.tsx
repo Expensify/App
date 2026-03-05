@@ -39,7 +39,6 @@ function TravelCVVVerifyAccountPage() {
         setIsLoading(true);
 
         // Call revealVirtualCardDetails and only extract CVV
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         revealVirtualCardDetails(+travelCard.cardID, validateCode)
             .then((cardDetails) => {
                 // Only store CVV - never persist PAN or other details

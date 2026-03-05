@@ -15,11 +15,12 @@ import useDomainGroupFilter from '@hooks/useDomainGroupFilter';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDomainMemberError, closeUserAccount} from '@libs/actions/Domain';
+import {clearDomainMemberError, closeUserAccount, exportMembersToCSV} from '@libs/actions/Domain';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {hasDomainMemberDetailsErrors} from '@libs/DomainUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -40,11 +41,12 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => setSelectedMembers([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
+    const {isOffline} = useNetwork();
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -176,6 +178,33 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         },
     ];
 
+    const onDownloadCSV = () => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
+            return;
+        }
+        exportMembersToCSV(
+            domainAccountID,
+            () => {
+                showConfirmModal({
+                    title: translate('common.downloadFailedTitle'),
+                    prompt: translate('common.downloadFailedDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                    success: false,
+                    shouldHandleNavigationBack: true,
+                });
+            },
+            translate,
+        );
+    };
+
     const getHeaderButtons = () => {
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
@@ -191,27 +220,49 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
             />
         ) : (
-            <Button
-                success
-                onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
-                text={translate('domain.members.addMember')}
-                icon={icons.Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
-            />
+            <>
+                <Button
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
+                    text={translate('domain.members.addMember')}
+                    icon={icons.Plus}
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                />
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    shouldAlwaysShowDropdownMenu
+                    customText={translate('common.more')}
+                    options={[
+                        {
+                            text: translate('spreadsheet.downloadCSV'),
+                            icon: icons.Download,
+                            onSelected: onDownloadCSV,
+                            value: CONST.DOMAIN.MEMBERS.SECONDARY_ACTIONS.SAVE_TO_CSV,
+                        },
+                    ]}
+                    isSplitButton={false}
+                    wrapperStyle={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                />
+            </>
         );
     };
 
     const getCustomRowProps = (accountID: number, email?: string) => {
         const emailPendingAction = email ? domainPendingActions?.[email]?.pendingAction : undefined;
-        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction;
+        const accountIDPendingAction = domainPendingActions?.[accountID]?.pendingAction ?? domainPendingActions?.[accountID]?.lockAccount;
 
         const emailErrors = email ? domainErrors?.memberErrors?.[email] : undefined;
         const accountIDErrors = domainErrors?.memberErrors?.[accountID];
+        const emailError = email ? getLatestError(emailErrors?.errors) : undefined;
+        const vacationDelegatesEmailError = email ? getLatestError(emailErrors?.vacationDelegateErrors) : undefined;
+        const twoFactorAuthExemptEmailsError = email ? getLatestError(emailErrors?.twoFactorAuthExemptEmailsError) : undefined;
+
         const mergedErrors: DomainMemberErrors = {
-            errors: {...accountIDErrors?.errors, ...emailErrors?.errors},
-            vacationDelegateErrors: {...accountIDErrors?.vacationDelegateErrors, ...emailErrors?.vacationDelegateErrors},
-            twoFactorAuthExemptEmailsError: {...accountIDErrors?.twoFactorAuthExemptEmailsError, ...emailErrors?.twoFactorAuthExemptEmailsError},
+            errors: {...getLatestError(accountIDErrors?.errors), ...getLatestError(accountIDErrors?.lockAccountErrors), ...emailError},
+            vacationDelegateErrors: {...getLatestError(accountIDErrors?.vacationDelegateErrors), ...vacationDelegatesEmailError},
+            twoFactorAuthExemptEmailsError: {...getLatestError(accountIDErrors?.twoFactorAuthExemptEmailsError), ...twoFactorAuthExemptEmailsError},
         };
         const brickRoadIndicator = hasDomainMemberDetailsErrors(mergedErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
