@@ -112,7 +112,6 @@ jest.mock('@hooks/useNetworkWithOfflineStatus', () => ({
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_LOGIN = 'test@example.com';
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         login: CURRENT_USER_LOGIN,

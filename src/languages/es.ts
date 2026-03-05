@@ -3,10 +3,16 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
+import type {
+    ConciergeBrokenCardConnectionParams,
+    CreatedReportForUnapprovedTransactionsParams,
+    PaidElsewhereParams,
+    UpdatedPolicyTagParams,
+    ViolationsRterParams,
+    WorkspaceUpgradeNoteParams,
+} from './params';
 import type {TranslationDeepObject} from './types';
 
-/* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -380,6 +386,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '¡Atención!',
         submitTo: 'Enviar a',
         forwardTo: 'Reenviar a',
+        approvalLimit: 'Límite de aprobación',
+        overLimitForwardTo: 'Reenviar si excede el límite',
         merge: 'Fusionar',
         none: 'Ninguno',
         unstableInternetConnection: 'Conexión a internet inestable. Por favor, revisa tu red e inténtalo de nuevo.',
@@ -752,8 +760,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto de',
         harvestCreatedExpenseReport: (reportUrl, reportName) =>
             `creó este informe para contener todos los gastos de <a href="${reportUrl}">${reportName}</a> que no se pudieron enviar con la frecuencia que elegiste`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `creó este informe para cualquier gasto retenido de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `creó este informe para cualquier gasto retenido del informe eliminado #${reportID}`
+                : `creó este informe para cualquier gasto retenido de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos en esta conversación',
@@ -1305,6 +1315,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Explica la razón para retener esta solicitud.',
             other: 'Explica la razón para retener estas solicitudes.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Explica qué necesitas antes de aprobar este gasto.',
+            other: 'Explica qué necesitas antes de aprobar estos gastos.',
+        }),
         retract: 'Retractar',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',
@@ -1401,7 +1415,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
+            reasonPageDescription: 'Explica por qué no aprobarás este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
             rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',
@@ -1452,6 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPolicyRules: (fragments: string, route: string) => `${fragments} vía <a href="${route}">reglas del espacio de trabajo</a>`,
         },
         duplicateNonDefaultWorkspacePerDiemError: 'No puedes duplicar gastos de viáticos entre espacios de trabajo porque las tarifas pueden variar entre ellos.',
+        cannotDuplicateDistanceExpense: 'No puedes duplicar gastos de distancia entre espacios de trabajo porque las tasas pueden diferir entre espacios de trabajo.',
     },
     transactionMerge: {
         listPage: {
@@ -2035,12 +2050,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Añadir tarjeta personal',
+        addCompanyCard: 'Añadir tarjeta de empresa',
+        lookingForCompanyCards: '¿Necesitas añadir tarjetas de empresa?',
+        lookingForCompanyCardsDescription: 'Añade tus propias tarjetas de más de 10.000 bancos de todo el mundo.',
+        personalCardAdded: '¡Tarjeta personal añadida!',
+        personalCardAddedDescription: '¡Felicidades! Empezaremos a importar transacciones desde tu tarjeta',
+        isPersonalCard: '¿Es una tarjeta personal?',
+        thisIsPersonalCard: 'Esta es una tarjeta personal',
+        thisIsCompanyCard: 'Esta es una tarjeta de empresa',
+        askAdmin: 'Pregunta a tu administrador',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Si es así, ¡genial! Pero si es una tarjeta de <strong>empresa</strong>, ${isAdmin ? 'asígnala desde tu espacio de trabajo.' : 'pide a tu administrador que te la asigne desde el espacio de trabajo.'}`,
+        bankConnectionError: 'Problema de conexión bancaria',
+        bankConnectionDescription: 'Intenta añadir tus tarjetas de nuevo. De lo contrario, puedes',
+        connectWithPlaid: 'conectar a través de Plaid.',
         brokenConnection: 'Hay un problema con la conexión de tu tarjeta.',
         fixCard: 'Arreglar conexión de la tarjeta',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La conexión de tu tarjeta ${cardName} se ha interrumpido. <a href="${connectionLink}">Inicia sesión en tu banco</a> para arreglarla.`
                 : `La conexión de tu tarjeta ${cardName} se ha interrumpido. Inicia sesión en tu banco para arreglarla.`,
+        addAdditionalCards: 'Añadir más tarjetas',
+        upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponible en el plan Collect, que cuesta <strong>${formattedPrice}</strong> por miembro al mes.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crea un espacio de trabajo para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
+        workspaceCreated: 'Espacio de trabajo creado',
+        newWorkspace: '¡Has creado un espacio de trabajo!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Ya puedes añadir más tarjetas. <a href="${subscriptionLink}">Ver tu suscripción</a> para más detalles.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',

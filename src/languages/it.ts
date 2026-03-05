@@ -516,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attenzione!',
         submitTo: 'Invia a',
         forwardTo: 'Inoltra a',
+        approvalLimit: 'Limite di approvazione',
+        overLimitForwardTo: 'Inoltra se supera il limite',
         merge: 'Unisci',
         none: 'Nessuno',
         unstableInternetConnection: 'Connessione Internet instabile. Controlla la rete e riprova.',
@@ -906,8 +908,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'come copilota per',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `ha creato questo report per raccogliere tutte le spese da <a href="${reportUrl}">${reportName}</a> che non potevano essere inviate con la frequenza scelta`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `ha creato questo report per tutte le spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `ha creato questo rendiconto per tutte le spese in sospeso dal rendiconto eliminato n. ${reportID}`
+                : `ha creato questo report per tutte le spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',
@@ -1446,6 +1450,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Spiega perché stai trattenendo questa spesa.',
             other: 'Spiega perché stai trattenendo queste spese.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Spiega cosa ti serve prima di approvare questa spesa.',
+            other: 'Spiega cosa ti serve prima di approvare queste spese.',
+        }),
         retracted: 'ritirato',
         retract: 'Revoca',
         reopened: 'riaperto',
@@ -1540,7 +1548,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Le spese in sospeso vengono escluse quando approvi l’intero report.',
             rejectExpenseTitle: 'Rifiuta una spesa che non intendi approvare o pagare.',
             reasonPageTitle: 'Rifiuta spesa',
-            reasonPageDescription: 'Spiega perché stai rifiutando questa spesa.',
+            reasonPageDescription: 'Spiega perché non approverai questa spesa.',
             rejectReason: 'Motivo del rifiuto',
             markAsResolved: 'Segna come risolto',
             rejectedStatus: 'Questa spesa è stata rifiutata. In attesa che tu risolva i problemi e la contrassegni come risolta per consentirne l’invio.',
@@ -1595,6 +1603,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) =>
             `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Non puoi duplicare le spese chilometriche tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse.',
     },
     transactionMerge: {
         listPage: {
@@ -2172,12 +2181,36 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Aggiungi carta personale',
+        addCompanyCard: 'Aggiungi carta aziendale',
+        lookingForCompanyCards: 'Devi aggiungere carte aziendali?',
+        lookingForCompanyCardsDescription: 'Collega le tue carte da oltre 10.000 banche in tutto il mondo.',
+        personalCardAdded: 'Carta personale aggiunta!',
+        personalCardAddedDescription: 'Congratulazioni, inizieremo a importare le transazioni dalla tua carta.',
+        isPersonalCard: 'È una carta personale?',
+        thisIsPersonalCard: 'Questa è una carta personale',
+        thisIsCompanyCard: 'Questa è una carta aziendale',
+        askAdmin: 'Chiedi al tuo amministratore',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Se sì, ottimo! Ma se è una carta <strong>aziendale</strong>, ${isAdmin ? 'assegnala dal tuo spazio di lavoro.' : 'chiedi al tuo amministratore di assegnartela dallo spazio di lavoro.'}`,
+        bankConnectionError: 'Problema di connessione bancaria',
+        bankConnectionDescription: 'Riprova ad aggiungere le tue carte. Altrimenti puoi',
+        connectWithPlaid: 'connetterti tramite Plaid.',
         fixCard: 'Correggi carta',
         brokenConnection: 'La connessione della tua carta è interrotta.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
+        addAdditionalCards: 'Aggiungi altre carte',
+        upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crea uno spazio di lavoro per usare questa funzione, o <a href="${subscriptionLink}">scopri di più</a> su piani e prezzi.</muted-text>`,
+        workspaceCreated: 'Spazio di lavoro creato',
+        newWorkspace: 'Hai creato uno spazio di lavoro!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Ora puoi aggiungere altre carte. <a href="${subscriptionLink}">Visualizza l'abbonamento</a> per i dettagli.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
