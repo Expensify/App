@@ -319,6 +319,9 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     inviteMemberListItemTooltipShiftVertical: -8,
     inviteMemberListItemTooltipShiftHorizontal: 4,
+    hasFilterNegationTooltipShiftHorizontal: -16,
+    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

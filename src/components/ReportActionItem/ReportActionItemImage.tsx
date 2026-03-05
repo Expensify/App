@@ -9,7 +9,7 @@ import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {useShowContextMenuState} from '@components/ShowContextMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -114,6 +114,7 @@ function ReportActionItemImage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
@@ -148,7 +149,6 @@ function ReportActionItemImage({
 
             // PDF won't have originalImage that we can use. Use thumbnail instead
             // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
             fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
@@ -178,34 +178,30 @@ function ReportActionItemImage({
 
     if (enablePreviewModal) {
         return (
-            <ShowContextMenuContext.Consumer>
-                {({report, transactionThreadReport}) => (
-                    <PressableWithoutFocus
-                        style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
-                                    transaction?.transactionID,
-                                    readonly,
-                                    mergeTransactionID,
-                                ),
-                            )
-                        }
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
-                    >
-                        <ReceiptImage
-                            {...propsObj}
-                            onLoad={onLoad}
-                            shouldUseFullHeight={shouldUseFullHeight}
-                            onLoadFailure={onLoadFailure}
-                            isMapDistanceRequest={isMapDistanceRequest}
-                        />
-                    </PressableWithoutFocus>
-                )}
-            </ShowContextMenuContext.Consumer>
+            <PressableWithoutFocus
+                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                onPress={() =>
+                    Navigation.navigate(
+                        ROUTES.TRANSACTION_RECEIPT.getRoute(
+                            transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                            transaction?.transactionID,
+                            readonly,
+                            mergeTransactionID,
+                        ),
+                    )
+                }
+                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                accessibilityRole={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
+            >
+                <ReceiptImage
+                    {...propsObj}
+                    onLoad={onLoad}
+                    shouldUseFullHeight={shouldUseFullHeight}
+                    onLoadFailure={onLoadFailure}
+                    isMapDistanceRequest={isMapDistanceRequest}
+                />
+            </PressableWithoutFocus>
         );
     }
 

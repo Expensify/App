@@ -1185,6 +1185,81 @@ describe('ReportActionsUtils', () => {
             // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED with harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    harvesting: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED without harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED with automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED without automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: false,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
@@ -1684,18 +1759,35 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
-        it('should return the correct message with a valid report ID and report name', () => {
+        it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
+            const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
+                isReportDeleted,
             });
 
-            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('created this report for any held expenses from deleted report #123456');
+        });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
         });
     });
 
@@ -3707,6 +3799,55 @@ describe('ReportActionsUtils', () => {
             expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
             // Without write permission: join request hidden, so only the normal action remains
             expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
+        });
+    });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
         });
     });
 });
