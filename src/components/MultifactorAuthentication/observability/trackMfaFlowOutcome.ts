@@ -1,4 +1,6 @@
 import * as Sentry from '@sentry/react-native';
+import type {MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+import type {ErrorState} from '@components/MultifactorAuthentication/Context/types';
 import Log from '@libs/Log';
 import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
@@ -23,9 +25,8 @@ const EXPECTED_FAILURE_REASONS = new Set<MultifactorAuthenticationReason>([
 type MfaFlowOutcomeContext = {
     isSuccessful: boolean;
     scenario: string | undefined;
-    reason: MultifactorAuthenticationReason | undefined;
-    httpStatusCode: number | undefined;
-    message: string | undefined;
+    scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
+    error: ErrorState | undefined;
     authenticationMethod: AuthTypeName | undefined;
     isRegistrationComplete: boolean;
     isAuthorizationComplete: boolean;
@@ -34,25 +35,32 @@ type MfaFlowOutcomeContext = {
 
 function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
     try {
-        const isExpectedFailure = !context.isSuccessful && context.reason !== undefined && EXPECTED_FAILURE_REASONS.has(context.reason);
+        const isExpectedFailure = !context.isSuccessful && context.error?.reason !== undefined && EXPECTED_FAILURE_REASONS.has(context.error.reason);
 
         const tags: Record<string, string> = {};
         if (context.scenario) {
             tags[CONST.TELEMETRY.TAG_MFA_SCENARIO] = context.scenario;
         }
-        if (!context.isSuccessful && context.reason) {
-            tags[CONST.TELEMETRY.TAG_MFA_ERROR_REASON] = context.reason;
+        if (!context.isSuccessful && context.error?.reason) {
+            tags[CONST.TELEMETRY.TAG_MFA_ERROR_REASON] = context.error.reason;
         }
 
-        const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.reason ?? 'unknown'}`;
+        const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;
         const level = context.isSuccessful || isExpectedFailure ? 'info' : 'error';
 
         const extra = {
             isSuccessful: context.isSuccessful,
             scenario: context.scenario,
-            reason: context.reason,
-            httpStatusCode: context.httpStatusCode,
-            message: context.message,
+            scenarioResponse: {
+                reason: context.scenarioResponse?.reason,
+                httpStatusCode: context.scenarioResponse?.httpStatusCode,
+                message: context.scenarioResponse?.message,
+            },
+            error: {
+                reason: context.error?.reason,
+                httpStatusCode: context.error?.httpStatusCode,
+                message: context.error?.message,
+            },
             authenticationMethod: context.authenticationMethod,
             isRegistrationComplete: context.isRegistrationComplete,
             isAuthorizationComplete: context.isAuthorizationComplete,
@@ -64,6 +72,7 @@ function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
             level,
             tags,
             extra,
+            fingerprint: ['mfa-flow-outcome', context.isSuccessful ? 'success' : 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
         });
 
         if (level === 'error') {
