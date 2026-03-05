@@ -220,21 +220,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        return (
-            <InitialLoadingSkeleton
-                styles={styles}
-                onLayout={onLayout}
-            />
-        );
+        return <InitialLoadingSkeleton styles={styles} />;
     }
 
     if (reportActions.length === 0) {
-        return (
-            <ReportActionsSkeletonView
-                shouldAnimate={false}
-                onLayout={onLayout}
-            />
-        );
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
     if (!report) {
@@ -243,10 +233,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     if (isLoadingApp) {
         return (
-            <View
-                style={styles.flex1}
-                onLayout={onLayout}
-            >
+            <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
@@ -262,10 +249,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }
 
     return (
-        <View
-            style={styles.flex1}
-            onLayout={onLayout}
-        >
+        <View style={styles.flex1}>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                 errors={reportErrors}
@@ -305,6 +289,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 newTransactions={newTransactions}
                                 reportActions={reportActions}
                                 hasOlderActions={hasOlderActions}
+                                onLayout={onLayout}
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
@@ -317,6 +302,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasNewerActions={hasNewerActions}
                                 hasOlderActions={hasOlderActions}
                                 parentReportAction={parentReportAction}
+                                onLayout={onLayout}
                                 transactionThreadReportID={transactionThreadReportID}
                             />
                         )}

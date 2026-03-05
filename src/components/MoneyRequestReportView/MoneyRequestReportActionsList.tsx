@@ -4,7 +4,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {LayoutChangeEvent, ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -121,6 +121,9 @@ type MoneyRequestReportListProps = {
 
     /** The type of action that's pending  */
     reportPendingAction?: PendingAction | null;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function MoneyRequestReportActionsList({
@@ -134,6 +137,7 @@ function MoneyRequestReportActionsList({
     hasPendingDeletionTransaction,
     showReportActionsLoadingState,
     reportPendingAction,
+    onLayout,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -843,6 +847,7 @@ function MoneyRequestReportActionsList({
                         />
                         <SearchMoneyRequestReportEmptyState
                             report={report}
+                            onLayout={onLayout}
                             policy={policy}
                         />
                     </ScrollView>
@@ -869,6 +874,7 @@ function MoneyRequestReportActionsList({
                                 />
                                 <MoneyRequestReportTransactionList
                                     report={report}
+                                    onLayout={onLayout}
                                     transactions={transactions}
                                     newTransactions={newTransactions}
                                     hasPendingDeletionTransaction={hasPendingDeletionTransaction}

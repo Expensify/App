@@ -407,14 +407,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const handleMoneyRequestReportLayout = useCallback(() => {
         const pending = getPendingExpenseCreateDestination();
-        if (hasEndedSubmitToDestinationRef.current || !pending || pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP) {
+        if (
+            hasEndedSubmitToDestinationRef.current ||
+            !pending ||
+            (pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP && pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
+        ) {
             return;
         }
         if (pending.reportID && pending.reportID !== reportIDFromRoute) {
             return;
         }
         hasEndedSubmitToDestinationRef.current = true;
-        markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP, reportIDFromRoute);
+        markSubmitToDestinationVisibleEnd(pending.destinationType, reportIDFromRoute);
     }, [reportIDFromRoute]);
 
     return (
