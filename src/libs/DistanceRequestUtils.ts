@@ -137,7 +137,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param useShortFormUnit If true, the unit will be returned in short form (e.g., "mi", "km").
  * @returns A string that displays the rate used for expense calculation
  */
-function getRateForDisplay(
+function getFormattedRateValue(
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -160,6 +160,33 @@ function getRateForDisplay(
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
+}
+
+/**
+ * Get the rate title to display on the expense page.
+ * If the rate is out of policy, displays "Rate out of policy".
+ * For workspace expenses, shows the rate name (e.g., "Default Rate") so that updating a rate's
+ * value on the workspace does not retroactively change the displayed rate on historical expenses.
+ * For P2P expenses (no rate name), shows the formatted rate value (e.g., "$0.67 / mi").
+ */
+function getRateForExpenseDisplay(
+    rateName: string | undefined,
+    isCustomUnitOutOfPolicy: boolean,
+    unit: Unit | undefined,
+    rate: number | undefined,
+    currency: string | undefined,
+    translate: LocaleContextProps['translate'],
+    toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    isOffline?: boolean,
+): string {
+    if (isCustomUnitOutOfPolicy) {
+        return translate('common.rateOutOfPolicy');
+    }
+    if (rateName) {
+        return rateName;
+    }
+    return getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 }
 
 /**
@@ -235,7 +262,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true, isZeroDistanceAllowed);
-    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
+    const ratePerUnit = getFormattedRateValue(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, undefined, true);
 
     return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
@@ -311,14 +338,12 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
-    isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
-    isTrackDistanceExpense?: boolean;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -334,12 +359,11 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    // For TrackDistanceExpense we will return the default rate of the policyForMovingExpenses.
-    if (isPolicyExpenseChat || isTrackDistanceExpense) {
+    if (isPolicyExpenseChat) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (!isTrackDistanceExpense && lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             const defaultMileageRate = getDefaultMileageRate(policy);
@@ -370,7 +394,14 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
 }
 
 function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
-    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const rateUnit = mileageRate?.unit;
+
+    if (transactionUnit && transactionUnit === rateUnit) {
+        return transactionUnit;
+    }
+
+    return rateUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
 /**
@@ -384,19 +415,16 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
-    policyForMovingExpenses,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
-    policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
-    const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -407,10 +435,7 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    const isUnreportedExpense = isExpenseUnreported(transaction);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const customMileageRate =
-        (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
+    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
@@ -467,7 +492,7 @@ export default {
     getDefaultMileageRate,
     getDistanceMerchant,
     getDistanceRequestAmount,
-    getRateForDisplay,
+    getFormattedRateValue,
     getMileageRates,
     getDistanceForDisplay,
     getRoundedDistanceInUnits,
@@ -481,6 +506,7 @@ export default {
     getRateByCustomUnitRateID,
     getDistanceForDisplayLabel,
     convertDistanceUnit,
+    getRateForExpenseDisplay,
     isDistanceAmountWithinLimit,
     normalizeOdometerText,
 };
