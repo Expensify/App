@@ -1087,7 +1087,9 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
     const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
         const programSettings = cardSettings[programKey as keyof typeof cardSettings];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
-            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
+            // Spread nested first so root-level optimistic writes (e.g. paymentBankAccountID
+            // from updateSettlementAccount) take precedence over stale nested values.
+            return {...(programSettings as ExpensifyCardSettingsBase), ...cardSettings} as ExpensifyCardSettingsBase;
         }
         return undefined;
     };

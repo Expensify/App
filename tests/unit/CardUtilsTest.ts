@@ -3282,8 +3282,10 @@ describe('CardUtils', () => {
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
             const result = getCardSettings(nestedSettings, 'US');
-            expect(result?.paymentBankAccountID).toBe(67890);
-            expect(result?.limit).toBe(30000);
+            // Root-level values take precedence (may contain optimistic updates)
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
+            // Nested-only fields still come through
             expect(result?.currentBalance).toBe(500);
             expect(result?.domainName).toBe('example.com');
         });
@@ -3295,7 +3297,9 @@ describe('CardUtils', () => {
 
         it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
             const result = getCardSettings(nestedSettings, 'TRAVEL_US');
-            expect(result?.paymentBankAccountID).toBe(11111);
+            // Root-level paymentBankAccountID takes precedence over nested
+            expect(result?.paymentBankAccountID).toBe(12345);
+            // Nested-only field comes through
             expect(result?.isEnabled).toBe(true);
             expect(result?.domainName).toBe('example.com');
         });
@@ -3307,8 +3311,11 @@ describe('CardUtils', () => {
 
         it('should auto-detect US program when no feedCountry is provided', () => {
             const result = getCardSettings(nestedSettings);
-            expect(result?.paymentBankAccountID).toBe(67890);
-            expect(result?.limit).toBe(30000);
+            // Root-level values take precedence over nested (optimistic updates)
+            expect(result?.paymentBankAccountID).toBe(12345);
+            expect(result?.limit).toBe(50000);
+            // Nested-only field comes through
+            expect(result?.currentBalance).toBe(500);
             expect(result?.domainName).toBe('example.com');
         });
 
