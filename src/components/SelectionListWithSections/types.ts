@@ -122,9 +122,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
 
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
-
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
@@ -926,7 +923,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     showScrollIndicator?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** The component to show when the list is loading */
     LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;

@@ -1,4 +1,6 @@
+import type {ValueOf} from 'type-fest';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {LABEL_ROTATIONS} from './constants';
 
 type ChartDataPoint = {
     /** Label displayed under the data point (e.g., "Amazon", "Nov 2025") */
@@ -65,4 +67,6 @@ type PieSlice = {
     originalIndex: number;
 };
 
-export type {ChartDataPoint, ChartProps, CartesianChartProps, PieSlice, UnitPosition, UnitWithFallback};
+type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
+
+export type {ChartDataPoint, ChartProps, CartesianChartProps, LabelRotation, PieSlice, UnitPosition, UnitWithFallback};

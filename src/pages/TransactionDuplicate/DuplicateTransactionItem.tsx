@@ -10,7 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
-import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
+import {ReportActionItemActionsContext, ReportActionItemStateContext} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -54,7 +54,8 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
         },
     );
 
-    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true, onPreviewPressed}), [onPreviewPressed]);
+    const stateValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
+    const actionsValue = useMemo(() => ({onPreviewPressed}), [onPreviewPressed]);
 
     if (!action || !report) {
         return null;
@@ -65,27 +66,29 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
 
     return (
         <View style={styles.pb2}>
-            <ReportActionItemContext.Provider value={contextValue}>
-                <ReportActionItem
-                    action={action}
-                    report={report}
-                    parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
-                    index={index}
-                    displayAsGroup={false}
-                    shouldDisplayNewMarker={false}
-                    isMostRecentIOUReportAction={false}
-                    isFirstVisibleReportAction={false}
-                    shouldDisplayContextMenu={false}
-                    userWalletTierName={userWalletTierName}
-                    isUserValidated={isUserValidated}
-                    personalDetails={personalDetails}
-                    draftMessage={matchingDraftMessage}
-                    emojiReactions={emojiReactions}
-                    linkedTransactionRouteError={linkedTransactionRouteError}
-                    userBillingFundID={userBillingFundID}
-                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                />
-            </ReportActionItemContext.Provider>
+            <ReportActionItemStateContext.Provider value={stateValue}>
+                <ReportActionItemActionsContext.Provider value={actionsValue}>
+                    <ReportActionItem
+                        action={action}
+                        report={report}
+                        parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
+                        index={index}
+                        displayAsGroup={false}
+                        shouldDisplayNewMarker={false}
+                        isMostRecentIOUReportAction={false}
+                        isFirstVisibleReportAction={false}
+                        shouldDisplayContextMenu={false}
+                        userWalletTierName={userWalletTierName}
+                        isUserValidated={isUserValidated}
+                        personalDetails={personalDetails}
+                        draftMessage={matchingDraftMessage}
+                        emojiReactions={emojiReactions}
+                        linkedTransactionRouteError={linkedTransactionRouteError}
+                        userBillingFundID={userBillingFundID}
+                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    />
+                </ReportActionItemActionsContext.Provider>
+            </ReportActionItemStateContext.Provider>
         </View>
     );
 }

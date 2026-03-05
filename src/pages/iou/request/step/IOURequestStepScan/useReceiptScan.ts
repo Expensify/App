@@ -120,8 +120,8 @@ function useReceiptScan({
 
     function showBlink() {
         blinkOpacity.set(
-            withTiming(0.4, {duration: 10}, () => {
-                blinkOpacity.set(withTiming(0, {duration: 50}));
+            withTiming(1, {duration: 50}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 150}));
             }),
         );
         HapticFeedback.press();
