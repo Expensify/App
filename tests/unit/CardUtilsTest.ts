@@ -3245,6 +3245,8 @@ describe('CardUtils', () => {
         } as ExpensifyCardSettings;
 
         const nestedSettings = {
+            domainName: 'example.com',
+            preferredPolicy: 'policyID',
             paymentBankAccountID: 12345,
             limit: 50000,
             US: {
@@ -3268,41 +3270,72 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided', () => {
+        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
             const result = getCardSettings(flatSettings);
             expect(result).toBe(flatSettings);
         });
 
-        it('should return flat root when feedCountry is undefined', () => {
+        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
             const result = getCardSettings(flatSettings, undefined);
             expect(result).toBe(flatSettings);
         });
 
-        it('should return nested object when feedCountry matches a nested key', () => {
+        it('should return merged root + nested when feedCountry matches a nested key', () => {
             const result = getCardSettings(nestedSettings, 'US');
-            expect(result).toEqual({
-                paymentBankAccountID: 67890,
-                limit: 30000,
-                currentBalance: 500,
-            });
+            expect(result?.paymentBankAccountID).toBe(67890);
+            expect(result?.limit).toBe(30000);
+            expect(result?.currentBalance).toBe(500);
+            expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to flat root when feedCountry key does not exist', () => {
+        it('should fall back to root when feedCountry key does not exist', () => {
             const result = getCardSettings(nestedSettings, 'CA');
             expect(result).toBe(nestedSettings);
         });
 
-        it('should return TRAVEL_US nested settings when feedCountry is TRAVEL_US', () => {
+        it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
             const result = getCardSettings(nestedSettings, 'TRAVEL_US');
-            expect(result).toEqual({
-                paymentBankAccountID: 11111,
-                isEnabled: true,
-            });
+            expect(result?.paymentBankAccountID).toBe(11111);
+            expect(result?.isEnabled).toBe(true);
+            expect(result?.domainName).toBe('example.com');
         });
 
         it('should not return primitive values as nested settings', () => {
             const result = getCardSettings(nestedSettings, 'limit');
             expect(result).toBe(nestedSettings);
+        });
+
+        it('should auto-detect US program when no feedCountry is provided', () => {
+            const result = getCardSettings(nestedSettings);
+            expect(result?.paymentBankAccountID).toBe(67890);
+            expect(result?.limit).toBe(30000);
+            expect(result?.domainName).toBe('example.com');
+        });
+
+        it('should auto-detect GB program when only GB nested key exists', () => {
+            const gbOnlySettings = {
+                domainName: 'uk-example.com',
+                GB: {
+                    paymentBankAccountID: 99999,
+                    limit: 20000,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(gbOnlySettings);
+            expect(result?.paymentBankAccountID).toBe(99999);
+            expect(result?.domainName).toBe('uk-example.com');
+        });
+
+        it('should auto-detect CURRENT program for legacy pre-2024 nested format', () => {
+            const currentSettings = {
+                domainName: 'legacy.com',
+                CURRENT: {
+                    paymentBankAccountID: 55555,
+                    limit: 10000,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(currentSettings);
+            expect(result?.paymentBankAccountID).toBe(55555);
+            expect(result?.domainName).toBe('legacy.com');
         });
     });
 });
