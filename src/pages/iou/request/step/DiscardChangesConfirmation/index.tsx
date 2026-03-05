@@ -10,8 +10,9 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStackForWebBack}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+    const parentNavigation = navigation.getParent<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
@@ -33,7 +34,10 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
      * So we need to go forward to get back to the current page
      */
     useEffect(() => {
-        const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
+        // MaterialTopTabNavigator does not emit 'transitionStart' events.
+        // When rendered inside a tab navigator, listen on the parent stack navigator instead.
+        const targetNavigation = useParentStackForWebBack && parentNavigation ? parentNavigation : navigation;
+        const unsubscribe = targetNavigation.addListener('transitionStart', ({data: {closing}}) => {
             if (!hasUnsavedChanges || isConfirmed.current) {
                 return;
             }
@@ -48,7 +52,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
         });
 
         return unsubscribe;
-    }, [hasUnsavedChanges, navigation]);
+    }, [hasUnsavedChanges, navigation, parentNavigation, useParentStackForWebBack]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
