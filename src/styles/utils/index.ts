@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -1198,17 +1198,28 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
  * to prevent large amounts from overflowing on small screens.
  */
 function getAmountInputFontSize(amountLength: number): TextStyle {
-    const baseFontSize = variables.iouAmountTextSizeLarge;
-    const minFontSize = 20; // Minimum readable font size for amount display
-    const maxLengthBeforeScaling = 10; // Character count at which font scaling begins
-    const scalingFactor = 2; // Font size reduction per character over threshold
+    // Display Zoom ("Larger Text") shrinks the logical window width (e.g. ~320pt vs ~390pt normal).
+    // Accessibility large-text increases PixelRatio.getFontScale() above 1.
+    // Both cases reduce available space, so we compute a combined scale factor and apply it to
+    // both the base font size and the minimum font size.
+    const {width: windowWidth} = RNDimensions.get('window');
+    const referenceWidth = 390;
+    const displayZoomFactor = Math.min(1, windowWidth / referenceWidth);
+    const accessibilityFontScale = PixelRatio.getFontScale();
+    const accessibilityFactor = accessibilityFontScale > 1 ? 1 / accessibilityFontScale : 1;
+    const scaleFactor = Math.min(displayZoomFactor, accessibilityFactor);
+
+    const baseFontSize = Math.round(variables.iouAmountTextSizeLarge * scaleFactor);
+    const minFontSize = Math.max(14, Math.round(20 * scaleFactor));
+    const maxLengthBeforeScaling = 10;
+    const reductionPerChar = 2;
 
     if (amountLength <= maxLengthBeforeScaling) {
         return {fontSize: baseFontSize};
     }
 
-    const reduction = Math.min((amountLength - maxLengthBeforeScaling) * scalingFactor, baseFontSize - minFontSize);
-    return {fontSize: baseFontSize - reduction};
+    const reduction = Math.min((amountLength - maxLengthBeforeScaling) * reductionPerChar, baseFontSize - minFontSize);
+    return {fontSize: Math.max(baseFontSize - reduction, minFontSize)};
 }
 
 /**
