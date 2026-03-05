@@ -199,7 +199,7 @@ import {
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
-import type {MissingPaymentMethod} from '@libs/ReportUtils';
+import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
     canWriteInReport,
     chatIncludesConcierge,
@@ -391,19 +391,7 @@ type PureReportActionItemProps = {
     ) => void;
 
     /** Function to create a draft transaction and navigate to participant selector */
-    createDraftTransactionAndNavigateToParticipantSelector?: (
-        transactionID: string | undefined,
-        reportID: string | undefined,
-        actionName: IOUAction,
-        reportActionID: string,
-        introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
-        activePolicy: OnyxEntry<OnyxTypes.Policy>,
-        userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
-        amountOwed: OnyxEntry<number>,
-        isRestrictedToPreferredPolicy?: boolean,
-        preferredPolicyID?: string,
-    ) => void;
+    createDraftTransactionAndNavigateToParticipantSelector?: (params: CreateDraftTransactionParams) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
@@ -483,9 +471,6 @@ type PureReportActionItemProps = {
 
     /** The billing grace end period's shared NVP collection */
     userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-
-    /** The amount owed by the workspace's owner */
-    amountOwed: OnyxEntry<number>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -556,8 +541,8 @@ function PureReportActionItem({
     reportNameValuePairsOriginalID,
     reportMetadata,
     userBillingGraceEndPeriodCollection,
-    amountOwed,
 }: PureReportActionItemProps) {
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -952,11 +937,11 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
+                        createDraftTransactionAndNavigateToParticipantSelector({
                             transactionID,
-                            reportActionReportID,
-                            CONST.IOU.ACTION.SUBMIT,
-                            action.reportActionID,
+                            reportID: reportActionReportID,
+                            actionName: CONST.IOU.ACTION.SUBMIT,
+                            reportActionID: action.reportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
@@ -964,7 +949,7 @@ function PureReportActionItem({
                             amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
-                        );
+                        });
                     },
                 },
             ];
@@ -975,34 +960,34 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
+                            createDraftTransactionAndNavigateToParticipantSelector({
                                 transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.CATEGORIZE,
-                                action.reportActionID,
+                                reportID: reportActionReportID,
+                                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                                reportActionID: action.reportActionID,
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
-                            );
+                            });
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
+                            createDraftTransactionAndNavigateToParticipantSelector({
                                 transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.SHARE,
-                                action.reportActionID,
+                                reportID: reportActionReportID,
+                                actionName: CONST.IOU.ACTION.SHARE,
+                                reportActionID: action.reportActionID,
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
                                 amountOwed,
-                            );
+                            });
                         },
                     },
                 );

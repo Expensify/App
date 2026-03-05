@@ -578,17 +578,17 @@ describe('actions/IOU', () => {
 
             // When the transaction is saved to draft by selecting a category in the selfDM report
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transaction?.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                reportActionableTrackExpense?.reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-                0,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transaction?.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: reportActionableTrackExpense?.reportActionID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction draft should be saved successfully
@@ -1139,17 +1139,17 @@ describe('actions/IOU', () => {
             expect(createdTransaction).toBeTruthy();
 
             // When a draft is created for categorization
-            createDraftTransactionAndNavigateToParticipantSelector(
-                createdTransaction?.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                actionableWhisper?.reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-                0,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: createdTransaction?.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: actionableWhisper?.reportActionID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the draft should be created
@@ -1551,17 +1551,17 @@ describe('actions/IOU', () => {
             expect(allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingDraftTransaction2.transactionID}`]).toBeTruthy();
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with allTransactionDrafts
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transactionToCategorize.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transactionToCategorize.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts,
-                undefined,
-                undefined,
-                0,
-            );
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the existing draft transactions should be cleared
@@ -1599,17 +1599,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
-            createDraftTransactionAndNavigateToParticipantSelector(
-                originalTransaction.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: originalTransaction.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-                0,
-            );
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then a draft transaction should be created with the correct data
@@ -1636,17 +1636,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transactionID
-            createDraftTransactionAndNavigateToParticipantSelector(
-                undefined,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                'some-report-action-id',
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-                0,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: undefined,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: 'some-report-action-id',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then no draft transaction should be created
@@ -1668,17 +1668,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transaction.transactionID,
-                undefined,
-                CONST.IOU.ACTION.CATEGORIZE,
-                'some-report-action-id',
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-                0,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transaction.transactionID,
+                reportID: undefined,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: 'some-report-action-id',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then no draft transaction should be created
