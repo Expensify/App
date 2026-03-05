@@ -1,11 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import {useIsFocused} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
@@ -35,65 +38,75 @@ function SearchSingleSelectionPicker({
     shouldShowTextInput = true,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
+    const isFocused = useIsFocused();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItem, setSelectedItem] = useState<SearchSingleSelectionPickerItem | undefined>(initiallySelectedItem);
+    const initialSelectedValuesRef = useRef<string[]>([]);
+    const prevIsFocusedRef = useRef(false);
+    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
 
     useEffect(() => {
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
 
-    const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-        ? [
-              {
-                  text: initiallySelectedItem.name,
-                  keyForList: initiallySelectedItem.value,
-                  isSelected: selectedItem?.value === initiallySelectedItem.value,
-                  value: initiallySelectedItem.value,
-              },
-          ]
-        : [];
+    useEffect(() => {
+        const wasFocused = prevIsFocusedRef.current;
+        if (isFocused && !wasFocused) {
+            initialSelectedValuesRef.current = initiallySelectedItem ? [initiallySelectedItem.value] : [];
+            setSelectionSnapshotVersion((version) => version + 1);
+        }
+        prevIsFocusedRef.current = isFocused;
+    }, [initiallySelectedItem, isFocused]);
 
-    const remainingItemsSection = items
-        .filter((item) => item.value !== initiallySelectedItem?.value && item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-        .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare))
-        .map((item) => ({
+    const {listData, noResultsFound} = useMemo(() => {
+        const filteredItems = items.filter((item) => item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()));
+        const sortedItems = filteredItems.sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare));
+
+        const mappedItems = sortedItems.map((item) => ({
             text: item.name,
             keyForList: item.value,
             isSelected: selectedItem?.value === item.value,
             value: item.value,
         }));
 
-    const noResultsFound = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+        const shouldReorderInitialSelection =
+            !debouncedSearchTerm &&
+            initialSelectedValuesRef.current.length > 0 &&
+            mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValuesRef.current) : mappedItems;
+        const isEmpty = orderedItems.length === 0 && !!debouncedSearchTerm;
+
+        return {listData: orderedItems, noResultsFound: isEmpty};
+    }, [debouncedSearchTerm, initialSelectedValuesRef, items, localeCompare, selectedItem?.value, selectionSnapshotVersion]);
 
     const sections = noResultsFound
         ? []
         : [
               {
-                  title: undefined,
-                  data: initiallySelectedItemSection,
-                  sectionIndex: 0,
-              },
-              {
                   title: pickerTitle,
-                  data: remainingItemsSection,
-                  sectionIndex: 1,
+                  data: listData,
+                  sectionIndex: 0,
               },
           ];
 
-    const onSelectItem = (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
-            return;
-        }
-        if (shouldAutoSave) {
-            onSaveSelection(item.isSelected ? '' : item.value);
-            Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-            return;
-        }
-        if (!item.isSelected) {
-            setSelectedItem({name: item.text, value: item.value});
-        }
-    };
+    const onSelectItem = useCallback(
+        (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
+            if (!item.text || !item.keyForList || !item.value) {
+                return;
+            }
+            if (shouldAutoSave) {
+                onSaveSelection(item.isSelected ? '' : item.value);
+                Navigation.goBack(backToRoute ?? ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                return;
+            }
+            if (!item.isSelected) {
+                setSelectedItem({name: item.text, value: item.value});
+            }
+        },
+        [backToRoute, onSaveSelection, shouldAutoSave],
+    );
 
     const resetChanges = () => {
         setSelectedItem(undefined);
