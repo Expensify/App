@@ -175,9 +175,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Used to locate the component in the tests */
     testID?: string;
 
-    /** Should apply semi transparency for right icon */
-    shouldDimIconRight?: boolean;
-
     /** Badge style to be shown near the right end. */
     badgeStyle?: StyleProp<ViewStyle>;
 };
@@ -298,7 +295,6 @@ function BasePopoverMenu({
     shouldAvoidSafariException = false,
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     testID,
-    shouldDimIconRight = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -404,7 +400,6 @@ function BasePopoverMenu({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
-                    shouldDimIconRight={item.shouldDimIconRight ?? shouldDimIconRight}
                     shouldShowRightIcon={!!item.rightIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {

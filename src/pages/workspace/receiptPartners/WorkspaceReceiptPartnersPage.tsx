@@ -128,7 +128,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                 shouldCallAfterModalHide: true,
                                 disabled: isOffline,
                                 iconRight: icons.NewWindow,
-                                shouldDimIconRight: false,
                             },
                         ];
                     }

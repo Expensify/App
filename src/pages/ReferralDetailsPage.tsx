@@ -87,7 +87,6 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 icon={icons.QuestionMark}
                 shouldShowRightIcon
                 iconRight={icons.NewWindow}
-                shouldDimIconRight={false}
                 disabled={isExecuting}
                 shouldBlockSelection
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}

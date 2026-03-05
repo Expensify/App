@@ -41,7 +41,6 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 icon: icons.Download,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
-                shouldDimIconRight: false,
                 onPress: () => {
                     fileDownload(translate, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
                 },
@@ -60,7 +59,6 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 icon: icons.Task,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
-                shouldDimIconRight: false,
                 onPress: () => {
                     openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                 },

@@ -434,7 +434,6 @@ function PaymentMethodList({
                 isMethodActive,
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
-                shouldDimIconRight: false,
                 canDismissError: true,
             };
         });

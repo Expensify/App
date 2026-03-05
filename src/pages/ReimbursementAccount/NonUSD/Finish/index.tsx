@@ -76,7 +76,6 @@ function Finish() {
                             icon: icons.Shield,
                             shouldShowRightIcon: true,
                             iconRight: icons.NewWindow,
-                            shouldDimIconRight: false,
                             outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}

@@ -116,7 +116,6 @@ function AboutPage() {
             iconRight,
             onPress: action,
             shouldShowRightIcon: true,
-            shouldDimIconRight: iconRight ? false : undefined,
             onSecondaryInteraction: link
                 ? (event: GestureResponderEvent | MouseEvent) =>
                       showContextMenu({

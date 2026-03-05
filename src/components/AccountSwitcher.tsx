@@ -123,7 +123,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const menuItems = (): PopoverMenuItem[] => {
         const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
             shouldShowRightIcon: true,
-            shouldDimIconRight: false,
             iconRight: icons.Checkmark,
             success: true,
             isSelected: true,

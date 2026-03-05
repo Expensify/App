@@ -159,9 +159,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Overrides the icon for shouldShowRightIcon */
         iconRight?: IconAsset;
 
-        /** Should apply semi transparency for right icon */
-        shouldDimIconRight?: boolean;
-
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
 
@@ -485,7 +482,6 @@ function MenuItem({
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    shouldDimIconRight = true,
     iconRight,
     furtherDetailsIcon,
     furtherDetails,
@@ -594,6 +590,7 @@ function MenuItem({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const defaultAccessibilityLabel = (shouldShowDescriptionOnTop ? [description, title] : [title, description]).filter(Boolean).join(', ');
+    const shouldDimIconRight = iconRight === icons.ArrowRight;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [

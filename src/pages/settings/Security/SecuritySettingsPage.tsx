@@ -310,7 +310,6 @@ function SecuritySettingsPage() {
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         iconRight: icons.ThreeDots,
                         shouldShowRightIcon: true,
-                        shouldDimIconRight: false,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
                         onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),

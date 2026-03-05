@@ -87,7 +87,6 @@ type MenuData = WithSentryLabel & {
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
-    shouldDimIconRight?: boolean;
     badgeText?: string;
     badgeStyle?: ViewStyle;
 };
@@ -354,7 +353,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.QuestionMark,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
-                shouldDimIconRight: false,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
                 link: CONST.NEWHELP_URL,
                 action: () => {
@@ -366,7 +364,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.TreasureChest,
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
-                shouldDimIconRight: false,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.WHATS_NEW,
                 link: CONST.WHATS_NEW_URL,
                 action: () => {
@@ -470,7 +467,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}
                             shouldShowRightIcon={item.shouldShowRightIcon}
-                            shouldDimIconRight={item.shouldDimIconRight}
                             shouldIconUseAutoWidthStyle
                         />
                     );
