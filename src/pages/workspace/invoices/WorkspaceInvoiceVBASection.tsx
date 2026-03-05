@@ -58,8 +58,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const achData = reimbursementAccount?.achData;
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, policyID);
-    }, [achData, isNonUSDWorkspace, policyID]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace);
+    }, [achData, isNonUSDWorkspace]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
