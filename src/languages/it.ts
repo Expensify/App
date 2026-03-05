@@ -7732,6 +7732,11 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             prompt: 'Sei sicuro di voler interrompere il tracciamento GPS e passare a Expensify Classic?',
             confirm: 'Interrompi e cambia',
         },
+        switchToCopilotWarningTripInProgress: {
+            title: 'GPS tracking in progress',
+            prompt: 'Are you sure you want to stop GPS tracking and switch to Copilot account?',
+            confirm: 'Stop and switch',
+        },
         locationServicesRequiredModal: {
             title: 'Accesso alla posizione richiesto',
             confirm: 'Apri impostazioni',

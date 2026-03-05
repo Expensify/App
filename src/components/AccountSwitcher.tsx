@@ -1,7 +1,9 @@
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
+import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,14 +19,16 @@ import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
+import {ModalActions} from './Modal/Global/ModalContext';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
@@ -51,6 +55,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -59,7 +64,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -71,6 +75,26 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
         isScreenFocused && canSwitchAccounts,
     );
+
+    const {showConfirmModal} = useConfirmModal();
+
+    const showOfflineModal = () => {
+        return showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const showGpsInProgressModal = () => {
+        return showConfirmModal({
+            title: translate('gps.switchToCopilotWarningTripInProgress.title'),
+            prompt: translate('gps.switchToCopilotWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchToCopilotWarningTripInProgress.confirm'),
+            cancelText: translate('common.cancel'),
+        });
+    };
 
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
@@ -143,9 +167,29 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            close(showOfflineModal);
                             return;
                         }
+
+                        if (isTrackingGPS) {
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                            close(async () => {
+                                const result = await showGpsInProgressModal();
+
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+
+                                stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((stopError) =>
+                                    console.error('[GPS distance request] Failed to stop location tracking', stopError),
+                                );
+
+                                disconnect({stashedCredentials, stashedSession});
+                            });
+                            return;
+                        }
+
                         disconnect({stashedCredentials, stashedSession});
                     },
                 }),
@@ -164,7 +208,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         badgeText: translate('delegate.role', {role}),
                         onSelected: () => {
                             if (isOffline) {
-                                close(() => setShouldShowOfflineModal(true));
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                close(showOfflineModal);
                                 return;
                             }
                             connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
@@ -273,15 +318,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     shouldUpdateFocusedIndex={false}
                 />
             )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }

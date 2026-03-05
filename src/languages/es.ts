@@ -8897,6 +8897,11 @@ ${amount} para ${merchant} - ${date}`,
             prompt: '¿Seguro que quieres detener el seguimiento por GPS y cambiar a Expensify Classic?',
             confirm: 'Detener y cambiar',
         },
+        switchToCopilotWarningTripInProgress: {
+            title: 'Seguimiento GPS en curso',
+            prompt: '¿Seguro que quieres detener el seguimiento GPS y cambiar a la cuenta de Copilot?',
+            confirm: 'Detener y cambiar',
+        },
         locationServicesRequiredModal: {
             title: 'Se requiere acceso a la ubicación',
             confirm: 'Abrir ajustes',
