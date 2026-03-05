@@ -1049,7 +1049,7 @@ function MoneyReportHeader({
             return [];
         }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
-        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT) {
+        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT && !shouldBlockSubmit) {
             actions.push({
                 text: translate('common.submit'),
                 icon: expensifyIcons.Send,
@@ -1065,7 +1065,7 @@ function MoneyReportHeader({
                 onSelected: () => confirmApproval(true),
             });
         }
-        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY) {
+        if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY && !(isOffline && !canAllowSettlement)) {
             actions.push({
                 text: translate('iou.settlePayment', totalAmount),
                 icon: expensifyIcons.Cash,
