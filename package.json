@@ -345,7 +345,7 @@
     "source-map": "^0.7.4",
     "storybook": "10.1.10",
     "style-loader": "^3.0.0",
-    "svgo": "^4.0.0",
+    "svgo": "^4.0.1",
     "time-analytics-webpack-plugin": "^0.1.17",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
