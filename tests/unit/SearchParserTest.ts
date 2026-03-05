@@ -1186,6 +1186,7 @@ const viewAndGroupByTests = [
             filters: null,
         },
     },
+
     // Time-based groupBy + view:bar defaults to sortOrder:asc
     {
         query: 'type:expense view:bar groupBy:week',
@@ -1213,6 +1214,7 @@ const viewAndGroupByTests = [
             filters: null,
         },
     },
+
     // sortOrder is derived even when sortBy already matches groupBy default (UI loop)
     {
         query: 'sortBy:groupCategory type:expense groupBy:category view:line',

@@ -4660,6 +4660,9 @@ function peg$parse(input, options) {
     };
   }
 
+  // Each groupBy has a natural sortBy column and sortOrder (e.g. groupBy:category sorts by groupCategory asc).
+  // When groupBy changes we re-derive both so the UI always starts with the correct default sort for the new grouping,
+  // unless the user explicitly provided sortBy or sortOrder in the query.
   function deriveGroupByDefaults(groupByValue) {
     if (!userProvidedSortBy) {
       const defaultSortBy = getDefaultSortByForGroupBy(groupByValue);
@@ -4700,7 +4703,10 @@ function peg$parse(input, options) {
       }
     }
 
-    // Chart view defaults: set default groupBy and sortOrder when view changes to a chart type
+    // Chart views (bar, line, pie) require a groupBy to aggregate data, so we assign a sensible
+    // default groupBy when none was provided (line defaults to month for chronological display,
+    // others default to category). We also default sortOrder to asc for time-based groupBys so
+    // that charts display data in chronological order (oldest to newest).
     if (field === "view" && value && value !== "table") {
       if (!defaultValues.groupBy) {
         const defaultGroupBy = value === "line" ? "month" : "category";
