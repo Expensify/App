@@ -24,9 +24,6 @@ type ReportActionItemMessageWithExplainProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
-
-    /** Whether the report was submitted via delay submissions */
-    wasSubmittedViaHarvesting?: boolean;
 };
 
 /**
@@ -39,7 +36,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {environmentURL} = useEnvironment();
 
     const actionHasReasoning = hasReasoning(action);
-    const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
+    const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}<sparkles-icon/>` : message;
 
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
