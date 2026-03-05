@@ -47,7 +47,6 @@ import type {
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -65,21 +64,12 @@ import type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
@@ -100,26 +90,18 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
     WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
@@ -2642,10 +2624,10 @@ ${amount} voor ${merchant} - ${date}`,
         getStarted: 'Aan de slag',
         whatsYourName: 'Hoe heet je?',
         peopleYouMayKnow: 'Mensen die je misschien kent zijn hier al! Verifieer je e-mailadres om je bij hen aan te sluiten.',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
+        workspaceYouMayJoin: (domain: string, email: string) => `Iemand van ${domain} heeft al een workspace gemaakt. Voer de magische code in die is verzonden naar ${email}.`,
         joinAWorkspace: 'Lid worden van een workspace',
         listOfWorkspaces: 'Hier is de lijst met werkruimtes waaraan je kunt deelnemen. Geen zorgen, je kunt je er altijd later nog bij aansluiten als je dat liever hebt.',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} lid${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Waar werk je?',
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
@@ -3018,7 +3000,7 @@ ${
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link is opnieuw verzonden',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) => `Ik heb een magische inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ik heb een magische inloglink naar ${login} gestuurd. Controleer je ${loginType} om in te loggen.`,
         resendLink: 'Link opnieuw verzenden',
     },
     unlinkLoginForm: {
@@ -6663,13 +6645,12 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 : `heeft de beschrijvingshint van categorie „${categoryName}” gewijzigd naar „${newValue}” (voorheen „${oldValue}”)`;
         },
         updateTagListName: (oldName: string, newName: string) => `heeft de naam van de taglijst gewijzigd in „${newName}” (voorheen „${oldName}”)`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `heeft de tag "${tagName}" toegevoegd aan de lijst "${tagListName}"`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
-            `heeft de taglijst "${tagListName}" bijgewerkt door de tag "${oldName}" te veranderen in "${newName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} de tag "${tagName}" in de lijst "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `heeft het label "${tagName}" verwijderd uit de lijst "${tagListName}"`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `heeft “${count}” tags verwijderd uit de lijst “${tagListName}”`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `heeft de tag "${tagName}" toegevoegd aan de lijst "${tagListName}"`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `heeft de taglijst "${tagListName}" bijgewerkt door de tag "${oldName}" te veranderen in "${newName}"`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} de tag "${tagName}" in de lijst "${tagListName}"`,
+        deleteTag: (tagListName: string, tagName?: string) => `heeft het label "${tagName}" verwijderd uit de lijst "${tagListName}"`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `heeft “${count}” tags verwijderd uit de lijst “${tagListName}”`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `heeft de tag "${tagName}" op de lijst "${tagListName}" bijgewerkt door ${updatedField} te wijzigen in "${newValue}" (voorheen "${oldValue}")`;
             }
@@ -6698,8 +6679,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `heeft het tarief „${rateName}” van de eenheid „${customUnitName}” verwijderd`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType} rapportveld "${fieldName}" toegevoegd`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
-            `stel de standaardwaarde van rapportveld "${fieldName}" in op "${defaultValue}"`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `stel de standaardwaarde van rapportveld "${fieldName}" in op "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie ‘${optionName}’ toegevoegd aan het rapportveld ‘${fieldName}’`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `heeft de optie "${optionName}" verwijderd uit het rapportveld "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6711,7 +6691,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             return `${allEnabled ? 'ingeschakeld' : 'uitgeschakeld'} de optie „${optionName}” voor het rapportveld „${fieldName}”, waardoor alle opties ${allEnabled ? 'ingeschakeld' : 'uitgeschakeld'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `heeft ${fieldType}-rapportveld "${fieldName}" verwijderd`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `heeft “Zelfgoedkeuring voorkomen” bijgewerkt naar “${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}” (voorheen “${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}”)`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6859,9 +6839,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             `heeft het standaardbelastingtarief van de werkruimtevaluta gewijzigd in "${newName}" (voorheen "${oldName}")`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
             `heeft het standaardbelastingtarief voor vreemde valuta gewijzigd in '${newName}' (voorheen '${oldName}')`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting ‘${taxName}’ toegevoegd`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting ‘${taxName}’ verwijderd`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `heeft de belasting ‘${taxName}’ toegevoegd`,
+        deleteTax: (taxName: string) => `heeft de belasting ‘${taxName}’ verwijderd`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -6894,16 +6874,15 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         removedMaxExpenseAge: (oldValue: string) => `maximale onkostendatum verwijderd (voorheen "${oldValue}" dagen)`,
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} categorieën bijgewerkt`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `tags op de lijst "${tagListName}" bijgewerkt`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `heeft taglijst "${tagListsName}" gewijzigd naar ${isRequired ? 'vereist' : 'niet vereist'}`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `heeft taglijst "${tagListsName}" gewijzigd naar ${isRequired ? 'vereist' : 'niet vereist'}`,
         importTags: 'geïmporteerde labels uit een spreadsheet',
         deletedAllTags: 'alle tags verwijderd',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `heeft de standaardcategorie voor ${customUnitName} gewijzigd in „${newValue}” ${oldValue ? `(eerder "${oldValue}")` : ''}`,
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `geïmporteerde tarieven voor aangepaste eenheid "${customUnitName}"`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `heeft "${customUnitName}" tarief "${customUnitRateName}" subtarief "${customUnitSubRateName}" ${updatedField} gewijzigd naar "${newValue}" (voorheen "${oldValue}")`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `heeft subtarief „${removedSubRateName}” verwijderd uit tarief „${customUnitRateName}” van eenheid „${customUnitName}”`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `met een meldingsdrempel van "${notificationThreshold}%"` : '';
@@ -6977,7 +6956,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
             return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} tijdregistratie`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `uurloon gewijzigd naar ‘${newRate}’ (voorheen ‘${oldRate}’)`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `heeft ‘${prohibitedExpense}’ toegevoegd aan verboden uitgaven`,
@@ -7770,7 +7749,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Bedrag boven de limiet van ${formattedLimit} per persoon`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Bedrag boven de dagelijkse ${formattedLimit}/persoon-categorielimiet`,
         receiptNotSmartScanned: 'Ontvangst- en onkostendetails handmatig toegevoegd.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `Bon nodig boven categorielimiet van ${formattedLimit}`;
             }
@@ -7783,7 +7762,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             return 'Bon vereist';
         },
         itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Gespecificeerde bon vereist${formattedLimit ? `boven ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = 'Verboden uitgave:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7814,7 +7793,17 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Beoordeling vereist',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: string,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
             }
@@ -7843,10 +7832,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         markAsCashToIgnore: 'Markeren als contant om te negeren en betaling aan te vragen.',
         smartscanFailed: ({canEdit = true}) => `Bon scannen mislukt.${canEdit ? 'Voer gegevens handmatig in.' : ''}`,
         receiptGeneratedWithAI: 'Mogelijke AI-gegenereerde bon',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Ontbreekt ${tagName ?? 'Label'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Label'} niet meer geldig`,
+        someTagLevelsRequired: (tagName?: string) => `Ontbreekt ${tagName ?? 'Label'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Label'} niet meer geldig`,
         taxAmountChanged: 'Belastingbedrag is gewijzigd',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'Belasting'} niet meer geldig`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? 'Belasting'} niet meer geldig`,
         taxRateChanged: 'Belastingtarief is gewijzigd',
         taxRequired: 'Ontbrekend belastingtarief',
         none: 'Geen',

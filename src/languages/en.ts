@@ -35,7 +35,6 @@ import type {
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -53,21 +52,12 @@ import type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
@@ -88,26 +78,18 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
     WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
@@ -2656,10 +2638,10 @@ const translations = {
         getStarted: 'Get started',
         whatsYourName: "What's your name?",
         peopleYouMayKnow: 'People you may know are already here! Verify your email to join them.',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
+        workspaceYouMayJoin: (domain: string, email: string) => `Someone from ${domain} has already created a workspace. Please enter the magic code sent to ${email}.`,
         joinAWorkspace: 'Join a workspace',
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
         errorSelection: 'Select an option to move forward',
         purpose: {
@@ -3046,7 +3028,7 @@ const translations = {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `I've sent a magic sign-in link to ${login}. Please check your ${loginType} to sign in.`,
         resendLink: 'Resend link',
     },
     unlinkLoginForm: {
@@ -6640,15 +6622,15 @@ const translations = {
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
         updateTagListName: (oldName: string, newName: string) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated tags on the list "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `changed tag list "${tagListsName}" to ${isRequired ? 'required' : 'not required'}`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `changed tag list "${tagListsName}" to ${isRequired ? 'required' : 'not required'}`,
         importTags: 'imported tags from a spreadsheet',
         deletedAllTags: 'deleted all tags',
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removed the tag "${tagName}" from the list "${tagListName}"`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `removed "${count}" tags from the list "${tagListName}"`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `added the tag "${tagName}" to the list "${tagListName}"`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}"`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
+        deleteTag: (tagListName: string, tagName?: string) => `removed the tag "${tagName}" from the list "${tagListName}"`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `removed "${count}" tags from the list "${tagListName}"`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `updated the tag "${tagName}" on the list "${tagListName}" by changing the ${updatedField} to "${newValue}" (previously "${oldValue}")`;
             }
@@ -6662,9 +6644,9 @@ const translations = {
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `imported rates for custom unit "${customUnitName}"`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `added a new ${customUnitName} rate "${rateName}"`,
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `changed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${customUnitSubRateName}" ${updatedField} to "${newValue}" (previously "${oldValue}")`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `removed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${removedSubRateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
@@ -6684,7 +6666,7 @@ const translations = {
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'enabled' : 'disabled'} the ${customUnitName} rate "${customUnitRateName}"`;
         },
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `added the option "${optionName}" to the report field "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removed the option "${optionName}" from the report field "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6696,7 +6678,7 @@ const translations = {
             return `${allEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}", making all options ${allEnabled ? 'enabled' : 'disabled'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removed ${fieldType} Report Field "${fieldName}"`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6819,7 +6801,7 @@ const translations = {
             return `${enabled ? 'enabled' : 'disabled'} time tracking`;
         },
 
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `changed hourly rate to "${newRate}" (previously "${oldRate}")`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
@@ -6973,9 +6955,9 @@ const translations = {
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `changed the workspace currency default tax rate to "${newName}" (previously "${oldName}")`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
             `changed the foreign currency default tax rate to "${newName}" (previously "${oldName}")`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `added the tax "${taxName}"`,
+        deleteTax: (taxName: string) => `removed the tax "${taxName}"`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -7747,7 +7729,7 @@ const translations = {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt and expense details added manually.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `Receipt required over ${formattedLimit} category limit`;
             }
@@ -7763,7 +7745,7 @@ const translations = {
             return 'Receipt required';
         },
         itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Itemized receipt required${formattedLimit ? ` over ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = 'Prohibited expense:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7794,7 +7776,17 @@ const translations = {
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return "Can't auto-match receipt due to broken bank connection.";
             }
@@ -7824,10 +7816,10 @@ const translations = {
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
         receiptGeneratedWithAI: 'Potential AI-generated receipt',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Missing ${tagName ?? 'Tag'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} no longer valid`,
+        someTagLevelsRequired: (tagName?: string) => `Missing ${tagName ?? 'Tag'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'Tax'} no longer valid`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
         none: 'None',

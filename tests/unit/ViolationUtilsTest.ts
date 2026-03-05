@@ -1271,21 +1271,17 @@ describe('getViolationTranslation', () => {
     it('should return the correct message for broken card connection violation', () => {
         const testPolicyID = 'test-policy-123';
         const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
-        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', {
-            brokenBankConnection: true,
-            isAdmin: true,
-            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
-            isTransactionOlderThan7Days: false,
-            companyCardPageURL,
-        });
+        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', true, true, false, undefined, CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION, companyCardPageURL);
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
-        const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
-            brokenBankConnection: true,
-            isAdmin: false,
-            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
-            isTransactionOlderThan7Days: false,
+        const brokenCardConnection530ViolationExpected = translateLocal(
+            'violations.rter',
+            true,
+            false,
+            false,
+            undefined,
+            CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
             companyCardPageURL,
-        });
+        );
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
     });
 });

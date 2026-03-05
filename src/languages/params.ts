@@ -1,5 +1,3 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -88,7 +86,7 @@ type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number;
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
-type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
+// type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
@@ -122,27 +120,27 @@ type ViolationsOverLimitParams = {formattedLimit: string};
 
 type ViolationsPerDayLimitParams = {formattedLimit: string};
 
-type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
+// type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsCustomRulesParams = {message: string};
 
-type ViolationsRterParams = {
-    brokenBankConnection: boolean;
-    isAdmin: boolean;
-    isTransactionOlderThan7Days: boolean;
-    member?: string;
-    rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
-    companyCardPageURL?: string;
-    connectionLink?: string;
-    isPersonalCard?: boolean;
-    isMarkAsCash?: boolean;
-};
+// type ViolationsRterParams = {
+//     brokenBankConnection: boolean;
+//     isAdmin: boolean;
+//     isTransactionOlderThan7Days: boolean;
+//     member?: string;
+//     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+//     companyCardPageURL?: string;
+//     connectionLink?: string;
+//     isPersonalCard?: boolean;
+//     isMarkAsCash?: boolean;
+// };
 
-type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
+// type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
+// type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
 
-type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
+// type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type OptionalParam<T> = Partial<T>;
 
@@ -152,17 +150,17 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
-type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
+// type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
+// type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
-type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
+// type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
-type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
+// type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
 
 type UpdatedPolicyTagListParams = {tagListName: string};
 
-type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
+// type UpdatedPolicyTagListRequiredParams = {tagListsName: string; isRequired: boolean};
 
 type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
 
@@ -172,23 +170,23 @@ type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newV
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
-type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
+// type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; customUnitSubRateName: string; oldValue: string; newValue: string; updatedField: string};
 
-type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
+// type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
-type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
+// type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
 type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
-type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
+// type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
 // type UpdatedPolicyOwnershipParams = {oldOwnerEmail: string; oldOwnerName: string; policyName: string};
 
 type UpdatedPolicyTimeEnabledParams = {enabled?: boolean};
 
-type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
+// type UpdatedPolicyTimeRateParams = {newRate?: string; oldRate?: string};
 
 type UpdatedPolicyAutoHarvestingParams = {enabled: boolean};
 
@@ -329,10 +327,10 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type WorkspaceYouMayJoin = {
-    domain: string;
-    email: string;
-};
+// type WorkspaceYouMayJoin = {
+//     domain: string;
+//     email: string;
+// };
 
 type WorkEmailResendCodeParams = {
     workEmail: string | undefined;
@@ -342,10 +340,10 @@ type WorkEmailMergingBlockedParams = {
     workEmail: string | undefined;
 };
 
-type WorkspaceMemberList = {
-    employeeCount: number;
-    policyOwner: string;
-};
+// type WorkspaceMemberList = {
+//     employeeCount: number;
+//     policyOwner: string;
+// };
 
 type WorkspaceLockedPlanTypeParams = {
     count: number;
@@ -435,15 +433,15 @@ export type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsReceiptRequiredParams,
+    // ViolationsReceiptRequiredParams,
     ViolationsCustomRulesParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsTaxOutOfPolicyParams,
+    // ViolationsRterParams,
+    // ViolationsTagOutOfPolicyParams,
+    // ViolationsProhibitedExpenseParams,
+    // ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
-    WeSentYouMagicSignInLinkParams,
+    // WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
@@ -461,24 +459,24 @@ export type {
     DisconnectPromptParams,
     DisconnectTitleParams,
     OptionalParam,
-    WorkspaceYouMayJoin,
-    WorkspaceMemberList,
+    // WorkspaceYouMayJoin,
+    // WorkspaceMemberList,
     WorkspaceLockedPlanTypeParams,
     CustomUnitRateParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyPreventSelfApprovalParams,
+    // UpdatedPolicyTagListRequiredParams,
+    // UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
+    // UpdatedPolicyTimeRateParams,
     WorkEmailResendCodeParams,
     WorkEmailMergingBlockedParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagFieldParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    RemovedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyCustomUnitSubRateParams,
+    // UpdatedPolicyTagParams,
+    // UpdatedPolicyTaxParams,
+    // UpdatedPolicyTagNameParams,
+    // UpdatedPolicyTagFieldParams,
+    // UpdatedPolicyReportFieldDefaultValueParams,
+    // RemovedPolicyCustomUnitSubRateParams,
+    // UpdatedPolicyCustomUnitSubRateParams,
     YourPlanPriceValueParams,
     AddedOrDeletedPolicyReportFieldParams,
     UpdatedPolicyManualApprovalThresholdParams,
