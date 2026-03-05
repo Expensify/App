@@ -4877,6 +4877,7 @@ ${amount} para ${merchant} - ${date}`,
                 flipAmountSign: 'Invertir el signo del monto',
                 importButton: 'Importar transacciones',
             },
+            deletedCard: 'Tarjeta eliminada',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',

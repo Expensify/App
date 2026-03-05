@@ -5004,6 +5004,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 flipAmountSign: '金額の符号を反転',
                 importButton: '取引をインポート',
             },
+            deletedCard: '削除されたカード',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードを発行して管理する',

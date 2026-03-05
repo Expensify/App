@@ -4933,6 +4933,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 flipAmountSign: '翻转金额符号',
                 importButton: '导入交易',
             },
+            deletedCard: '已删除的卡片',
         },
         expensifyCard: {
             issueAndManageCards: '发放并管理您的 Expensify 卡',
