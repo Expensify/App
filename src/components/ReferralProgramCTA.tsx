@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,7 +10,6 @@ import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
-import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
 import RenderHTML from './RenderHTML';
 import Tooltip from './Tooltip';
@@ -25,6 +25,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDismissed, setAsDismissed} = useDismissedReferralBanners({referralContentType});
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
 
     const handleDismissCallToAction = () => {
         setAsDismissed();
@@ -53,6 +54,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             isNested
             accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
             role={getButtonRole(true)}
+            sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.CTA}
         >
             <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
             <Tooltip text={translate('common.close')}>
@@ -64,9 +66,10 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
+                    sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.DISMISS_BUTTON}
                 >
                     <Icon
-                        src={Close}
+                        src={icons.Close}
                         height={20}
                         width={20}
                         fill={theme.icon}

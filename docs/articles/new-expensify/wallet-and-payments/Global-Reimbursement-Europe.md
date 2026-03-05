@@ -30,11 +30,11 @@ To comply with financial regulations, the following documents are needed:
 
 # Step 1: Set Your Workspace Currency and Enable Payments
 
-1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
-2. Under **Default currency**, choose **EUR €**.
-3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
-4. Click **Connect bank account**, then confirm your **currency and country** (choose a supported European country – EUR €).
-5. Click **Confirm** to proceed.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
+2. Under **Default currency**, select **AUD A$**.
+3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
+4. Under **Connect bank account > Confirm currency and country (Singapore - SGD)**
+5. Click **Confirm**.
 
 ---
 
@@ -112,4 +112,3 @@ An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.
 2. Click **Add deposit-only bank account** and input their bank account details.
 
-</div>

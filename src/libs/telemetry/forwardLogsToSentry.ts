@@ -2,6 +2,8 @@ import * as Sentry from '@sentry/react-native';
 
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+const PARAMETERS_WHITELIST = new Set(['timestamp', 'spanExists', 'spanId', 'spanOptions', 'spanExtraOptions', 'error', 'command', 'isSupportAuthTokenUsed']);
+
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
  *
@@ -9,8 +11,13 @@ type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Currently, this always returns false because we want to deliberately decide what is being forwarded.
  * There is no redaction / filtering of sensitive data implemented yet. When you implement any log forwarding logic, make sure that you do not leak any sensitive data.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
+    if (log.message?.includes('[Sentry]')) {
+        return true;
+    }
+    if (log.message?.includes('[Reauthenticate]')) {
+        return true;
+    }
     return false;
 }
 
@@ -25,6 +32,14 @@ function mapLogMessageToSentryLevel(message: string): SentryLogLevel {
         return 'info';
     }
     return 'debug';
+}
+
+function filterParameters(parameters: Record<string, unknown> | undefined) {
+    if (!parameters) {
+        return undefined;
+    }
+
+    return Object.fromEntries(Object.entries(parameters).filter(([key]) => PARAMETERS_WHITELIST.has(key)));
 }
 
 function forwardLogsToSentry(logPacket: string | undefined) {
@@ -59,7 +74,7 @@ function forwardLogsToSentry(logPacket: string | undefined) {
         }
 
         if (logLine.parameters) {
-            logMethod(logLine.message, logLine.parameters);
+            logMethod(logLine.message, filterParameters(logLine.parameters));
         } else {
             logMethod(logLine.message);
         }

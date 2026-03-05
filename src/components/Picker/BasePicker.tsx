@@ -96,7 +96,6 @@ function BasePicker<TPickerValue>({
             return () => icon(size);
         }
 
-        // eslint-disable-next-line react/display-name
         return () => (
             <Icon
                 fill={theme.icon}
@@ -209,6 +208,16 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel,
+                        accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{
                         ref: picker,

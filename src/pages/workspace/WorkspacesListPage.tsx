@@ -687,7 +687,6 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
-    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {
@@ -735,7 +734,12 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}</TopBar>
+                <TopBar
+                    breadcrumbLabel={translate('common.workspaces')}
+                    shouldDisplayHelpButton
+                >
+                    {!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}
+                </TopBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1]}>

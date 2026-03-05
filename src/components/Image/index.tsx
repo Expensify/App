@@ -79,7 +79,6 @@ function Image({
      * trying to figure out if the current session is expired or fresh from a necessary reauthentication
      */
     const previousSessionAge = useRef<number | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const validSessionAge: number | undefined = useMemo(() => {
         // Authentication is required only for certain types of images (attachments and receipts),
         // so we only calculate the session age for those
@@ -123,6 +122,7 @@ function Image({
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
                     return {
                         ...propsSource,
+                        cacheKey: propsSource.uri,
                         headers: {
                             [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
                         },
