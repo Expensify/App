@@ -49,7 +49,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                     cardsList={cardsList}
                     fundID={defaultFundID}
                     route={route}
-                    isLoading={isLoading}
                 />
             );
         }

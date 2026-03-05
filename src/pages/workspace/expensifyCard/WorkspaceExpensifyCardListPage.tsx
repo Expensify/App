@@ -7,7 +7,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -57,12 +56,9 @@ type WorkspaceExpensifyCardListPageProps = {
 
     /** Fund ID */
     fundID: number;
-
-    /** Whether the page is in loading state or not */
-    isLoading?: boolean;
 };
 
-function WorkspaceExpensifyCardListPage({route, cardsList, fundID, isLoading}: WorkspaceExpensifyCardListPageProps) {
+function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus'] as const);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
@@ -255,8 +251,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID, isLoading}: W
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>
             )}
-            {isEmptyObject(cardsList) && isLoading && <FullScreenLoadingIndicator />}
-            {isEmptyObject(cardsList) && !isLoading && (
+            {isEmptyObject(cardsList) ? (
                 <EmptyCardView
                     isBankAccountVerified={isBankAccountVerified}
                     policyID={policyID}
@@ -268,8 +263,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID, isLoading}: W
                         },
                     ]}
                 />
-            )}
-            {!isEmptyObject(cardsList) && (
+            ) : (
                 <ScrollView
                     addBottomSafeAreaPadding
                     showsVerticalScrollIndicator={false}
