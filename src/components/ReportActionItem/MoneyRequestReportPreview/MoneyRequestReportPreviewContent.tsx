@@ -353,16 +353,18 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             approveMoneyRequest(
-                iouReport,
-                activePolicy,
-                currentUserAccountID,
-                currentUserEmail,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                iouReportNextStep,
-                betas,
-                userBillingGraceEndPeriods,
-                true,
+                {
+                    expenseReport: iouReport,
+                    policy: activePolicy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                    betas,
+                    userBillingGraceEndPeriods,
+                    full: true,
+                },
                 startApprovedAnimation,
             );
         }

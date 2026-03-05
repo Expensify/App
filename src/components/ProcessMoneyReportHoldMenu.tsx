@@ -94,16 +94,18 @@ function ProcessMoneyReportHoldMenu({
 
         if (isApprove) {
             approveMoneyRequest(
-                moneyRequestReport,
-                activePolicy,
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                moneyRequestReportNextStep,
-                betas,
-                userBillingGraceEndPeriods,
-                full,
+                {
+                    expenseReport: moneyRequestReport,
+                    policy: activePolicy,
+                    currentUserAccountIDParam: currentUserDetails.accountID,
+                    currentUserEmailParam: currentUserDetails.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
+                    betas,
+                    userBillingGraceEndPeriods,
+                    full,
+                },
                 startAnimation,
             );
         } else if (chatReport && paymentType) {

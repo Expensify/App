@@ -708,16 +708,18 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             approveMoneyRequest(
-                moneyRequestReport,
-                policy,
-                accountID,
-                email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                nextStep,
-                betas,
-                userBillingGraceEndPeriods,
-                true,
+                {
+                    expenseReport: moneyRequestReport,
+                    policy,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    expenseReportCurrentNextStepDeprecated: nextStep,
+                    betas,
+                    userBillingGraceEndPeriods,
+                    full: true,
+                },
                 startApprovedAnimation,
             );
         }
