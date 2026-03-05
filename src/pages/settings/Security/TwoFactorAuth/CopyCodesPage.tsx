@@ -123,7 +123,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
@@ -139,7 +138,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}

@@ -1,4 +1,3 @@
-/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
@@ -83,7 +82,7 @@ function PressableWithDelayToggle({
     iconStyles,
     icon,
     ref,
-    accessibilityRole,
+    accessibilityRole = CONST.ROLE.BUTTON,
     shouldHaveActiveBackground,
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
@@ -132,7 +131,8 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={tooltipTexts}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Fallback to visible text when tooltip is empty for screen readers
+            accessibilityLabel={tooltipTexts || (!isActive && textChecked ? textChecked : text) || ''}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >
@@ -142,6 +142,7 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors */}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}
