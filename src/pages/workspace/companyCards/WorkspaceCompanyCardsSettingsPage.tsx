@@ -59,7 +59,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan'] as const);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -189,7 +189,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         </View>
                         {isDirectCardFeed && (
                             <MenuItem
-                                icon={Expensicons.Sync}
+                                icon={icons.Sync}
                                 title={translate('workspace.moreFeatures.companyCards.assignNewCards')}
                                 description={translate('workspace.moreFeatures.companyCards.assignNewCardsDescription')}
                                 onPress={openBankConnectionFlow}
