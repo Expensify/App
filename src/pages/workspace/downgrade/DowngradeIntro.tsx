@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -31,42 +31,35 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
 
     const illustrations = useMemoizedLazyIllustrations(['Mailbox']);
 
-    const benefitsNoteHTML = useMemo(() => {
-        const note = translate('workspace.downgrade.commonFeatures.note');
-        const noteAndMore = translate('workspace.downgrade.commonFeatures.noteAndMore');
-        const pricingPageUrl = CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
-        return `<muted-text>${note}<a href="${pricingPageUrl}">${noteAndMore}</a></muted-text>`;
-    }, [translate]);
+    const note = translate('workspace.downgrade.commonFeatures.note');
+    const noteAndMore = translate('workspace.downgrade.commonFeatures.noteAndMore');
+    const pricingPageUrl = CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
+    const benefitsNoteHTML = `<muted-text>${note}<a href="${pricingPageUrl}">${noteAndMore}</a></muted-text>`;
 
-    const benefitsListHTML = useMemo(() => {
-        const benefits = [
-            {
-                label: translate('workspace.downgrade.commonFeatures.benefits.benefit1Label'),
-                value: translate('workspace.downgrade.commonFeatures.benefits.benefit1'),
-            },
-            {
-                label: translate('workspace.downgrade.commonFeatures.benefits.benefit2Label'),
-                value: translate('workspace.downgrade.commonFeatures.benefits.benefit2'),
-            },
-            {
-                label: translate('workspace.downgrade.commonFeatures.benefits.benefit3Label'),
-                value: translate('workspace.downgrade.commonFeatures.benefits.benefit3'),
-            },
-            {
-                label: translate('workspace.downgrade.commonFeatures.benefits.benefit4Label'),
-                value: translate('workspace.downgrade.commonFeatures.benefits.benefit4'),
-            },
-        ];
-        const listItems = benefits.map(({label, value}) => `• <strong>${label}:</strong> ${value}`).join('<br/>');
-        return `<muted-text>${listItems}</muted-text>`;
-    }, [translate]);
-
-    const handleLinkPress = useMemo(
-        () => () => {
-            openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+    const benefits = [
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit1Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit1'),
         },
-        [environmentURL],
-    );
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit2Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit2'),
+        },
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit3Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit3'),
+        },
+        {
+            label: translate('workspace.downgrade.commonFeatures.benefits.benefit4Label'),
+            value: translate('workspace.downgrade.commonFeatures.benefits.benefit4'),
+        },
+    ];
+    const listItems = benefits.map(({label, value}) => `• <strong>${label}:</strong> ${value}`).join('<br/>');
+    const benefitsListHTML = `<muted-text>${listItems}</muted-text>`;
+
+    const handleLinkPress = () => {
+        openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+    };
 
     return (
         <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
