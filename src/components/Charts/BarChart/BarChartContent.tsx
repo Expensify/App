@@ -133,6 +133,35 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     // Convert hook's degree rotation to radians for hover label testing
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
+    /**
+     * Pre-computed geometry for label hit-testing.
+     * Extracted from the worklet so that font metrics, trig, spread-array max, and per-label
+     * scaled widths are calculated once per layout/rotation change rather than on every hover event.
+     */
+    const labelHitGeometry = useMemo(() => {
+        if (!font) {
+            return null;
+        }
+        const metrics = font.getMetrics();
+        const ascent = Math.abs(metrics.ascent);
+        const descent = Math.abs(metrics.descent);
+        const sinA = Math.sin(angleRad);
+        const maxLabelWidth = labelWidths.length > 0 ? Math.max(...labelWidths) : 0;
+        const centeredUpwardOffset = angleRad > 0 ? (maxLabelWidth / 2) * sinA : 0;
+        return {
+            /** Constant offset from chartBottom to the label Y baseline */
+            labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - variables.iconSizeExtraSmall / 3,
+            /** iconSize * sin(angle) — step from upper to lower corner */
+            iconSin: variables.iconSizeExtraSmall * sinA,
+            /** Per-label: (labelWidth / 2) * sin(angle) — right-corner anchor offset for 45° */
+            halfLabelSins: labelWidths.map((w) => (w / 2) * sinA),
+            /** Per-label: labelWidth * sin(angle) — left-corner offset for 45° */
+            labelSins: labelWidths.map((w) => w * sinA),
+            /** Per-label: labelWidth / 2 — bounds half-extent for 0° and 90° */
+            halfWidths: labelWidths.map((w) => w / 2),
+        };
+    }, [font, angleRad, labelWidths]);
+
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
@@ -154,40 +183,39 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         (args: HitTestArgs, activeIndex: number) => {
             'worklet';
 
-            const labelWidth = labelWidths.at(activeIndex) ?? 0;
-            const fontMetrics = font?.getMetrics();
-            if (!fontMetrics) {
+            if (!labelHitGeometry) {
                 return false;
             }
-            const ascent = Math.abs(fontMetrics.ascent);
-            const descent = Math.abs(fontMetrics.descent);
+            const {labelYOffset, iconSin, halfLabelSins, labelSins, halfWidths} = labelHitGeometry;
+            const halfLabelWidth = halfWidths.at(activeIndex) ?? 0;
+            const labelY = args.chartBottom + labelYOffset;
 
-            const centeredUpwardOffset = angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
-            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
             if (angleRad === 0) {
                 return (
-                    args.cursorX >= args.targetX - labelWidth / 2 &&
-                    args.cursorX <= args.targetX + labelWidth / 2 &&
+                    args.cursorX >= args.targetX - halfLabelWidth &&
+                    args.cursorX <= args.targetX + halfLabelWidth &&
                     args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
                     args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
                 );
             }
             if (angleRad < 1) {
+                const halfLabelSin = halfLabelSins.at(activeIndex) ?? 0;
+                const labelSin = labelSins.at(activeIndex) ?? 0;
                 const rightUpperCorner = {
-                    x: args.targetX + (labelWidth / 2) * Math.sin(angleRad),
-                    y: labelY - (labelWidth / 2) * Math.sin(angleRad) - variables.iconSizeExtraSmall / 2,
+                    x: args.targetX + halfLabelSin,
+                    y: labelY - halfLabelSin,
                 };
                 const rightLowerCorner = {
-                    x: rightUpperCorner.x + variables.iconSizeExtraSmall * Math.sin(angleRad),
-                    y: rightUpperCorner.y + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                    x: rightUpperCorner.x + iconSin,
+                    y: rightUpperCorner.y + iconSin,
                 };
                 const leftUpperCorner = {
-                    x: rightUpperCorner.x - labelWidth * Math.sin(angleRad),
-                    y: rightUpperCorner.y + labelWidth * Math.sin(angleRad),
+                    x: rightUpperCorner.x - labelSin,
+                    y: rightUpperCorner.y + labelSin,
                 };
                 const leftLowerCorner = {
-                    x: rightLowerCorner.x - labelWidth * Math.sin(angleRad),
-                    y: rightLowerCorner.y + labelWidth * Math.sin(angleRad),
+                    x: rightLowerCorner.x - labelSin,
+                    y: rightLowerCorner.y + labelSin,
                 };
                 // Point-in-convex-polygon test using cross products
                 // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
@@ -213,14 +241,15 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 }
                 return true;
             }
+            // 90°
             return (
                 args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
                 args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
-                args.cursorY >= labelY - labelWidth / 2 &&
-                args.cursorY <= labelY + labelWidth / 2
+                args.cursorY >= labelY - halfLabelWidth &&
+                args.cursorY <= labelY + halfLabelWidth
             );
         },
-        [labelWidths, angleRad, font],
+        [angleRad, labelHitGeometry],
     );
 
     /**

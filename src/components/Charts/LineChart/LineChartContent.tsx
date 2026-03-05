@@ -144,6 +144,34 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     // Convert hook's degree rotation to radians for Skia rendering
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
+    /**
+     * Pre-computed geometry for label hit-testing.
+     * Extracted from the worklet so that font metrics, trig, and per-label scaled widths
+     * are calculated once per layout/rotation change rather than on every hover event.
+     */
+    const labelHitGeometry = useMemo(() => {
+        if (!font) {
+            return null;
+        }
+        const metrics = font.getMetrics();
+        const ascent = Math.abs(metrics.ascent);
+        const descent = Math.abs(metrics.descent);
+        const sinA = Math.sin(angleRad);
+
+        return {
+            /** Constant offset from chartBottom to the label Y baseline */
+            labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 1.5,
+            /** (iconSize / 3) * sin(angle) — right-corner anchor horizontal/vertical offset */
+            iconThirdSin: (variables.iconSizeExtraSmall / 3) * sinA,
+            /** iconSize * sin(angle) — step from upper to lower corner */
+            iconSin: variables.iconSizeExtraSmall * sinA,
+            /** Per-label: labelWidth * sin(angle) — left-corner horizontal/vertical offset */
+            labelSins: labelWidths.map((w) => w * sinA),
+            /** Original widths kept here so the worklet needs only one closure capture */
+            widths: labelWidths,
+        };
+    }, [font, angleRad, labelWidths]);
+
     const {formatValue} = useChartLabelFormats({
         data,
         font,
@@ -163,15 +191,13 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         (args: HitTestArgs, activeIndex: number) => {
             'worklet';
 
-            const labelWidth = labelWidths.at(activeIndex) ?? 0;
-            const fontMetrics = font?.getMetrics();
-            if (!fontMetrics) {
+            if (!labelHitGeometry) {
                 return false;
             }
-            const ascent = Math.abs(fontMetrics.ascent);
-            const descent = Math.abs(fontMetrics.descent);
-            // center of label when looking vertically
-            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 3;
+            const {labelYOffset, iconThirdSin, iconSin, labelSins, widths} = labelHitGeometry;
+            const labelWidth = widths.at(activeIndex) ?? 0;
+            const labelY = args.chartBottom + labelYOffset;
+
             if (angleRad === 0) {
                 return (
                     args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
@@ -182,21 +208,22 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
             }
             // When labels are rotated 45° we need to check it the other way
             if (angleRad < 1) {
+                const labelSin = labelSins.at(activeIndex) ?? 0;
                 const rightUpperCorner = {
-                    x: args.targetX - (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
-                    y: labelY + (variables.iconSizeExtraSmall / 3) * Math.sin(angleRad),
+                    x: args.targetX - iconThirdSin,
+                    y: labelY + iconThirdSin,
                 };
                 const rightLowerCorner = {
-                    x: rightUpperCorner.x + variables.iconSizeExtraSmall * Math.sin(angleRad),
-                    y: rightUpperCorner.y + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                    x: rightUpperCorner.x + iconSin,
+                    y: rightUpperCorner.y + iconSin,
                 };
                 const leftUpperCorner = {
-                    x: rightUpperCorner.x - labelWidth * Math.sin(angleRad),
-                    y: rightUpperCorner.y + labelWidth * Math.sin(angleRad),
+                    x: rightUpperCorner.x - labelSin,
+                    y: rightUpperCorner.y + labelSin,
                 };
                 const leftLowerCorner = {
-                    x: rightLowerCorner.x - labelWidth * Math.sin(angleRad),
-                    y: rightLowerCorner.y + labelWidth * Math.sin(angleRad),
+                    x: rightLowerCorner.x - labelSin,
+                    y: rightLowerCorner.y + labelSin,
                 };
 
                 // Point-in-convex-polygon test using cross products
@@ -231,7 +258,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 args.cursorY <= labelY + labelWidth + variables.iconSizeExtraSmall / 2
             );
         },
-        [angleRad, font, labelWidths],
+        [angleRad, labelHitGeometry],
     );
 
     /**
