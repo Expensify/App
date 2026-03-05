@@ -9,20 +9,18 @@ import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/Dat
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@libs/actions/TravelInvoicing';
-import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDateRangeForPreset} from '@libs/SearchUIUtils';
 import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
-import addTrailingForwardSlash from '@libs/UrlUtils';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,7 +31,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environment} = useEnvironment();
     const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -44,7 +41,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const [dateError, setDateError] = useState('');
     const [isDateModifierOpen, setIsDateModifierOpen] = useState(false);
 
-    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+    const baseURL = CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
 
     const dateFilterBaseRef = useRef<DateFilterBaseHandle>(null);
 
@@ -145,8 +142,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     }, []);
 
     /**
-     * Handles PDF download — mirrors WalletStatementPage.processDownload pattern.
-     * Checks for cached filename first; if found downloads immediately, otherwise starts generation.
+     * Handles PDF export — always requests fresh generation from the backend.
+     * The useEffect below auto-downloads the file once generation completes.
      */
     const processDownload = useCallback(() => {
         if (isGenerating) {
@@ -164,36 +161,28 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         }
 
         const {startDate, endDate} = getDateRange();
-        const cacheKey = `${policyID}_${startDate}_${endDate}`;
 
         setIsDownloading(true);
-
-        if (typeof travelInvoiceStatement?.[cacheKey] === 'string') {
-            const fileName = travelInvoiceStatement[cacheKey];
-            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '', session?.encryptedAuthToken ?? '').finally(() =>
-                setIsDownloading(false),
-            );
-            return;
-        }
-
-        // Request PDF generation — the useEffect will auto-download when it completes
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [baseURL, isGenerating, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, session?.encryptedAuthToken, getDateRange, translate]);
+    }, [isGenerating, policyID, getDateRange, translate]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {
             return;
         }
 
-        // If the statement generation is complete, download it automatically
+        // Generation just completed — download the file
         const {startDate, endDate} = getDateRange();
         const cacheKey = `${policyID}_${startDate}_${endDate}`;
-        if (travelInvoiceStatement?.[cacheKey]) {
-            processDownload();
+        const fileName = travelInvoiceStatement?.[cacheKey];
+        if (typeof fileName === 'string') {
+            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '', session?.encryptedAuthToken ?? '').finally(() =>
+                setIsDownloading(false),
+            );
         } else {
             setIsDownloading(false);
         }
-    }, [prevIsGenerating, isGenerating, travelInvoiceStatement, policyID, processDownload, getDateRange]);
+    }, [prevIsGenerating, isGenerating, travelInvoiceStatement, policyID, getDateRange, translate, baseURL, currentUserPersonalDetails?.login, session?.encryptedAuthToken]);
 
     const handleDownloadCSV = () => {
         if (!hasDateSelected()) {
