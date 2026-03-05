@@ -247,24 +247,6 @@ function IOURequestStepDistanceOdometer({
     const startImageSource = useMemo(() => getImageSource(odometerStartImage), [getImageSource, odometerStartImage]);
     const endImageSource = useMemo(() => getImageSource(odometerEndImage), [getImageSource, odometerEndImage]);
 
-    useEffect(() => {
-        return () => {
-            if (!startImageSource?.startsWith('blob:')) {
-                return;
-            }
-            URL.revokeObjectURL(startImageSource);
-        };
-    }, [startImageSource]);
-
-    useEffect(() => {
-        return () => {
-            if (!endImageSource?.startsWith('blob:')) {
-                return;
-            }
-            URL.revokeObjectURL(endImageSource);
-        };
-    }, [endImageSource]);
-
     const buttonText = (() => {
         if (shouldSkipConfirmation) {
             return translate('iou.createExpense');
