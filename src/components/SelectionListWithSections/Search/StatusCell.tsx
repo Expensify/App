@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Text from '@components/Text';
+import StatusBadge from '@components/StatusBadge';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,29 +25,17 @@ function StatusCell({stateNum, statusNum, isPending}: StatusCellProps) {
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
 
-    const backgroundColorStyle = useMemo(
-        () => ({
-            backgroundColor: reportStatusColorStyle?.backgroundColor,
-        }),
-        [reportStatusColorStyle?.backgroundColor],
-    );
-
-    const textColorStyle = useMemo(
-        () => ({
-            color: reportStatusColorStyle?.textColor,
-        }),
-        [reportStatusColorStyle?.textColor],
-    );
-
     if (!statusText || !reportStatusColorStyle) {
         return null;
     }
 
     return (
         <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
-            <View style={[styles.reportStatusContainer, backgroundColorStyle]}>
-                <Text style={[styles.reportStatusText, textColorStyle]}>{statusText}</Text>
-            </View>
+            <StatusBadge
+                text={statusText}
+                backgroundColor={reportStatusColorStyle.backgroundColor}
+                textColor={reportStatusColorStyle.textColor}
+            />
         </View>
     );
 }

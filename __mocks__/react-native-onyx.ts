@@ -2,7 +2,6 @@
  * We are disabling the lint rule that doesn't allow the usage of Onyx.connect outside libs
  * because the intent of this file is to mock the usage of react-native-onyx so we will have to mock the connect function
  */
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx} from 'react-native-onyx';
@@ -40,5 +39,4 @@ const reactNativeOnyxMock: ReactNativeOnyxMock = {
 };
 
 export default reactNativeOnyxMock;
-// eslint-disable-next-line
 export {useOnyx};

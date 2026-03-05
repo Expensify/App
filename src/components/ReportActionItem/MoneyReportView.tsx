@@ -5,12 +5,12 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
     getBillableAndTaxTotal,
     getFieldViolation,
@@ -66,9 +67,20 @@ type MoneyReportViewProps = {
     shouldHideThreadDividerLine: boolean;
 
     pendingAction?: PendingAction;
+
+    /** Whether we should display the animated banner above the component */
+    shouldShowAnimatedBackground?: boolean;
 };
 
-function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTotal = true, shouldHideThreadDividerLine, pendingAction}: MoneyReportViewProps) {
+function MoneyReportView({
+    report,
+    policy,
+    isCombinedReport = false,
+    shouldShowTotal = true,
+    shouldHideThreadDividerLine,
+    pendingAction,
+    shouldShowAnimatedBackground = true,
+}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -81,7 +93,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const transactions = useReportTransactions(report?.reportID);
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
-    const shouldShowBreakdown = (nonReimbursableSpend && reimbursableSpend) || !!billableTotal || !!taxTotal;
+    const isTaxEnabled = isPolicyTaxEnabled(policy);
+    const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -96,7 +109,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -137,11 +150,12 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
             ),
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     return (
         <>
             <View style={[styles.pRelative]}>
-                <AnimatedEmptyStateBackground />
+                {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
@@ -204,7 +218,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                     {isSettled && !isPartiallyPaid && (
                                         <View style={[styles.defaultCheckmarkWrapper, styles.mh2]}>
                                             <Icon
-                                                src={Expensicons.Checkmark}
+                                                src={icons.Checkmark}
                                                 fill={theme.success}
                                             />
                                         </View>
@@ -229,10 +243,10 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                         {!!shouldShowBreakdown && (
                             <>
                                 {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: !!nonReimbursableSpend && !!reimbursableSpend},
+                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: !!nonReimbursableSpend},
+                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: !!nonReimbursableSpend},
                                     {label: 'common.billable', value: formattedBillableAmount, show: !!billableTotal},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal},
+                                    {label: 'common.tax', value: formattedTaxAmount, show: !!taxTotal && isTaxEnabled},
                                 ]
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (

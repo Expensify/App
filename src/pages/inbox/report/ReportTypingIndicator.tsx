@@ -16,7 +16,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
+    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping.at(0);
@@ -36,7 +36,6 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     if (usersTyping.length === 1) {
         return (
             <TextWithEllipsis
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
                 leadingText={firstUserTypingDisplayName || translate('common.someone')}
                 trailingText={` ${translate('reportTypingIndicator.isTyping')}`}
                 textStyle={[styles.chatItemComposeSecondaryRowSubText]}

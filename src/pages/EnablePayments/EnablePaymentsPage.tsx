@@ -22,7 +22,6 @@ function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
-        canBeMissing: true,
         // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
         // stored values here.
         initWithStoredValues: false,
@@ -35,7 +34,6 @@ function EnablePaymentsPage() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
             return;

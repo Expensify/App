@@ -83,8 +83,4 @@ function formatPhoneNumberWithCountryCode(number: string, countryCodeByIP: numbe
     return parsedPhoneNumber.number.international;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    formatPhoneNumber,
-    formatPhoneNumberWithCountryCode,
-};
+export {formatPhoneNumber, formatPhoneNumberWithCountryCode};

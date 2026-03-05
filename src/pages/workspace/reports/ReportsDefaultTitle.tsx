@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
@@ -19,6 +19,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -45,9 +46,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         translate('workspace.reports.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
-    const [reportTitle, setReportTitle] = useState(() => customNameDefaultValue);
+    const titleField = getTitleFieldWithFallback(policy);
+    const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
 
     const validateCustomName = useCallback(
         ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
@@ -120,10 +120,8 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                             label={translate('workspace.reports.customNameInputLabel')}
                             aria-label={translate('workspace.reports.customNameInputLabel')}
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={reportTitle}
                             spellCheck={false}
                             autoFocus
-                            onChangeText={setReportTitle}
                             autoGrowHeight
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!isInputInitializedRef.current) {

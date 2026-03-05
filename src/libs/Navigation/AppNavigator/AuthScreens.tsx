@@ -1,6 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {memo, useEffect, useRef, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import OpenConfirmNavigateExpensifyClassicModal from '@components/ConfirmNavigateExpensifyClassicModal';
@@ -29,6 +30,7 @@ import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedRepo
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
+import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -40,6 +42,7 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import useNavigateTo3DSAuthorizationChallenge from '@libs/Navigation/useNavigateTo3DSAuthorizationChallenge';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -143,6 +146,60 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
+function EscapeShortcutHandler() {
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
+        useWideRHPState();
+
+    useEffect(() => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (modal?.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                if (modal?.disableDismissOnEscape) {
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForWideRHP) {
+                    Navigation.closeRHPFlow();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
+                    Navigation.dismissToSuperWideRHP();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
+        return () => unsubscribeEscapeKey();
+    }, [
+        modal?.disableDismissOnEscape,
+        modal?.willAlertModalBecomeVisible,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderTertiaryOverlay,
+    ]);
+
+    return null;
+}
+
 function AuthScreens() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -152,17 +209,13 @@ function AuthScreens() {
     const {toggleSearch} = useSearchRouterActions();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
-        canBeMissing: true,
-    });
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
-        useWideRHPState();
 
     // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
@@ -174,18 +227,20 @@ function AuthScreens() {
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, {canBeMissing: true});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
+
+    useNavigateTo3DSAuthorizationChallenge();
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -202,7 +257,6 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountID]);
 
     useAutoUpdateTimezone();
@@ -270,7 +324,7 @@ function AuthScreens() {
             } else {
                 const reportID = getReportIDFromLink(initialURL ?? null);
                 if (reportID && !isAuthenticatedAtStartup) {
-                    Report.openReport(reportID);
+                    Report.openReport(reportID, introSelected);
                     // Don't want to call `openReport` again when logging out and then logging in
                     setIsAuthenticatedAtStartup(true);
                 }
@@ -281,7 +335,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
 
         Download.clearDownloads();
 
@@ -338,7 +392,7 @@ function AuthScreens() {
 
         const unsubscribeMarkAllMessagesAsReadShortcut = KeyboardShortcut.subscribe(
             markAllMessagesAsReadShortcutConfig.shortcutKey,
-            () => Report.markAllMessagesAsRead(archivedReportsIdSet),
+            () => markAllMessagesAsRead(archivedReportsIdSet),
             markAllMessagesAsReadShortcutConfig.descriptionKey,
             markAllMessagesAsReadShortcutConfig.modifiers,
             true,
@@ -355,51 +409,6 @@ function AuthScreens() {
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (modal?.willAlertModalBecomeVisible) {
-                    return;
-                }
-
-                if (modal?.disableDismissOnEscape) {
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForWideRHP) {
-                    Navigation.closeRHPFlow();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-                    Navigation.dismissToSuperWideRHP();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
-                    Navigation.dismissToPreviousRHP();
-                    return;
-                }
-
-                Navigation.dismissModal();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-        return () => unsubscribeEscapeKey();
-    }, [
-        modal?.disableDismissOnEscape,
-        modal?.willAlertModalBecomeVisible,
-        shouldRenderSecondaryOverlayForWideRHP,
-        shouldRenderSecondaryOverlayForRHPOnWideRHP,
-        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-        shouldRenderTertiaryOverlay,
-    ]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -517,6 +526,7 @@ function AuthScreens() {
                 SupportalPermissionDeniedModalProvider,
             ]}
         >
+            <EscapeShortcutHandler />
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
