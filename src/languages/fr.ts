@@ -2190,12 +2190,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Ajouter une carte personnelle',
+        addCompanyCard: "Ajouter une carte d'entreprise",
+        lookingForCompanyCards: "Vous devez ajouter des cartes d'entreprise ?",
+        lookingForCompanyCardsDescription: 'Connectez vos propres cartes auprès de plus de 10 000 banques dans le monde.',
+        personalCardAdded: 'Carte personnelle ajoutée!',
+        personalCardAddedDescription: 'Félicitations, nous allons commencer à importer les transactions de votre carte.',
+        isPersonalCard: "S'agit-il d'une carte personnelle?",
+        thisIsPersonalCard: "Il s'agit d'une carte personnelle",
+        thisIsCompanyCard: "Il s'agit d'une carte d'entreprise",
+        askAdmin: 'Demander à votre administrateur',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Si oui, parfait ! Mais si c'est une carte d'<strong>entreprise</strong>, veuillez ${isAdmin ? "l'assigner depuis votre espace de travail." : "demander à votre administrateur de vous l'assigner depuis l'espace de travail."}`,
+        bankConnectionError: 'Problème de connexion bancaire',
+        bankConnectionDescription: "Veuillez réessayer d'ajouter vos cartes. Sinon, vous pouvez",
+        connectWithPlaid: 'vous connecter via Plaid.',
         fixCard: 'Réparer la carte',
         brokenConnection: 'La connexion de votre carte est rompue.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connexion de votre carte ${cardName} est rompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour corriger la carte.`
                 : `La connexion de votre carte ${cardName} est rompue. Connectez-vous à votre banque pour corriger la carte.`,
+        addAdditionalCards: "Ajouter d'autres cartes",
+        upgradeDescription: "Vous devez ajouter plus de cartes ? Créez un espace de travail pour ajouter des cartes personnelles ou assigner des cartes d'entreprise à toute l'équipe.",
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponible dans le forfait Collect, à <strong>${formattedPrice}</strong> par membre et par mois.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Créez un espace de travail pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos forfaits et tarifs.</muted-text>`,
+        workspaceCreated: 'Espace de travail créé',
+        newWorkspace: 'Vous avez créé un espace de travail !',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Vous pouvez maintenant ajouter d'autres cartes. <a href="${subscriptionLink}">Voir votre abonnement</a> pour plus de détails.</centered-text>`,
     },
     walletPage: {
         balance: 'Solde',
