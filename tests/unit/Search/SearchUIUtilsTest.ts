@@ -6218,6 +6218,185 @@ describe('SearchUIUtils', () => {
             const commentsCount = columns.filter((col) => col === CONST.SEARCH.TABLE_COLUMNS.COMMENTS).length;
             expect(commentsCount).toBe(1);
         });
+
+        test('Should hide empty EXCHANGE_RATE column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: undefined,
+                convertedAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            // EXCHANGE_RATE should be hidden because no transaction has exchange rate data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
+            // Always-shown columns should still be present
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+        });
+
+        test('Should show EXCHANGE_RATE column when transaction has exchange rate data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+                currency: 'USD',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE);
+        });
+
+        test('Should hide empty CARD column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                cardID: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+        });
+
+        test('Should show CARD column when transaction has cardID', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                cardID: 12345,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+        });
+
+        test('Should hide empty TAX columns in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should show TAX columns when transaction has tax data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                taxCode: 'VAT_20',
+                taxAmount: 500,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT);
+        });
+
+        test('Should hide empty ORIGINAL_AMOUNT column in expense report view with custom columns', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                originalAmount: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should show ORIGINAL_AMOUNT column when transaction has original amount', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: 'Test Merchant',
+                originalAmount: 2500,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT);
+        });
+
+        test('Should show column if at least one transaction has data for it', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const emptyTransaction = {
+                ...baseTransaction,
+                transactionID: 'empty',
+                merchant: 'Test Merchant',
+                cardID: undefined,
+                taxCode: undefined,
+            };
+            const transactionWithCard = {
+                ...baseTransaction,
+                transactionID: 'withCard',
+                merchant: 'Test Merchant 2',
+                cardID: 12345,
+                taxCode: undefined,
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.CARD, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, transactionWithCard], visibleColumns, true);
+
+            // CARD should be shown because one transaction has cardID
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CARD);
+            // TAX_RATE should be hidden because no transaction has taxCode
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE);
+        });
+
+        test('Should always show RECEIPT, TYPE, DATE, COMMENTS, TOTAL_AMOUNT in custom columns regardless of data', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const testTransaction = {
+                ...baseTransaction,
+                transactionID: 'test',
+                merchant: '',
+                modifiedMerchant: '',
+            };
+
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.RECEIPT, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+            const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], visibleColumns, true);
+
+            // Always-shown columns should be present
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.RECEIPT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TYPE);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+            // MERCHANT should be hidden because no data
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+        });
     });
 
     describe('Test getCustomColumns', () => {
