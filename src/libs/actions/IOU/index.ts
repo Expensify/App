@@ -7694,7 +7694,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 customUnitRateID,
                 description: parsedComment,
                 gpsCoordinates,
-                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction),
+                isDistance:
+                    isGPSDistanceRequest ||
+                    isMapDistanceRequest(transaction) ||
+                    isManualDistanceRequestTransactionUtils(transaction) ||
+                    isOdometerDistanceRequestTransactionUtils(transaction),
                 odometerStart,
                 odometerEnd,
             };
