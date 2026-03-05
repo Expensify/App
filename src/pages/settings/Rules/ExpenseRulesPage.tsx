@@ -298,7 +298,7 @@ function ExpenseRulesPage() {
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
                     shouldUseDefaultRightHandSideCheckmark={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
                 />
