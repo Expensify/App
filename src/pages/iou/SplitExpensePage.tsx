@@ -205,6 +205,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const splitReportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const splitTransactionReport = getReportOrDraftReport(splitReportID);
+    const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
+    const splitExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+    
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
             showConfirmModal({
@@ -286,7 +292,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID: splitReportID,
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
@@ -304,7 +310,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
-            allPolicyTags,
+            policyTags,
         });
     };
 

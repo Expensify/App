@@ -117,7 +117,7 @@ type UpdateSplitTransactionsParams = {
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isFromSplitExpensesFlow?: boolean;
-    allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    policyTags: OnyxTypes.PolicyTagLists;
 };
 
 type SplitBillActionsParams = {
@@ -1044,7 +1044,7 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
-    allPolicyTags,
+    policyTags,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -1053,9 +1053,6 @@ function updateSplitTransactions({
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
@@ -1687,6 +1684,7 @@ function updateSplitTransactions({
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
     updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
+
     const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
