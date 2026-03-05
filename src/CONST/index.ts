@@ -8795,6 +8795,8 @@ const CONST = {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
                 THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
+                ROW: 'WorkspaceList-Row',
+                ROW_ARROW: 'WorkspaceList-RowArrow',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
