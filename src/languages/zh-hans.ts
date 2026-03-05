@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓氏',
         scanning: '正在扫描',
         analyzing: '正在分析…',
+        thinking: 'Concierge 正在思考...',
         addCardTermsOfService: 'Expensify 服务条款',
         perPerson: '每人',
         phone: '电话',
@@ -510,6 +511,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: '注意！',
         submitTo: '提交给',
         forwardTo: '转发至',
+        approvalLimit: '审批限额',
+        overLimitForwardTo: '超出限额时转发至',
         merge: '合并',
         none: '无',
         unstableInternetConnection: '网络连接不稳定。请检查您的网络后重试。',
@@ -539,7 +542,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
         duplicateReport: '重复报销单',
-        explain: '说明',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -547,6 +549,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: '在Instagram上关注我们',
         facebook: '在Facebook上关注我们',
         linkedin: '在LinkedIn上关注我们',
+    },
+    concierge: {
+        collapseReasoning: '收起推理',
+        expandReasoning: '展开推理',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -887,8 +893,8 @@ const translations: TranslationDeepObject<typeof en> = {
     reportAction: {
         asCopilot: '作为副驾驶，用于',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报销单，用于保存所有来自 <a href="${reportUrl}">${reportName}</a> 且无法按照你选择的频率提交的费用`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `从<a href="${reportUrl}">${reportName}</a>创建了此报表，用于查看任何被暂扣的报销费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted ? `为已删除报销单 #${reportID} 中的所有暂挂报销创建了此报销单` : `为从<a href="${reportUrl}">${reportName}</a>中被暂挂的任何报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此会话中的所有人',
@@ -1022,6 +1028,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: '全部完成',
                 fireworksDescription: '即将到来的待办事项将显示在此处。',
             },
+        },
+        upcomingTravel: '即将出行',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `飞往 ${destination} 的航班`,
+            trainTo: ({destination}: {destination: string}) => `前往 ${destination} 的火车`,
+            hotelIn: ({destination}: {destination: string}) => `${destination}的酒店`,
+            carRentalIn: ({destination}: {destination: string}) => `在 ${destination} 租车`,
+            inOneWeek: '1 周后',
+            inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
+            today: '今天',
         },
     },
     allSettingsScreen: {
@@ -1342,6 +1358,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: '请在继续之前输入有效的距离',
             invalidReadings: '请输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
+            distanceAmountTooLarge: '总金额过大。请减少距离或降低费率。',
+            distanceAmountTooLargeReduceDistance: '总金额过大。请减少距离。',
+            distanceAmountTooLargeReduceRate: '总金额过大。请降低费率。',
+            odometerReadingTooLarge: (formattedMax: string) => `里程表读数不能超过${formattedMax}。`,
             invalidIntegerAmount: '请在继续之前输入一个整数美元金额',
             invalidTaxAmount: (amount: string) => `最高税额为 ${amount}`,
             invalidSplit: '拆分金额之和必须等于总金额',
@@ -1396,6 +1416,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: '请解释你为何暂时保留这笔报销。',
             other: '请说明你为何保留这些报销。',
+        }),
+        explainHoldApprover: () => ({
+            one: '请说明在批准这笔报销之前你需要什么。',
+            other: '请说明在批准这些报销之前你需要什么。',
         }),
         retracted: '已撤回',
         retract: '撤回',
@@ -1489,7 +1513,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: '当你批准整份报销报告时，已搁置的报销会被保留在报告之外。',
             rejectExpenseTitle: '拒绝你不打算批准或报销的报销单。',
             reasonPageTitle: '拒绝报销',
-            reasonPageDescription: '请说明你拒绝此报销的原因。',
+            reasonPageDescription: '请说明你为何不会批准这笔报销。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
             rejectedStatus: '该报销已被拒绝。请先修复问题并标记为已解决，然后才能提交。',
@@ -1525,6 +1549,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '总金额过大。请减少工时或降低费率。',
         },
         correctRateError: '修复费率错误后请重试。',
+        AskToExplain: `。<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>说明</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: '您无法在不同工作区之间复制每日津贴报销，因为各工作区的补贴标准可能不同。',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? '将该报销单标记为“可报销”' : '将该报销单标记为“不可报销”'),
@@ -1538,6 +1563,11 @@ const translations: TranslationDeepObject<typeof en> = {
             formatPersonalRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">个人报销规则</a>`,
             formatPolicyRules: (fragments: string, route: string) => `${fragments} 通过 <a href="${route}">工作区规则</a>`,
         },
+        failedToAutoSubmitViaDEW: (reason: string) => `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交报表失败。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `报表提交失败。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
+        cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
     },
     transactionMerge: {
         listPage: {
@@ -1972,6 +2002,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: '针对域管理员：这也会暂停您所有域中的所有 Expensify 卡活动和管理员操作。',
         areYouSure: '你确定要锁定你的 Expensify 账户吗？',
         onceLocked: '一旦被锁定，您的账户将受到限制，直至提交解锁请求并完成安全审查',
+        unlockTitle: '我们已收到您的请求',
+        unlockDescription: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '锁定账号失败',
@@ -2108,10 +2140,33 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: '添加个人卡',
+        addCompanyCard: '添加公司卡',
+        lookingForCompanyCards: '需要添加公司卡？',
+        lookingForCompanyCardsDescription: '从全球 10,000 多家银行添加您自己的卡。',
+        personalCardAdded: '个人卡已添加！',
+        personalCardAddedDescription: '恭喜，我们将开始导入您卡的交易记录。',
+        isPersonalCard: '这是个人卡吗？',
+        thisIsPersonalCard: '这是个人卡',
+        thisIsCompanyCard: '这是公司卡',
+        askAdmin: '请咨询您的管理员',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `如果是，那就太好了！但如果是<strong>公司</strong>卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
+        bankConnectionError: '银行连接问题',
+        bankConnectionDescription: '请尝试重新添加您的银行卡。否则，您将无法',
+        connectWithPlaid: '通过 Plaid 连接。',
         fixCard: '修复卡片',
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        addAdditionalCards: '添加其他卡片',
+        upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) => `<muted-text>创建工作区以使用此功能，或<a href="${subscriptionLink}">了解更多关于我们的套餐和定价的信息</a>。</muted-text>`,
+        workspaceCreated: '工作区已创建',
+        newWorkspace: '您已创建工作区！',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>您现在可以添加其他卡片了。<a href="${subscriptionLink}">查看您的订阅</a>了解更多详情。</centered-text>`,
     },
     walletPage: {
         balance: '余额',
@@ -8130,6 +8185,7 @@ ${reportName}
         outstandingFilter: '<tooltip>筛选<strong>待审批</strong>的报销</tooltip>',
         scanTestDriveTooltip: '<tooltip>发送此收据以\n<strong>完成试用体验！</strong></tooltip>',
         gpsTooltip: '<tooltip>正在进行 GPS 跟踪！完成后，请在下方停止跟踪。</tooltip>',
+        hasFilterNegation: '<tooltip>使用 <strong>-has:receipt</strong> 搜索没有收据的报销。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',
@@ -8300,7 +8356,7 @@ ${reportName}
             resetDomain: '重置域名',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `请输入要重置的域名 <strong>${domainName}</strong> 以确认。`,
             enterDomainName: '在此输入您的域名',
-            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <ul><li>公司卡关联以及这些卡上所有未报销的费用</li> <li>SAML 和群组设置</li> </ul> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
+            resetDomainInfo: `此操作<strong>无法撤销</strong>，并将删除以下数据：<br/> <bullet-list><bullet-item>公司卡关联以及这些卡上所有未报销的费用</bullet-item><bullet-item>SAML 和群组设置</bullet-item></bullet-list> 所有账户、工作区、报表、费用和其他数据将保留。<br/><br/>注意：您可以通过从<a href="#">联系方法</a>中移除关联的邮箱，将此域从您的域名列表中清除。`,
         },
         domainMembers: '域成员',
         members: {
@@ -8319,8 +8375,8 @@ ${reportName}
                 other: '安全关闭账户',
             }),
             closeAccountInfo: () => ({
-                one: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<ul><li>待处理的审批</li><li>正在进行的报销</li><li>没有其他登录方式</li></ul>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
-                other: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<ul><li>待处理的审批</li><li>正在进行的报销</li><li>没有其他登录方式</li></ul>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
+                one: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<bullet-list><bullet-item>待处理的审批</bullet-item><bullet-item>正在进行的报销</bullet-item><bullet-item>没有其他登录方式</bullet-item></bullet-list>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
+                other: '我们建议安全地关闭该账户，以便在存在以下情况时跳过关闭操作：<bullet-list><bullet-item>待处理的审批</bullet-item><bullet-item>正在进行的报销</bullet-item><bullet-item>没有其他登录方式</bullet-item></bullet-list>否则，您可以忽略上述安全预防措施并强制关闭所选账户。',
             }),
             error: {
                 removeMember: '无法移除此用户。请重试。',
@@ -8328,6 +8384,9 @@ ${reportName}
                 vacationDelegate: '无法将此用户设置为休假代理人。请重试。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `您无法为 ${email} 设置休假代理人，因为 TA 当前是以下成员的代理人：`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `你确定要这样做吗？这将锁定 <strong>${email}</strong> 的账户。<br /><br />我们的团队随后会审核该账户并移除任何未经授权的访问。若要重新获得访问权限，他们需要与 Concierge 配合处理。`,
+            reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
         },
         common: {
             settings: '设置',

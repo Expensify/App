@@ -145,7 +145,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     });
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>) {
+function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -154,7 +154,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(storedCurrentUserLogin)?.accountID;
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
@@ -175,9 +175,14 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
     return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
-function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+function getMovedFromOrToReportMessage(
+    translate: LocalizedTranslate,
+    movedFromReport: OnyxEntry<Report> | undefined,
+    movedToReport: OnyxEntry<Report> | undefined,
+    currentUserLogin: string,
+): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
     }
 
     if (movedFromReport) {
@@ -277,7 +282,7 @@ function getForReportAction({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

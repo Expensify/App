@@ -15,7 +15,7 @@ const SCENARIO_NAMES = {
  * Prompt identifiers for multifactor authentication scenarios.
  */
 const PROMPT_NAMES = {
-    ENABLE_BIOMETRICS: 'enable-biometrics',
+    BIOMETRICS: 'biometrics',
 };
 
 export {SCENARIO_NAMES, PROMPT_NAMES};
