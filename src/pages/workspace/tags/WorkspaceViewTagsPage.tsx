@@ -437,7 +437,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeaderContent={listHeaderContent}
                         canSelectMultiple={canSelectMultiple}
                         onSelectRow={navigateToTagSettings}
-                        showListEmptyContent={false}
+                        shouldShowListEmptyContent={false}
                         onCheckboxPress={toggleTag}
                         shouldHeaderBeInsideList
                         shouldShowRightCaret

@@ -1,4 +1,4 @@
-import {createContext} from 'react';
+import {createContext, useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,31 +7,20 @@ import {getOriginalReportID} from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
+import {defaultShowContextMenuActionsContextValue, defaultShowContextMenuStateContextValue} from './default';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from './types';
 
-type ShowContextMenuContextProps = {
-    anchor: ContextMenuAnchor;
-    report: OnyxEntry<Report>;
-    isReportArchived: boolean;
-    action: OnyxEntry<ReportAction>;
-    transactionThreadReport?: OnyxEntry<Report>;
-    checkIfContextMenuActive: () => void;
-    onShowContextMenu: (callback: () => void) => void;
-    isDisabled: boolean;
-    shouldDisplayContextMenu?: boolean;
-};
+const ShowContextMenuStateContext = createContext<ShowContextMenuStateContextType>(defaultShowContextMenuStateContextValue);
+const ShowContextMenuActionsContext = createContext<ShowContextMenuActionsContextType>(defaultShowContextMenuActionsContextValue);
 
-const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
-    anchor: null,
-    onShowContextMenu: (callback) => callback(),
-    report: undefined,
-    isReportArchived: false,
-    action: undefined,
-    transactionThreadReport: undefined,
-    checkIfContextMenuActive: () => {},
-    isDisabled: true,
-    shouldDisplayContextMenu: true,
-});
+function useShowContextMenuState(): ShowContextMenuStateContextType {
+    return useContext(ShowContextMenuStateContext);
+}
+
+function useShowContextMenuActions(): ShowContextMenuActionsContextType {
+    return useContext(ShowContextMenuActionsContext);
+}
 
 /**
  * Show the report action context menu.
@@ -75,5 +64,5 @@ function showContextMenuForReport(
     });
 }
 
-export {ShowContextMenuContext, showContextMenuForReport};
-export type {ShowContextMenuContextProps};
+export {ShowContextMenuStateContext, ShowContextMenuActionsContext, useShowContextMenuState, useShowContextMenuActions, showContextMenuForReport};
+export type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from './types';
