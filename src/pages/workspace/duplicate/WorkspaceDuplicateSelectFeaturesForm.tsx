@@ -164,7 +164,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),

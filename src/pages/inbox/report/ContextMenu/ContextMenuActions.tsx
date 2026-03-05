@@ -131,6 +131,7 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRejectedAction,
@@ -1062,8 +1063,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
-                    const reportName = getReportName(getReportOrDraftReport(originalID));
-                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
+                    const originalReportOfUnapprovedTransaction = getReportOrDraftReport(originalID);
+                    const reportName = getReportName(originalReportOfUnapprovedTransaction);
+                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
+                        originalID,
+                        reportName,
+                        isOriginalReportDeleted(reportAction, originalReportOfUnapprovedTransaction),
+                        translate,
+                    );
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
@@ -1251,7 +1258,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         onPress: (closePopover, {reportID: reportIDParam, reportAction, moneyRequestAction}) => {
             const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const reportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportIDParam;
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

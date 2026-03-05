@@ -6,7 +6,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
@@ -25,7 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal, translate as translateWithLocale} from './Localize';
+import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
@@ -93,6 +92,7 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isRejectedAction,
+    isOriginalReportDeleted,
     isRenamedAction,
     isReportActionAttachment,
     isTagModificationAction,
@@ -258,11 +258,9 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
 
     if (reportOwnerDisplayName) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
     }
 
@@ -352,27 +350,22 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
     if (isReportApproved({report})) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.managerApprovedAmount', payerOrApproverName, formattedAmount);
     }
 
     if (report?.isWaitingOnBankAccount) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.pending')}`;
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -773,7 +766,6 @@ function computeReportName(
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
 
     if (parentReportActionBasedName) {
@@ -784,6 +776,13 @@ function computeReportName(
         return report?.reportName;
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
+        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
+        const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
+        const reportName = computeReportName(originalReport, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserAccountID);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
+    }
+
     if (isTaskReport(report)) {
         const taskName = report?.reportName ?? '';
 
@@ -792,7 +791,6 @@ function computeReportName(
 
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
@@ -800,7 +798,6 @@ function computeReportName(
 
     const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
     if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');
     }
 
@@ -872,37 +869,16 @@ function computeReportName(
 }
 
 /**
- * Check for existence of report name in derived values first, then fall back to the report object
+ * Returns the report name from OnyxDerived `reportAttributes` when available, falling back to the raw report object.
  *
- * @param report
- * @param reportAttributesDerivedValue
- * @param reports
- * @param parentReportActionParam
+ * **Always prefer passing `reportAttributesDerivedValue` from the derived Onyx key** (`ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`).
+ * The fallback to `report.reportName` exists only for edge-cases where the derived value is not yet populated.
+ * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  */
-function getReportName(
-    report?: Report,
-    reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports'],
-    reports?: OnyxCollection<Report>,
-    parentReportActionParam?: OnyxEntry<ReportAction> | null,
-): string {
+function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
     if (!report || !report.reportID) {
         return '';
     }
-
-    const parentReportAction = parentReportActionParam;
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
-        const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const originalReportName = originalReport ? getReportName(originalReport, reportAttributesDerivedValue) : '';
-        const currentLocale = IntlStore.getCurrentLocale();
-        const translateInCurrentLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(currentLocale, path, ...parameters);
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, translateInCurrentLocale);
-    }
-
-    if (isInvoiceRoom(report)) {
-        return getInvoicesChatName({report, receiverPolicy: undefined, personalDetails: allPersonalDetails});
-    }
-
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
 }
 
