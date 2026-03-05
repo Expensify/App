@@ -2181,12 +2181,36 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Aggiungi carta personale',
+        addCompanyCard: 'Aggiungi carta aziendale',
+        lookingForCompanyCards: 'Devi aggiungere carte aziendali?',
+        lookingForCompanyCardsDescription: 'Collega le tue carte da oltre 10.000 banche in tutto il mondo.',
+        personalCardAdded: 'Carta personale aggiunta!',
+        personalCardAddedDescription: 'Congratulazioni, inizieremo a importare le transazioni dalla tua carta.',
+        isPersonalCard: 'È una carta personale?',
+        thisIsPersonalCard: 'Questa è una carta personale',
+        thisIsCompanyCard: 'Questa è una carta aziendale',
+        askAdmin: 'Chiedi al tuo amministratore',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Se sì, ottimo! Ma se è una carta <strong>aziendale</strong>, ${isAdmin ? 'assegnala dal tuo spazio di lavoro.' : 'chiedi al tuo amministratore di assegnartela dallo spazio di lavoro.'}`,
+        bankConnectionError: 'Problema di connessione bancaria',
+        bankConnectionDescription: 'Riprova ad aggiungere le tue carte. Altrimenti puoi',
+        connectWithPlaid: 'connetterti tramite Plaid.',
         fixCard: 'Correggi carta',
         brokenConnection: 'La connessione della tua carta è interrotta.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
+        addAdditionalCards: 'Aggiungi altre carte',
+        upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crea uno spazio di lavoro per usare questa funzione, o <a href="${subscriptionLink}">scopri di più</a> su piani e prezzi.</muted-text>`,
+        workspaceCreated: 'Spazio di lavoro creato',
+        newWorkspace: 'Hai creato uno spazio di lavoro!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Ora puoi aggiungere altre carte. <a href="${subscriptionLink}">Visualizza l'abbonamento</a> per i dettagli.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',

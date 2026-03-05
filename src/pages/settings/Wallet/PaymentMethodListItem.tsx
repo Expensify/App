@@ -177,10 +177,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 plaidUrl={item.plaidUrl}
                 disabled={item.disabled}
                 iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
-                displayInDefaultIconColor
+                displayInDefaultIconColor={!item.iconFill}
                 iconHeight={item.iconHeight ?? item.iconSize}
                 iconWidth={item.iconWidth ?? item.iconSize}
                 iconStyles={item.iconStyles}
+                iconFill={item.iconFill}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
                 isBadgeSuccess={isInSetupState}

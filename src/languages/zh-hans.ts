@@ -2140,10 +2140,33 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: '添加个人卡',
+        addCompanyCard: '添加公司卡',
+        lookingForCompanyCards: '需要添加公司卡？',
+        lookingForCompanyCardsDescription: '从全球 10,000 多家银行添加您自己的卡。',
+        personalCardAdded: '个人卡已添加！',
+        personalCardAddedDescription: '恭喜，我们将开始导入您卡的交易记录。',
+        isPersonalCard: '这是个人卡吗？',
+        thisIsPersonalCard: '这是个人卡',
+        thisIsCompanyCard: '这是公司卡',
+        askAdmin: '请咨询您的管理员',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `如果是，那就太好了！但如果是<strong>公司</strong>卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
+        bankConnectionError: '银行连接问题',
+        bankConnectionDescription: '请尝试重新添加您的银行卡。否则，您将无法',
+        connectWithPlaid: '通过 Plaid 连接。',
         fixCard: '修复卡片',
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        addAdditionalCards: '添加其他卡片',
+        upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) => `<muted-text>创建工作区以使用此功能，或<a href="${subscriptionLink}">了解更多关于我们的套餐和定价的信息</a>。</muted-text>`,
+        workspaceCreated: '工作区已创建',
+        newWorkspace: '您已创建工作区！',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>您现在可以添加其他卡片了。<a href="${subscriptionLink}">查看您的订阅</a>了解更多详情。</centered-text>`,
     },
     walletPage: {
         balance: '余额',

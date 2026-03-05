@@ -312,19 +312,24 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
+    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
+    // the effect only re-fires when the actual content changes.
+    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
+
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
-    }, [visualOrderTransactionIDs]);
-
-    useEffect(() => {
         return () => {
             clearActiveTransactionIDs();
         };
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
+    }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();

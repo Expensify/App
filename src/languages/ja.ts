@@ -2168,12 +2168,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: '個人カードを追加',
+        addCompanyCard: '会社カードを追加',
+        lookingForCompanyCards: '会社カードを追加する必要がありますか？',
+        lookingForCompanyCardsDescription: '世界中の10,000以上の銀行から自分のカードを追加できます。',
+        personalCardAdded: '個人カードが追加されました！',
+        personalCardAddedDescription: 'おめでとうございます。カードからの取引のインポートを開始します。',
+        isPersonalCard: 'これは個人カードですか？',
+        thisIsPersonalCard: 'これは個人カードです。',
+        thisIsCompanyCard: 'これは会社カードです。',
+        askAdmin: '管理者にお問い合わせください。',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `その場合、問題ありません。ただし、<strong>会社</strong>カードの場合は、${isAdmin ? 'ワークスペースから割り当ててください。' : '管理者にワークスペースから割り当ててもらってください。'}`,
+        bankConnectionError: '銀行情報の接続に関する問題',
+        bankConnectionDescription: 'カードの追加を再度お試しください。または、',
+        connectWithPlaid: 'Plaid で接続できます。',
         fixCard: 'カードを修正',
         brokenConnection: 'カード接続が切断されています。',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `${cardName}カードとの接続が切れています。カードを修正するには、<a href="${connectionLink}">銀行にログイン</a>してください。`
                 : `${cardName}カードとの接続が切れています。カードを修正するには、銀行にログインしてください。`,
+        addAdditionalCards: '他のカードを追加',
+        upgradeDescription: 'さらにカードを追加しますか？ワークスペースを作成して、個人カードを追加するか、会社カードをチーム全体に割り当てることができます。',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Collect プランで利用可能で、1 メンバーあたり月額 <strong>${formattedPrice}</strong> です。</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>この機能にアクセスするにはワークスペースを作成するか、<a href="${subscriptionLink}">プランと料金</a>の詳細をご確認ください。</muted-text>`,
+        workspaceCreated: 'ワークスペースが作成されました',
+        newWorkspace: 'ワークスペースを作成しました！',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>追加のカードを追加する準備ができました。<a href="${subscriptionLink}">サブスクリプションを表示</a>して詳細をご確認ください。</centered-text>`,
     },
     walletPage: {
         balance: '残高',
