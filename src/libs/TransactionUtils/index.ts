@@ -756,9 +756,19 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.customUnit.defaultP2PRate', null);
         shouldStopSmartscan = true;
 
+        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+
         // Get the new distance unit from the rate's unit
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
+
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit.
+        // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+            const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+            const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
+            lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        }
 
         if (!isFetchingWaypointsFromServer(transaction)) {
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
