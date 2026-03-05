@@ -96,6 +96,8 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     const [expiryMinutesText, setExpiryMinutesText] = useState('8');
     const [simulatedOutcome, setSimulatedOutcome] = useState('');
     const [selectedCardID, setSelectedCardID] = useState<number | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -139,13 +141,15 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
 
     const displayAmount = convertToDisplayString(amount, currency);
 
-    const simulateTransaction = () => {
+    const simulateTransaction = async () => {
         if (effectiveCardID === undefined) {
             return;
         }
         const delaySeconds = Math.max(0, Math.round(parseFloat(delaySecondsText) || 0));
         const maxResponseTime = parseInt(expiryMinutesText, 10) || 8;
-        simulateMarqeta3DSChallenge({
+        setIsLoading(true);
+        setErrorMessage(undefined);
+        const result = await simulateMarqeta3DSChallenge({
             merchant,
             amount,
             currency,
@@ -154,15 +158,27 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
             maxResponseTime,
             cardID: effectiveCardID,
         });
-        onClose();
+        setIsLoading(false);
+        if (result.success) {
+            onClose();
+        } else {
+            setErrorMessage(result.errorMessage);
+        }
     };
 
-    const runAllFlows = () => {
+    const runAllFlows = async () => {
         if (effectiveCardID === undefined) {
             return;
         }
-        simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID});
-        onClose();
+        setIsLoading(true);
+        setErrorMessage(undefined);
+        const result = await simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID});
+        setIsLoading(false);
+        if (result.success) {
+            onClose();
+        } else {
+            setErrorMessage(result.errorMessage);
+        }
     };
 
     const onAmountSubmit = (newAmount: number, newCurrency: string) => {
@@ -309,21 +325,26 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     );
 
     const Footer = (
-        <FixedFooter style={[styles.flexRow, styles.gap4, styles.w100]}>
-            <Button
-                success
-                isDisabled={effectiveCardID === undefined}
-                style={[styles.flex1]}
-                text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.simulate')}
-                onPress={simulateTransaction}
-            />
-            <Button
-                danger
-                style={[styles.flex1]}
-                text={translate('common.cancel')}
-                onPress={onClose}
-            />
-        </FixedFooter>
+        <>
+            {!!errorMessage && <Text style={[styles.formError, styles.ph5]}>{errorMessage}</Text>}
+            <FixedFooter style={[styles.flexRow, styles.gap4, styles.w100]}>
+                <Button
+                    success
+                    isDisabled={effectiveCardID === undefined || isLoading}
+                    isLoading={isLoading}
+                    style={[styles.flex1]}
+                    text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.simulate')}
+                    onPress={simulateTransaction}
+                />
+                <Button
+                    danger
+                    isDisabled={isLoading}
+                    style={[styles.flex1]}
+                    text={translate('common.cancel')}
+                    onPress={onClose}
+                />
+            </FixedFooter>
+        </>
     );
 
     return (

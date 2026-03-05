@@ -294,8 +294,17 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
     makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
 }
 
-function simulateMarqeta3DSChallenge(params: SimulateMarqeta3DSChallengeParams) {
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIMULATE_MARQETA_3DS_CHALLENGE, params);
+async function simulateMarqeta3DSChallenge(params: SimulateMarqeta3DSChallengeParams): Promise<{success: boolean; errorMessage?: string}> {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIMULATE_MARQETA_3DS_CHALLENGE, params);
+        if (response?.jsonCode === 200) {
+            return {success: true};
+        }
+        return {success: false, errorMessage: response?.message ?? 'An unknown error occurred.'};
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to simulate 3DS challenge', {error});
+        return {success: false, errorMessage: 'An unknown error occurred.'};
+    }
 }
 
 function markHasAcceptedSoftPrompt() {

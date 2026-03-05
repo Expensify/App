@@ -2017,7 +2017,7 @@ const translations = {
                 expiryAccessibilityLabel: 'Challenge expiry in minutes',
                 thirtySeconds: '30 sec',
                 xMinutes: () => ({
-                    one: "1 min",
+                    one: '1 min',
                     other: (count: number) => `${count} min`,
                 }),
                 simulate: 'Simulate',

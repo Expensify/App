@@ -1837,7 +1837,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 expiryAccessibilityLabel: 'Expiración del desafío en minutos',
                 thirtySeconds: '30 seg',
                 xMinutes: () => ({
-                    one: "1 min",
+                    one: '1 min',
                     other: (count: number) => `${count} min`,
                 }),
                 simulate: 'Simular',
