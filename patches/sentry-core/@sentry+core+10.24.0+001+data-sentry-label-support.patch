@@ -1,5 +1,5 @@
 diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
-index 3169c25..19acc49 100644
+index 3169c25..4a8d325 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
@@ -13,7 +13,7 @@ index 3169c25..19acc49 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -53,7 +53,33 @@ function htmlTreeAsString(
+@@ -53,7 +53,34 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
@@ -49,7 +49,7 @@ index 3169c25..19acc49 100644
    } catch {
      return '<unknown>';
    }
-@@ -77,8 +103,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -77,8 +104,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
@@ -64,7 +64,7 @@ index 3169c25..19acc49 100644
          return elem.dataset['sentryComponent'];
        }
 diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
-index 2ad52b0..fd184fb 100644
+index 2ad52b0..796cac9 100644
 --- a/node_modules/@sentry/core/build/esm/utils/browser.js
 +++ b/node_modules/@sentry/core/build/esm/utils/browser.js
 @@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
@@ -78,7 +78,7 @@ index 2ad52b0..fd184fb 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -51,7 +51,33 @@ function htmlTreeAsString(
+@@ -51,7 +51,34 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
@@ -114,7 +114,7 @@ index 2ad52b0..fd184fb 100644
    } catch {
      return '<unknown>';
    }
-@@ -75,8 +101,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -75,8 +102,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
