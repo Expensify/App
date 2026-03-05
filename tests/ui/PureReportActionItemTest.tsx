@@ -580,4 +580,58 @@ describe('PureReportActionItem', () => {
             expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
         });
     });
+
+    describe('MOVED_TRANSACTION action', () => {
+        const FROM_REPORT_ID = '100';
+        const TO_REPORT_ID = '200';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FROM_REPORT_ID}`, {
+                    reportID: FROM_REPORT_ID,
+                    reportName: 'Source Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TO_REPORT_ID}`, {
+                    reportID: TO_REPORT_ID,
+                    reportName: 'Destination Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders plain message without Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+                toReportID: TO_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The moved transaction message should be displayed
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+
+            // The "Explain" link should NOT be present
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('renders Explain link when action has reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {
+                fromReportID: FROM_REPORT_ID,
+                toReportID: TO_REPORT_ID,
+                reasoning: 'This expense violated the max amount rule.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The moved transaction message should be displayed
+            expect(screen.getByText(/moved this expense/)).toBeOnTheScreen();
+
+            // The "Explain" link should be present
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+    });
 });
