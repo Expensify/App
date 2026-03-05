@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react-native';
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
@@ -30,14 +29,6 @@ let pusherEventsPromise = Promise.resolve();
 let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number) {
-    const span = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
-        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.https`,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command,
-            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: response.onyxData?.length ?? 0,
-        },
-    });
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
@@ -82,27 +73,12 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
             return Promise.resolve();
         })
         .then(() => {
-            span.setStatus({code: 1});
-            span.end();
             Log.info('[OnyxUpdateManager] Done applying HTTPS update', false, {lastUpdateID});
             return Promise.resolve(response);
-        })
-        .catch((error: unknown) => {
-            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-            span.end();
-            throw error;
         });
 }
 
 function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-    const span = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
-        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.pusher`,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: updates.length,
-        },
-    });
-
     pusherEventsPromise = pusherEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
@@ -110,28 +86,13 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
     pusherEventsPromise = updates
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
-            span.setStatus({code: 1});
-            span.end();
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
-        })
-        .catch((error: unknown) => {
-            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-            span.end();
-            throw error;
         });
 
     return pusherEventsPromise;
 }
 
 function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>, lastUpdateID: number) {
-    const span = Sentry.startInactiveSpan({
-        name: CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES,
-        op: `${CONST.TELEMETRY.SPAN_APPLY_ONYX_UPDATES}.airship`,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_ONYX_UPDATES_COUNT]: updates.length,
-        },
-    });
-
     airshipEventsPromise = airshipEventsPromise.then(() => {
         Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });
@@ -139,14 +100,7 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
     airshipEventsPromise = updates
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
         .then(() => {
-            span.setStatus({code: 1});
-            span.end();
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
-        })
-        .catch((error: unknown) => {
-            span.setStatus({code: 2, message: error instanceof Error ? error.message : undefined});
-            span.end();
-            throw error;
         });
 
     return airshipEventsPromise;
@@ -200,7 +154,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
             return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID));
         }
 
-        return Promise.resolve();
+        return Promise.resolve(response);
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));

@@ -1,10 +1,10 @@
 ---
 title: Billing and Subscriptions
-description: Learn how Expensify bills for Collect and Control plans, including localized pricing, billing eligibility, and how to transfer billing ownership.
-keywords: [billing, subscription, pricing, Collect, Control, plan comparison, currency, transfer billing, New Expensify]
+description: Learn how Collect and Control plans are billed in different currencies, how card usage affects pricing, and which members are charged.
+keywords: [localized billing, pricing, Collect, Control, subscription, billing currency, seat count, Expensify Card, workspace eligibility]
+internalScope: Audience is Workspace Admins. Covers pricing for Collect and Control plans across multiple currencies, eligibility rules, and how billing is calculated. Does not cover ownership transfer or billing issue resolution.
 ---
 
-<div id="new-expensify" markdown="1">
 
 Expensify offers two subscription plans — **Collect** and **Control** — designed to scale with your team's needs. This article explains how each plan is billed, pricing by currency, and how to manage your billing setup.
 
@@ -188,4 +188,7 @@ Yes! To change your plan:
 - Go to **Settings > Workspaces > [Workspace Name] > Settings**
 - Choose between **Collect** and **Control** based on your team's needs
 
-</div>
+## What if I need to change the billing owner?
+
+See [How to transfer billing ownership](#) for step-by-step instructions on how another Workspace Admin can take over billing responsibilities.
+
