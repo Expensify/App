@@ -32,6 +32,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
@@ -366,6 +367,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            // Scan shortcut span: green receipt button (web sidebar) and camera FAB (narrow/mobile)
+            startSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT, {
+                name: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+                op: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+            });
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
