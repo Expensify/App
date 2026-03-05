@@ -499,7 +499,9 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                     </AttachmentPicker>
                                     <PressableWithoutFeedback
                                         onPress={() =>
-                                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly))
+                                            Navigation.navigate(
+                                                ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
+                                            )
                                         }
                                         style={styles.receiptActionButton}
                                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
