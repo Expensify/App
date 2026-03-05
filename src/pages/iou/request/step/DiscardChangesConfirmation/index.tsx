@@ -12,13 +12,13 @@ import type DiscardChangesConfirmationProps from './types';
 
 function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStackForWebBack}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
-    const parentNavigation = navigation.getParent<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
     const isConfirmed = useRef(false);
     const [discardConfirmed, setDiscardConfirmed] = useState(false);
+    const hasGuardEntry = useRef(false);
 
     usePreventRemove(
         (hasUnsavedChanges || shouldNavigateBack) && !discardConfirmed,
@@ -34,10 +34,10 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
      * So we need to go forward to get back to the current page
      */
     useEffect(() => {
-        // MaterialTopTabNavigator does not emit 'transitionStart' events.
-        // When rendered inside a tab navigator, listen on the parent stack navigator instead.
-        const targetNavigation = useParentStackForWebBack && parentNavigation ? parentNavigation : navigation;
-        const unsubscribe = targetNavigation.addListener('transitionStart', ({data: {closing}}) => {
+        if (useParentStackForWebBack) {
+            return;
+        }
+        const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
             if (!hasUnsavedChanges || isConfirmed.current) {
                 return;
             }
@@ -52,7 +52,42 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
         });
 
         return unsubscribe;
-    }, [hasUnsavedChanges, navigation, parentNavigation, useParentStackForWebBack]);
+    }, [hasUnsavedChanges, navigation, useParentStackForWebBack]);
+
+    /**
+     * MaterialTopTabNavigator does not emit 'transitionStart' events, so the above approach
+     * doesn't work when rendered inside a tab navigator. Instead, we push a dummy history entry
+     * that acts as a guard. When browser back is pressed, the guard entry is popped (keeping
+     * the URL stable) and we show the discard modal.
+     */
+    useEffect(() => {
+        if (!useParentStackForWebBack || !hasUnsavedChanges || isConfirmed.current) {
+            return;
+        }
+
+        // Only push a guard entry if there isn't one already on top
+        const currentState = window.history.state as {discardChangesGuard?: boolean} | null;
+        if (!currentState?.discardChangesGuard) {
+            window.history.pushState({discardChangesGuard: true}, '');
+        }
+        hasGuardEntry.current = true;
+
+        const handlePopState = () => {
+            const state = window.history.state as {discardChangesGuard?: boolean} | null;
+            if (!hasGuardEntry.current || state?.discardChangesGuard) {
+                return;
+            }
+            hasGuardEntry.current = false;
+            setShouldNavigateBack(true);
+            navigateAfterInteraction(() => setIsVisible(true));
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, [useParentStackForWebBack, hasUnsavedChanges]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {
@@ -82,6 +117,11 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
                 setIsVisible(false);
                 blockedNavigationAction.current = undefined;
                 setShouldNavigateBack(false);
+                // Re-push the guard entry so the next browser back is also intercepted
+                if (useParentStackForWebBack && hasUnsavedChanges) {
+                    window.history.pushState({discardChangesGuard: true}, '');
+                    hasGuardEntry.current = true;
+                }
             }}
             onModalHide={() => {
                 if (isConfirmed.current) {
