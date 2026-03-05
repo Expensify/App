@@ -1,7 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,7 +27,6 @@ import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
@@ -43,7 +43,7 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, SelectedTabRequest} from '@src/types/onyx';
+import type {DismissedProductTraining, SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
@@ -65,41 +65,7 @@ const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).in
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
 
-// Selector to optimize policy collection subscriptions - only fetch needed fields
-const policySelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
-
-    const result: Record<string, Policy> = {};
-
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
-        }
-
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            // Additional fields required by policy utilities
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
-
-    return result;
-};
+const isTestReceiptTooltipDismissedSelector = (nvp: OnyxEntry<DismissedProductTraining>): boolean => !!nvp?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 
 function IOURequestStartPage({
     route,
@@ -125,7 +91,7 @@ function IOURequestStartPage({
     const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: policySelector,
+        selector: iouRequestPolicyCollectionSelector,
     });
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -133,7 +99,7 @@ function IOURequestStartPage({
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
@@ -207,8 +173,6 @@ function IOURequestStartPage({
         // Tab switches change transactionRequestType but shouldn't re-trigger endSpan.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    // Removed useEffect that was syncing selectedTab state - now derived directly
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -295,10 +259,7 @@ function IOURequestStartPage({
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         // The test receipt image is served via our server on web so it requires internet connection
-        !getIsUserSubmittedExpenseOrScannedReceipt(nvpDismissedProductTraining) &&
-            isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) &&
-            selectedTab === CONST.TAB_REQUEST.SCAN &&
-            !(isOffline && isWeb),
+        !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();

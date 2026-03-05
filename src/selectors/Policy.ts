@@ -87,6 +87,40 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
 
 const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
 
+const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
+    if (!policies) {
+        return {};
+    }
+
+    const result: Record<string, Policy> = {};
+
+    for (const [id, policyItem] of Object.entries(policies)) {
+        if (!policyItem) {
+            continue;
+        }
+
+        result[id] = {
+            id: policyItem.id,
+            type: policyItem.type,
+            name: policyItem.name,
+            pendingAction: policyItem.pendingAction,
+            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
+            role: policyItem.role,
+            chatReportIDAdmins: policyItem.chatReportIDAdmins,
+            employeeList: policyItem.employeeList,
+            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
+            customUnits: policyItem.customUnits,
+            units: policyItem.units,
+            isJoinRequestPending: policyItem.isJoinRequestPending,
+            errors: policyItem.errors,
+            owner: policyItem.owner,
+            areInvoicesEnabled: policyItem.areInvoicesEnabled,
+        } as Policy;
+    }
+
+    return result;
+};
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -96,5 +130,6 @@ export {
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
+    iouRequestPolicyCollectionSelector,
     shouldRedirectToExpensifyClassicSelector,
 };
