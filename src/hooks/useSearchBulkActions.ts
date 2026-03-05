@@ -738,9 +738,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     let areAnyReportsExported = false;
 
                     for (const reportID of selectedReportIDs) {
-                        const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
-                        if (!report?.isExportedToIntegration) {
+                        if (!report?.pendingFields?.export && !report?.isExportedToIntegration) {
                             continue;
                         }
 
@@ -789,7 +789,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     {
                         text: translate('workspace.common.markAsExported'),
                         icon: integrationIcon,
-                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration, hash)),
+                        onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
                         shouldCloseModalOnSelect: true,
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
