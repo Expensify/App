@@ -140,6 +140,9 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+
+    /** Whether the card feed has been deleted */
+    isCardFeedDeleted?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -192,6 +195,7 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    isCardFeedDeleted,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -253,8 +257,8 @@ function TransactionItemRow({
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
-        if (transactionItem.isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedFeed');
+        if (isCardFeedDeleted) {
+            return translate('workspace.companyCards.deletedCard');
         }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
@@ -264,7 +268,7 @@ function TransactionItemRow({
             return customCardNames[cardID];
         }
         return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
+    }, [transactionItem.cardID, transactionItem.cardName, isCardFeedDeleted, customCardNames, translate]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -565,7 +569,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:

@@ -37,6 +37,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
 import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import {doesCardFeedExist} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -161,6 +162,7 @@ function MoneyRequestReportTransactionList({
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
 
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
@@ -527,6 +529,7 @@ function MoneyRequestReportTransactionList({
                                           taxAmountColumnSize={taxAmountColumnSize}
                                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                           onArrowRightPress={handleArrowRightPress}
+                                          isCardFeedDeleted={cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
                                       />
                                   );
                               })}
@@ -551,6 +554,7 @@ function MoneyRequestReportTransactionList({
                           taxAmountColumnSize={taxAmountColumnSize}
                           scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                           onArrowRightPress={handleArrowRightPress}
+                          isCardFeedDeleted={cardFeeds === undefined ? undefined : !doesCardFeedExist(transaction.bank as OnyxTypes.CompanyCardFeed, cardFeeds)}
                       />
                   ))}
         </View>
@@ -624,7 +628,7 @@ function MoneyRequestReportTransactionList({
                         PopoverComponent={groupByPopoverComponent}
                     />
                 )}
-                {!shouldUseNarrowLayout && (
+                {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
                     <Button
                         link
                         small

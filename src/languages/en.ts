@@ -4998,6 +4998,7 @@ const translations = {
             commercialFeed: 'Commercial feed',
             feedName: (feedName: string) => `${feedName} cards`,
             deletedFeed: 'Deleted feed',
+            deletedCard: 'Deleted card',
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',

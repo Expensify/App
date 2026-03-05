@@ -66,6 +66,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
+
+    /** Whether the card feed has been deleted */
+    isCardFeedDeleted?: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -84,6 +87,7 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
+    isCardFeedDeleted,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -141,7 +145,7 @@ function MoneyRequestReportTransactionItem({
             >
                 {({hovered}) => (
                     <TransactionItemRow
-                        transactionItem={{...transaction, policy}}
+                        transactionItem={transaction}
                         violations={filteredViolations}
                         report={report}
                         policy={policy}
@@ -161,6 +165,7 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        isCardFeedDeleted={isCardFeedDeleted}
                     />
                 )}
             </PressableWithFeedback>
