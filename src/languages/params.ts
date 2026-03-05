@@ -226,31 +226,31 @@ type UpdatedPolicyReimburserParams = {newReimburser: string; previousReimburser?
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
-type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
+// type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
 
-type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+// type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
 
-type UpdatedBudgetParams = {
-    entityType: string;
-    entityName: string;
-    oldFrequency?: string;
-    newFrequency?: string;
-    oldIndividual?: string;
-    newIndividual?: string;
-    oldShared?: string;
-    newShared?: string;
-    oldNotificationThreshold?: number;
-    newNotificationThreshold?: number;
-};
+// type UpdatedBudgetParams = {
+//     entityType: string;
+//     entityName: string;
+//     oldFrequency?: string;
+//     newFrequency?: string;
+//     oldIndividual?: string;
+//     newIndividual?: string;
+//     oldShared?: string;
+//     newShared?: string;
+//     oldNotificationThreshold?: number;
+//     newNotificationThreshold?: number;
+// };
 
-type DeleteBudgetParams = {
-    entityType: string;
-    entityName: string;
-    frequency?: string;
-    individual?: string;
-    shared?: string;
-    notificationThreshold?: number;
-};
+// type DeleteBudgetParams = {
+//     entityType: string;
+//     entityName: string;
+//     frequency?: string;
+//     individual?: string;
+//     shared?: string;
+//     notificationThreshold?: number;
+// };
 
 type IntegrationsMessageParams = {
     label: string;
@@ -358,9 +358,9 @@ type CustomUnitRateParams = {
     rate: number;
 };
 
-type WorkspaceUpgradeNoteParams = {
-    subscriptionLink: string;
-};
+// type WorkspaceUpgradeNoteParams = {
+//     subscriptionLink: string;
+// };
 
 type WorkflowSettingsParam = {workflowSettingLink: string};
 
@@ -498,11 +498,11 @@ export type {
     WorkspaceMembersCountParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
-    AddBudgetParams,
-    UpdatedBudgetParams,
-    DeleteBudgetParams,
-    AddOrDeletePolicyCustomUnitRateParams,
-    WorkspaceUpgradeNoteParams,
+    // AddBudgetParams,
+    // UpdatedBudgetParams,
+    // DeleteBudgetParams,
+    // AddOrDeletePolicyCustomUnitRateParams,
+    // WorkspaceUpgradeNoteParams,
     WorkflowSettingsParam,
     WorkspaceShareNoteParams,
     UpgradeSuccessMessageParams,
