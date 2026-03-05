@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileWebKit} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -152,6 +153,8 @@ function MobileWebCameraView({
 
     useEffect(
         () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
@@ -187,9 +190,25 @@ function MobileWebCameraView({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            });
+        }
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+        });
+
         const imageBase64 = cameraRef.current.getScreenshot();
 
         if (imageBase64 === null) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
             return;
         }
 
@@ -207,6 +226,7 @@ function MobileWebCameraView({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
+            endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             onCapture(file, filename, source);
         });
     }, [isMultiScanEnabled, showBlink, requestCameraPermission, onCapture]);
@@ -221,7 +241,7 @@ function MobileWebCameraView({
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         clearTorchConstraints();
-                    }, 2000);
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
                 });
             return;
         }
