@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -59,8 +59,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     addBottomSafeAreaPadding,
     isLoadingNewOptions,
     canSelectMultiple = false,
-    showLoadingPlaceholder = false,
-    showListEmptyContent = true,
+    shouldShowLoadingPlaceholder = false,
+    shouldShowListEmptyContent = true,
     shouldShowTooltips = true,
     disableKeyboardShortcuts = false,
     shouldShowTextInput,
@@ -97,26 +97,23 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     };
 
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            if (index < 0 || index >= flattenedData.length || !listRef.current) {
-                return;
-            }
-            const item = flattenedData.at(index);
-            if (!item) {
-                return;
-            }
-            try {
-                listRef.current.scrollToIndex({index});
-            } catch (error) {
-                // FlashList may throw if layout for this index doesn't exist yet
-                // This can happen when data changes rapidly (e.g., during search filtering)
-                // The layout will be computed on next render, so we can safely ignore this
-                Log.warn('SelectionListWithSections: error scrolling to index', {error});
-            }
-        },
-        [flattenedData],
-    );
+    const scrollToIndex = (index: number) => {
+        if (index < 0 || index >= flattenedData.length || !listRef.current) {
+            return;
+        }
+        const item = flattenedData.at(index);
+        if (!item) {
+            return;
+        }
+        try {
+            listRef.current.scrollToIndex({index});
+        } catch (error) {
+            // FlashList may throw if layout for this index doesn't exist yet
+            // This can happen when data changes rapidly (e.g., during search filtering)
+            // The layout will be computed on next render, so we can safely ignore this
+            Log.warn('SelectionListWithSections: error scrolling to index', {error});
+        }
+    };
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
@@ -182,10 +179,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     };
 
-    const clearInputAfterSelect = () => {
-        textInputOptions?.onChangeText?.('');
-    };
-
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
         setFocusedIndex(index);
         if (shouldScroll) {
@@ -202,8 +195,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     useImperativeHandle(ref, () => ({
         focusTextInput,
-        scrollToIndex,
-        clearInputAfterSelect,
         updateAndScrollToFocusedIndex,
         updateExternalTextInputFocus,
         getFocusedOption: getFocusedItem,
@@ -280,17 +271,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 dataLength={flattenedData.length}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return <OptionsListSkeletonView />;
         }
-        if (showListEmptyContent) {
+        if (shouldShowListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -354,7 +345,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         >
             {textInputComponent()}
             {customHeaderContent}
-            {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <FlashList

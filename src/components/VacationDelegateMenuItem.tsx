@@ -62,7 +62,6 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     numberOfLinesDescription={1}
                     shouldShowRightIcon
                     onPress={onPress}
-                    containerStyle={styles.pr2}
                 />
             </OfflineWithFeedback>
         </>
@@ -71,7 +70,6 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
             description={translate('common.vacationDelegate')}
             shouldShowRightIcon
             onPress={onPress}
-            containerStyle={styles.pr2}
         />
     );
 }

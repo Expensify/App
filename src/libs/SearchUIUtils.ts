@@ -778,7 +778,7 @@ function getSuggestedSearches(
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -1104,7 +1104,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getTransactionMerchant(transactionItem, policy);
+    const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
     const submitted = report?.submitted;
     const approved = report?.approved;
@@ -1865,7 +1865,6 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
-
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -2031,6 +2030,8 @@ function createAndOpenSearchTransactionThread(
     item: TransactionListItemType,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     backTo: string,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
@@ -2060,7 +2061,15 @@ function createAndOpenSearchTransactionThread(
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(introSelected, item.report, reportActionToPass, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(
+            introSelected,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            item.report,
+            reportActionToPass,
+            transaction,
+            transactionViolations,
+        );
     }
 
     if (shouldNavigate) {
@@ -3893,12 +3902,15 @@ function getFeedOptions(
     allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     allCards: OnyxTypes.CardList | undefined,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards)).map<SingleSelectItem<string>>((cardFeed) => ({
-        text: cardFeed.name,
-        value: cardFeed.id,
-    }));
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
+        .map<SingleSelectItem<string>>((cardFeed) => ({
+            text: cardFeed.name,
+            value: cardFeed.id,
+        }))
+        .sort((a, b) => localeCompare(a.text, b.text));
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
