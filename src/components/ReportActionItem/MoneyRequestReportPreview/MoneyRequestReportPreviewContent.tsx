@@ -350,19 +350,19 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(
-                iouReport,
-                activePolicy,
-                currentUserAccountID,
-                currentUserEmail,
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                iouReportNextStep,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
-                true,
-            );
+                full: true,
+            });
         }
     };
 

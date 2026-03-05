@@ -427,19 +427,19 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                approveMoneyRequest(
-                    iouReport,
+                approveMoneyRequest({
+                    expenseReport: iouReport,
                     policy,
-                    accountID,
-                    email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    iouReportNextStep,
+                    expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                     betas,
                     userBillingGraceEndPeriods,
                     amountOwed,
-                    false,
-                );
+                    full: false,
+                });
             }
             return;
         }

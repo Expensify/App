@@ -97,19 +97,19 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(
-                moneyRequestReport,
-                activePolicy,
-                currentUserDetails.accountID,
-                currentUserDetails.email ?? '',
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserDetails.accountID,
+                currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                moneyRequestReportNextStep,
+                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
                 full,
-            );
+            });
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
