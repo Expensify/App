@@ -68,13 +68,13 @@ type CreatedReportForUnapprovedTransactionsParams = {
     isReportDeleted: boolean;
 };
 
-type WorkspacesListRouteParams = {
-    workspacesListRoute: string;
-};
+// type WorkspacesListRouteParams = {
+//     workspacesListRoute: string;
+// };
 
-type WorkspaceRouteParams = {
-    workspaceRoute: string;
-};
+// type WorkspaceRouteParams = {
+//     workspaceRoute: string;
+// };
 
 type UserSplitParams = {amount: string};
 
@@ -152,7 +152,7 @@ type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
+// type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
 type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
 
@@ -182,7 +182,7 @@ type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: str
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
-type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
+// type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
@@ -296,7 +296,7 @@ type LowerUpperParams = {lower: string; upper: string};
 
 type UpdatedPolicyCategoriesParams = {count: number};
 
-type WorkspaceMembersCountParams = {count: number};
+// type WorkspaceMembersCountParams = {count: number};
 
 type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
 
@@ -493,11 +493,11 @@ export type {
     ImportPolicyCustomUnitRatesParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    WorkspaceMembersCountParams,
-    WorkspacesListRouteParams,
-    WorkspaceRouteParams,
+    // UpdatedPolicyApprovalRuleParams,
+    // UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    // WorkspaceMembersCountParams,
+    // WorkspacesListRouteParams,
+    // WorkspaceRouteParams,
     // AddBudgetParams,
     // UpdatedBudgetParams,
     // DeleteBudgetParams,
