@@ -1719,6 +1719,7 @@ function MoneyReportHeader({
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute);
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport(moneyRequestReport, selfDMReport, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
                     });
