@@ -196,7 +196,11 @@ function BaseDomainMembersPage({
     const listHeaderContent = (
         <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
             <View
-                style={[shouldUseNarrowLayout && styles.w100, shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13, shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter]}
+                style={[
+                    shouldUseNarrowLayout && styles.w100,
+                    shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
+                    shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                ]}
             >
                 {searchBarAccessory}
             </View>
