@@ -50,7 +50,7 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting,
 
         return (
             <View style={[styles.renderHTML, styles.w100]}>
-                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', {policyName, subscriptionLink})} />
+                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, subscriptionLink)} />
             </View>
         );
     }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
