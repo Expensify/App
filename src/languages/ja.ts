@@ -546,6 +546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         duplicateReport: 'レポートを複製',
+        approver: '承認者',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',

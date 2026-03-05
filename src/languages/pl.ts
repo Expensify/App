@@ -546,6 +546,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Zastępca urlopowy',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Zduplikowany raport',
+        approver: 'Osoba zatwierdzająca',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
