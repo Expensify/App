@@ -919,7 +919,14 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 ...value,
-                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                pendingFields: {
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    preventSelfApproval:
+                        approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && policy?.preventSelfApproval
+                            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                            : policy?.pendingFields?.preventSelfApproval,
+                },
+                preventSelfApproval: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? false : policy?.preventSelfApproval,
                 employeeList: optimisticMembersState,
             },
         },
@@ -935,7 +942,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy?.approver,
                 approvalMode: policy?.approvalMode,
-                pendingFields: {approvalMode: null},
+                preventSelfApproval: policy?.preventSelfApproval,
+                pendingFields: {approvalMode: null, preventSelfApproval: policy?.pendingFields?.preventSelfApproval},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
                 employeeList: policy?.employeeList,
             },
@@ -950,7 +958,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {approvalMode: null},
+                pendingFields: {
+                    approvalMode: null,
+                    preventSelfApproval: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && policy?.preventSelfApproval ? null : policy?.pendingFields?.preventSelfApproval,
+                },
             },
         },
     ];
