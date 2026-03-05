@@ -717,14 +717,6 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
             },
         });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isExportedToIntegration: true,
-            },
-        });
-
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -739,22 +731,6 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
             value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         });
     }
-
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-        value: {
-            data: Object.fromEntries(
-                reportIDs.map((reportID) => [
-                    `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    {
-                        isExportedToIntegration: true,
-                    },
-                ]),
-            ),
-        },
-    });
 
     // If we are on the 'Export' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
     if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPORT) {
