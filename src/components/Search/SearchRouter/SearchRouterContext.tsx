@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -77,8 +77,14 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         if (isBrowserWithHistory) {
             window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
         }
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT,
+            op: 'ui.modal.wait',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+        });
         close(
             () => {
+                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
                 openSearch(setIsSearchRouterDisplayed);
                 searchRouterDisplayedRef.current = true;
             },
@@ -104,7 +110,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
             op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
             attributes: {
-                trigger: 'keyboard',
+                [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'keyboard',
             },
         });
     };

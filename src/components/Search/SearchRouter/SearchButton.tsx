@@ -33,6 +33,9 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
             startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
                 name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
+                },
             });
 
             const platform = getPlatform();
