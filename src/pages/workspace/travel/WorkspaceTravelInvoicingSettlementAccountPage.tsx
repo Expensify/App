@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {configureTravelInvoicingForPolicy, setTravelInvoicingSettlementAccount} from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
@@ -38,10 +38,11 @@ function WorkspaceTravelInvoicingSettlementAccountPage({route}: WorkspaceTravelI
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isLoading = !!cardSettings?.isLoading;
     const isSuccess = !!cardSettings?.isSuccess;
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const paymentBankAccountID = travelSettings?.paymentBankAccountID;
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList);
 
     const getVerificationState = () => {

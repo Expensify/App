@@ -17,7 +17,7 @@ import {
     deactivateTravelInvoicing,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -69,12 +69,15 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
+    // Resolve travel-specific settings from the shared card settings key
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+
     // Use pure selectors to derive state
-    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(cardSettings);
-    const travelSpend = getTravelSpend(cardSettings);
-    const travelLimit = getTravelLimit(cardSettings);
-    const settlementAccount = getTravelSettlementAccount(cardSettings, bankAccountList);
-    const settlementFrequency = getTravelSettlementFrequency(cardSettings);
+    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
+    const travelSpend = getTravelSpend(travelSettings);
+    const travelLimit = getTravelLimit(travelSettings);
+    const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
+    const settlementFrequency = getTravelSettlementFrequency(travelSettings);
     const localizedFrequency =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY
             ? translate('workspace.expensifyCard.frequency.monthly')
@@ -112,7 +115,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
 
@@ -132,7 +135,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
-            if (hasOutstandingTravelBalance(cardSettings)) {
+            if (hasOutstandingTravelBalance(travelSettings)) {
                 // Show blocker modal with error message
                 setIsOutstandingBalanceModalVisible(true);
                 return;
