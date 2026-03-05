@@ -5,6 +5,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
@@ -23,6 +24,16 @@ function CurrencySelectionList({
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
+    const [initialSelectedCurrencyCodes] = useState<string[]>(() => {
+        const codes = new Set<string>();
+        if (initiallySelectedCurrencyCode) {
+            codes.add(initiallySelectedCurrencyCode);
+        }
+        for (const currencyCode of selectedCurrencies) {
+            codes.add(currencyCode);
+        }
+        return Array.from(codes);
+    });
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
         const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
@@ -57,11 +68,19 @@ function CurrencySelectionList({
         .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
         .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
 
-    const isEmpty = searchValue.trim() && !filteredCurrencies.length;
+    const shouldReorderInitialSelection = !searchValue && initialSelectedCurrencyCodes.length > 0;
+    const displayCurrencies = shouldReorderInitialSelection
+        ? moveInitialSelectionToTopByValue(
+              filteredCurrencies.map((currency) => ({...currency, value: currency.currencyCode})),
+              initialSelectedCurrencyCodes,
+          )
+        : filteredCurrencies;
+
+    const isEmpty = searchValue.trim() && !displayCurrencies.length;
     const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
-    const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);
+    const selectedOptions = displayCurrencies.filter((option) => option.isSelected);
     const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0;
-    const unselectedOptions = getUnselectedOptions(filteredCurrencies);
+    const unselectedOptions = getUnselectedOptions(displayCurrencies);
     const sections = [];
 
     if (shouldDisplaySelectedOptionOnTop) {
