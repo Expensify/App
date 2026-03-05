@@ -6,6 +6,7 @@ import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FilterItem} from './useSearchFiltersBar';
 import useSearchFiltersBar from './useSearchFiltersBar';
@@ -64,7 +65,16 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
     }
 
     if (shouldShowFiltersBarLoading) {
-        return <SearchFiltersSkeleton shouldAnimate />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersBarNarrow',
+            shouldShowFiltersBarLoading,
+        };
+        return (
+            <SearchFiltersSkeleton
+                shouldAnimate
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     return (
