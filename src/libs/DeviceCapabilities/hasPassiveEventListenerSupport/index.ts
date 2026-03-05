@@ -5,7 +5,6 @@ export default function hasPassiveEventListenerSupport(): boolean {
     let supportsPassive = false;
     try {
         const opts = Object.defineProperty({}, 'passive', {
-            // eslint-disable-next-line getter-return
             get() {
                 supportsPassive = true;
             },

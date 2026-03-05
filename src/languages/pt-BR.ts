@@ -514,6 +514,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
+        approvalLimit: 'Limite de aprovação',
+        overLimitForwardTo: 'Encaminhar se exceder o limite',
         merge: 'Mesclar',
         none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
@@ -904,8 +906,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto de',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `criou este relatório para quaisquer despesas em espera de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
+                : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todas as pessoas nesta conversa',
@@ -1441,6 +1445,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Explique por que você está retendo esta despesa.',
             other: 'Explique por que você está segurando essas despesas.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Explique o que você precisa antes de aprovar esta despesa.',
+            other: 'Explique o que você precisa antes de aprovar estas despesas.',
+        }),
         retracted: 'retraído',
         retract: 'Retrair',
         reopened: 'reaberto',
@@ -1535,7 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Despesas retidas são deixadas para trás quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
-            reasonPageDescription: 'Explique por que você está rejeitando esta despesa.',
+            reasonPageDescription: 'Explique por que você não aprovará esta despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
             rejectedStatus: 'Esta despesa foi rejeitada. Estamos aguardando você corrigir os problemas e marcá-la como resolvida para permitir o envio.',
@@ -1589,6 +1597,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `falha ao enviar o relatório. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Você não pode duplicar despesas de distância entre espaços de trabalho porque as tarifas podem ser diferentes entre eles.',
     },
     transactionMerge: {
         listPage: {
@@ -2026,6 +2035,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Para admins de domínio: isso também pausa todas as atividades do Cartão Expensify e ações de administração em todo(s) o(s) seu(s) domínio(s).',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
         onceLocked: 'Depois de bloqueada, sua conta ficará restrita até que seja feita uma solicitação de desbloqueio e uma revisão de segurança',
+        unlockTitle: 'Recebemos sua solicitação',
+        unlockDescription: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -2163,12 +2174,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Adicionar cartão pessoal',
+        addCompanyCard: 'Adicionar cartão corporativo',
+        lookingForCompanyCards: 'Precisa adicionar cartões corporativos?',
+        lookingForCompanyCardsDescription: 'Conecte seus próprios cartões de mais de 10.000 bancos no mundo todo.',
+        personalCardAdded: 'Cartão pessoal adicionado!',
+        personalCardAddedDescription: 'Parabéns, começaremos a importar transações do seu cartão.',
+        isPersonalCard: 'Este é um cartão pessoal?',
+        thisIsPersonalCard: 'Este é um cartão pessoal',
+        thisIsCompanyCard: 'Este é um cartão corporativo',
+        askAdmin: 'Pergunte ao administrador',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Se sim, ótimo! Mas se for um cartão <strong>corporativo</strong>, ${isAdmin ? 'atribua-o no seu espaço de trabalho.' : 'peça ao administrador para atribuí-lo a você no espaço de trabalho.'}`,
+        bankConnectionError: 'Problema de conexão com o banco',
+        bankConnectionDescription: 'Tente adicionar seus cartões novamente. Caso contrário, você pode',
+        connectWithPlaid: 'conectar via Plaid.',
         fixCard: 'Corrigir cartão',
         brokenConnection: 'A conexão do seu cartão está com problema.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `A conexão do seu cartão ${cardName} está com problemas. <a href="${connectionLink}">Acesse seu banco</a> para corrigir o cartão.`
                 : `A conexão do seu cartão ${cardName} está com problemas. Acesse seu banco para corrigir o cartão.`,
+        addAdditionalCards: 'Adicionar outros cartões',
+        upgradeDescription: 'Precisa adicionar mais cartões? Crie um espaço de trabalho para adicionar cartões pessoais ou atribuir cartões corporativos a toda a equipe.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponível no plano Collect por <strong>${formattedPrice}</strong> por membro por mês.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Crie um espaço de trabalho para acessar este recurso ou <a href="${subscriptionLink}">saiba mais</a> sobre nossos planos e preços.</muted-text>`,
+        workspaceCreated: 'Espaço de trabalho criado',
+        newWorkspace: 'Você criou um espaço de trabalho!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Tudo pronto para adicionar outros cartões. <a href="${subscriptionLink}">Ver sua assinatura</a> para mais detalhes.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -8519,7 +8555,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             resetDomain: 'Redefinir domínio',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Digite <strong>${domainName}</strong> para confirmar a redefinição do domínio.`,
             enterDomainName: 'Insira seu nome de domínio aqui',
-            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
+            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <bullet-list><bullet-item>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</bullet-item><bullet-item>Configurações de SAML e de grupo</bullet-item></bullet-list> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
         domainMembers: 'Membros do domínio',
         members: {
@@ -8538,8 +8574,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 other: 'Fechar contas com segurança',
             }),
             closeAccountInfo: () => ({
-                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
-                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
+                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
             }),
             error: {
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
@@ -8547,6 +8583,9 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Tem certeza? Isso irá bloquear a conta de <strong>${email}</strong>. <br /><br /> Nossa equipe irá então analisar a conta e remover qualquer acesso não autorizado. Para recuperar o acesso, será necessário que trabalhem com a Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
         },
         common: {
             settings: 'Configurações',
