@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 
 type PushRowModalProps = {
@@ -44,30 +45,23 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValuesRef = useRef<string[]>([]);
+    const prevIsVisibleRef = useRef(false);
+    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
 
-    const orderedOptionKeys = useMemo(() => {
-        const keys = Object.keys(optionsList);
-        if (!selectedOption || keys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
-            return keys;
+    useEffect(() => {
+        const wasVisible = prevIsVisibleRef.current;
+        if (isVisible && !wasVisible) {
+            initialSelectedValuesRef.current = selectedOption ? [selectedOption] : [];
+            setSelectionSnapshotVersion((version) => version + 1);
         }
+        prevIsVisibleRef.current = isVisible;
+    }, [isVisible, selectedOption]);
 
-        const selected: string[] = [];
-        const remaining: string[] = [];
+    const optionKeys = useMemo(() => Object.keys(optionsList), [optionsList]);
 
-        for (const key of keys) {
-            if (key === selectedOption) {
-                selected.push(key);
-            } else {
-                remaining.push(key);
-            }
-        }
-
-        return [...selected, ...remaining];
-    }, [optionsList, selectedOption]);
-
-    const options = useMemo(
-        () =>
-            orderedOptionKeys.map((key) => {
+    const options = useMemo(() => {
+        const baseOptions = optionKeys.map((key) => {
                 const value = optionsList[key];
                 return {
                     value: key,
@@ -76,9 +70,17 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     isSelected: key === selectedOption,
                     searchValue: StringUtils.sanitizeString(value),
                 };
-            }),
-        [optionsList, selectedOption, orderedOptionKeys],
-    );
+            });
+
+        const shouldReorderInitialSelection =
+            !debouncedSearchValue && initialSelectedValuesRef.current.length > 0 && baseOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        if (!shouldReorderInitialSelection) {
+            return baseOptions;
+        }
+
+        return moveInitialSelectionToTopByValue(baseOptions, initialSelectedValuesRef.current);
+    }, [optionKeys, optionsList, selectedOption, debouncedSearchValue, selectionSnapshotVersion]);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);

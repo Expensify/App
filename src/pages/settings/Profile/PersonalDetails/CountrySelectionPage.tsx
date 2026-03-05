@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import {useIsFocused} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -11,6 +12,7 @@ import type {Option} from '@libs/searchOptions';
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
@@ -21,30 +23,26 @@ type CountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParam
 function CountrySelectionPage({route}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     const currentCountry = route.params.country;
+    const initialSelectedValuesRef = useRef<string[]>([]);
+    const prevIsFocusedRef = useRef(false);
+    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
 
-    const initialCountry = currentCountry;
-
-    const orderedCountryISOs = useMemo(() => {
-        const countryKeys = Object.keys(CONST.ALL_COUNTRIES);
-        if (!initialCountry || countryKeys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
-            return countryKeys;
+    useEffect(() => {
+        const wasFocused = prevIsFocusedRef.current;
+        if (isFocused && !wasFocused) {
+            initialSelectedValuesRef.current = currentCountry ? [currentCountry] : [];
+            setSelectionSnapshotVersion((version) => version + 1);
         }
-        const selected: string[] = [];
-        const remaining: string[] = [];
-        for (const countryISO of countryKeys) {
-            if (countryISO === initialCountry) {
-                selected.push(countryISO);
-            } else {
-                remaining.push(countryISO);
-            }
-        }
-        return [...selected, ...remaining];
-    }, [initialCountry]);
+        prevIsFocusedRef.current = isFocused;
+    }, [currentCountry, isFocused]);
 
-    const countries = useMemo(
+    const countryKeys = useMemo(() => Object.keys(CONST.ALL_COUNTRIES), []);
+
+    const baseCountries = useMemo(
         () =>
-            orderedCountryISOs.map((countryISO) => {
+            countryKeys.map((countryISO) => {
                 const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
                 return {
                     value: countryISO,
@@ -54,10 +52,21 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                     searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
                 };
             }),
-        [translate, currentCountry, orderedCountryISOs],
+        [translate, countryKeys, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(searchValue, countries), [countries, searchValue]);
+    const orderedCountries = useMemo(() => {
+        const shouldReorderInitialSelection =
+            !searchValue && initialSelectedValuesRef.current.length > 0 && baseCountries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        if (!shouldReorderInitialSelection) {
+            return baseCountries;
+        }
+
+        return moveInitialSelectionToTopByValue(baseCountries, initialSelectedValuesRef.current);
+    }, [baseCountries, searchValue, selectionSnapshotVersion]);
+
+    const searchResults = useMemo(() => searchOptions(searchValue, orderedCountries), [orderedCountries, searchValue]);
 
     const selectCountry = useCallback(
         (option: Option) => {

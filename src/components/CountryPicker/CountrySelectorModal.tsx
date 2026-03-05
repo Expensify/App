@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -36,28 +37,24 @@ type CountrySelectorModalProps = {
 function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onClose, label, onBackdropPress}: CountrySelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialCountry = currentCountry;
+    const initialSelectedValuesRef = useRef<string[]>([]);
+    const prevIsVisibleRef = useRef(false);
+    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
 
-    const orderedCountryISOs = useMemo(() => {
-        const countryKeys = Object.keys(CONST.ALL_COUNTRIES);
-        if (!initialCountry || countryKeys.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
-            return countryKeys;
+    useEffect(() => {
+        const wasVisible = prevIsVisibleRef.current;
+        if (isVisible && !wasVisible) {
+            initialSelectedValuesRef.current = currentCountry ? [currentCountry] : [];
+            setSelectionSnapshotVersion((version) => version + 1);
         }
-        const selected: string[] = [];
-        const remaining: string[] = [];
-        for (const countryISO of countryKeys) {
-            if (countryISO === initialCountry) {
-                selected.push(countryISO);
-            } else {
-                remaining.push(countryISO);
-            }
-        }
-        return [...selected, ...remaining];
-    }, [initialCountry]);
+        prevIsVisibleRef.current = isVisible;
+    }, [currentCountry, isVisible]);
+
+    const countryKeys = useMemo(() => Object.keys(CONST.ALL_COUNTRIES), []);
 
     const countries = useMemo(
         () =>
-            orderedCountryISOs.map((countryISO) => {
+            countryKeys.map((countryISO) => {
                 const countryName = translate(`allCountries.${countryISO}` as TranslationPaths);
                 return {
                     value: countryISO,
@@ -67,10 +64,21 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
                 };
             }),
-        [translate, currentCountry, orderedCountryISOs],
+        [translate, countryKeys, currentCountry],
     );
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, countries), [countries, debouncedSearchValue]);
+    const orderedCountries = useMemo(() => {
+        const shouldReorderInitialSelection =
+            !debouncedSearchValue && initialSelectedValuesRef.current.length > 0 && countries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        if (!shouldReorderInitialSelection) {
+            return countries;
+        }
+
+        return moveInitialSelectionToTopByValue(countries, initialSelectedValuesRef.current);
+    }, [countries, debouncedSearchValue, selectionSnapshotVersion]);
+
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, orderedCountries), [orderedCountries, debouncedSearchValue]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const styles = useThemeStyles();

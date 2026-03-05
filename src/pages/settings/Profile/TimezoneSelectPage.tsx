@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,7 +8,9 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import {useIsFocused} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -27,16 +29,20 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     const timezone = getUserTimezone(currentUserPersonalDetails);
     const allTimezones = useInitialValue(() =>
         TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
             keyForList: getKey(text),
-            isSelected: text === timezone.selected,
+            value: text,
         })),
     );
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
+    const initialSelectedValuesRef = useRef<string[]>([]);
+    const prevIsFocusedRef = useRef(false);
+    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
         updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
@@ -70,24 +76,30 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
     );
 
+    useEffect(() => {
+        const wasFocused = prevIsFocusedRef.current;
+        if (isFocused && !wasFocused) {
+            initialSelectedValuesRef.current = timezone.selected ? [timezone.selected] : [];
+            setSelectionSnapshotVersion((version) => version + 1);
+        }
+        prevIsFocusedRef.current = isFocused;
+    }, [isFocused, timezone.selected]);
+
     const orderedTimezoneOptions = useMemo(() => {
-        if (timezoneOptions.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
-            return timezoneOptions;
+        const mappedOptions = timezoneOptions.map((option) => ({
+            ...option,
+            isSelected: option.value === timezone.selected,
+        }));
+
+        const shouldReorderInitialSelection =
+            !timezoneInputText && initialSelectedValuesRef.current.length > 0 && mappedOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        if (!shouldReorderInitialSelection) {
+            return mappedOptions;
         }
 
-        const selected: typeof timezoneOptions = [];
-        const remaining: typeof timezoneOptions = [];
-
-        for (const option of timezoneOptions) {
-            if (option.isSelected) {
-                selected.push(option);
-            } else {
-                remaining.push(option);
-            }
-        }
-
-        return [...selected, ...remaining];
-    }, [timezoneOptions]);
+        return moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValuesRef.current);
+    }, [timezoneInputText, timezoneOptions, selectionSnapshotVersion, timezone.selected]);
 
     const initiallyFocusedItemKey = useMemo(
         () => orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList,
