@@ -446,6 +446,7 @@ const SCREENS = {
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         REPORT_LAYOUT: 'Report_Settings_Report_Layout',
+        COLUMNS: 'Report_Settings_Columns',
     },
 
     NEW_TASK: {
@@ -956,6 +957,7 @@ const SCREENS = {
         GROUPS: 'Domain_Groups',
         MEMBER_RESET_TWO_FACTOR_AUTH: 'Member_Reset_Two_Factor_Auth',
         MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
+        MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

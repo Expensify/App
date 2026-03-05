@@ -160,7 +160,7 @@ function getForDistanceRequest(translate: LocalizedTranslate, newMerchant: strin
     });
 }
 
-function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>) {
+function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destinationReport: OnyxEntry<Report>, currentUserLogin: string): string {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
@@ -169,7 +169,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const currentUserAccountID = getPersonalDetailByEmail(storedCurrentUserLogin)?.accountID;
+    const currentUserAccountID = getPersonalDetailByEmail(currentUserLogin)?.accountID;
     const reportName = isPolicyExpenseChat(rootParentReport)
         ? getPolicyExpenseChatName({report: rootParentReport})
         : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID});
@@ -190,9 +190,14 @@ function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<t
     return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
-function getMovedFromOrToReportMessage(translate: LocalizedTranslate, movedFromReport: OnyxEntry<Report> | undefined, movedToReport: OnyxEntry<Report> | undefined): string | undefined {
+function getMovedFromOrToReportMessage(
+    translate: LocalizedTranslate,
+    movedFromReport: OnyxEntry<Report> | undefined,
+    movedToReport: OnyxEntry<Report> | undefined,
+    currentUserLogin: string,
+): string | undefined {
     if (movedToReport) {
-        return getForExpenseMovedFromSelfDM(translate, movedToReport);
+        return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
     }
 
     if (movedFromReport) {
@@ -294,7 +299,7 @@ function getForReportAction({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -496,46 +501,21 @@ function getForReportAction({
         const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
-        buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal,
-            newBillable,
-            oldBillable,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        buildMessageFragmentForValue(translateLocal, newBillable, oldBillable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
         const oldReimbursable =
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         const newReimbursable =
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
-        buildMessageFragmentForValue(
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal,
-            newReimbursable,
-            oldReimbursable,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('iou.expense'),
-            true,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        buildMessageFragmentForValue(translateLocal, newReimbursable, oldReimbursable, translateLocal('iou.expense'), true, setFragments, removalFragments, changeFragments);
     }
 
     const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
         const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
@@ -543,7 +523,6 @@ function getForReportAction({
     if (hasPersonalRulesModifiedFields) {
         const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
         if (personalRulesModifiedFields) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRulesModifiedMessage(translateLocal, personalRulesModifiedFields, true);
         }
     }
@@ -554,31 +533,24 @@ function getForReportAction({
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
         if (policyRulesModifiedFields && rulePolicyID) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const rulePolicy = getPolicy(rulePolicyID);
-            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, storedCurrentUserLogin);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const hasPolicyRuleAccess = !!rulePolicy?.areRulesEnabled && isPolicyAdmin(rulePolicy, currentUserLogin);
             return getRulesModifiedMessage(translateLocal, policyRulesModifiedFields, false, rulePolicyID, hasPolicyRuleAccess);
         }
     }
 
     const message =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.changed')}`, changeFragments) +
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.set')}`, setFragments) +
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(translateLocal, `\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
         // If we don't have enough structured information to build a detailed message but we
         // know the change was AI-generated, fall back to an AI-attributed generic summary so
         // users can still understand that Concierge updated the expense automatically.
         if (reportActionOriginalMessage?.aiGenerated) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
@@ -615,7 +587,7 @@ function getForReportActionTemp({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

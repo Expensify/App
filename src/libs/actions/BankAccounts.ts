@@ -39,6 +39,7 @@ import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, Personal
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
 export {
@@ -409,7 +410,7 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters);
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
 }
 
 /**
@@ -532,7 +533,13 @@ function addPersonalBankAccount(
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
+function deletePaymentBankAccount(
+    bankAccountID: number,
+    personalPolicyID: string | undefined,
+    lastUsedPaymentMethods?: LastPaymentMethod,
+    bankAccount?: OnyxEntry<PersonalBankAccount>,
+    newBankAccountID?: number,
+) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const bankAccountFailureData = {
@@ -541,7 +548,7 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
         pendingAction: null,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -571,6 +578,38 @@ function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: strin
         ],
     };
 
+    if (newBankAccountID) {
+        const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID);
+        onyxData.optimisticData?.push(
+            ...(newDefaultPaymentMethodOnyxData as Array<OnyxUpdate<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET>>),
+        );
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: {
+                [newBankAccountID]: {
+                    isDefault: true,
+                },
+            },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                walletLinkedAccountID: bankAccountID,
+                walletLinkedAccountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: {
+                [newBankAccountID]: {
+                    isDefault: false,
+                },
+            },
+        });
+    }
     for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
 
@@ -1277,7 +1316,7 @@ function connectBankAccountManually(bankAccountID: number, bankAccount: PlaidBan
         policyID,
     };
 
-    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters);
+    API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_MANUALLY, parameters, getVBBADataForOnyx());
 }
 
 /**

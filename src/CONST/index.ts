@@ -1189,6 +1189,7 @@ const CONST = {
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
+        FLASH_DELAY_MS: 2000,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1220,7 +1221,6 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
-            REPORT_LAYOUT: 'reportLayout',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
         },
@@ -1748,6 +1748,8 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
+        BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
         BREADCRUMB_MEMORY_FOREGROUND: 'App foreground - memory check',
         TAG_ACTIVE_POLICY: 'active_policy_id',
@@ -1788,9 +1790,18 @@ const CONST = {
         SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
         SPAN_OD_ND_TRANSITION_LOGGED_OUT: 'ManualOdNdTransitionLoggedOut',
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
+        SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT: 'SearchRouter.ModalCloseWait',
+        SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
+        SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
+        SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
+        SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
+        SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
+        SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
+        SPAN_CONFIRMATION_LIST_READY: 'ManualConfirmationListReady',
+        SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
@@ -1819,28 +1830,6 @@ const CONST = {
             PUSHER_INIT: 'NavigationPusherInit',
             APP_OPEN: 'NavigationAppOpen',
         },
-        // Network span names
-        SPAN_SEQUENTIAL_QUEUE_FLUSH: 'ManualSequentialQueueFlush',
-        SPAN_SEQUENTIAL_QUEUE_PROCESS: 'ManualSequentialQueueProcess',
-        SPAN_PROCESS_WITH_MIDDLEWARE: 'ManualProcessWithMiddleware',
-        SPAN_PROCESS_MIDDLEWARES: 'ManualProcessMiddlewares',
-        SPAN_HTTP_XHR: 'ManualHttpXhr',
-        SPAN_APPLY_ONYX_UPDATES: 'ManualApplyOnyxUpdates',
-        SPAN_FLUSH_ONYX_UPDATES_QUEUE: 'ManualFlushOnyxUpdatesQueue',
-        SPAN_REQUEST_THROTTLE_SLEEP: 'ManualRequestThrottleSleep',
-        SPAN_APPLY_OPTIMISTIC_DATA: 'ManualApplyOptimisticData',
-        SPAN_HANDLE_MISSING_ONYX_UPDATES: 'ManualHandleMissingOnyxUpdates',
-        // Middleware names
-        MIDDLEWARE_LOGGING: 'Logging',
-        MIDDLEWARE_RECHECK_CONNECTION: 'RecheckConnection',
-        MIDDLEWARE_REAUTHENTICATION: 'Reauthentication',
-        MIDDLEWARE_HANDLE_DELETED_ACCOUNT: 'HandleDeletedAccount',
-        MIDDLEWARE_SUPPORTAL_PERMISSION: 'SupportalPermission',
-        MIDDLEWARE_HANDLE_UNUSED_OPTIMISTIC_ID: 'HandleUnusedOptimisticID',
-        MIDDLEWARE_PAGINATION: 'Pagination',
-        MIDDLEWARE_SENTRY_SERVER_TIMING: 'SentryServerTiming',
-        MIDDLEWARE_SAVE_RESPONSE_IN_ONYX: 'SaveResponseInOnyx',
-        MIDDLEWARE_FRAUD_MONITORING: 'FraudMonitoring',
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IS_ONE_TRANSACTION_REPORT: 'is_one_transaction_report',
@@ -1861,12 +1850,11 @@ const CONST = {
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
         ATTRIBUTE_COMMAND: 'command',
-        ATTRIBUTE_QUEUE_LENGTH: 'queue_length',
-        ATTRIBUTE_IS_FROM_SEQUENTIAL_QUEUE: 'is_from_sequential_queue',
-        ATTRIBUTE_RETRY_COUNT: 'retry_count',
-        ATTRIBUTE_THROTTLE_WAIT_MS: 'throttle_wait_ms',
         ATTRIBUTE_JSON_CODE: 'json_code',
-        ATTRIBUTE_ONYX_UPDATES_COUNT: 'onyx_updates_count',
+        ATTRIBUTE_COLD_START: 'cold_start',
+        ATTRIBUTE_TRIGGER: 'trigger',
+        ATTRIBUTE_PLATFORM: 'platform',
+        ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -3168,6 +3156,8 @@ const CONST = {
         },
         AMOUNT_MAX_LENGTH: 10,
         DISTANCE_REQUEST_AMOUNT_MAX_LENGTH: 14,
+        ODOMETER_MAX_VALUE: 9999999.9,
+        MAX_SAFE_AMOUNT: 999999999999,
         RECEIPT_STATE: {
             SCAN_READY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -4069,11 +4059,9 @@ const CONST = {
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
-        // eslint-disable-next-line max-len, no-misleading-character-class
+        // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
-        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
-        // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
@@ -7021,6 +7009,17 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    PNR_STATUS: {
+        CANCELLED: 'CANCELLED',
+        VOIDED: 'VOIDED',
+    },
+
+    LEG_STATUS: {
+        CANCELLED: 'CANCELLED_STATUS',
+    },
+
+    UPCOMING_TRAVEL_WINDOW_DAYS: 7,
+
     RESERVATION_ADDRESS_TEST_ID: 'ReservationAddress',
 
     FLIGHT_SEAT_TEST_ID: 'FlightSeat',
@@ -7205,6 +7204,24 @@ const CONST = {
                 TASK: {},
                 TRIP: {},
                 CHAT: {},
+            };
+        },
+        get REPORT_DETAILS_CUSTOM_COLUMNS() {
+            return {
+                RECEIPT: this.TABLE_COLUMNS.RECEIPT,
+                DATE: this.TABLE_COLUMNS.DATE,
+                MERCHANT: this.TABLE_COLUMNS.MERCHANT,
+                DESCRIPTION: this.TABLE_COLUMNS.DESCRIPTION,
+                CARD: this.TABLE_COLUMNS.CARD,
+                CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                TAG: this.TABLE_COLUMNS.TAG,
+                EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
+                ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
+                REIMBURSABLE: this.TABLE_COLUMNS.REIMBURSABLE,
+                BILLABLE: this.TABLE_COLUMNS.BILLABLE,
+                TAX_RATE: this.TABLE_COLUMNS.TAX_RATE,
+                TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
+                AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
             };
         },
         get GROUP_CUSTOM_COLUMNS() {
@@ -7745,11 +7762,6 @@ const CONST = {
         AUTOMATIC: 'automatic',
         NONE: 'none',
     },
-    EMPTY_STATE_MEDIA: {
-        ANIMATION: 'animation',
-        ILLUSTRATION: 'illustration',
-        VIDEO: 'video',
-    },
     REPORT_FIELDS_FEATURE: {
         qbo: {
             classes: 'report-fields-qbo-classes',
@@ -7992,6 +8004,10 @@ const CONST = {
         ENABLED: 'enabled',
         IGNORE: 'ignore',
         DESTINATION: 'destination',
+        CATEGORY: 'category',
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
     },
 
     IMPORT_SPREADSHEET: {
@@ -8111,14 +8127,14 @@ const CONST = {
         ] as string[],
         SPECIAL_LIST_REGION_KEYS: ['bankRegion', 'accountHolderRegion'] as string[],
         SPECIAL_LIST_ADDRESS_KEYS: ['bankAddressLine1', 'accountHolderAddress1'] as string[],
-        STEPS_NAME: {
-            COUNTRY_SELECTOR: 'CountrySelector',
-            BANK_ACCOUNT_DETAILS: 'BankAccountDetails',
-            ACCOUNT_TYPE: 'AccountType',
-            BANK_INFORMATION: 'BankInformation',
-            ACCOUNT_HOLDER_INFORMATION: 'AccountHolderInformation',
-            CONFIRMATION: 'Confirmation',
-            SUCCESS: 'Success',
+        PAGE_NAME: {
+            COUNTRY: 'country',
+            ACCOUNT_DETAILS: 'account-details',
+            ACCOUNT_TYPE: 'account-type',
+            BANK_INFORMATION: 'bank-information',
+            ACCOUNT_HOLDER_DETAILS: 'account-holder-details',
+            CONFIRM: 'confirm',
+            SUCCESS: 'success',
         },
         INDEXES: {
             MAPPING: {
@@ -8149,6 +8165,7 @@ const CONST = {
         SCAN_TEST_DRIVE_CONFIRMATION: 'scanTestDriveConfirmation',
         MULTI_SCAN_EDUCATIONAL_MODAL: 'multiScanEducationalModal',
         GPS_TOOLTIP: 'gpsTooltip',
+        HAS_FILTER_NEGATION: 'hasFilterNegation',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     SMART_BANNER_HEIGHT: 152,
@@ -8348,6 +8365,7 @@ const CONST = {
         },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
+            PRE: 'HTMLRenderer-Pre',
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
@@ -8472,6 +8490,9 @@ const CONST = {
             SPLIT_LIST_ITEM_EDIT_BUTTON: 'SplitListItem-EditButton',
             LIST_HEADER_SELECT_ALL: 'SelectionList-ListHeader-SelectAll',
         },
+        LIST_ITEM: {
+            INVITE_MEMBER_CHECKBOX: 'ListItem-InviteMemberCheckbox',
+        },
         CONTEXT_MENU: {
             REPLY_IN_THREAD: 'ContextMenu-ReplyInThread',
             MARK_AS_UNREAD: 'ContextMenu-MarkAsUnread',
@@ -8513,7 +8534,6 @@ const CONST = {
             MERGE: 'MoreMenu-Merge',
             CHANGE_WORKSPACE: 'MoreMenu-ChangeWorkspace',
             CHANGE_APPROVER: 'MoreMenu-ChangeApprover',
-            REPORT_LAYOUT: 'MoreMenu-ReportLayout',
             DELETE: 'MoreMenu-Delete',
             RETRACT: 'MoreMenu-Retract',
             REOPEN: 'MoreMenu-Reopen',
@@ -8707,6 +8727,8 @@ const CONST = {
                 FLASH: 'OdometerImage-Flash',
                 GALLERY: 'OdometerImage-Gallery',
                 SHUTTER: 'OdometerImage-Shutter',
+                CHOOSE_FILE: 'OdometerImage-ChooseFile',
+                CONTINUE_BUTTON: 'OdometerImage-ContinueButton',
             },
         },
         NEW_CHAT: {
@@ -8888,6 +8910,9 @@ const CONST = {
         INTERACTIVE_STEP_SUB_HEADER: {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
+        REIMBURSEMENT_ACCOUNT: {
+            YOUR_DATA_IS_SECURE: 'ReimbursementAccount-YourDataIsSecure',
+        },
         SOCIALS: {
             LINK: 'Socials',
         },
@@ -9024,6 +9049,9 @@ const CONST = {
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
         },
+        PROFILE_PAGE: {
+            AVATAR: 'ProfilePage-Avatar',
+        },
     },
 
     DOMAIN: {
@@ -9033,10 +9061,13 @@ const CONST = {
         DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
         /** Onyx prefix for vacation delegate */
         PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
+        /** Onyx prefix for lock account IDs */
+        PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {
                 SETTINGS: 'settings',
+                SAVE_TO_CSV: 'saveToCSV',
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',

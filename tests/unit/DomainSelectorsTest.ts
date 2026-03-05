@@ -1,4 +1,5 @@
 import {
+    accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
     defaultSecurityGroupIDSelector,
@@ -354,7 +355,6 @@ describe('domainSelectors', () => {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 domain_defaultSecurityGroupID: '1',
                 [key1]: group1,
                 [key2]: group2,
@@ -486,7 +486,6 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the vacation delegate prefix', () => {
             const domain = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_otherPrefix_123: {
                     delegate: 'wrong@example.com',
                 },
@@ -505,6 +504,34 @@ describe('domainSelectors', () => {
 
             const selector = vacationDelegateSelector(userID1);
             expect(selector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('accountLockSelector', () => {
+        it('Should return lock state for the given account ID', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: true,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(true);
+        });
+
+        it('Should return false when the lock state is false', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: false,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(false);
+        });
+
+        it('Should return undefined when the domain object is undefined or account key does not exist', () => {
+            const accountID = 123;
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
+            expect(accountLockSelector(accountID)(domain)).toBeUndefined();
         });
     });
 });

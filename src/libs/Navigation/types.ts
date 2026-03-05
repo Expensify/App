@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention  */
 import type {
     CommonActions,
     NavigationContainerRefWithCurrent,
@@ -220,6 +219,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
         // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
@@ -693,8 +694,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         transactionID?: string;
         reportID?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
@@ -772,18 +771,12 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
@@ -1572,6 +1565,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1709,6 +1706,9 @@ type ReportSettingsNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+        reportID: string;
+    };
+    [SCREENS.REPORT_SETTINGS.COLUMNS]: {
         reportID: string;
     };
 };
@@ -1862,7 +1862,6 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
         iouType: IOUType;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes | undefined;
         action: IOUAction;
@@ -2834,7 +2833,6 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
-        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes;
         shouldForceLogin: string;
         domain?: Routes;
@@ -2844,7 +2842,6 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
-        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes;
     };
 };

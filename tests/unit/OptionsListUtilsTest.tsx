@@ -1882,7 +1882,6 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
@@ -2752,7 +2751,6 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
@@ -2794,7 +2792,6 @@ describe('OptionsListUtils', () => {
             // Given a set of filtered current Reports (as we do in the component) before getting share destination options
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
                     filtered.push(option);
                 }
@@ -4325,6 +4322,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction)));
         });
@@ -4349,6 +4347,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
@@ -4374,6 +4373,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
@@ -4399,6 +4399,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
@@ -4421,6 +4422,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
@@ -4442,6 +4444,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCustomTaxNameUpdateMessage(translateLocal, action));
         });
@@ -4462,6 +4465,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -4482,6 +4486,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action));
         });
@@ -4502,6 +4507,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, takeControlAction)));
         });
@@ -4522,6 +4528,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(translateLocal, rerouteAction)));
         });
@@ -4542,6 +4549,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(translateLocal, movedAction, report)));
         });
@@ -4566,6 +4574,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
@@ -4592,6 +4601,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe(expectedVisibleText);
         });
@@ -4609,6 +4619,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(lastMessage).toBe(translateLocal('report.noActivityYet'));
         });
@@ -4638,6 +4649,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             const transactions = getReportTransactions(report.reportID);
             const scanningTransactions = transactions.filter((transaction) => isScanning(transaction));
@@ -4676,6 +4688,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
             expect(result).toBe('');
         });
@@ -4727,6 +4740,7 @@ describe('OptionsListUtils', () => {
                     policy,
                     reportMetadata,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.queuedToSubmitViaDEW'));
             });
@@ -4759,6 +4773,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(customErrorMessage);
             });
@@ -4788,6 +4803,7 @@ describe('OptionsListUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     chatReport: undefined,
+                    currentUserLogin: CURRENT_USER_EMAIL,
                 });
                 expect(lastMessage).toBe(translate(CONST.LOCALES.EN, 'iou.error.genericCreateFailureMessage'));
             });
@@ -6183,6 +6199,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             // The function should return a string (may be empty string)
@@ -6201,6 +6218,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 isReportArchived: false,
                 chatReport: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
             });
 
             expect(typeof result).toBe('string');
