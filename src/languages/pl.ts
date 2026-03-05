@@ -5219,6 +5219,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         learnHow: 'Dowiedz się jak.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktualne wydatki na podróże',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
                             currentTravelSpendCta: 'Spłać saldo',
                             currentTravelLimitLabel: 'Aktualny limit podróży',
                             settlementAccountLabel: 'Konto rozliczeniowe',
@@ -5235,6 +5236,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         title: 'Nie można wyłączyć fakturowania podróży',
                         body: 'Masz nadal zaległe saldo za podróż. Najpierw ureguluj swoje saldo.',
                         confirm: 'Rozumiem',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Spłacić saldo w wysokości ${amount}?`,
+                        body: 'Płatność zostanie zakolejkowana i wkrótce przetworzona. Po rozpoczęciu tej operacji nie będzie można cofnąć.',
                     },
                 },
                 personalDetailsDescription: 'Aby zarezerwować podróż, wpisz swoje imię i nazwisko dokładnie tak, jak widnieje w Twoim dokumencie tożsamości wydanym przez organ państwowy.',

@@ -5270,6 +5270,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         learnHow: 'Découvrez comment.',
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
                             currentTravelSpendCta: 'Payer le solde',
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
@@ -5287,6 +5288,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         title: 'Impossible de désactiver la facturation Voyage',
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Régler le solde de ${amount} ?`,
+                        body: 'Le paiement sera mis en file d’attente et traité peu après. Cette action ne peut plus être annulée une fois lancée.',
                     },
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',

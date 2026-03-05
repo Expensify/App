@@ -5223,6 +5223,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         learnHow: 'Saiba como.',
                         subsections: {
                             currentTravelSpendLabel: 'Gasto atual com viagens',
+                            currentTravelSpendPaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
                             currentTravelSpendCta: 'Pagar saldo',
                             currentTravelLimitLabel: 'Limite de viagem atual',
                             settlementAccountLabel: 'Conta de liquidação',
@@ -5240,6 +5241,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         title: 'Não é possível desativar o faturamento de viagens',
                         body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pagar saldo de ${amount}?`,
+                        body: 'O pagamento será colocado em fila e processado em breve. Essa ação não poderá ser desfeita depois de iniciada.',
                     },
                 },
                 personalDetailsDescription: 'Para reservar viagens, insira seu nome legal exatamente como consta no documento de identificação emitido pelo governo.',

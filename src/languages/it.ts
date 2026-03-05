@@ -5242,6 +5242,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         learnHow: 'Scopri come.',
                         subsections: {
                             currentTravelSpendLabel: 'Spesa di viaggio attuale',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
                             currentTravelSpendCta: 'Paga saldo',
                             currentTravelLimitLabel: 'Limite di viaggio attuale',
                             settlementAccountLabel: 'Conto di regolamento',
@@ -5259,6 +5260,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         title: 'Impossibile disattivare la fatturazione viaggi',
                         body: 'Hai ancora un saldo di viaggio in sospeso. Paga prima il tuo saldo.',
                         confirm: 'Capito',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pagare il saldo di ${amount}?`,
+                        body: 'Il pagamento verrà messo in coda ed elaborato a breve. Questa azione non può essere annullata una volta avviata.',
                     },
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
