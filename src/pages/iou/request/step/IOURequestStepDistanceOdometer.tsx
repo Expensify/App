@@ -77,6 +77,8 @@ function IOURequestStepDistanceOdometer({
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
+    const [startSelection, setStartSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
+    const [endSelection, setEndSelection] = useState<{start: number; end: number}>({start: 0, end: 0});
     // Key to force TextInput remount when resetting state after tab switch
     const [inputKey, setInputKey] = useState<number>(0);
 
@@ -318,6 +320,11 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
+        if (normalized !== text) {
+            const offset = normalized.length - startReading.length;
+            const newCursorPosition = Math.max(0, startSelection.end + offset);
+            setStartSelection({start: newCursorPosition, end: newCursorPosition});
+        }
         setStartReading(normalized);
         startReadingRef.current = normalized;
         if (formError) {
@@ -330,6 +337,11 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         const normalized = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
+        if (normalized !== text) {
+            const offset = normalized.length - endReading.length;
+            const newCursorPosition = Math.max(0, endSelection.end + offset);
+            setEndSelection({start: newCursorPosition, end: newCursorPosition});
+        }
         setEndReading(normalized);
         endReadingRef.current = normalized;
         if (formError) {
@@ -533,6 +545,8 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityLabel={translate('distance.odometer.startReading')}
                                 value={startReading}
                                 onChangeText={handleStartReadingChange}
+                                onSelectionChange={(event) => setStartSelection(event.nativeEvent.selection)}
+                                selection={startSelection}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
@@ -581,6 +595,8 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityLabel={translate('distance.odometer.endReading')}
                                 value={endReading}
                                 onChangeText={handleEndReadingChange}
+                                onSelectionChange={(event) => setEndSelection(event.nativeEvent.selection)}
+                                selection={endSelection}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
