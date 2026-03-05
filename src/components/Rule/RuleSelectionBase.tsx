@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectionPicker';
+import RuleSelectionPicker from '@components/Rule/RuleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
@@ -59,12 +59,11 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                     onBackButtonPress={onBack}
                 />
                 <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
+                    <RuleSelectionPicker
                         backToRoute={backToRoute}
-                        initiallySelectedItem={selectedItem}
                         items={items}
+                        initiallySelectedItem={selectedItem}
                         onSaveSelection={onSave}
-                        shouldAutoSave
                     />
                 </View>
             </ScreenWrapper>
