@@ -4201,6 +4201,11 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
@@ -4241,6 +4246,8 @@ function getColumnsToShow(
     const allowedColumns: string[] = isExpenseReportView ? Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) : Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
     const filteredVisibleColumns = visibleColumns.filter((column) => allowedColumns.includes(column));
 
+    let customResult: SearchColumnType[] | undefined;
+
     if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
         const result: SearchColumnType[] = [];
         const addedColumns = new Set<SearchColumnType>();
@@ -4264,6 +4271,9 @@ function getColumnsToShow(
             if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
                 result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             }
+
+            // Don't return early — fall through to updateColumns to detect empty columns
+            customResult = result;
         } else {
             // Search page: prepend AVATAR, TYPE
             result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
@@ -4277,9 +4287,9 @@ function getColumnsToShow(
                     result.push(col);
                 }
             }
-        }
 
-        return result;
+            return result;
+        }
     }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
@@ -4304,6 +4314,27 @@ function getColumnsToShow(
         }
 
         if (isExpenseReportView) {
+            if (customResult) {
+                if (transaction.cardID) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+                }
+
+                if (transaction.taxCode) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+                }
+
+                if (transaction.taxAmount) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+                }
+
+                if (transaction.originalAmount) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+                }
+
+                if (getExchangeRate(transaction) !== '') {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
+                }
+            }
             return;
         }
 
@@ -4341,6 +4372,18 @@ function getColumnsToShow(
             }
             updateColumns(data[key]);
         }
+    }
+
+    if (customResult) {
+        const alwaysShownColumns = new Set<SearchColumnType>([
+            CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+            CONST.SEARCH.TABLE_COLUMNS.TYPE,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        ]);
+
+        return customResult.filter((col) => alwaysShownColumns.has(col) || columns[col]);
     }
 
     return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
