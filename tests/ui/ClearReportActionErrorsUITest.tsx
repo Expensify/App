@@ -92,7 +92,6 @@ describe('ClearReportActionErrors UI', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                policies={undefined}
                                 personalPolicyID={undefined}
                                 report={report}
                                 parentReportAction={undefined}
