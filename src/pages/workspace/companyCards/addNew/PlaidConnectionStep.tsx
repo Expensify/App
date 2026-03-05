@@ -26,7 +26,17 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit, isRefreshConnectionFlow}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void; isRefreshConnectionFlow?: boolean}) {
+function PlaidConnectionStep({
+    feed,
+    policyID,
+    onExit,
+    isRefreshConnectionFlow,
+}: {
+    feed?: CompanyCardFeedWithDomainID;
+    policyID?: string;
+    onExit?: () => void;
+    isRefreshConnectionFlow?: boolean;
+}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
