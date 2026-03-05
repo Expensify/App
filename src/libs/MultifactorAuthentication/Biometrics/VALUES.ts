@@ -197,17 +197,7 @@ const EXPO_ERRORS = {
     },
 } as const;
 
-/**
- * Centralized constants used by the multifactor authentication biometrics flow.
- * It is stored here instead of the CONST file to avoid circular dependencies.
- */
-/**
- * Failure classification for observability.
- *
- * ROUTINE — known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.)
- * ANOMALOUS — known errors that should rarely happen and may indicate a bug or unexpected state.
- * Any reason not listed in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason).
- */
+/** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
 const ROUTINE_FAILURES = new Set([
     REASON.EXPO.CANCELED,
     REASON.EXPO.NO_METHOD_AVAILABLE,
@@ -226,6 +216,7 @@ const ROUTINE_FAILURES = new Set([
     REASON.BACKEND.ALREADY_REVIEWED,
 ]);
 
+/** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
 const ANOMALOUS_FAILURES = new Set([
     REASON.BACKEND.REGISTRATION_REQUIRED,
     REASON.BACKEND.INVALID_CHALLENGE_TYPE,
@@ -249,6 +240,10 @@ const ANOMALOUS_FAILURES = new Set([
     REASON.EXPO.GENERIC,
 ]);
 
+/**
+ * Centralized constants used by the multifactor authentication biometrics flow.
+ * It is stored here instead of the CONST file to avoid circular dependencies.
+ */
 const MULTIFACTOR_AUTHENTICATION_VALUES = {
     /**
      * Keychain service name for secure key storage.
