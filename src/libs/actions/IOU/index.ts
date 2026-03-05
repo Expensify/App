@@ -13876,7 +13876,7 @@ function updateMultipleMoneyRequests(
         // Ensure the thread exists before adding optimistic MODIFIED_EXPENSE actions so
         // bulk-edit comments are visible immediately while still offline.
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(introSelectedOnyx, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(introSelectedOnyx, currentUserEmail, userAccountID, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
