@@ -1355,6 +1355,9 @@ function PureReportActionItem({
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
+            } else if (isDEWPolicy) {
+                // Don't show a memo for DEW actions, it's shown in the Concierge action below
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
             }
