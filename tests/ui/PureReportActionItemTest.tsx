@@ -50,7 +50,6 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         avatar: '',
         person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
         message: [{type: 'COMMENT', html: 'some message', text: 'some message'}],
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         originalMessage: {
             ...originalMessageExtras,
         },
@@ -96,7 +95,6 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                allReports={undefined}
                                 policies={undefined}
                                 personalPolicyID={undefined}
                                 report={undefined}
@@ -112,6 +110,7 @@ describe('PureReportActionItem', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 allTransactionDrafts={undefined}
+                                userBillingGraceEndPeriodCollection={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -301,7 +300,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
@@ -319,6 +317,7 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -360,7 +359,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
@@ -377,6 +375,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -431,7 +430,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
@@ -447,6 +445,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -496,7 +495,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
@@ -512,6 +510,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -547,7 +546,6 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
@@ -564,6 +562,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

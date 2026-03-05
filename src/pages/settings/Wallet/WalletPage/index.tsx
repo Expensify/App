@@ -11,7 +11,7 @@ import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -34,6 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
@@ -47,7 +48,7 @@ import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMe
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
@@ -65,6 +66,7 @@ function WalletPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
@@ -74,7 +76,8 @@ function WalletPage() {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const isUserValidated = userAccount?.validated ?? false;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
@@ -231,9 +234,45 @@ function WalletPage() {
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
+        let newBankAccountID: number | undefined;
+        if (paymentMethod.isSelectedPaymentMethodDefault) {
+            const paymentCardList = fundList ?? {};
+            const allPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+
+            const remainingPaymentMethods = allPaymentMethods
+                .filter(
+                    (method) =>
+                        method.methodID !== paymentMethod.methodID &&
+                        method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
+                        method.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                        method.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+                        method.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                )
+                .sort((a, b) => {
+                    const aCreated = a.accountData?.created ?? '';
+                    const bCreated = b.accountData?.created ?? '';
+                    if (!aCreated && !bCreated) {
+                        return 0;
+                    }
+                    if (!aCreated) {
+                        return 1;
+                    }
+                    if (!bCreated) {
+                        return -1;
+                    }
+                    return new Date(bCreated).getTime() - new Date(aCreated).getTime();
+                });
+
+            if (remainingPaymentMethods.length > 0) {
+                const newDefaultMethod = remainingPaymentMethods.at(0);
+                newBankAccountID =
+                    newDefaultMethod?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (newDefaultMethod?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) : undefined;
+            }
+        }
+
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, personalPolicyID, lastUsedPaymentMethods, bankAccount);
+            deletePaymentBankAccount(bankAccountID, personalPolicyID, lastUsedPaymentMethods, bankAccount, newBankAccountID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
@@ -241,10 +280,14 @@ function WalletPage() {
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.isSelectedPaymentMethodDefault,
         paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
         resetSelectedPaymentMethodData,
+        fundList,
         bankAccountList,
+        styles,
+        translate,
         lastUsedPaymentMethods,
         personalPolicyID,
     ]);
@@ -274,10 +317,11 @@ function WalletPage() {
         });
 
         if (result.action === ModalActions.CONFIRM) {
-            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports});
+            const savedColumnLayout = savedColumnLayouts?.[selectedCard.cardID];
+            deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports, savedColumnLayout});
         }
         setSelectedCard(undefined);
-    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports]);
+    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports, savedColumnLayouts]);
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
@@ -332,6 +376,7 @@ function WalletPage() {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            shouldDisplayHelpButton
         />
     );
 
@@ -717,7 +762,7 @@ function WalletPage() {
                                                         }
 
                                                         if (!isUserValidated) {
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT);
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
                                                             return;
                                                         }
                                                         Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);

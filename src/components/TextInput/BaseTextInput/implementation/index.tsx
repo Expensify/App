@@ -296,7 +296,6 @@ function BaseTextInput({
     const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     // autoGrow uses autoGrowMeasurementStyles (includes padding), contentWidth doesn't - add padding manually
@@ -340,7 +339,7 @@ function BaseTextInput({
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={accessibilityLabel}
+                    accessible={false}
                     // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
                     // or if multiline is not supplied we calculate the text input height, using onLayout.
                     onLayout={onLayout}
@@ -491,7 +490,8 @@ function BaseTextInput({
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel}
+                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                keyboardType={inputProps.keyboardType}
                                 aria-describedby={inputHelpText ? helpMessageId : undefined}
                                 aria-errormessage={errorText ? helpMessageId : undefined}
                                 aria-invalid={Platform.OS === 'web' && !!errorText ? true : undefined}
