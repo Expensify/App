@@ -255,9 +255,9 @@ function SettlementButton({
                     buttonOptions.push({
                         text: account.text,
                         icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
-                        additionalIconStyles: account.iconStyles,
-                        iconWidth: account.iconSize,
-                        iconHeight: account.iconSize,
+                        additionalIconStyles: typeof account.icon === 'number' ? undefined : account.iconStyles,
+                        iconWidth: typeof account.icon === 'number' ? undefined : account.iconSize,
+                        iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         description: account.description,
                         onSelected: () => {
