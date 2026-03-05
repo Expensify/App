@@ -180,7 +180,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
                     cardContentStyles={[styles.p0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                     headerMedia={illustrations.EmptyShelves}
                     title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
                     subtitleText={subTitleContent}
@@ -199,7 +198,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             customListHeader={headerContent}
             confirmButtonOptions={confirmButtonOptions}
             customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            showLoadingPlaceholder={!eligibleTransactions}
+            shouldShowLoadingPlaceholder={!eligibleTransactions}
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
         />

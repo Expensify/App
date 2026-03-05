@@ -1,5 +1,5 @@
+import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
@@ -8,61 +8,28 @@ import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
+import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import ROUTES from '@src/ROUTES';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {getAccountingIntegrationData} from './utils';
+import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
+import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
 
-type ActiveIntegration = {
-    name: ConnectionName;
-    shouldDisconnectIntegrationBeforeConnecting?: boolean;
-    integrationToDisconnect?: ConnectionName;
-};
-
-type ActiveIntegrationState = ActiveIntegration & {key: number};
-
-type AccountingContextType = {
-    activeIntegration?: ActiveIntegration;
-    startIntegrationFlow: (activeIntegration: ActiveIntegration) => void;
-
-    /*
-     * This stores refs to integration buttons, so the PopoverMenu can be positioned correctly
-     */
-    popoverAnchorRefs: RefObject<Record<string, RefObject<View | null>>>;
-};
-
-const popoverAnchorRefsInitialValue = Object.values(CONST.POLICY.CONNECTIONS.NAME).reduce(
-    (acc, key) => {
-        acc[key] = {current: null};
-        return acc;
-    },
-    {} as Record<ConnectionName, RefObject<View | null>>,
-);
-
-const defaultAccountingContext = {
-    activeIntegration: undefined,
-    startIntegrationFlow: () => {},
-    popoverAnchorRefs: {
-        current: popoverAnchorRefsInitialValue,
-    },
-};
-
-const AccountingContext = React.createContext<AccountingContextType>(defaultAccountingContext);
+const AccountingStateContext = createContext<AccountingStateContextType>(defaultAccountingStateContextValue);
+const AccountingActionsContext = createContext<AccountingActionsContextType>(defaultAccountingActionsContextValue);
 
 type AccountingContextProviderProps = ChildrenProps & {
     policy: OnyxEntry<Policy>;
 };
 
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
+    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(popoverAnchorRefsInitialValue);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
 
-    const startIntegrationFlow = React.useCallback(
+    const startIntegrationFlow = useCallback(
         (newActiveIntegration: ActiveIntegration) => {
             if (!policyID) {
                 return;
@@ -107,13 +74,19 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         });
     };
 
-    const accountingContext = useMemo(
+    const stateValue = useMemo(
         () => ({
             activeIntegration,
-            startIntegrationFlow,
             popoverAnchorRefs,
         }),
-        [activeIntegration, startIntegrationFlow],
+        [activeIntegration],
+    );
+
+    const actionsValue = useMemo(
+        () => ({
+            startIntegrationFlow,
+        }),
+        [startIntegrationFlow],
     );
 
     const renderActiveIntegration = () => {
@@ -128,31 +101,38 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;
 
     return (
-        <AccountingContext.Provider value={accountingContext}>
-            {children}
-            {!shouldShowConfirmationModal && renderActiveIntegration()}
-            {shouldShowConfirmationModal && (
-                <AccountingConnectionConfirmationModal
-                    onConfirm={() => {
-                        if (!policyID || !activeIntegration?.integrationToDisconnect) {
-                            return;
-                        }
-                        removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
-                        closeConfirmationModal();
-                    }}
-                    integrationToConnect={activeIntegration?.name}
-                    onCancel={() => {
-                        setActiveIntegration(undefined);
-                    }}
-                />
-            )}
-        </AccountingContext.Provider>
+        <AccountingStateContext.Provider value={stateValue}>
+            <AccountingActionsContext.Provider value={actionsValue}>
+                {children}
+                {!shouldShowConfirmationModal && renderActiveIntegration()}
+                {shouldShowConfirmationModal && (
+                    <AccountingConnectionConfirmationModal
+                        onConfirm={() => {
+                            if (!policyID || !activeIntegration?.integrationToDisconnect) {
+                                return;
+                            }
+                            removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
+                            closeConfirmationModal();
+                        }}
+                        integrationToConnect={activeIntegration?.name}
+                        onCancel={() => {
+                            setActiveIntegration(undefined);
+                        }}
+                    />
+                )}
+            </AccountingActionsContext.Provider>
+        </AccountingStateContext.Provider>
     );
 }
 
-function useAccountingContext() {
-    return useContext(AccountingContext);
+function useAccountingState(): AccountingStateContextType {
+    return useContext(AccountingStateContext);
 }
 
-export default AccountingContext;
-export {AccountingContextProvider, useAccountingContext};
+function useAccountingActions(): AccountingActionsContextType {
+    return useContext(AccountingActionsContext);
+}
+
+export default AccountingContextProvider;
+export {AccountingStateContext, AccountingActionsContext, AccountingContextProvider, useAccountingState, useAccountingActions};
+export type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration} from './types';
