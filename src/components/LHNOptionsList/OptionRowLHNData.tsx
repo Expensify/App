@@ -1,5 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -7,11 +8,15 @@ import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromR
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getIOUReportIDOfLastAction} from '@libs/OptionsListUtils';
+import {getLastVisibleActionIncludingTransactionThread, getOriginalMessage, isActionableTrackExpense, isInviteOrRemovedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
@@ -29,23 +34,14 @@ function OptionRowLHNData({
     reportAttributesDerived,
     oneTransactionThreadReport,
     reportNameValuePairs,
-    reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
     policy,
     invoiceReceiverPolicy,
     receiptTransactions,
-    parentReportAction,
-    iouReportReportActions,
-    transaction,
-    lastReportActionTransaction,
     transactionViolations,
-    lastMessageTextFromReport,
     localeCompare,
     translate,
-    isReportArchived = false,
-    lastAction,
-    lastActionReport,
     currentUserAccountID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
@@ -53,6 +49,56 @@ function OptionRowLHNData({
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
+
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport?.parentReportID}`);
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReport?.reportID}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [reportNameValuePairsEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+
+    const parentReportAction = fullReport?.parentReportActionID ? parentReportActions?.[fullReport.parentReportActionID] : undefined;
+
+    const transactionID = isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const transaction = receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+    const isReportArchived = !!(reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived;
+    const canUserPerformWrite = canUserPerformWriteActionUtil(fullReport, isReportArchived);
+
+    const lastAction = useMemo(() => {
+        const actionsCollection: OnyxCollection<ReportActionsType> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined,
+        };
+        if (oneTransactionThreadReport?.reportID && actionsCollection) {
+            actionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionThreadReport.reportID}`] = transactionThreadReportActions ?? undefined;
+        }
+        return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReport?.reportID);
+    }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReport?.reportID]);
+
+    const iouReportIDOfLastAction = useMemo(() => getIOUReportIDOfLastAction(fullReport, visibleReportActionsData, lastAction), [fullReport, visibleReportActionsData, lastAction]);
+    const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportIDOfLastAction}`);
+
+    const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
+    const lastReportActionTransaction = receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
+
+    const lastMessageTextFromReport = useMemo(() => {
+        if (isActionableTrackExpense(lastAction)) {
+            const whisperTransactionID = getOriginalMessage(lastAction)?.transactionID;
+            if (whisperTransactionID && !receiptTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${whisperTransactionID}`]) {
+                return '';
+            }
+        }
+        return undefined;
+    }, [lastAction, receiptTransactions]);
+
+    const lastActionReportID = useMemo(() => {
+        if (isInviteOrRemovedAction(lastAction)) {
+            const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+            return lastActionOriginalMessage?.reportID;
+        }
+        return undefined;
+    }, [lastAction]);
+    const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastActionReportID}`);
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
