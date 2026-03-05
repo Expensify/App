@@ -84,6 +84,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
         try {
             scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
+            // eslint-disable-next-line no-empty
         } catch (e) {}
     }, [highlightedSuggestionIndex]);
 
