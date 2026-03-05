@@ -75,8 +75,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
 
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
-    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
-    const headerTitle = feed ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.assignCard') : headerTitleAddCards;
+    const headerTitleAddCards = !backTo ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards') : undefined;
+    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
@@ -132,11 +132,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
                 customWindow?.close();
                 if (isFeedConnectionBroken) {
                     updateBrokenConnection();
-                    Navigation.closeRHPFlow();
-                    return;
                 }
                 if (isRefreshConnectionFlow && onRefreshComplete) {
                     onRefreshComplete();
+                    return;
+                }
+                if (isFeedConnectionBroken) {
+                    Navigation.closeRHPFlow();
                     return;
                 }
                 setAssignCardStepAndData({

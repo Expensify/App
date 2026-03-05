@@ -112,11 +112,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
         if (feed && !isFeedExpired) {
             if (isFeedConnectionBroken) {
                 updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-                return;
             }
             if (isRefreshConnectionFlow && onRefreshComplete) {
                 onRefreshComplete();
+                return;
+            }
+            if (isFeedConnectionBroken) {
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                 return;
             }
             setAssignCardStepAndData({
