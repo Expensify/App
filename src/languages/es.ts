@@ -5043,6 +5043,8 @@ ${amount} para ${merchant} - ${date}`,
                 removeCardFeed: 'Quitar la alimentación de tarjetas',
                 removeCardFeedTitle: (feedName) => `Eliminar el feed de ${feedName}`,
                 removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
+                assignNewCards: 'Asignar nuevas tarjetas',
+                assignNewCardsDescription: 'Obtén las últimas tarjetas de tu banco para asignar',
                 error: {
                     feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta',
                     statementCloseDateRequired: 'Por favor, selecciona una fecha de cierre del estado de cuenta.',
