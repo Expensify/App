@@ -1084,11 +1084,24 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         return undefined;
     }
 
-    if (feedCountry) {
-        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
-        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
-            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+    const tryNested = (key: string): ExpensifyCardSettingsBase | undefined => {
+        const nested = cardSettings[key as keyof typeof cardSettings];
+        if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+            return {...cardSettings, ...(nested as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
         }
+        return undefined;
+    };
+
+    if (feedCountry) {
+        return tryNested(feedCountry) ?? cardSettings;
+    }
+
+    // Auto-detect: try known card programs in priority order so callers that
+    // don't pass feedCountry still get the right program sub-object when the
+    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
+    const result = tryNested(CONST.COUNTRY.US) ?? tryNested('CURRENT') ?? tryNested('GB');
+    if (result) {
+        return result;
     }
 
     return cardSettings;
