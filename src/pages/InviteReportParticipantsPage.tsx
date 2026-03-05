@@ -202,7 +202,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 footerContent={footerContent}
                 onEndReached={onListEndReached}
             />

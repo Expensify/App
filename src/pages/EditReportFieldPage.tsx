@@ -32,7 +32,6 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
@@ -91,10 +90,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        if (isReportFieldTitle) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
-            return;
-        }
         Navigation.goBack(backTo);
     };
 
@@ -119,11 +114,9 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     };
 
     // Provide a default when the report name and the policy field list are empty
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const fieldValue = isReportFieldTitle
         ? getReportNameFromReportNameUtils(report, reportAttributesByReportID) || (isPolicyFieldListEmpty(policy) ? CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME : '')
         : (reportField.value ?? reportField.defaultValue);
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const handleReportFieldChange = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
         const value = form[fieldKey];
