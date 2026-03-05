@@ -868,6 +868,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const nextStepOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const nextStepFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [];
     const shouldUpdateNextSteps = additionalData?.reportNextSteps != null && additionalData?.transactionViolations != null && additionalData?.betas != null;
+
+    const shouldResetPreventSelfApproval = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && !!policy?.preventSelfApproval;
     if (shouldUpdateNextSteps) {
         const {reportNextSteps, transactionViolations, betas} = additionalData;
         const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
@@ -921,10 +923,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 ...value,
                 pendingFields: {
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    preventSelfApproval:
-                        approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && policy?.preventSelfApproval
-                            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-                            : policy?.pendingFields?.preventSelfApproval,
+                    preventSelfApproval: shouldResetPreventSelfApproval ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : policy?.pendingFields?.preventSelfApproval,
                 },
                 preventSelfApproval: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? false : policy?.preventSelfApproval,
                 employeeList: optimisticMembersState,
@@ -960,7 +959,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 pendingFields: {
                     approvalMode: null,
-                    preventSelfApproval: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && policy?.preventSelfApproval ? null : policy?.pendingFields?.preventSelfApproval,
+                    preventSelfApproval: shouldResetPreventSelfApproval ? null : policy?.pendingFields?.preventSelfApproval,
                 },
             },
         },
