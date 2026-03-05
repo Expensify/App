@@ -89,9 +89,9 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const showGpsInProgressModal = () => {
         return showConfirmModal({
-            title: translate('gps.switchToCopilotWarningTripInProgress.title'),
-            prompt: translate('gps.switchToCopilotWarningTripInProgress.prompt'),
-            confirmText: translate('gps.switchToCopilotWarningTripInProgress.confirm'),
+            title: translate('gps.switchAccountWarningTripInProgress.title'),
+            prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
             cancelText: translate('common.cancel'),
         });
     };

@@ -7522,9 +7522,9 @@ ${reportName}
             confirm: '放弃并退出登录',
         },
         switchToODWarningTripInProgress: {title: '正在进行 GPS 跟踪', prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？', confirm: '停止并切换'},
-        switchToCopilotWarningTripInProgress: {
+        switchAccountWarningTripInProgress: {
             title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch to Copilot account?',
+            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
             confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {

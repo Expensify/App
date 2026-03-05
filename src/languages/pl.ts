@@ -7698,9 +7698,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             prompt: 'Czy na pewno chcesz zatrzymać śledzenie GPS i przełączyć się na Expensify Classic?',
             confirm: 'Zatrzymaj i przełącz',
         },
-        switchToCopilotWarningTripInProgress: {
+        switchAccountWarningTripInProgress: {
             title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch to Copilot account?',
+            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
             confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {

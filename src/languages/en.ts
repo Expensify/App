@@ -7704,9 +7704,9 @@ const translations = {
             prompt: 'Are you sure you want to stop GPS tracking and switch to Expensify Classic?',
             confirm: 'Stop and switch',
         },
-        switchToCopilotWarningTripInProgress: {
+        switchAccountWarningTripInProgress: {
             title: 'GPS tracking in progress',
-            prompt: 'Are you sure you want to stop GPS tracking and switch to Copilot account?',
+            prompt: 'Are you sure you want to stop GPS tracking and switch account?',
             confirm: 'Stop and switch',
         },
         locationServicesRequiredModal: {
