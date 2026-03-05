@@ -9,7 +9,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import createRandomPolicy from '../utils/collections/policies';
 
@@ -176,8 +176,8 @@ describe('PaymentUtils', () => {
         const mockOnPress = jest.fn();
         const mockTriggerKYCFlow = jest.fn();
         const mockConfirmApproval = jest.fn();
-        const testPolicy = createRandomPolicy(1) as OnyxEntry<Policy>;
-        const testPolicyID = testPolicy?.id ?? '';
+        const testPolicy = createRandomPolicy(1);
+        const testPolicyID = testPolicy.id;
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,

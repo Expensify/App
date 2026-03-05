@@ -5190,6 +5190,7 @@ function getTransactionReportName({
     }
 
     if (isSentMoneyReportAction(reportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getIOUReportActionDisplayMessage(translateLocal, reportAction as ReportAction, transaction);
     }
 
@@ -5740,6 +5741,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
     const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
 
     if (parentReportActionBasedName) {
@@ -5771,10 +5773,12 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         }
 
         if (!isEmptyObject(parentReportAction) && isOldDotReportAction(parentReportAction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getMessageOfOldDotReportAction(translateLocal, parentReportAction);
         }
 
         if (isRenamedAction(parentReportAction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getRenamedAction(translateLocal, parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
@@ -5791,6 +5795,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             translate: translateLocal,
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
             reportID: report?.parentReportID,
@@ -5811,6 +5816,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             return translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getAdminRoomInvitedParticipants(translateLocal, parentReportAction, reportActionMessage);
         }
 
@@ -5834,6 +5840,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
             return report?.reportName ?? '';
         }
         if (isCardIssuedAction(parentReportAction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return getCardIssuedMessage({reportAction: parentReportAction, translate: translateLocal});
         }
         return reportActionMessage;
@@ -5925,6 +5932,7 @@ function getSearchReportName(props: GetReportNameParams): string {
             visitedReportIDs.add(currentParent.reportID);
 
             if (isExpenseReport(currentParent)) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return getReportName({
                     report: currentParent,
                     policy,
@@ -5945,6 +5953,7 @@ function getSearchReportName(props: GetReportNameParams): string {
         return policy.name;
     }
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return getReportName({
         report,
         policy,
@@ -6096,6 +6105,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
 
     return {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportName: getReportName({report: parentReport, reportAttributes}),
         workspaceName: getPolicyName({report: parentReport, returnEmptyIfNotFound: true}),
     };
@@ -6428,6 +6438,7 @@ function buildOptimisticTaskCommentReportAction(
 
     // These parameters are not saved on the reportAction, but are used to display the task in the UI
     // Added when we fetch the reportActions on a report
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     reportAction.reportAction.originalMessage = {
         html: getReportActionHtml(reportAction.reportAction),
         taskReportID: getReportActionMessageReportUtils(reportAction.reportAction)?.taskReportID,
@@ -6840,6 +6851,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     const report = fromReport ?? toReport;
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = Parser.htmlToText(getReportName({report}) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
@@ -6855,6 +6867,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = Parser.htmlToText(getReportName({report: fromReport}) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
@@ -12596,10 +12609,12 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
 
     if (report?.reportID) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getReportName({report: getReport(report?.reportID, allReports)});
     }
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return getReportName({report});
 }
 
