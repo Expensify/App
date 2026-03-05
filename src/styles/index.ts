@@ -99,11 +99,7 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<
-    string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    StyleFunction
->;
+type DynamicStyles = Record<string, StyleFunction>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -350,19 +346,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         mentionSuggestionsDisplayName: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-        },
-
-        reportStatusContainer: {
-            paddingHorizontal: 4,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
-        },
-
-        reportStatusText: {
-            fontSize: variables.fontSizeSmall,
-            fontWeight: FontUtils.fontWeight.normal,
         },
 
         textSupporting: {
@@ -984,13 +967,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 140,
         },
         defaultBadge: {
-            backgroundColor: theme.transparent,
+            backgroundColor: theme.badgeDefaultBG,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
-            borderColor: theme.buttonHoveredBG,
-            paddingHorizontal: 12,
-            minHeight: 28,
-            height: variables.iconSizeNormal,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: theme.badgeDefaultBG,
+            paddingHorizontal: 8,
+            minHeight: 24,
             flexDirection: 'row',
             alignItems: 'center',
         },
@@ -1002,6 +984,8 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: 0,
             paddingHorizontal: 8,
             minHeight: 20,
+            borderRadius: variables.componentBorderRadiusSmall,
+            backgroundColor: theme.transparent,
             borderColor: colors.productDark500,
         },
 
@@ -1014,15 +998,22 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeSuccess: {
+            backgroundColor: theme.badgeSuccessBG,
+            borderColor: theme.badgeSuccessBG,
+        },
+
+        badgeSuccessStrong: {
+            backgroundColor: theme.success,
             borderColor: theme.success,
+        },
+
+        badgeSuccessStrongPressed: {
+            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
         },
 
         badgeEnvironmentSuccess: {
             backgroundColor: theme.success,
-        },
-
-        badgeSuccessPressed: {
-            borderColor: theme.successHover,
         },
 
         badgeAdHocSuccess: {
@@ -1035,30 +1026,53 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
+            backgroundColor: theme.badgeDangerBG,
+            borderColor: theme.badgeDangerBG,
+        },
+
+        badgeDangerStrong: {
+            backgroundColor: theme.danger,
             borderColor: theme.danger,
+        },
+
+        badgeDangerStrongPressed: {
+            backgroundColor: theme.dangerHover,
+            borderColor: theme.dangerHover,
         },
 
         badgeEnvironmentDanger: {
             backgroundColor: theme.danger,
         },
 
-        badgeDangerPressed: {
-            borderColor: theme.dangerPressed,
+        badgeDefaultActive: {
+            backgroundColor: theme.buttonHoveredBG,
+            borderColor: theme.buttonHoveredBG,
         },
 
-        badgeBordered: {
-            backgroundColor: theme.transparent,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusSmall,
-            borderColor: theme.border,
-            paddingHorizontal: 12,
-            minHeight: 28,
+        condensedBadge: {
+            minHeight: 16,
+            paddingHorizontal: 6,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        badgeNewFeature: {
-            minHeight: 20,
-            height: 20,
-            paddingHorizontal: 8,
+        condensedBadgeText: {
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
+        badgeDefaultText: {
+            color: theme.text,
+        },
+
+        badgeSuccessText: {
+            color: theme.badgeSuccessText,
+        },
+
+        badgeDangerText: {
+            color: theme.badgeDangerText,
+        },
+
+        badgeStrongText: {
+            color: colors.white,
         },
 
         badgeText: {
@@ -1930,11 +1944,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListLottieIllustrationStyle: {
-            marginTop: 12,
-            marginBottom: -20,
-            height: '100%',
-        },
         emptyWorkspaceListStaticIllustrationStyle: {
             width: 203,
             height: 166,
@@ -3342,11 +3351,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyLHNWrapper: {
             marginBottom: variables.bottomTabHeight,
-        },
-
-        emptyLHNAnimation: {
-            width: 180,
-            height: 180,
         },
 
         mfaBlockingViewAnimation: {
@@ -4830,6 +4834,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        searchFiltersBarCreateButton: {
+            marginLeft: 'auto',
+            alignSelf: 'flex-start',
+        },
+
         walletStaticIllustration: {
             width: 262,
             height: 152,
@@ -5221,7 +5230,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateCardIllustrationContainer: {
-            height: 220,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
         },
@@ -5231,9 +5239,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
-        emptyStateCardIllustration: {
-            width: 164,
-            height: 190,
+        expensifyCardEmptyIllustration: {
+            width: 280,
+            height: 172,
         },
 
         errorStateCardIllustration: {
@@ -5317,15 +5325,6 @@ const staticStyles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        skeletonBackground: {
-            flex: 1,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-        },
-
         emptyStateForeground: {
             margin: 32,
             justifyContent: 'center',
@@ -5334,24 +5333,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyStateContent: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
-            maxWidth: 400,
             width: '100%',
-        },
-
-        emptyFolderBG: {
-            backgroundColor: theme.emptyFolderBG,
-        },
-
-        emptyFolderDarkBG: {
-            backgroundColor: '#782c04',
-            height: 220,
-        },
-
-        emptyStateVideo: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5359,24 +5341,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 100,
         },
 
-        emptyStateFolderWebStyles: {
-            ...sizing.w100,
-            minWidth: 400,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
-        },
-
         emptyStateFolderStaticIllustration: {
             width: 184,
             height: 112,
-        },
-
-        emptyStateFireworksWebStyles: {
-            width: 250,
-            ...flex.alignItemsCenter,
-            ...flex.justifyContentCenter,
-            ...display.dFlex,
         },
 
         emptyStateFireworksStaticIllustration: {
@@ -5384,9 +5351,9 @@ const staticStyles = (theme: ThemeColors) =>
             height: 148,
         },
 
-        tripEmptyStateLottieWebView: {
-            width: 335,
-            height: 220,
+        tripEmptyStateIllustration: {
+            width: 190,
+            height: 170,
         },
 
         offlineFeedbackDeleted: {
@@ -5513,11 +5480,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         todoBadge: {
-            width: variables.w36,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingLeft: 0,
-            paddingRight: 0,
         },
 
         stickToBottom: {
@@ -5723,9 +5687,9 @@ const staticStyles = (theme: ThemeColors) =>
             right: 0,
         },
         emptyStateHeader: {
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
-            minHeight: 200,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
         },
         sidePanelOverlay: {
             ...positioning.pFixed,
@@ -5885,6 +5849,13 @@ const staticStyles = (theme: ThemeColors) =>
         dateIconSize: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
+        },
+        homeWidgetIconContainer: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     }) satisfies StaticStyles;
 
@@ -6153,11 +6124,6 @@ const dynamicStyles = (theme: ThemeColors) =>
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
-
-        emptyStateHeaderPosition: (isIllustration: boolean) => ({
-            alignItems: isIllustration ? 'center' : undefined,
-            justifyContent: isIllustration ? 'center' : undefined,
-        }),
 
         emojiHeaderContainerWidth: (isSmallScreenWidth: boolean, windowWidth: number) =>
             ({
@@ -6433,7 +6399,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, gap: 20} satisfies ViewStyle),
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

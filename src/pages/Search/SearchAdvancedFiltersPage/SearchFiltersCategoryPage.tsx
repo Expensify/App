@@ -101,6 +101,7 @@ function SearchFiltersCategoryPage() {
                     items={categoryItems}
                     initiallySelectedItems={selectedCategoriesItems}
                     onSaveSelection={onSaveSelection}
+                    shouldShowTextInput={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 />
             </View>
         </ScreenWrapper>
