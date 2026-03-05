@@ -1113,6 +1113,9 @@ type OriginalMessageForwarded = {
 
     /** The workflow the report is approved on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Optional message explaining why the report was forwarded that way */
+    message?: string;
 };
 
 /**
