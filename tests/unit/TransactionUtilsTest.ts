@@ -7,8 +7,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Report, Transaction} from '../../src/types/onyx';
-import type {CardList} from '../../src/types/onyx/Card';
+import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -424,18 +423,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
         });
 
-        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
-            const cardID = 101;
-            const cardList = {
-                [cardID]: {
-                    cardName: '__CASH__',
-                },
-            } as unknown as CardList;
+        it('returns cash when the card has a cash card name', () => {
+            const card = {
+                cardName: CONST.COMPANY_CARDS.CARD_NAME.CASH,
+            } as Card;
             const transaction = generateTransaction({
-                cardID,
+                cardID: 101,
             });
 
-            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+            expect(TransactionUtils.getTransactionType(transaction, card)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
         it('returns cash when the transaction card name includes the cash card name substring', () => {
