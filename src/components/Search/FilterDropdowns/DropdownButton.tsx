@@ -77,7 +77,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         vertical: 0,
     });
 
-    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector, canBeMissing: true});
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
     /**
      * Toggle the overlay between open & closed

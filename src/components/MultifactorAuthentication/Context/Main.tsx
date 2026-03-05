@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
-import {useMultifactorAuthenticationState} from './State';
+import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 import useNativeBiometrics from './useNativeBiometrics';
 import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
@@ -38,7 +38,7 @@ type MultifactorAuthenticationContextValue = {
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
 
     /** Cancel the current authentication flow and navigate to failure outcome */
-    cancel: () => void;
+    cancel: () => Promise<void>;
 };
 
 const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationContextValue | undefined>(undefined);
@@ -65,7 +65,8 @@ function getChallengeType(challenge: unknown): ChallengeType | undefined {
 }
 
 function MultifactorAuthenticationContextProvider({children}: MultifactorAuthenticationContextProviderProps) {
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
 
     const biometrics = useNativeBiometrics();
     const {isOffline} = useNetwork();
@@ -85,7 +86,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const handleCallback = useCallback(
         async (isSuccessful: boolean) => {
-            const {error, scenario, scenarioResponse} = state;
+            const {error, scenario, scenarioResponse, payload} = state;
 
             if (!scenario) {
                 return;
@@ -98,7 +99,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 body: scenarioResponse?.body,
             };
 
-            const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput);
+            const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
@@ -219,7 +220,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             // Check if a soft prompt is needed
             if (!softPromptApproved) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.BIOMETRICS), {forceReplace: true});
                 return;
             }
 
@@ -262,14 +263,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // this happens on ios if they delete and reinstall the app. Their keys are preserved in the secure store, but
         // they'll be shown the "do you want to enable FaceID again" system prompt, so we want to show them the soft prompt
         if (!deviceBiometricsState?.hasAcceptedSoftPrompt) {
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.ENABLE_BIOMETRICS), {forceReplace: true});
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.BIOMETRICS), {forceReplace: true});
             return;
         }
 
         // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
-            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'))) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute('enable-biometrics'), {forceReplace: true});
+            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.BIOMETRICS))) {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(CONST.MULTIFACTOR_AUTHENTICATION.PROMPT.BIOMETRICS), {forceReplace: true});
             }
 
             // Request authorization challenge if not already fetched
@@ -434,9 +435,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     /**
      * Cancel the current authentication flow.
-     * Sets an error state which triggers navigation to the failure outcome.
+     * When the scenario provides onCancel, awaits it to get the reason and sets the error accordingly.
+     * Otherwise, sets an error state with GENERIC.CANCELED. In both cases, the error triggers
+     * process() which calls handleCallback and navigates to the failure outcome.
      */
-    const cancel = useCallback(() => {
+    const cancel = useCallback(async () => {
         // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
         // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
         // so dispatching SET_ERROR would have no effect. In this case we dismiss the modal directly.
@@ -445,13 +448,19 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
 
+        if (state.scenario.onCancel) {
+            const result = await state.scenario.onCancel(state.payload);
+            dispatch({type: 'SET_ERROR', payload: {reason: result.reason, payload: result.payload}});
+            return;
+        }
+
         dispatch({
             type: 'SET_ERROR',
             payload: {
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED,
             },
         });
-    }, [dispatch, state.scenario]);
+    }, [dispatch, state.scenario, state.payload]);
 
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({

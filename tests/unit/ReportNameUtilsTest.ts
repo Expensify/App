@@ -66,7 +66,6 @@ describe('ReportNameUtils', () => {
             pronouns: 'She/her',
         },
     ].reduce((acc, detail) => {
-        // eslint-disable-next-line no-param-reassign
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);
@@ -284,6 +283,64 @@ describe('ReportNameUtils', () => {
             );
             expect(name).toBe('heading with link');
         });
+
+        test('Returns plain text title without HTML conversion', () => {
+            const plainTaskTitle = 'Fix the login bug on Android';
+            const report: Report = {
+                ...createRegularTaskReport(41, currentUserAccountID),
+                reportName: plainTaskTitle,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Fix the login bug on Android');
+        });
+
+        test('Trims whitespace from plain text title', () => {
+            const report: Report = {
+                ...createRegularTaskReport(42, currentUserAccountID),
+                reportName: '  Expense report review  ',
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Expense report review');
+        });
+
+        test('Returns empty string for undefined reportName', () => {
+            const report: Report = {
+                ...createRegularTaskReport(43, currentUserAccountID),
+                reportName: undefined,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('');
+        });
     });
 
     describe('computeReportName - Thread report action names', () => {
@@ -313,7 +370,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
+            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', 'via workflow');
             const name = computeReportName(
                 thread,
                 emptyCollections.reports,
@@ -351,6 +408,80 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('Hold parent action', () => {
+            const thread: Report = createWorkspaceThread(52);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.heldExpense');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('Unhold parent action', () => {
+            const thread: Report = createWorkspaceThread(53);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.unheldExpense');
             const name = computeReportName(
                 thread,
                 emptyCollections.reports,

@@ -1,4 +1,3 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,11 +27,11 @@ function SearchFiltersCardPage() {
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
-    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterOutPersonalCards, canBeMissing: true});
-    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
 
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -51,8 +50,8 @@ function SearchFiltersCardPage() {
     const cardFeedsSectionData = buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, policies, selectedCards, translate, illustrations, companyCardFeedIcons);
 
     const shouldShowSearchInput =
-        cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >
-        CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD;
+        cardFeedsSectionData.selected.length + cardFeedsSectionData.unselected.length + individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >=
+        CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const searchFunction = (item: CardFilterItem) =>
         !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
@@ -153,7 +152,7 @@ function SearchFiltersCardPage() {
                             shouldPreventDefaultFocusOnSelectRow={false}
                             shouldShowTextInput={shouldShowSearchInput}
                             textInputOptions={textInputOptions}
-                            showLoadingPlaceholder={
+                            shouldShowLoadingPlaceholder={
                                 isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata, policiesMetadata) || !didScreenTransitionEnd
                             }
                             shouldStopPropagation

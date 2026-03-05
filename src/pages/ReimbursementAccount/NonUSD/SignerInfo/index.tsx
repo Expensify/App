@@ -46,7 +46,6 @@ type EmailSubmitParams = {
 
 type SignerDetailsFormProps = SubStepProps;
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME, SIGNER_EMAIL, SIGNER_FULL_NAME, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -57,12 +56,12 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const savedSignerEmail = reimbursementAccount?.achData?.corpay?.[SIGNER_EMAIL];
@@ -87,7 +86,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     }, [bankAccountID, isUserOwner, reimbursementAccountDraft, signerEmail]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
             return;
         }
@@ -108,7 +106,6 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isAskingForCorpaySignerInformation || !reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             return;
         }
@@ -134,6 +131,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleNextSubStep = useCallback(

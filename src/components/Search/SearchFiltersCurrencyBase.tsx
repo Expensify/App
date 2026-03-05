@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,8 +26,9 @@ type SearchFiltersCurrencyBaseProps = {
 function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: SearchFiltersCurrencyBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currencyList, getCurrencySymbol} = useCurrencyList();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {

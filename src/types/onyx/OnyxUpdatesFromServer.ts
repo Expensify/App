@@ -28,7 +28,7 @@ type OnyxServerUpdate<TKey extends OnyxKey> = OnyxUpdate<TKey> & {
 };
 
 /** Model of a onyx update event */
-type OnyxUpdateEvent<TKey extends OnyxKey = OnyxKey> = {
+type OnyxUpdateEvent<TKey extends OnyxKey> = {
     /** Type of the update event received from the server */
     eventType: string;
 
@@ -78,7 +78,9 @@ type OnyxUpdatesFromServer<TKey extends OnyxKey> = OnyxUpdatesFromServerBase<TKe
  * @param value - represent the onyx update received from the server
  * @returns boolean indicating if the onyx update received from the server is valid
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ *
+ */
 function isValidOnyxUpdateFromServer(value: unknown): value is AnyOnyxUpdatesFromServer {
     if (!value || typeof value !== 'object') {
         return false;

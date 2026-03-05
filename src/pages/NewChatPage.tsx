@@ -59,17 +59,17 @@ type SelectedOption = ListItem &
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const currentUserEmail = personalData.email ?? '';
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const allPersonalDetails = usePersonalDetails();
 
     const {
@@ -88,8 +88,8 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         betas,
     });
 
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const reports = listOptions?.reports ?? [];
     const personalDetails = listOptions?.personalDetails ?? [];
@@ -110,9 +110,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
             includeSelfDM: true,
             shouldAlwaysIncludeDM: true,
             personalDetails: allPersonalDetails,
+            countryCode,
+            reportAttributesDerived,
         },
-        countryCode,
-        reportAttributesDerived,
     );
 
     const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
@@ -234,13 +234,13 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
     const {top} = useSafeAreaInsets();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
@@ -398,7 +398,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
         KeyboardUtils.dismiss().then(() => {
-            singleExecution(() => navigateToAndOpenReport([login]))();
+            singleExecution(() => navigateToAndOpenReport([login], currentUserAccountID, introSelected))();
         });
     };
 
@@ -497,7 +497,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
                 onEndReached={handleEndReached}

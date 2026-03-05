@@ -1,6 +1,6 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {getFundIdFromSettingsKey} from '@libs/CardUtils';
+import {getCardSettings, getFundIdFromSettingsKey} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
@@ -13,13 +13,13 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  */
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
-    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {canBeMissing: true});
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const [lastSelectedCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`);
+    const lastSelectedSettings = getCardSettings(lastSelectedCardSettings);
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
             const matchingKey = Object.entries(cardSettings ?? {}).find(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
             );
 
@@ -32,12 +32,11 @@ function useDefaultFundID(policyID: string | undefined) {
         ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS,
         {
             selector: getDomainFundID,
-            canBeMissing: true,
         },
         [getDomainFundID],
     );
 
-    if (lastSelectedExpensifyCardFeed && lastSelectedCardSettings?.paymentBankAccountID) {
+    if (lastSelectedExpensifyCardFeed && lastSelectedSettings?.paymentBankAccountID) {
         return lastSelectedExpensifyCardFeed;
     }
 

@@ -19,8 +19,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DateOfBirthForm';
 
 function DateOfBirthPage() {
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -75,6 +75,7 @@ function DateOfBirthPage() {
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
                             maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
                             autoFocus
+                            autoComplete="birthdate-full"
                         />
                     </FormProvider>
                 )}

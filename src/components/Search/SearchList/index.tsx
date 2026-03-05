@@ -48,7 +48,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -285,54 +285,7 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => {
-        return data.map((item) => {
-            let isSelected = false;
-            let itemWithSelection: SearchListItem = item;
-
-            if ('transactions' in item && item.transactions) {
-                if (!canSelectMultiple) {
-                    itemWithSelection = {...item, isSelected: false};
-                } else {
-                    const isEmptyReportSelected =
-                        item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-
-                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
-
-                    if (!hasAnySelected) {
-                        itemWithSelection = {...item, isSelected: false};
-                    } else if (isEmptyReportSelected) {
-                        isSelected = true;
-                        itemWithSelection = {...item, isSelected};
-                    } else {
-                        let allNonDeletedSelected = true;
-                        let hasNonDeletedTransactions = false;
-
-                        const mappedTransactions = item.transactions.map((transaction) => {
-                            const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
-
-                            if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                                hasNonDeletedTransactions = true;
-                                if (!isTransactionSelected) {
-                                    allNonDeletedSelected = false;
-                                }
-                            }
-
-                            return {...transaction, isSelected: isTransactionSelected};
-                        });
-
-                        isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
-                        itemWithSelection = {...item, isSelected, transactions: mappedTransactions};
-                    }
-                }
-            } else {
-                isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-                itemWithSelection = {...item, isSelected};
-            }
-
-            return {originalItem: item, itemWithSelection, isSelected};
-        });
-    }, [data, canSelectMultiple, selectedTransactions]);
+    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -348,18 +301,16 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -391,7 +342,6 @@ function SearchList({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -480,11 +430,12 @@ function SearchList({
                         columns={columns}
                         policies={policies}
                         isDisabled={isDisabled}
-                        allReports={allReports}
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
                         isDEWBetaEnabled={isDEWBetaEnabled}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -516,7 +467,6 @@ function SearchList({
             hash,
             columns,
             policies,
-            allReports,
             userWalletTierName,
             isUserValidated,
             personalDetails,
@@ -525,6 +475,8 @@ function SearchList({
             violations,
             onDEWModalOpen,
             isDEWBetaEnabled,
+            lastPaymentMethod,
+            personalPolicyID,
             customCardNames,
         ],
     );
@@ -539,7 +491,7 @@ function SearchList({
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                             onPress={() => {
@@ -556,7 +508,7 @@ function SearchList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}

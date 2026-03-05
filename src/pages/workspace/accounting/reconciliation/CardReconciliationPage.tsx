@@ -70,9 +70,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
     const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
-    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
-    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`);
+    const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const paymentBankAccountID = fullySetUpCardSetting.cardSetting?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const bankAccountTitle = bankAccountList?.[paymentBankAccountID]?.title ?? '';

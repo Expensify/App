@@ -7,7 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {validateBankAccount} from '@libs/actions/BankAccounts';
@@ -57,7 +57,7 @@ const filterInput = (amount: string, amountRegex?: RegExp, permittedDecimalSepar
 
 function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount, policy}: BankAccountValidationFormProps) {
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyList();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
     const policyID = reimbursementAccount?.achData?.policyID;
