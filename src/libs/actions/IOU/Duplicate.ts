@@ -18,7 +18,7 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
+import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -572,6 +572,8 @@ function duplicateExpenseTransaction({
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             modifiedAmount: undefined,
             originalTransactionID: undefined,
+            odometerStart: transaction?.comment?.odometerStart ?? undefined,
+            odometerEnd: transaction?.comment?.odometerEnd ?? undefined,
             receipt: undefined,
             source: undefined,
             waypoints,
@@ -595,8 +597,9 @@ function duplicateExpenseTransaction({
         personalDetails,
     };
 
-    // Since we remove waypoints for split distance expenses, we need to re-add the distance param here
-    if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
+    // We remove waypoints for split distance expenses, so we have to re-add the distance param here.
+    // Odometer expenses don't have the distance parameter so we also need to pass it here.
+    if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction))) {
         params.transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
     }
 
