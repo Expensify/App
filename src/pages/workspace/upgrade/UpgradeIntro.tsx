@@ -50,7 +50,6 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
         return `${convertToShortDisplayString(
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
