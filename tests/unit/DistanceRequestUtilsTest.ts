@@ -1,8 +1,9 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import createRandomTransaction from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 
 const FAKE_POLICY: Policy = {
@@ -141,19 +142,37 @@ describe('DistanceRequestUtils', () => {
 
             expect(result).toBe('B593F3FBBB0BD');
         });
+    });
 
-        it('returns policy default rateID custom unit for isTrackDistanceExpense', () => {
-            const reportID = '1234';
+    describe('getDistanceUnit', () => {
+        it('returns the transaction unit when it matches the mileage rate unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            } as MileageRate;
 
-            const result = DistanceRequestUtils.getCustomUnitRateID({
-                reportID,
-                isPolicyExpenseChat: false,
-                policy: FAKE_POLICY,
-                lastSelectedDistanceRates: undefined,
-                isTrackDistanceExpense: true,
-            });
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
 
-            expect(result).toBe('222AAF6B93BCB');
+        it('returns the mileage rate unit when it differs from the transaction unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            } as MileageRate;
+
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
         });
     });
 
@@ -166,20 +185,6 @@ describe('DistanceRequestUtils', () => {
         it('formats zero distance when isManualDistanceRequest is true', () => {
             const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
             expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
-        });
-    });
-
-    describe('getRate', () => {
-        it('returns the rate from policyForMovingExpenses if an unreported transaction rate belongs to it', () => {
-            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'EE75E6DBC6FF8'}}};
-            const result = DistanceRequestUtils.getRate({policyForMovingExpenses: FAKE_POLICY, transaction, policy: undefined});
-            expect(result.customUnitRateID).toBe('EE75E6DBC6FF8');
-        });
-
-        it('does not return the default rate of the policy if the customUnitRateID of the tracked transaction does not exist', () => {
-            const transaction = {...createRandomTransaction(1), reportID: '0', comment: {customUnit: {customUnitRateID: 'some-rate'}}};
-            const result = DistanceRequestUtils.getRate({policy: FAKE_POLICY, transaction});
-            expect(result.customUnitRateID).toBeUndefined();
         });
     });
 
@@ -205,6 +210,32 @@ describe('DistanceRequestUtils', () => {
                 true,
             );
             expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getRateForExpenseDisplay', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
+
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
+            expect(result).toBe('Default Rate');
+        });
+
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
     });
 });

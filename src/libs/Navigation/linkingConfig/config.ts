@@ -1324,6 +1324,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
                             path: ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+                            path: ROUTES.DOMAIN_LOCK_ACCOUNT.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -2111,11 +2114,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
                     // We want to avoid that situation, so we will return an empty string instead.
                     parse: {
-                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                     stringify: {
-                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                 },
