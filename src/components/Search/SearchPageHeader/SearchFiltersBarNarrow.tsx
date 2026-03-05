@@ -27,7 +27,6 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
         // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
         // To fix this, we detect when onEndReached is triggered due to an item deletion,
         // and programmatically scroll to the end to fill the space.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
             return;
         }

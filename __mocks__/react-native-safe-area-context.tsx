@@ -25,7 +25,6 @@ function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaIn
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                // eslint-disable-next-line react/prop-types
                 ref={props.ref}
                 insets={insets}
             />
