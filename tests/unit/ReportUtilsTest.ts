@@ -414,7 +414,6 @@ const policy: Policy = {
 
 describe('ReportUtils', () => {
     beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
