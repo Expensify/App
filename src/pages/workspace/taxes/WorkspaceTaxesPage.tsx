@@ -433,7 +433,7 @@ function WorkspaceTaxesPage({
                     shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
