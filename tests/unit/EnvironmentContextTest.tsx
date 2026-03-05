@@ -40,6 +40,7 @@ describe('EnvironmentProvider', () => {
             // Wait for useEffect to resolve mocked promises
             await waitFor(() => {
                 expect(mockGetEnvironment).toHaveBeenCalled();
+                // eslint-disable-next-line testing-library/no-wait-for-multiple-assertions
                 expect(mockGetEnvironmentURL).toHaveBeenCalled();
             });
         };
