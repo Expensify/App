@@ -32,7 +32,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import {openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
@@ -58,6 +57,7 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';

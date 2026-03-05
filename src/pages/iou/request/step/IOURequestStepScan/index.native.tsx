@@ -96,9 +96,7 @@ function IOURequestStepScan({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
     // End scan shortcut span when Scan page finishes first render (only when opened from FAB with request type SCAN)
-    const isFromScanShortcut =
-        initialTransaction?.isFromFloatingActionButton === true &&
-        initialTransaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    const isFromScanShortcut = initialTransaction?.isFromFloatingActionButton === true && initialTransaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     useLayoutEffect(() => {
         if (!isFromScanShortcut) {
             return;
