@@ -382,7 +382,6 @@ function MoneyRequestView({
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory =
         (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
@@ -774,7 +773,6 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
         : getReportName(parentReport, reportAttributes) || parentReport?.reportName;
