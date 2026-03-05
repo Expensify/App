@@ -76,7 +76,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                     [
                                         {
                                             text: translate('common.cancel'),
-                                            onPress: () => onUserExit(),
+                                            onPress: () => onUserExit(true),
                                         },
                                         {
                                             text: translate('common.settings'),

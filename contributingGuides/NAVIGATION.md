@@ -19,7 +19,16 @@ The navigation in the app is built on top of the `react-navigation` library. To 
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
-  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
+  - [Dynamic routes](#dynamic-routes)
+    - [What are dynamic routes?](#what-are-dynamic-routes)
+    - [When to use dynamic routes](#when-to-use-dynamic-routes)
+    - [When not to use dynamic routes](#when-not-to-use-dynamic-routes)
+    - [Dynamic routes configuration](#dynamic-routes-configuration)
+    - [Entry screens (access control)](#entry-screens-access-control)
+    - [Current limitations (work in progress)](#current-limitations-work-in-progress)
+    - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
+    - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
+  - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
@@ -118,7 +127,7 @@ Navigation.goBack();
 It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! 
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
 
@@ -668,10 +677,97 @@ const handleStateChange = (state: NavigationState | undefined) => {
 
 The easiest way to find the piece of code from which the navigation method was called is to use a debugger and breakpoints. You should attach a breakpoint in the navigation method and check the call stack, this way you can easily find the navigation method that caused the problem.
 
+## Dynamic routes
+
+Dynamic routes allow the same screen to be reused across multiple flows while preserving the correct "back" destination based on where the user came from without using the deprecated `backTo` URL parameter.
+
+### What are dynamic routes?
+
+A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to any base path the user is currently on. The resulting URL is `{currentPath}/{suffix}` (e.g. `/settings/wallet/verify-account`).
+
+- **Static route:** A fixed path like `/workspaces/:policyID/members`. The screen has one URL and typically one back destination.
+- **Dynamic route:** The same screen and suffix are reused across many base paths. The "back" destination is derived from the current URL (by removing the suffix), not from a `backTo` param. Dynamic routes guarantee deterministic back navigation by removing the suffix from the current path and preserving query parameters.
+
+
+### When to use dynamic routes
+
+- Use dynamic routes when:
+  - The same screen is reused in multiple flows (e.g. Verify Account from Wallet, Travel, Reports).
+  - The intended "back" behavior is wherever the user came from (current URL minus the suffix).
+
+### When not to use dynamic routes
+
+Do not use dynamic routes when:
+- Your use case falls under the [current limitations](#current-limitations-work-in-progress):
+  - You need to stack multiple dynamic route suffixes (e.g. `/a/verify-account/another-flow`).
+  - Your suffix requires multiple path segments (e.g. `step-one/details`).
+  - Your suffix includes path or query parameters (e.g. `verify-account/:id` or `verify-account?tab=details`).
+- The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
+
+### Dynamic routes configuration
+
+`DYNAMIC_ROUTES` in `src/ROUTES.ts`: each entry has:
+
+- `path`: The URL suffix (e.g. `'verify-account'`).
+- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)).
+
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+
+```ts
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+// From Wallet: navigate to verify-account on top of current path
+Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+```
+
+### Entry screens (access control)
+
+The `entryScreens` array in `DYNAMIC_ROUTES` defines which base screens are allowed to open this dynamic route.
+
+When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` resolves the base path (without the dynamic suffix), gets the focused route for that path, and checks whether it is in `entryScreens`. If it is not, the dynamic route state is not built and a warning is logged. This prevents opening e.g. `/some/random/path/verify-account` when that path's screen is not allowed.
+
+When adding or extending a dynamic route, list every screen that should be able to open it (e.g. `SCREENS.SETTINGS.WALLET.ROOT` for Verify Account from Wallet).
+
+### Current limitations (work in progress)
+
+- **Stacking:** Multiple dynamic route suffixes on top of each other (e.g. `/a/verify-account/another-flow`) are not supported. Only one dynamic suffix per path is allowed.
+- **Suffix shape:** Suffixes must be a single path segment. Compound suffixes with extra path segments (e.g. `a/b`) are not supported.
+- **Parameters:** Suffixes must not include path params (e.g. `a/:reportID`) or query params (e.g. `a?foo=bar`). Use a single literal segment like `verify-account` only.
+
+If you try to use dynamic routes for these cases now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+
+### How to add a new dynamic route
+
+1. Add to `DYNAMIC_ROUTES` in `src/ROUTES.ts`: define `path` and `entryScreens` (screen names that may open this route).
+2. Add a screen constant in `src/SCREENS.ts`. The name must start with the `DYNAMIC_` prefix (e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens can be distinguished from static ones.
+3. Register in linking config in `src/libs/Navigation/linkingConfig/config.ts`: map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
+4. Implement the page component: Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)` to get the back path. Pass these into your base UI (e.g. `VerifyAccountPageBase` with `navigateBackTo` / `navigateForwardTo`).
+5. Register the screen in the appropriate modal/stack navigator (e.g. `src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`).
+6. Types: Add the screen to the navigator param list in `src/libs/Navigation/types.ts` (no params for the new screen).
+
+The Verify Account flow (Wallet → Dynamic Verify Account) is the reference implementation: see `src/pages/settings/DynamicVerifyAccountPage.tsx` and the Wallet entry point in `src/pages/settings/Wallet/WalletPage/index.tsx`.
+
+### Migrating from backTo to dynamic routes
+
+If you are migrating an existing flow that uses `backTo` (or multiple static routes) to dynamic routes:
+
+1. Identify the screen and all entry points (screens that navigate to it).
+2. Add (or extend) an entry in `DYNAMIC_ROUTES` with the chosen suffix and `entryScreens` set to those entry screens.
+3. Add a single dynamic screen (e.g. `DYNAMIC_VERIFY_ACCOUNT`) and one component that uses `createDynamicRoute` and `useDynamicBackPath` to compute back path.
+4. Replace navigation calls: instead of `getRoute(..., backTo)` or multiple static routes, use `Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path))` from each entry screen.
+5. In the page, use `useDynamicBackPath(suffix)` for the back path.
+6. Remove old static route constants and old screen bindings that are replaced by the single dynamic screen.
+
+For the legacy approach (e.g. separating routes per screen instance) and edge cases like RHP underlay, see [How to remove backTo from URL](#how-to-remove-backto-from-url) and [Separating routes for each screen instance](#separating-routes-for-each-screen-instance).
+
 ## How to remove backTo from URL
 
+**Preferred approach:** For new flows where a screen is reused across multiple entry points, use [Dynamic Routes](#dynamic-routes) and the [Migrating from backTo to Dynamic Routes](#migrating-from-backto-to-dynamic-routes) guide instead of `backTo` or multiple static routes.
+
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 <details>
 <summary>Using `backTo` route param</summary>
@@ -736,7 +832,7 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
 
 ### Separating routes for each screen instance
 
-Often, you will need to reuse a single screen across multiple navigation flows. For example, the `VerifyAccountPage` can be viewed in many different RHP flows. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+Often, you will need to reuse a single screen across multiple navigation flows. For many cases, [Dynamic Routes](#dynamic-routes) are the simpler and preferred approach (one screen, one suffix, back derived from the current URL). Alternatively, you can create a new static route for each screen instance within a single flow, as described below.
 
 Considerations when removing `backTo` from a URL:
 
@@ -834,7 +930,8 @@ In Expensify, we use an extended implementation of this function because:
 -   When opening a link leading to an onboarding screen, all previous screens in this flow have to be present in the navigation state.
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
--   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-properly-remove-backto-from-url))
+-   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
+-   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
 
 Here are examples how the state is generated based on route:
 
@@ -953,7 +1050,7 @@ In the above example, we can see that when building a state from a link leading 
 RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs. However, most often one RHP screen has a specific central screen assigned underneath.
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 To assign RHP to the appropriate central screen, you need to add it to the proper relation (`src/libs/Navigation/linkingConfig/RELATIONS`)
 
@@ -974,6 +1071,9 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
 
 > [!NOTE]
 > When an RHP screen has a `backTo` parameter in its route, the navigation logic will check which screen should be displayed underneath based on the screen specified in `backTo`, rather than using the default relation mapping. This means you can reuse the same RHP screen across different tabs - for example, a settings screen could appear over either the Account tab or Workspaces tab depending on where the user came from.
+
+> [!NOTE]
+> For dynamic routes, the screen underneath is determined by the base path (the path without the dynamic suffix).
 
 ## Performance solutions
 

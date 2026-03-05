@@ -6,7 +6,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -71,7 +70,6 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const theme = useTheme();
     const policy = usePolicy(policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {isProduction} = useEnvironment();
 
     // Hoist iterator-independent translations to avoid redundant calls in the loop
     const fieldLabels: FieldLabels = useMemo(
@@ -103,16 +101,12 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
-    if (isProduction) {
-        return null;
-    }
-
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
-                badgeStyles={styles.badgeNewFeature}
+                isCondensed
                 success
             />
         </View>
@@ -143,10 +137,12 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                        descriptionTextStyle={[styles.textSupportingNormal, styles.textStrong, styles.themeTextColor]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_ITEM}
+                                        disabled={rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                                     />
                                 </OfflineWithFeedback>
                             </View>
@@ -162,6 +158,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                 iconWidth={20}
                 style={[styles.sectionMenuItemTopDescription, !hasRules && styles.mt6, styles.mbn3]}
                 onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_MERCHANT_RULE}
             />
         </Section>
     );

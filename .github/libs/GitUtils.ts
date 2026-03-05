@@ -2,13 +2,19 @@ import * as core from '@actions/core';
 import {execSync} from 'child_process';
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
+import type {CommitType} from './GithubUtils';
 import {getPreviousVersion} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
-type CommitType = {
+type MergedPR = {
+    prNumber: number;
+    date: string;
+};
+
+type SubmoduleUpdate = {
+    version: string;
+    date: string;
     commit: string;
-    subject: string;
-    authorName: string;
 };
 
 /**
@@ -75,10 +81,30 @@ function getPreviousExistingTag(tag: string, level: SemverLevel) {
 }
 
 /**
+ * Extract Mobile-Expensify submodule update commits from the commit history.
+ * Matches both version-based ("Update Mobile-Expensify submodule version to 9.3.21-0")
+ * and hash-based ("Update Mobile-Expensify submodule to 9f18fca") patterns.
+ */
+function getSubmoduleUpdates(commits: CommitType[]): SubmoduleUpdate[] {
+    const updates: SubmoduleUpdate[] = [];
+    for (const commit of commits) {
+        const match = commit.subject.match(/^Update Mobile-Expensify submodule (?:version )?to (.+)$/);
+        if (match) {
+            updates.push({
+                version: match[1],
+                date: commit.date,
+                commit: commit.commit,
+            });
+        }
+    }
+    return updates;
+}
+
+/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
-function getValidMergedPRs(commits: CommitType[]): number[] {
-    const mergedPRs = new Set<number>();
+function getValidMergedPRs(commits: CommitType[]): MergedPR[] {
+    const mergedPRs = new Map<number, string>();
     for (const commit of commits) {
         const author = commit.authorName;
         if (author === CONST.OS_BOTIFY) {
@@ -99,31 +125,55 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             continue;
         }
 
-        mergedPRs.add(pr);
+        mergedPRs.set(pr, commit.date);
     }
 
-    return Array.from(mergedPRs);
+    return Array.from(mergedPRs.entries()).map(([prNumber, date]) => ({prNumber, date}));
 }
 
+type MergedPRsResult = {
+    mergedPRs: MergedPR[];
+    submoduleUpdates: SubmoduleUpdate[];
+};
+
 /**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ * Takes in two git tags and returns a list of merged PRs entries between those two tags,
+ * along with any Mobile-Expensify submodule version updates found in the commit history.
+ * Returns PRs in the order they appear in the commit history from the GitHub API.
  */
-async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repositoryName: string) {
+async function getMergedPRsDeployedBetween(fromTag: string, toTag: string, repositoryName: string): Promise<MergedPRsResult> {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
     const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag, repositoryName);
-    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    const mergedPRs = getValidMergedPRs(apiCommitList);
+    const submoduleUpdates = getSubmoduleUpdates(apiCommitList);
 
     console.log(`Found ${apiCommitList.length} commits.`);
     core.startGroup('Parsed PRs:');
-    core.info(apiPullRequestNumbers.join(', '));
+    core.info(mergedPRs.map((pr) => pr.prNumber).join(', '));
     core.endGroup();
 
-    return apiPullRequestNumbers;
+    if (submoduleUpdates.length > 0) {
+        core.startGroup('Submodule updates:');
+        core.info(submoduleUpdates.map((u) => u.version).join(', '));
+        core.endGroup();
+    }
+
+    return {mergedPRs, submoduleUpdates};
+}
+
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags.
+ */
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string, repositoryName: string): Promise<number[]> {
+    const {mergedPRs} = await getMergedPRsDeployedBetween(fromTag, toTag, repositoryName);
+    return mergedPRs.map((pr) => pr.prNumber).sort((a, b) => a - b);
 }
 
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
+    getSubmoduleUpdates,
     getPullRequestsDeployedBetween,
+    getMergedPRsDeployedBetween,
 };
-export type {CommitType};
+export type {CommitType, MergedPR, SubmoduleUpdate};

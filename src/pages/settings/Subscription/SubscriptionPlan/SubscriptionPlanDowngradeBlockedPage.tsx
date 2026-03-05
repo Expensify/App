@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function SubscriptionPlanDowngradeBlockedPage() {
     const {translate} = useLocalize();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
     const onClosePress = () => {
         Navigation.goBack();
