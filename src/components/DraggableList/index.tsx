@@ -16,11 +16,15 @@ type DraggableItemFlags = {
     isDisabled?: boolean;
 };
 
-function getDraggableItemFlags(item: unknown): DraggableItemFlags {
+function getDraggableItemFlags(item: unknown): Required<DraggableItemFlags> {
     if (!item || typeof item !== 'object') {
-        return {};
+        return {isDragDisabled: false, isDisabled: false};
     }
-    return item as DraggableItemFlags;
+    const flags = item as DraggableItemFlags;
+    return {
+        isDragDisabled: !!flags.isDragDisabled,
+        isDisabled: !!flags.isDisabled,
+    };
 }
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
