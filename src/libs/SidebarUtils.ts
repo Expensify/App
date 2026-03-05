@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {PartialPolicyForSidebar, ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
+import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -177,8 +177,10 @@ import {
     isSystemChat as isSystemChatUtil,
     isTaskReport,
     isThread,
+    isTripRoom,
     isUnread,
     isUnreadWithMention,
+    isWorkspaceTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
@@ -282,7 +284,6 @@ function getReportsToDisplayInLHN(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     draftComments: OnyxCollection<string>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
@@ -779,7 +780,15 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    result.shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
+    const rawShouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
+    const isWorkspaceExpenseRequest = isExpenseRequest(report) && !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    const threadSuppression = isChatThread(report) && !isTripRoom(report) && !isWorkspaceExpenseRequest;
+    // For tasks, the header resolves the parent action via chatReportID (not parentReportID).
+    // When chatReportID is absent (offline/nested tasks), the action can't be resolved — treat as "no action".
+    const taskParentAction = isTaskReport(report) && !report.chatReportID ? undefined : parentReportAction;
+    const isReportPreviewOrNoAction = !taskParentAction || taskParentAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const taskSuppression = isTaskReport(report) && !(isWorkspaceTaskReport(report) && isReportPreviewOrNoAction);
+    result.shouldShowSubscript = rawShouldShowSubscript && !threadSuppression && !taskSuppression;
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -1161,7 +1170,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = getIcons(
+    const reportIcons = getIcons(
         report,
         formatPhoneNumberPhoneUtils,
         personalDetails,
@@ -1172,6 +1181,17 @@ function getOptionData({
         invoiceReceiverPolicy,
         isReportArchived,
     );
+
+    // IOU icon trimming (single vs diagonal) is handled at the component level
+    // using useReportPreviewSenderID which has access to transaction attendee data.
+    // INVOICE is also exempt — B2B invoices show two workspace icons as diagonal.
+    if (!result.shouldShowSubscript && report.type !== CONST.REPORT.TYPE.IOU && report.type !== CONST.REPORT.TYPE.INVOICE && reportIcons.length > 1) {
+        const firstIcon = reportIcons.at(0);
+        result.icons = firstIcon ? [firstIcon] : [];
+    } else {
+        result.icons = reportIcons;
+    }
+
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {

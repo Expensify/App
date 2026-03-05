@@ -118,7 +118,6 @@ beforeAll(() => {
         },
     });
     // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
 });
 
@@ -150,7 +149,7 @@ describe('getIcons', () => {
     it('should return the correct icons for archived non expense request/report', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),
-            type: CONST.REPORT.CHAT_TYPE.INVOICE,
+            type: CONST.REPORT.TYPE.CHAT,
         };
         const policy = LHNTestUtils.getFakePolicy('1');
 
@@ -286,8 +285,9 @@ describe('getIcons', () => {
         expect(isMoneyRequestReport(report)).toBe(true);
 
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
-        expect(icons).toHaveLength(1);
-        expect(icons.at(0)?.name).toBe('Email One');
+        expect(icons).toHaveLength(2);
+        expect(icons.at(0)?.name).toBe('Email\u0020Two');
+        expect(icons.at(1)?.name).toBe('Email One');
     });
 
     it('should return the correct icons for a Self DM', () => {
@@ -510,7 +510,6 @@ describe('getIcons', () => {
             type: CONST.REPORT.TYPE.IOU,
             ownerAccountID: 1,
             managerID: 2, // Different from current user (5)
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             participants: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -530,8 +529,8 @@ describe('getIcons', () => {
         const icons = getIcons(report, formatPhoneNumber, FAKE_PERSONAL_DETAILS);
 
         expect(icons).toHaveLength(2);
-        expect(icons.at(0)?.name).toBe('Email\u0020One');
-        expect(icons.at(1)?.name).toBe('Email\u0020Two');
+        expect(icons.at(0)?.name).toBe('Email\u0020Two');
+        expect(icons.at(1)?.name).toBe('Email\u0020One');
     });
 
     it('should return the correct icons for a concierge chat', () => {

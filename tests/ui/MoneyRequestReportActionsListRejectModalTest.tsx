@@ -81,7 +81,6 @@ jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
     return jest.fn(() => ({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         options: [
             {
                 text: 'Delete',

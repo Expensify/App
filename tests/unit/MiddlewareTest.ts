@@ -122,10 +122,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -175,10 +173,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -231,10 +227,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
@@ -292,11 +286,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock)
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -312,7 +304,6 @@ describe('Middleware', () => {
                 }))
                 .mockImplementationOnce(async () => ({
                     ok: true,
-                    // eslint-disable-next-line @typescript-eslint/require-await
                     json: async () => ({
                         jsonCode: 200,
                         onyxData: [
@@ -408,10 +399,8 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            // eslint-disable-next-line @typescript-eslint/require-await
             (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
                 ok: true,
-                // eslint-disable-next-line @typescript-eslint/require-await
                 json: async () => ({
                     jsonCode: 200,
                     onyxData: [
