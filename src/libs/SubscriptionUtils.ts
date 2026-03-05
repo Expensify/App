@@ -628,6 +628,7 @@ export {
     getFreeTrialText,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
+    hasCardExpiredError,
     hasGracePeriodOverdue,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
