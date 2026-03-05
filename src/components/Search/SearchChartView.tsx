@@ -154,6 +154,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading, onScroll, o
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'CreditCard', 'Send', 'Folder', 'Basket', 'Tag', 'Calendar']);
+
     const {titleIconName, getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
     const titleIcon = icons[titleIconName];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
