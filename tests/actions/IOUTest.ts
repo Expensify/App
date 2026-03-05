@@ -587,6 +587,7 @@ describe('actions/IOU', () => {
                 {},
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 
@@ -1147,6 +1148,7 @@ describe('actions/IOU', () => {
                 {},
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 
@@ -1558,6 +1560,7 @@ describe('actions/IOU', () => {
                 allTransactionDrafts,
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 
@@ -1605,6 +1608,7 @@ describe('actions/IOU', () => {
                 {},
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 
@@ -1641,6 +1645,7 @@ describe('actions/IOU', () => {
                 {},
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 
@@ -1672,6 +1677,7 @@ describe('actions/IOU', () => {
                 {},
                 undefined,
                 undefined,
+                0,
             );
             await waitForBatchedUpdates();
 

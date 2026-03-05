@@ -39,7 +39,7 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriodCollection'
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriodCollection' | 'amountOwed'
 > & {
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
@@ -117,6 +117,7 @@ function ReportActionItem({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -192,6 +193,7 @@ function ReportActionItem({
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
             userBillingGraceEndPeriodCollection={userBillingGraceEndPeriodCollection}
+            amountOwed={amountOwed}
         />
     );
 }

@@ -165,6 +165,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const backTo = route.params.backTo;
 
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -457,7 +458,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         introSelected,
                         allTransactionDrafts,
                         activePolicy,
-                        undefined,
+                        userBillingGraceEndPeriodCollection,
+                        amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                     );
@@ -480,6 +482,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             allTransactionDrafts,
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
+                            amountOwed,
                         );
                     },
                 });
@@ -498,7 +501,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            undefined,
+                            userBillingGraceEndPeriodCollection,
+                            amountOwed,
                         );
                     },
                 });
