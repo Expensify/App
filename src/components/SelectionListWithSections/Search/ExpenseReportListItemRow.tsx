@@ -284,7 +284,7 @@ function ExpenseReportListItemRow({
                     <SearchReportAvatar
                         primaryAvatar={item.primaryAvatar}
                         secondaryAvatar={item.secondaryAvatar}
-                        isSubscript={item.isSubscriptAvatar ?? false}
+                        avatarType={item.avatarType ?? CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                         reportID={item.reportID}

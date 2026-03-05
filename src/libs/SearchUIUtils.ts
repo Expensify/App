@@ -1837,6 +1837,49 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
+ * Computes the avatar props (primaryAvatar, secondaryAvatar, avatarType) for a search report row.
+ * Encapsulates the getIcons + shouldReportShowSubscript combination used in expense-report search results.
+ *
+ * For IOU reports under a personal policy with two user avatars (both users sent expenses),
+ * the diagonal MultipleAvatars layout is used to match ReportActionAvatars behaviour.
+ * For workspace IOU/expense reports both user+workspace avatars are shown via subscript layout.
+ * For reports under a personal policy that are not IOU reports, subscript is suppressed.
+ */
+function getSearchReportAvatarProps(
+    report: OnyxTypes.Report,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    personalDetailsList: OnyxTypes.PersonalDetailsList,
+    policy?: OnyxTypes.Policy,
+    isReportArchived = false,
+) {
+    const avatarIcons = getIcons(report, formatPhoneNumber, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
+
+    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
+
+    if (isIOUReportReportUtil(report)) {
+        const isPersonalPolicy = policy?.type === CONST.POLICY.TYPE.PERSONAL;
+        const bothAreUserAvatars = avatarIcons.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatarIcons.at(1)?.type === CONST.ICON_TYPE_AVATAR;
+        if (isPersonalPolicy && bothAreUserAvatars && hasSecondAvatar) {
+            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match ReportActionAvatars
+            avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+        } else {
+            avatarType = hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+        }
+    } else if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    } else {
+        avatarType = shouldReportShowSubscript(report, isReportArchived) && hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    }
+
+    return {
+        primaryAvatar: avatarIcons.at(0),
+        secondaryAvatar: avatarIcons.at(1),
+        avatarType,
+    };
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2283,7 +2326,7 @@ function getReportSections({
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
-                const avatarIcons = getIcons(reportItem, formatPhoneNumber, data.personalDetailsList ?? {}, null, '', -1, policy, undefined, reportIsArchived);
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, data.personalDetailsList ?? {}, policy, reportIsArchived);
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2309,9 +2352,7 @@ function getReportSections({
                     nonReimbursableSpend,
                     reimbursableSpend,
                     isAllScanning: false,
-                    primaryAvatar: avatarIcons.at(0),
-                    secondaryAvatar: avatarIcons.at(1),
-                    isSubscriptAvatar: shouldReportShowSubscript(reportItem, reportIsArchived) && avatarIcons.length > 1 && !!avatarIcons.at(1)?.name,
+                    ...avatarProps,
                 };
 
                 if (isIOUReport) {
@@ -4672,6 +4713,7 @@ export {
     navigateToSearchRHP,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
+    getSearchReportAvatarProps,
     isTodoSearch,
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,

@@ -1126,7 +1126,7 @@ const transactionReportGroupListItems = [
         isAllScanning: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
-        isSubscriptAvatar: true,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1239,7 +1239,7 @@ const transactionReportGroupListItems = [
         isAllScanning: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
-        isSubscriptAvatar: true,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1351,7 +1351,7 @@ const transactionReportGroupListItems = [
         isAllScanning: false,
         primaryAvatar: approverAvatarIcon,
         secondaryAvatar: adminAvatarIcon,
-        isSubscriptAvatar: false,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1538,7 +1538,7 @@ const transactionReportGroupListItems = [
         isAllScanning: false,
         primaryAvatar: adminAvatarIcon,
         secondaryAvatar: policyWorkspaceIcon,
-        isSubscriptAvatar: true,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -4415,7 +4415,7 @@ describe('SearchUIUtils', () => {
             });
         });
 
-        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, isSubscriptAvatar)', () => {
+        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, avatarType)', () => {
             const avatarTestReportID = 'avatar-test-report';
             const avatarTestTxID = 'avatar-tx-1';
 
@@ -4456,7 +4456,7 @@ describe('SearchUIUtils', () => {
                 return {
                     primaryAvatar: item?.primaryAvatar,
                     secondaryAvatar: item?.secondaryAvatar,
-                    isSubscriptAvatar: item?.isSubscriptAvatar,
+                    avatarType: item?.avatarType,
                 };
             }
 
@@ -4476,18 +4476,18 @@ describe('SearchUIUtils', () => {
                 expect(fields.secondaryAvatar?.id).toBe(policyID);
             });
 
-            it('should set isSubscriptAvatar=true for expense reports with a named workspace icon', () => {
+            it('should set avatarType=SUBSCRIPT for expense reports with a named workspace icon', () => {
                 const data = makeAvatarTestData();
                 const fields = getAvatarFields(data);
-                expect(fields.isSubscriptAvatar).toBe(true);
+                expect(fields.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
             });
 
-            it('should set isSubscriptAvatar=true for IOU reports', () => {
+            it('should set avatarType for IOU reports', () => {
                 const data = makeAvatarTestData({type: CONST.REPORT.TYPE.IOU, managerID: adminAccountID});
                 const fields = getAvatarFields(data);
-                // IOU reports return manager + owner icons, not subscript
                 expect(fields.primaryAvatar).toBeDefined();
                 expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.avatarType).toBeDefined();
             });
 
             it('should use owner avatar from personalDetailsList when available', () => {
@@ -4513,7 +4513,7 @@ describe('SearchUIUtils', () => {
                 const fields2 = getAvatarFields(data);
                 expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
                 expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
-                expect(fields1.isSubscriptAvatar).toBe(fields2.isSubscriptAvatar);
+                expect(fields1.avatarType).toBe(fields2.avatarType);
             });
         });
     });
