@@ -516,6 +516,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Achtung!',
         submitTo: 'Einreichen bei',
         forwardTo: 'Weiterleiten an',
+        approvalLimit: 'Genehmigungslimit',
+        overLimitForwardTo: 'Weiterleiten bei Überschreitung',
         merge: 'Zusammenführen',
         none: 'Keine',
         unstableInternetConnection: 'Instabile Internetverbindung. Bitte überprüfe dein Netzwerk und versuche es erneut.',
@@ -906,8 +908,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als Copilot für',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die nicht mit der von dir gewählten Häufigkeit eingereicht werden konnten`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `erstellte diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus dem gelöschten Bericht #${reportID} erstellt`
+                : `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',
@@ -1449,6 +1453,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Erkläre, warum du diese Ausgabe zurückhältst.',
             other: 'Erklären Sie, warum Sie diese Ausgaben zurückhalten.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Erkläre, was du vor der Genehmigung dieser Ausgabe benötigst.',
+            other: 'Erkläre, was du vor der Genehmigung dieser Ausgaben benötigst.',
+        }),
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
         reopened: 'wiedereröffnet',
@@ -1543,7 +1551,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben werden ausgelassen, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
-            reasonPageDescription: 'Erkläre, warum du diese Ausgabe ablehnst.',
+            reasonPageDescription: 'Erkläre, warum du diese Ausgabe nicht genehmigen wirst.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
             rejectedStatus: 'Diese Ausgabe wurde abgelehnt. Wir warten darauf, dass du die Probleme behebst und als gelöst markierst, um das Einreichen zu ermöglichen.',
@@ -1598,6 +1606,8 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
+        cannotDuplicateDistanceExpense:
+            'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
     },
     transactionMerge: {
         listPage: {

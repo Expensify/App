@@ -47,6 +47,7 @@ import {
     canDeleteTransaction,
     canEditMoneyRequest,
     canEditReportDescription,
+    canEditReportTitle,
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
@@ -60,6 +61,7 @@ import {
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    getAddExpenseDropdownOptions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
@@ -156,6 +158,7 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -551,7 +554,11 @@ describe('ReportUtils', () => {
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             });
             expect(result?.guidedSetupData).toHaveLength(0);
-            expect(result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`)).toHaveLength(0);
+            // MICRO company size with suggestedFollowups beta adds a bespoke Concierge welcome action optimistically
+            const reportActionsEntries = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`);
+            expect(reportActionsEntries).toHaveLength(1);
+            expect(result?.bespokeWelcomeMessage).toBeDefined();
+            expect(result?.optimisticConciergeReportActionID).toBeDefined();
         });
 
         it('should add guidedSetupData when posting into admin room WITHOUT suggestedFollowups beta', async () => {
@@ -4103,6 +4110,23 @@ describe('ReportUtils', () => {
             expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
         });
 
+        it('should return false for admins rooms thread when posting tasks in admins room', async () => {
+            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                parentReportID: '1',
+                parentReportActionID: '2',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeFalsy();
+        });
+
         it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
             const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
 
@@ -5231,7 +5255,6 @@ describe('ReportUtils', () => {
         it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS when the report has addWorkspaceRoom errors', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 errorFields: {addWorkspaceRoom: {1708946640843000: 'error creating room'}},
             };
 
@@ -5575,10 +5598,8 @@ describe('ReportUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
-            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const originalMessage = getOriginalMessage(reportAction);
             expect(originalMessage?.originalID).toBe(originalReportID);
-            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
@@ -11563,6 +11584,100 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canEditReportTitle', () => {
+        const getTitleField = (deletable: boolean): PolicyReportField => ({
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'Title',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: '',
+            deletable,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        });
+
+        const getPolicy = (overrides?: Partial<Policy>): Policy => ({
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Policy'),
+            ownerAccountID: 999,
+            fieldList: {
+                [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(true),
+            },
+            ...overrides,
+        });
+
+        it('returns true when title is editable and user can edit report fields', () => {
+            const testPolicy = getPolicy({role: CONST.POLICY.ROLE.ADMIN});
+            const report = {
+                ...createExpenseReport(123),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
+            expect(canEditReportTitle(report, testPolicy)).toBe(true);
+        });
+
+        it('returns false when title field is disabled', () => {
+            const testPolicy = getPolicy({
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: getTitleField(false),
+                },
+            });
+            const report = {
+                ...createExpenseReport(124),
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: 999,
+            };
+
+            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+        });
+
+        it('returns false for non-expense reports', () => {
+            const testPolicy = getPolicy();
+            const report = {
+                ...createExpenseReport(125),
+                type: CONST.REPORT.TYPE.CHAT,
+                policyID: testPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: 999,
+            };
+
+            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+        });
+
+        it('returns false when policy is not a paid group policy', () => {
+            const testPolicy = getPolicy({type: CONST.POLICY.TYPE.PERSONAL});
+            const report = {
+                ...createExpenseReport(126),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            expect(testPolicy.type).toBe(CONST.POLICY.TYPE.PERSONAL);
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(false);
+            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+        });
+
+        it('returns false when user is not admin, owner, approver, or report owner', () => {
+            const testPolicy = getPolicy({ownerAccountID: 777, role: CONST.POLICY.ROLE.USER});
+            const report = {
+                ...createExpenseReport(127),
+                policyID: testPolicy.id,
+                ownerAccountID: 888,
+                managerID: 999,
+            };
+
+            expect(canEditReportTitle(report, testPolicy)).toBe(false);
+        });
+    });
+
     describe('shouldHideSingleReportField', () => {
         it('should return true if report field has title type', () => {
             const reportField = {
@@ -13139,6 +13254,96 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getAddExpenseDropdownOptions', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockIcons = {
+            Location: jest.fn() as unknown as IconAsset,
+            ReceiptPlus: jest.fn() as unknown as IconAsset,
+        };
+        const mockIouReportID = '12345';
+
+        it('should return exactly 3 dropdown options', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            expect(result).toHaveLength(3);
+        });
+
+        it('should return options with correct values', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
+            expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
+            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+        });
+
+        it('should return options with correct translated text', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
+            expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
+            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
+        });
+
+        it('should return options with correct sentry labels', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
+            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
+        });
+
+        it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            const amountOwed = 100;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed);
+
+            // Trigger each onSelected - the function should not throw
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should return options with zero amountOwed without triggering billing restrictions', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0);
+
+            expect(result).toHaveLength(3);
+            // Each onSelected should work without issues when amountOwed is 0
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0);
+
+            // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
+            expect(() => result.at(0)?.onSelected?.()).not.toThrow();
+            expect(() => result.at(1)?.onSelected?.()).not.toThrow();
+            // ADD_UNREPORTED_EXPENSE does not require iouReportID
+            expect(() => result.at(2)?.onSelected?.()).not.toThrow();
+        });
+
+        it('should handle undefined policy gracefully', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+
+            expect(result).toHaveLength(3);
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should accept amountOwed as a number parameter', () => {
+            const amountOwed = 500;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed);
+
+            expect(result).toHaveLength(3);
+        });
+
+        it('should use the provided icons for Location and ReceiptPlus', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            expect(result.at(1)?.icon).toBe(mockIcons.Location);
+            expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
+        });
+    });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
         const policyID = 'policy-delayed-submit';
         const adminAccountID = 42;

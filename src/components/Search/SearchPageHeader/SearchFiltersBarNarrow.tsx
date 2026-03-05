@@ -6,6 +6,7 @@ import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton'
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {FilterItem} from './useSearchFiltersBar';
 import useSearchFiltersBar from './useSearchFiltersBar';
@@ -27,7 +28,6 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
         // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
         // To fix this, we detect when onEndReached is triggered due to an item deletion,
         // and programmatically scroll to the end to fill the space.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
             return;
         }
@@ -65,7 +65,16 @@ function SearchFiltersBarNarrow({queryJSON, isMobileSelectionModeEnabled}: Searc
     }
 
     if (shouldShowFiltersBarLoading) {
-        return <SearchFiltersSkeleton shouldAnimate />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersBarNarrow',
+            shouldShowFiltersBarLoading,
+        };
+        return (
+            <SearchFiltersSkeleton
+                shouldAnimate
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     return (
