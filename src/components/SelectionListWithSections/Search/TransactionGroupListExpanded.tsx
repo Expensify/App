@@ -101,8 +101,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         return {
             hasParentReport: !!parentReport,
-            hasTransaction: false,
-            hasParentReportAction: !!parentReportAction || !!transactionItem.reportAction,
+            hasTransaction: !!transactionItem,
+            hasParentReportAction: !!parentReportAction,
             hasTransactionThreadReport: !!transactionThreadReport,
         };
     };
