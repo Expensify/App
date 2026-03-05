@@ -1,7 +1,7 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
-@@ -1313,9 +1313,12 @@
+@@ -1314,8 +1314,9 @@
                        "mixed", "a checkbox, radio button, or other widget which is both checked and unchecked")];
    }
 -  if (accessibilityState.expanded.value_or(false)) {
