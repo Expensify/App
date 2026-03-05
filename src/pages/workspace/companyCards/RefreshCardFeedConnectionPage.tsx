@@ -1,6 +1,10 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import LoadingPage from '@pages/LoadingPage';
@@ -24,6 +28,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
+    const [isRefreshComplete, setIsRefreshComplete] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -31,13 +36,36 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         };
     }, []);
 
+    const handleRefreshComplete = useCallback(() => {
+        setIsRefreshComplete(true);
+    }, []);
+
+    if (isRefreshComplete) {
+        return (
+            <ScreenWrapper testID="RefreshCardFeedConnectionSuccess">
+                <HeaderWithBackButton
+                    title={translate('workspace.moreFeatures.companyCards.assignNewCards')}
+                    onBackButtonPress={() => Navigation.dismissModal()}
+                />
+                <ConfirmationPage
+                    heading={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccess')}
+                    description={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccessDescription')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => Navigation.dismissModal()}
+                />
+            </ScreenWrapper>
+        );
+    }
+
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
             return (
                 <BankConnection
                     policyID={policyID}
                     feed={feed}
-                    isRefreshFlow
+                    isRefreshConnectionFlow
+                    onRefreshComplete={handleRefreshComplete}
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
@@ -45,6 +73,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                 <PlaidConnectionStep
                     feed={feed}
                     policyID={policyID}
+                    isRefreshConnectionFlow
                 />
             );
         default:

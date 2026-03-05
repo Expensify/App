@@ -45,10 +45,13 @@ type BankConnectionProps = {
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
 
     /** Whether this is a refresh card list flow — always opens bank connection and dismisses on re-auth */
-    isRefreshFlow?: boolean;
+    isRefreshConnectionFlow?: boolean;
+
+    /** Called when re-authentication completes successfully in a refresh flow */
+    onRefreshComplete?: () => void;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConnectionFlow, onRefreshComplete}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -73,7 +76,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
-    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const headerTitle = feed ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.assignCard') : headerTitleAddCards;
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
@@ -123,19 +126,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow
             return;
         }
 
-        // Handle refresh card list flow — always open bank connection, dismiss on re-auth
-        if (feed && isRefreshFlow) {
-            if (!isFeedExpired) {
-                customWindow?.close();
-                Navigation.closeRHPFlow();
-                return;
-            }
-            if (!isPlaid && url) {
-                customWindow = openBankConnection(url);
-            }
-            return;
-        }
-
         // Handle assign card flow
         if (feed) {
             if (!isFeedExpired) {
@@ -145,19 +135,20 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow
                     Navigation.closeRHPFlow();
                     return;
                 }
+                if (isRefreshConnectionFlow && onRefreshComplete) {
+                    onRefreshComplete();
+                    return;
+                }
                 setAssignCardStepAndData({
                     currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;
             }
-            if (isPlaid) {
-                return;
-            }
-            if (url) {
+            if (!isPlaid && url) {
                 customWindow = openBankConnection(url);
-                return;
             }
+            return;
         }
 
         // Handle add new card flow
@@ -206,7 +197,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
-        isRefreshFlow,
+        isRefreshConnectionFlow,
+        onRefreshComplete,
     ]);
 
     const getContent = () => {

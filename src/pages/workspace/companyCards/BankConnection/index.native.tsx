@@ -39,9 +39,15 @@ type BankConnectionProps = {
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
+
+    /** Whether this is a refresh card list flow */
+    isRefreshConnectionFlow?: boolean;
+
+    /** Called when re-authentication completes successfully in a refresh flow */
+    onRefreshComplete?: () => void;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConnectionFlow, onRefreshComplete}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -109,6 +115,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                 return;
             }
+            if (isRefreshConnectionFlow && onRefreshComplete) {
+                onRefreshComplete();
+                return;
+            }
             setAssignCardStepAndData({
                 currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
@@ -148,6 +158,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        isRefreshConnectionFlow,
+        onRefreshComplete,
     ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
