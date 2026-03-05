@@ -17,12 +17,14 @@ describe('shouldRenderTransferOwnerButton', () => {
             },
         };
 
+        // eslint-disable-next-line testing-library/render-result-naming-convention
         const result = shouldRenderTransferOwnerButton(FUND_LIST);
         expect(result).toBe(true);
     });
 
     it('should return false if fund list is empty', () => {
         const FUND_LIST: OnyxEntry<FundList> = {};
+        // eslint-disable-next-line testing-library/render-result-naming-convention
         const result = shouldRenderTransferOwnerButton(FUND_LIST);
         expect(result).toBe(false);
     });

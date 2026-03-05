@@ -100,7 +100,11 @@ function OptionRowLHN({
         [optionItem?.alternateText],
     );
 
-    const delegateAccountID = useMemo(() => getDelegateAccountIDFromReportAction(optionItem?.parentReportAction), [optionItem?.parentReportAction]);
+    const delegateAccountID = useMemo(
+        () => getDelegateAccountIDFromReportAction(optionItem?.parentReportAction),
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- getDelegateAccountIDFromReportAction is a stable import; only parentReportAction determines the result
+        [optionItem?.parentReportAction],
+    );
 
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
@@ -234,6 +238,7 @@ function OptionRowLHN({
             needsOffscreenAlphaCompositing
         >
             <EducationalTooltip
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 shouldRender={shouldShowProductTrainingTooltip}
                 renderTooltipContent={renderProductTrainingTooltip}
                 anchorAlignment={{

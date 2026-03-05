@@ -59,6 +59,7 @@ function UserListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, {
         selector: reportExistsSelector,
     });
@@ -133,6 +134,7 @@ function UserListItem<TItem extends ListItem>({
                                     isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                 ]}
                                 reportID={reportExists ? item.reportID : undefined}
+                                /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
                                 accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
                                 policyID={!reportExists && !!policyID ? policyID : undefined}
                                 singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
