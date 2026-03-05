@@ -196,6 +196,7 @@ function IOURequestStepAmount({
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(amount));
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, selectedCurrency || CONST.CURRENCY.USD, shouldKeepUserInput);
 
         if (isMovingTransactionFromTrackExpense(action)) {

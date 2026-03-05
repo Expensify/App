@@ -132,6 +132,7 @@ function ScheduleCallPage() {
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
             return;
         }
