@@ -9,8 +9,8 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedFlashList from '@components/InvertedFlashList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
+import InvertedFlashList from '@components/InvertedFlashList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -111,15 +111,6 @@ type ReportActionsListProps = {
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
-
-    /** ID of the list */
-    listID: number;
-
-    /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
-    /** Whether the optimistic CREATED report action was added */
-    hasCreatedActionAdded?: boolean;
 
     /** If concierge is currently processing a request */
     isConciergeProcessing?: boolean;

@@ -8,7 +8,6 @@ import useLoadReportActions from '@hooks/useLoadReportActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -312,9 +311,6 @@ function ReportActionsView({
                     mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     loadOlderChats={loadOlderChats}
                     loadNewerChats={loadNewerChats}
-                    listID={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
-                    hasCreatedActionAdded={shouldAddCreatedAction}
                     isConciergeProcessing={isConciergeProcessing}
                     conciergeReasoningHistory={conciergeReasoningHistory}
                     conciergeStatusLabel={conciergeStatusLabel}
