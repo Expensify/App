@@ -7428,11 +7428,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
     const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
-    // Omit allTransactionDrafts from retryParams so getReceiptError's JSON.stringify doesn't store
-    // the full draft collection in Onyx, which would bloat errors and cause nested payload ballooning on retries.
-    const paramsWithoutDrafts = {...params, allTransactionDrafts: undefined};
     const retryParams: CreateTrackExpenseParams = {
-        ...paramsWithoutDrafts,
+        ...params,
         report,
         isDraftPolicy,
         action,
