@@ -9,7 +9,6 @@ import {
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasGracePeriodOverdue,
-    hasOverdueGracePeriod,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -786,28 +785,6 @@ describe('SubscriptionUtils', () => {
         it('should return false when billing dispute is pending (error state)', async () => {
             // Billing dispute pending should return error, not green dot
             expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, 1, undefined, undefined, undefined, 0, undefined)).toBe(false);
-        });
-    });
-
-    describe('hasOverdueGracePeriod - pure function behavior', () => {
-        beforeEach(async () => {
-            // Clear all Onyx state to ensure we're testing pure function behavior
-            await Onyx.clear();
-        });
-
-        it('should return true when grace period is passed as parameter', () => {
-            // Pass grace period as parameter - should return true
-            expect(hasOverdueGracePeriod(GRACE_PERIOD_DATE)).toBe(true);
-        });
-
-        it('should return true when overdue grace period is passed as parameter', () => {
-            // Pass overdue grace period as parameter - should return true
-            expect(hasOverdueGracePeriod(GRACE_PERIOD_DATE_OVERDUE)).toBe(true);
-        });
-
-        it('should return false when no grace period is passed and none is set in Onyx', () => {
-            // No Onyx value set, no parameter passed
-            expect(hasOverdueGracePeriod(undefined)).toBe(false);
         });
     });
 

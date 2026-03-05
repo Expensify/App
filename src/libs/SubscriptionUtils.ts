@@ -87,13 +87,6 @@ Onyx.connect({
 });
 
 /**
- * @returns Whether the workspace owner has an overdue grace period.
- */
-function hasOverdueGracePeriod(gracePeriodEnd: OnyxEntry<number>): boolean {
-    return !!gracePeriodEnd;
-}
-
-/**
  * @returns Whether the workspace owner's grace period is overdue.
  */
 function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
@@ -260,7 +253,7 @@ function getSubscriptionStatus(
     amountOwed: number,
     ownerBillingGraceEndPeriod: OnyxEntry<number>,
 ): SubscriptionStatus | undefined {
-    if (hasOverdueGracePeriod(ownerBillingGraceEndPeriod)) {
+    if (ownerBillingGraceEndPeriod) {
         if (amountOwed !== 0) {
             // 1. Policy owner with amount owed, within grace period
             if (!hasGracePeriodOverdue(ownerBillingGraceEndPeriod)) {
@@ -612,7 +605,6 @@ export {
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasGracePeriodOverdue,
-    hasOverdueGracePeriod,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
