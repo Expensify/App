@@ -73,6 +73,7 @@ function SearchFiltersTagPage() {
                     items={tagItems}
                     initiallySelectedItems={selectedTagsItems}
                     onSaveSelection={updateTagFilter}
+                    shouldShowTextInput={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 />
             </View>
         </ScreenWrapper>

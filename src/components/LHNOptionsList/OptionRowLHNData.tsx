@@ -1,15 +1,18 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
+import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -62,6 +65,14 @@ function OptionRowLHNData({
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
+    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
+    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
+    const reportPreviewSenderID = useReportPreviewSenderID({
+        iouReport: isIOUReport ? fullReport : undefined,
+        action: parentReportAction,
+        chatReport: chatReportForIOU,
+    });
+
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -86,7 +97,7 @@ function OptionRowLHNData({
             currentUserAccountID,
             reportAttributesDerived,
             policyTags,
-            currentUserLogin: login,
+            currentUserLogin: login ?? '',
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -132,12 +143,23 @@ function OptionRowLHNData({
         login,
     ]);
 
+    // For single-sender IOUs, trim to the sender's avatar to match the header.
+    // The header uses reportPreviewSenderID as accountID for its primary avatar,
+    // so we pick the matching icon from getIconsForIOUReport to stay consistent.
+    const finalOptionItem = useMemo(() => {
+        if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
+            return optionItem;
+        }
+        const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
+        return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
+    }, [optionItem, isIOUReport, reportPreviewSenderID]);
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             isOptionFocused={isReportFocused}
-            optionItem={optionItem}
+            optionItem={finalOptionItem}
             report={fullReport}
         />
     );

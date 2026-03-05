@@ -63,7 +63,7 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
@@ -103,11 +103,15 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         if (!options || isLoadingMore) {
             return;
         }
-        setIsLoadingMore(true);
-        setReportsLimit((prev) => prev + batchSize);
+
+        const hasMoreToLoad = options.reports.length < totalReports;
+        if (hasMoreToLoad) {
+            setIsLoadingMore(true);
+            setReportsLimit((prev) => prev + batchSize);
+        }
     };
 
-    const hasMore = options ? reportsLimit < totalReports : false;
+    const hasMore = options ? options.reports.length < totalReports : false;
 
     return {
         options,
