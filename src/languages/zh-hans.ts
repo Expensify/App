@@ -7263,7 +7263,7 @@ ${reportName}
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `您与企业银行账户的 Plaid 连接已中断。请<a href='${walletRoute}'>重新连接您的银行账户 ${maskedAccountNumber}</a>，以便继续使用 Expensify 卡。`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? '通过工作区加入链接加入' : `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} ${role}`,
+                    didJoinPolicy ? `${email} 通过工作区加入链接加入` : `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} 的 ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（先前为 ${currentRole}）`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

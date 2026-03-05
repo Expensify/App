@@ -7463,7 +7463,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `la connessione Plaid al conto bancario della tua azienda non funziona. Per favore, <a href='${walletRoute}'>ricollega il conto bancario ${maskedAccountNumber}</a> così puoi continuare a usare le tue Carte Expensify.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? 'si è unito tramite link di accesso allo spazio di lavoro' : `aggiunto ${email} come ${role === 'member' ? 'a' : 'un'} ${role}`,
+                    didJoinPolicy ? `${email} si è unito tramite link di invito al workspace` : `ha aggiunto ${email} come ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `ha aggiornato il ruolo di ${email} a ${newRole} (in precedenza ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {

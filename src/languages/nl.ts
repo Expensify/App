@@ -7441,7 +7441,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
                     `de Plaid-verbinding met je zakelijke bankrekening is verbroken. <a href='${walletRoute}'>Verbind je bankrekening ${maskedAccountNumber} opnieuw</a> zodat je je Expensify Kaarten kunt blijven gebruiken.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) =>
-                    didJoinPolicy ? 'is via uitnodigingslink voor werkruimte toegevoegd' : `${email} toegevoegd als ${role === 'member' ? 'een' : 'een'} ${role}`,
+                    didJoinPolicy ? `${email} is via de werkruimte-koppelingslink lid geworden` : `${email} toegevoegd als ${role === 'member' ? 'een' : 'een'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `heeft de rol van ${email} bijgewerkt naar ${newRole} (voorheen ${currentRole})`,
                 updatedCustomField1: (email: string, newValue: string, previousValue: string) => {
                     if (!newValue) {
