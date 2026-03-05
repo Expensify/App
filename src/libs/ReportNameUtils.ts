@@ -559,7 +559,11 @@ function computeReportNameBasedOnReportAction(
         return getPolicyChangeMessage(translate, parentReportAction);
     }
 
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+    if (
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+        isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+    ) {
         return Parser.htmlToText(getChangedApproverActionMessage(translate, parentReportAction));
     }
 
