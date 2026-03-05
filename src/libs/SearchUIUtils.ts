@@ -941,13 +941,8 @@ function getSuggestedSearches(
     };
 }
 
-function getDefaultActionableSearchMenuItem(menuItems: SearchTypeMenuItem[]) {
-    return menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
-}
-
 /**
  * Determines if the current user is eligible for the approve suggestion on a given policy.
- * This is shared between `useDefaultSearchQuery` (lightweight hook) and `getSuggestedSearchesVisibility`.
  */
 function isEligibleForApproveSuggestion(approvalMode: string | undefined, isApprover: boolean, isSubmittedToTarget: boolean): boolean {
     const isApprovalEnabled = approvalMode ? approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -4635,7 +4630,6 @@ function applySelectionToItem(
 
 export {
     getSuggestedSearches,
-    getDefaultActionableSearchMenuItem,
     getListItem,
     getSections,
     getSuggestedSearchesVisibility,
