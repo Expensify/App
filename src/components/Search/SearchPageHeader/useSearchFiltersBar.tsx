@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
@@ -83,12 +82,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
-    useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
@@ -143,7 +141,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
+    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feed = feedFilterValues ? feedOptions.filter((option) => feedFilterValues.includes(option.value)) : [];
 
     const statusOptions = type ? getStatusOptions(translate, type.value) : [];
