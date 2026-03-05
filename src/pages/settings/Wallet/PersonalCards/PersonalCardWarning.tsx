@@ -77,7 +77,7 @@ function PersonalCardWarning() {
                     />
                 </>
             }
-            childrenContainerStyles={[styles.pt3, styles.gap6]}
+            childrenContainerStyles={[styles.pt0, styles.gap6]}
             shouldShowOfflineIndicatorInWideScreen
         >
             <View style={[styles.flex1, styles.gap4, styles.mh5]}>
