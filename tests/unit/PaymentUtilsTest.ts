@@ -262,19 +262,19 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(approveMoneyRequest).toHaveBeenCalledWith(
-                params.iouReport,
-                params.policy,
-                params.currentAccountID,
-                params.currentEmail,
-                params.hasViolations,
-                params.isASAPSubmitBetaEnabled,
-                params.iouReportNextStep,
-                params.betas,
-                params.userBillingGraceEndPeriods,
-                42,
-                true,
-            );
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: 42,
+                full: true,
+            });
         });
 
         it('should pass amountOwed as undefined to approveMoneyRequest when amountOwed is undefined', () => {
@@ -286,19 +286,19 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(approveMoneyRequest).toHaveBeenCalledWith(
-                params.iouReport,
-                params.policy,
-                params.currentAccountID,
-                params.currentEmail,
-                params.hasViolations,
-                params.isASAPSubmitBetaEnabled,
-                params.iouReportNextStep,
-                params.betas,
-                params.userBillingGraceEndPeriods,
-                undefined,
-                true,
-            );
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: undefined,
+                full: true,
+            });
         });
 
         it('should call onPress with payment type for other payment types', () => {
