@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
-    getAmountOwed,
     getEarlyDiscountInfo,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
@@ -526,20 +525,6 @@ describe('SubscriptionUtils', () => {
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
-        });
-    });
-
-    describe('getAmountOwed', () => {
-        it('should return 0 when no value is provided and no module variable is set', () => {
-            expect(getAmountOwed(undefined)).toBe(0);
-        });
-
-        it('should return the provided value when a value is passed', () => {
-            expect(getAmountOwed(AMOUNT_OWED)).toBe(AMOUNT_OWED);
-        });
-
-        it('should return 0 when undefined is provided', () => {
-            expect(getAmountOwed(undefined)).toBe(0);
         });
     });
 

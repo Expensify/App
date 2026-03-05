@@ -5347,7 +5347,6 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
                         category: 'Employee Meals Remote (Fringe Benefit)',
@@ -5421,7 +5420,6 @@ describe('SearchUIUtils', () => {
                         displayName: 'You',
                         login: 'you@expensifail.com',
                     },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2074551': {
                         accountID: 2074551,
                         avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
@@ -5429,7 +5427,6 @@ describe('SearchUIUtils', () => {
                         login: 'jason@expensifail.com',
                     },
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 policy_137DA25D273F2423: {
                     approvalMode: 'ADVANCED',
                     approver: '',
@@ -5456,7 +5453,6 @@ describe('SearchUIUtils', () => {
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: true,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
@@ -5478,7 +5474,6 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     unheldTotal: -1000,
                 },
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
                     cardID: undefined,
@@ -6281,7 +6276,8 @@ describe('SearchUIUtils', () => {
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const backTo = '/search/all';
         const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-
+        const currentUserLogin = 'test@example.com';
+        const currentUserAccountID = 1;
         beforeEach(() => {
             jest.clearAllMocks();
         });
@@ -6289,20 +6285,20 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
@@ -6322,7 +6318,7 @@ describe('SearchUIUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, undefined, undefined, true);
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
@@ -6331,7 +6327,7 @@ describe('SearchUIUtils', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
             const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
         });
@@ -6339,7 +6335,7 @@ describe('SearchUIUtils', () => {
         test('Should pass undefined introSelected without bypassing with empty values', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
@@ -7070,6 +7066,61 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
             expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+        });
+    });
+
+    describe('Test getFeedOptions', () => {
+        test('should return feed options sorted alphabetically', () => {
+            const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}100`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Zebra Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}200`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Alpha Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}300`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'Middle Card',
+                        },
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getFeedOptions(mockCardFeeds, undefined, translateLocal, localeCompare);
+
+            expect(result.length).toBe(3);
+            expect(result.at(0)?.text).toBe('Alpha Card');
+            expect(result.at(1)?.text).toBe('Middle Card');
+            expect(result.at(2)?.text).toBe('Zebra Card');
+        });
+
+        test('should return empty array when no card feeds exist', () => {
+            const result = SearchUIUtils.getFeedOptions({}, undefined, translateLocal, localeCompare);
+            expect(result).toEqual([]);
         });
     });
 

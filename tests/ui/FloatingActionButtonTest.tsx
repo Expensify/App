@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 
 // FloatingActionButton relies on ProductTrainingContext, so provide a minimal mock.
 jest.mock('@components/ProductTrainingContext', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     useProductTrainingContext: (): {
         renderProductTrainingTooltip: () => null;
         shouldShowProductTrainingTooltip: boolean;
