@@ -1,14 +1,13 @@
 import {useNavigation} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -29,25 +28,14 @@ const isInFocusModeSelector = (priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIO
  *
  */
 export default function PriorityModeController() {
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const lhnReportCount = orderedReportIDs.length;
     const [isLoadingReportData] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const [isInFocusMode, isInFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: isInFocusModeSelector});
     const [hasTriedFocusMode, hasTriedFocusModeMetadata] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const currentRouteName = useCurrentRouteName();
     const [shouldShowModal, setShouldShowModal] = useState(false);
     const closeModal = useCallback(() => setShouldShowModal(false), []);
-    const validReportCount = useMemo(() => {
-        let count = 0;
-        for (const report of Object.values(allReports ?? {})) {
-            if (!isValidReport(report) || !isReportParticipant(accountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
-                continue;
-            }
-
-            count++;
-        }
-        return count;
-    }, [accountID, allReports]);
 
     // We set this when we have finally auto-switched the user of #focus mode to prevent duplication.
     const hasSwitched = useRef(false);
@@ -57,7 +45,6 @@ export default function PriorityModeController() {
         // Wait for Onyx state to fully load
         if (
             isLoadingReportData !== false ||
-            !accountID ||
             isLoadingOnyxValue(isInFocusModeMetadata, hasTriedFocusModeMetadata) ||
             typeof isInFocusMode !== 'boolean' ||
             typeof hasTriedFocusMode !== 'boolean'
@@ -65,30 +52,29 @@ export default function PriorityModeController() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (hasSwitched.current || isInFocusMode || hasTriedFocusMode) {
             return;
         }
 
-        if (validReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
-            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {validReportCount});
+        if (lhnReportCount < CONST.REPORT.MAX_COUNT_BEFORE_FOCUS_UPDATE) {
+            Log.info('[PriorityModeController] Not switching user to focus mode as they do not have enough reports', false, {lhnReportCount});
             return;
         }
 
         // We wait for the user to navigate back to the home screen before triggering this switch
         const isNarrowLayout = getIsNarrowLayout();
         if ((isNarrowLayout && currentRouteName !== SCREENS.INBOX) || (!isNarrowLayout && currentRouteName !== SCREENS.REPORT)) {
-            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {validReportCount, currentRouteName});
+            Log.info("[PriorityModeController] Not switching user to focus mode as they aren't on the home screen", false, {lhnReportCount, currentRouteName});
             return;
         }
 
-        Log.info('[PriorityModeController] Switching user to focus mode', false, {validReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
+        Log.info('[PriorityModeController] Switching user to focus mode', false, {lhnReportCount, hasTriedFocusMode, isInFocusMode, currentRouteName});
         updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
         requestAnimationFrame(() => {
             setShouldShowModal(true);
         });
         hasSwitched.current = true;
-    }, [accountID, currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, validReportCount]);
+    }, [currentRouteName, hasTriedFocusMode, hasTriedFocusModeMetadata, isInFocusMode, isInFocusModeMetadata, isLoadingReportData, lhnReportCount]);
 
     useEffect(() => {
         if (!shouldShowModal) {

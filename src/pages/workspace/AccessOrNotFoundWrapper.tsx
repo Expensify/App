@@ -197,7 +197,6 @@ function AccessOrNotFoundWrapper({
     }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingReportData || !isPolicyNotAccessible) {
             return;
         }

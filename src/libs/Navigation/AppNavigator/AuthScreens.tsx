@@ -146,6 +146,60 @@ const modalScreenListenersWithCancelSearch = {
     },
 };
 
+function EscapeShortcutHandler() {
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
+        useWideRHPState();
+
+    useEffect(() => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (modal?.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                if (modal?.disableDismissOnEscape) {
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForWideRHP) {
+                    Navigation.closeRHPFlow();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
+                    Navigation.dismissToSuperWideRHP();
+                    return;
+                }
+
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
+                    Navigation.dismissToPreviousRHP();
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
+
+        return () => unsubscribeEscapeKey();
+    }, [
+        modal?.disableDismissOnEscape,
+        modal?.willAlertModalBecomeVisible,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderTertiaryOverlay,
+    ]);
+
+    return null;
+}
+
 function AuthScreens() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -162,8 +216,6 @@ function AuthScreens() {
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderTertiaryOverlay} =
-        useWideRHPState();
 
     // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
@@ -178,7 +230,6 @@ function AuthScreens() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
@@ -206,7 +257,6 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountID]);
 
     useAutoUpdateTimezone();
@@ -360,51 +410,6 @@ function AuthScreens() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (modal?.willAlertModalBecomeVisible) {
-                    return;
-                }
-
-                if (modal?.disableDismissOnEscape) {
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForWideRHP) {
-                    Navigation.closeRHPFlow();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnSuperWideRHP) {
-                    Navigation.dismissToSuperWideRHP();
-                    return;
-                }
-
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
-                    Navigation.dismissToPreviousRHP();
-                    return;
-                }
-
-                Navigation.dismissModal();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-        return () => unsubscribeEscapeKey();
-    }, [
-        modal?.disableDismissOnEscape,
-        modal?.willAlertModalBecomeVisible,
-        shouldRenderSecondaryOverlayForWideRHP,
-        shouldRenderSecondaryOverlayForRHPOnWideRHP,
-        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
-        shouldRenderTertiaryOverlay,
-    ]);
-
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         // We don't need to do anything special for the wide screen.
@@ -521,6 +526,7 @@ function AuthScreens() {
                 SupportalPermissionDeniedModalProvider,
             ]}
         >
+            <EscapeShortcutHandler />
             <RootStack.Navigator
                 persistentScreens={[
                     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
