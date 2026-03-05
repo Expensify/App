@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
@@ -24,7 +25,7 @@ function CurrencySelectionList({
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
-    const [initialSelectedCurrencyCodes] = useState<string[]>(() => {
+    const initialSelectedCurrencyCodes = useMemo(() => {
         const codes = new Set<string>();
         if (initiallySelectedCurrencyCode) {
             codes.add(initiallySelectedCurrencyCode);
@@ -33,7 +34,8 @@ function CurrencySelectionList({
             codes.add(currencyCode);
         }
         return Array.from(codes);
-    });
+    }, [initiallySelectedCurrencyCode, selectedCurrencies]);
+    const initialSelectedCurrencySnapshot = useInitialSelectionRef(initialSelectedCurrencyCodes, {resetDeps: [initialSelectedCurrencyCodes], resetOnFocus: true});
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
         const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
@@ -68,11 +70,11 @@ function CurrencySelectionList({
         .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
         .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
 
-    const shouldReorderInitialSelection = !searchValue && initialSelectedCurrencyCodes.length > 0;
+    const shouldReorderInitialSelection = !searchValue && initialSelectedCurrencySnapshot.length > 0;
     const displayCurrencies = shouldReorderInitialSelection
         ? moveInitialSelectionToTopByValue(
               filteredCurrencies.map((currency) => ({...currency, value: currency.currencyCode})),
-              initialSelectedCurrencyCodes,
+              initialSelectedCurrencySnapshot,
           )
         : filteredCurrencies;
 
@@ -99,12 +101,12 @@ function CurrencySelectionList({
                     data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
                     sectionIndex: 1,
                 },
-                {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies, sectionIndex: 2},
+                {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : displayCurrencies, sectionIndex: 2},
             );
         }
     } else if (!isEmpty) {
         sections.push({
-            data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : filteredCurrencies,
+            data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : displayCurrencies,
             sectionIndex: 3,
         });
     }
