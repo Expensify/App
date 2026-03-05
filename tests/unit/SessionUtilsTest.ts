@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, isLoggingInAsNewUser} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -49,6 +49,35 @@ describe('SessionUtils', () => {
             ['should be case sensitive for expensify.cash- prefix when in HybridApp', true, 'EXPENSIFY.CASH-12345', false],
         ])('%s', (description, isHybridApp, partnerUserID, expectedResult) => {
             testPartnerNameBehavior(isHybridApp, partnerUserID, expectedResult);
+        });
+    });
+
+    describe('isLoggingInAsNewUser', () => {
+        it('should return true when transition email differs from session email', () => {
+            const transitionURL = 'https://new.expensify.com/transition?email=target@example.com&authTokenType=support';
+            expect(isLoggingInAsNewUser(transitionURL, 'agent@expensify.com')).toBe(true);
+        });
+
+        it('should return false when transition email matches session email', () => {
+            const transitionURL = 'https://new.expensify.com/transition?email=user@example.com';
+            expect(isLoggingInAsNewUser(transitionURL, 'user@example.com')).toBe(false);
+        });
+
+        it('should return false when supportal-ing into the same user again (emails match)', () => {
+            // This is the edge case that causes stale policies — the agent already supportal'd
+            // into this user before, so session.email is already the target user's email.
+            const transitionURL = 'https://new.expensify.com/transition?email=target@example.com&authTokenType=support';
+            expect(isLoggingInAsNewUser(transitionURL, 'target@example.com')).toBe(false);
+        });
+
+        it('should return true when transition URL has no email param', () => {
+            const transitionURL = 'https://new.expensify.com/transition?authTokenType=support';
+            expect(isLoggingInAsNewUser(transitionURL, 'agent@expensify.com')).toBe(true);
+        });
+
+        it('should return true when both transition URL and session have no email', () => {
+            // params.get('email') returns null, sessionEmail is undefined → null !== undefined → true
+            expect(isLoggingInAsNewUser(undefined, undefined)).toBe(true);
         });
     });
 });
