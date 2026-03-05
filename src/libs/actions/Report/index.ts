@@ -3345,6 +3345,7 @@ function buildNewReportOptimisticData(
     };
 
     // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -3726,6 +3727,7 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     navigateToConciergeChat(conciergeReportID, deprecatedIntroSelected, currentUserAccountID, false);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
@@ -6282,6 +6284,7 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean, 
         return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID)));
     });
@@ -6380,6 +6383,7 @@ function buildOptimisticChangePolicyData(
 
     if (newStatusNum != null && newStatusNum !== undefined) {
         // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,

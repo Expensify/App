@@ -1646,6 +1646,7 @@ function MoneyReportHeader({
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute);
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport({
                             report: moneyRequestReport,
