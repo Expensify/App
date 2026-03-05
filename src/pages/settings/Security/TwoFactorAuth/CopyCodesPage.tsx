@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {AccessibilityInfo, Platform, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -29,6 +29,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
+const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
+
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
     const styles = useThemeStyles();
@@ -39,16 +41,27 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
+    const announcementTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const announceStatus = (message: string) => {
-        if (Platform.OS === CONST.PLATFORM.IOS) {
-            AccessibilityInfo.announceForAccessibility(message);
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) {
+            return;
         }
-        setStatusAnnouncement((previousStatusAnnouncement) => ({id: previousStatusAnnouncement.id + 1, text: message}));
+
+        if (Platform.OS === CONST.PLATFORM.IOS) {
+            if (announcementTimeoutRef.current) {
+                clearTimeout(announcementTimeoutRef.current);
+            }
+            announcementTimeoutRef.current = setTimeout(() => {
+                AccessibilityInfo.announceForAccessibility(trimmedMessage);
+            }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
+        }
+        setStatusAnnouncement((previousStatusAnnouncement) => ({id: previousStatusAnnouncement.id + 1, text: trimmedMessage}));
     };
 
     useEffect(() => {
@@ -69,6 +82,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status, isFocused]);
+
+    useEffect(() => {
+        return () => {
+            if (!announcementTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(announcementTimeoutRef.current);
+        };
+    }, []);
 
     return (
         <TwoFactorAuthWrapper
@@ -126,7 +148,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
-                                                announceStatus(translate('common.copied'));
+                                                announceStatus(translate('twoFactorAuth.codesCopiedToClipboard'));
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
@@ -139,10 +161,11 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             text={translate('common.download')}
                                             icon={icons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
+                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate, undefined, () => {
+                                                    announceStatus(translate('fileDownload.success.title'));
+                                                });
                                                 setError('');
                                                 setCodesAreCopied();
-                                                announceStatus(translate('fileDownload.success.title'));
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}

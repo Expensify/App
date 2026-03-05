@@ -8,11 +8,18 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to share it using iOS' share API.
  * After the file is shared, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, _translate, _successMessage, onSuccess) => {
     localFileCreate(fileName, textContent).then(({path, newFileName}) => {
-        Share.share({url: path, title: newFileName}).finally(() => {
-            RNFetchBlob.fs.unlink(path);
-        });
+        Share.share({url: path, title: newFileName})
+            .then((result) => {
+                if (result.action !== Share.sharedAction) {
+                    return;
+                }
+                onSuccess?.();
+            })
+            .finally(() => {
+                RNFetchBlob.fs.unlink(path);
+            });
     });
 };
 
