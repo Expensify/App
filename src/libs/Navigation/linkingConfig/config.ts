@@ -269,6 +269,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -1327,6 +1335,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
                             path: ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+                            path: ROUTES.DOMAIN_LOCK_ACCOUNT.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1404,6 +1415,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
                             path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.COLUMNS]: {
+                            path: ROUTES.REPORT_SETTINGS_COLUMNS.route,
                         },
                     },
                 },
@@ -1556,6 +1570,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: {
                     screens: {
                         [SCREENS.WORKSPACE_CONFIRMATION.ROOT]: ROUTES.WORKSPACE_CONFIRMATION.route,
+                        [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: ROUTES.WORKSPACE_CONFIRMATION_OWNER_SELECTOR,
                         [SCREENS.CURRENCY.SELECTION]: ROUTES.CURRENCY_SELECTION.route,
                     },
                 },

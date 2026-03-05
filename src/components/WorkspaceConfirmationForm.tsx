@@ -1,4 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
+import type {ScrollView as RNScrollView} from 'react-native';
 import {View} from 'react-native';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,12 +14,13 @@ import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Poli
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import getFirstAlphaNumericCharacter from '@libs/getFirstAlphaNumericCharacter';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
@@ -26,13 +29,21 @@ import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import PlanTypeSelector from './PlanTypeSelector';
 import ScrollView from './ScrollView';
+import Switch from './Switch';
 import Text from './Text';
 import TextInput from './TextInput';
+
+type PolicyType = typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
 
 type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
+    planType?: PolicyType;
+    owner?: string;
+    makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
 };
@@ -59,6 +70,9 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isApprovedAccountant = !!account?.isApprovedAccountant;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
@@ -77,13 +91,25 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
             }
 
+            // Only validate plan type and owner for approved accountants
+            if (isApprovedAccountant) {
+                if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                    errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
+                }
+
+                if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
+                    errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
+                }
+            }
+
             return errors;
         },
-        [translate],
+        [translate, isApprovedAccountant],
     );
 
     const policyID = useMemo(() => generatePolicyID(), []);
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
@@ -92,6 +118,24 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+
+    const isMemberOfControlWorkspace = useMemo(() => {
+        if (!policies) {
+            return false;
+        }
+        return Object.values(policies).some((policy) => policy && policy.type === CONST.POLICY.TYPE.CORPORATE);
+    }, [policies]);
+
+    const defaultPlanType = isMemberOfControlWorkspace ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
+    const userPlanType = draftValues?.planType ?? defaultPlanType;
+    const defaultOwner = (policyOwnerEmail || session?.email) ?? '';
+
+    const userOwner = draftValues?.owner ?? defaultOwner;
+    const ownerDisplayName = userOwner;
+
+    const [makeMeAdmin, setMakeMeAdmin] = useState(true);
+    const currentUserEmail = session?.email ?? '';
+    const isOwnerDifferentFromCurrentUser = userOwner !== currentUserEmail && currentUserEmail !== '';
 
     useEffect(() => {
         return () => {
@@ -122,8 +166,15 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView
+                ref={scrollViewRef}
                 contentContainerStyle={styles.flexGrow1}
                 keyboardShouldPersistTaps="always"
+                onContentSizeChange={() => {
+                    if (!isApprovedAccountant) {
+                        return;
+                    }
+                    scrollViewRef.current?.scrollToEnd({animated: true});
+                }}
             >
                 <View style={[styles.ph5, styles.pv3]}>
                     <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.emptyWorkspace.subtitle')}</Text>
@@ -155,16 +206,20 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     validate={validate}
-                    onSubmit={(val) =>
+                    onSubmit={(val) => {
                         onSubmit({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
+                            planType: isApprovedAccountant ? (val[INPUT_IDS.PLAN_TYPE] as PolicyType) : undefined,
+                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
+                            makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,
-                        })
-                    }
+                        });
+                    }}
                     enabledWhenOffline
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    shouldScrollToEnd={isApprovedAccountant}
                 >
                     <View style={styles.mb4}>
                         {!isLoadingOnyxValue(metadata) && (
@@ -196,6 +251,48 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                                 currencySelectorRoute={ROUTES.CURRENCY_SELECTION}
                             />
                         </View>
+                        {isApprovedAccountant && (
+                            <>
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={PlanTypeSelector}
+                                        inputID={INPUT_IDS.PLAN_TYPE}
+                                        label={translate('workspace.common.planType')}
+                                        defaultValue={userPlanType}
+                                    />
+                                </View>
+
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={MenuItemWithTopDescription}
+                                        inputID={INPUT_IDS.OWNER}
+                                        description={translate('workspace.common.workspaceOwner')}
+                                        title={ownerDisplayName}
+                                        interactive
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.OWNER_SELECTOR.path));
+                                        }}
+                                        value={userOwner}
+                                    />
+                                </View>
+
+                                {isOwnerDifferentFromCurrentUser && (
+                                    <View style={[styles.mhn5]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
+                                            <View style={styles.flex1}>
+                                                <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
+                                            </View>
+                                            <Switch
+                                                accessibilityLabel={translate('workspace.common.keepMeAsAdmin')}
+                                                isOn={makeMeAdmin}
+                                                onToggle={setMakeMeAdmin}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </>
+                        )}
                     </View>
                 </FormProvider>
             </ScrollView>

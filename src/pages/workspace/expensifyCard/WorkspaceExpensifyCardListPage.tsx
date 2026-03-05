@@ -31,7 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -71,6 +71,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const settings = getCardSettings(cardSettings);
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
 
     const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
@@ -195,7 +196,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <View style={[styles.appBG, styles.flexShrink0, styles.flexGrow1]}>
                 <WorkspaceCardListLabels
                     policyID={policyID}
-                    cardSettings={cardSettings}
+                    cardSettings={settings}
                 />
                 {allCards.length > CONST.SEARCH_ITEM_LIMIT && (
                     <SearchBar
@@ -245,7 +246,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '', policyCollection)}
+                        supportingText={getDescriptionForPolicyDomainCard(settings?.domainName ?? '', policyCollection)}
                     />
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>

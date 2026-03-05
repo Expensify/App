@@ -17,7 +17,7 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
         cardHolderName,
     } as IOSCardData;
 
-    return addCardToAppleWallet(data, issuerEncryptPayloadCallback);
+    return addCardToAppleWallet(data, (nonce, nonceSignature, certificates) => issuerEncryptPayloadCallback(nonce, nonceSignature, certificates, card.cardID));
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
