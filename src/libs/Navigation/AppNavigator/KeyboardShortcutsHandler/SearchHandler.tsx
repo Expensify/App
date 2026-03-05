@@ -1,16 +1,14 @@
 import {useEffect} from 'react';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
+import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 
-type SearchHandlerProps = {
-    shouldShowRequire2FAPage: boolean;
-};
-
-function SearchHandler({shouldShowRequire2FAPage}: SearchHandlerProps) {
+function SearchHandler() {
     const {toggleSearch} = useSearchRouterActions();
+    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
 
     useEffect(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;

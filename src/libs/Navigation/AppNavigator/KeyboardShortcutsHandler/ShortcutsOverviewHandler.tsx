@@ -1,15 +1,14 @@
 import {useEffect} from 'react';
+import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type ShortcutsOverviewHandlerProps = {
-    shouldShowRequire2FAPage: boolean;
-};
+function ShortcutsOverviewHandler() {
+    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
 
-function ShortcutsOverviewHandler({shouldShowRequire2FAPage}: ShortcutsOverviewHandlerProps) {
     useEffect(() => {
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const unsubscribe = KeyboardShortcut.subscribe(

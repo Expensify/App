@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native';
-import {useNavigationState} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import ComposeProviders from '@components/ComposeProviders';
@@ -26,13 +25,13 @@ import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import NavBarManager from '@libs/NavBarManager';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getSearchParamFromUrl} from '@libs/Url';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import RequireTwoFactorAuthenticationPage from '@pages/RequireTwoFactorAuthenticationPage';
+import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -120,14 +119,7 @@ function AuthScreens() {
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const {isOnboardingCompleted, shouldShowRequire2FAPage} = useOnboardingFlowRouter();
-
-    // Check if the user is currently on a 2FA setup screen
-    // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
-    const isIn2FASetupFlow = useNavigationState((state) => {
-        const focusedScreenName = getDeepestFocusedScreenName(state);
-        return isTwoFactorSetupScreen(focusedScreenName);
-    });
+    const {isOnboardingCompleted} = useOnboardingFlowRouter();
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -187,7 +179,7 @@ function AuthScreens() {
         return (
             <>
                 <AuthScreensInitHandler onDelegatorReady={() => setIsDelegatorFromOldDotIsReady(true)} />
-                <KeyboardShortcutsHandler shouldShowRequire2FAPage={shouldShowRequire2FAPage} />
+                <KeyboardShortcutsHandler />
                 <ThreeDSAuthHandler />
                 <UserStatusHandler />
                 <FullScreenLoadingIndicator />
@@ -208,7 +200,7 @@ function AuthScreens() {
             ]}
         >
             <AuthScreensInitHandler onDelegatorReady={() => setIsDelegatorFromOldDotIsReady(true)} />
-            <KeyboardShortcutsHandler shouldShowRequire2FAPage={shouldShowRequire2FAPage} />
+            <KeyboardShortcutsHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <RootStack.Navigator
@@ -426,8 +418,7 @@ function AuthScreens() {
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
-            {/* Full-screen 2FA enforcement overlay - blocks all interaction until 2FA is set up */}
-            {shouldShowRequire2FAPage && !isIn2FASetupFlow && <RequireTwoFactorAuthenticationPage />}
+            <RequireTwoFactorAuthenticationOverlay />
             <SearchRouterModal />
             <GPSTripStateChecker />
             <GPSInProgressModal />
