@@ -24,7 +24,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const {cardID} = route.params;
     const {translate} = useLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin ?? '';
     const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
@@ -44,7 +44,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         revealVirtualCardDetails(Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));

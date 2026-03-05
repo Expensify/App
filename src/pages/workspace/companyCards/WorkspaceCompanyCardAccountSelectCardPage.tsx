@@ -56,7 +56,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
-    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
+    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
 
     const listEmptyContent = (
         <BlockingView
@@ -90,11 +90,12 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                             <RenderHTML
                                 html={
                                     isXeroConnection
-                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', {integration: exportMenuItem.description})
-                                        : translate('workspace.moreFeatures.companyCards.integrationExportTitle', {
-                                              integration: exportMenuItem.description,
-                                              exportPageLink: `${environmentURL}/${exportMenuItem.exportPageLink}`,
-                                          })
+                                        ? translate('workspace.moreFeatures.companyCards.integrationExportTitleXero', exportMenuItem.description)
+                                        : translate(
+                                              'workspace.moreFeatures.companyCards.integrationExportTitle',
+                                              exportMenuItem.description,
+                                              `${environmentURL}/${exportMenuItem.exportPageLink}`,
+                                          )
                                 }
                             />
                         </View>

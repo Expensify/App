@@ -1,18 +1,18 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
+import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
+import type {SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -44,13 +44,10 @@ function getSelectedOptionData(option: Option): OptionData {
 function getOptionDataFromAttendee(attendee: Attendee): OptionData {
     return {
         text: attendee.displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         alternateText: attendee.email || attendee.displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string email
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        // eslint-disable-next-line rulesdir/no-default-id-values
         reportID: '-1',
         keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
@@ -82,20 +79,20 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const reportAttributesDerived = useReportAttributes();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES);
 
     // Transform raw recentAttendees into Option[] format for use with getValidOptions (only for attendee filter)
     const recentAttendeeLists = useMemo(
@@ -127,8 +124,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 recentAttendees: recentAttendeeLists,
                 includeRecentReports: !shouldAllowNameOnlyOptions,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
     }, [
         areOptionsInitialized,
@@ -193,7 +190,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [];
+        const newSections: SelectionListSections = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -229,9 +226,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             chatOptions.currentUserOption.text = formattedName;
 
             newSections.push({
-                title: '',
                 data: [chatOptions.currentUserOption],
-                shouldShow: true,
+                sectionIndex: 0,
             });
         }
 
@@ -245,15 +241,13 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         );
 
         newSections.push({
-            title: '',
             data: filteredRecentReports,
-            shouldShow: filteredRecentReports.length > 0,
+            sectionIndex: 1,
         });
 
         newSections.push({
-            title: '',
             data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            sectionIndex: 2,
         });
 
         const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
@@ -325,7 +319,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         login: identifier,
                         displayName: identifier,
                         accountID: CONST.DEFAULT_NUMBER_ID,
-                        // eslint-disable-next-line rulesdir/no-default-id-values
                         reportID: '-1',
                         selected: true,
                         icons: [],
@@ -346,7 +339,6 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
 
     const handleParticipantSelection = useCallback(
@@ -404,25 +396,30 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+    const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            label: translate('common.search'),
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [searchTerm, translate, setSearchTerm, headerMessage],
+    );
 
     return (
-        <SelectionList
-            canSelectMultiple
+        <SelectionListWithSections
             sections={sections}
             ListItem={UserSelectionListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            headerMessage={headerMessage}
-            textInputValue={searchTerm}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput
             footerContent={footerContent}
-            showScrollIndicator
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onChangeText={(value) => {
-                setSearchTerm(value);
-            }}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            canSelectMultiple
         />
     );
 }

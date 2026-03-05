@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -68,15 +68,19 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     );
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
-    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
     const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
     const policyData = usePolicyData(policyID);
+    const policyDataRef = useRef(policyData);
+    useEffect(() => {
+        policyDataRef.current = policyData;
+    });
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
@@ -176,7 +180,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policyID, true, false, policyData);
+                enablePolicyRules(policyID, true, false, policyDataRef.current);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
                 enableCompanyCards(policyID, true, false);

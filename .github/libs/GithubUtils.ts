@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
@@ -11,13 +11,9 @@ import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/di
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
-import arrayDifference from './arrayDifference';
 import CONST from './CONST';
-import {isEmptyObject} from './isEmptyObject';
 
 type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
-
-type ListForRepoResult = RestEndpointMethodTypes['issues']['listForRepo']['response'];
 
 type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
@@ -29,23 +25,7 @@ type CommitType = {
     commit: string;
     subject: string;
     authorName: string;
-};
-
-type StagingDeployCashPR = {
-    url: string;
-    number: number;
-    isVerified: boolean;
-};
-
-type StagingDeployCashBlocker = {
-    url: string;
-    number: number;
-    isResolved: boolean;
-};
-
-type StagingDeployCashBody = {
-    issueBody: string;
-    issueAssignees: Array<string | undefined>;
+    date: string;
 };
 
 type OctokitArtifact = OctokitComponents['schemas']['artifact'];
@@ -55,21 +35,6 @@ type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
 
 type ListCommentsResponse = RestEndpointMethodTypes['issues']['listComments']['response'];
-
-type StagingDeployCashData = {
-    title: string;
-    url: string;
-    number: number;
-    labels: OctokitIssueItem['labels'];
-    PRList: StagingDeployCashPR[];
-    PRListMobileExpensify: StagingDeployCashPR[];
-    deployBlockers: StagingDeployCashBlocker[];
-    internalQAPRList: StagingDeployCashBlocker[];
-    isFirebaseChecked: boolean;
-    isGHStatusChecked: boolean;
-    version: string;
-    tag: string;
-};
 
 type InternalOctokit = OctokitCore & Api & {paginate: PaginateInterface};
 
@@ -166,265 +131,6 @@ class GithubUtils {
     }
 
     /**
-     * Finds one open `StagingDeployCash` issue via GitHub octokit library.
-     */
-    static getStagingDeployCash(): Promise<StagingDeployCashData> {
-        return this.octokit.issues
-            .listForRepo({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                labels: CONST.LABELS.STAGING_DEPLOY,
-                state: 'open',
-            })
-            .then(({data}: ListForRepoResult) => {
-                if (!data.length) {
-                    throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                }
-
-                if (data.length > 1) {
-                    throw new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                }
-
-                const issue = data.at(0);
-
-                if (!issue) {
-                    throw new Error(`Found an undefined ${CONST.LABELS.STAGING_DEPLOY} issue.`);
-                }
-
-                return this.getStagingDeployCashData(issue);
-            });
-    }
-
-    /**
-     * Takes in a GitHub issue object and returns the data we want.
-     */
-    static getStagingDeployCashData(issue: OctokitIssueItem): StagingDeployCashData {
-        try {
-            const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
-
-            return {
-                title: issue.title,
-                url: issue.url,
-                number: this.getIssueOrPullRequestNumberFromURL(issue.url),
-                labels: issue.labels,
-                PRList: this.getStagingDeployCashPRList(issue),
-                PRListMobileExpensify: this.getStagingDeployCashPRListMobileExpensify(issue),
-                deployBlockers: this.getStagingDeployCashDeployBlockers(issue),
-                internalQAPRList: this.getStagingDeployCashInternalQA(issue),
-                isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
-                isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                version,
-                tag: `${version}-staging`,
-            };
-        } catch (exception) {
-            throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
-        }
-    }
-
-    /**
-     * Parse the PRList and Internal QA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashPRList(issue: OctokitIssueItem): StagingDeployCashPR[] {
-        let PRListSection: RegExpMatchArray | string | null = issue.body?.match(/pull requests:\*\*\r?\n((?:-.*\r?\n)+)\r?\n\r?\n?/) ?? null;
-        if (PRListSection?.length !== 2) {
-            // No PRs, return an empty array
-            console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
-            return [];
-        }
-
-        PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-
-        return PRList.sort((a, b) => a.number - b.number);
-    }
-
-    static getStagingDeployCashPRListMobileExpensify(issue: OctokitIssueItem): StagingDeployCashPR[] {
-        let mobileExpensifySection: RegExpMatchArray | string | null = issue.body?.match(/Mobile-Expensify PRs:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (mobileExpensifySection?.length !== 2) {
-            return [];
-        }
-
-        mobileExpensifySection = mobileExpensifySection[1];
-        const mobileExpensifyPRs = [...mobileExpensifySection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isVerified: match[1] === 'x',
-        }));
-
-        return mobileExpensifyPRs.sort((a, b) => a.number - b.number);
-    }
-
-    /**
-     * Parse DeployBlocker section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashDeployBlockers(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
-        let deployBlockerSection: RegExpMatchArray | string | null = issue.body?.match(/Deploy Blockers:\*\*\r?\n((?:-.*\r?\n)+)/) ?? null;
-        if (deployBlockerSection?.length !== 2) {
-            return [];
-        }
-
-        deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2],
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-
-        return deployBlockers.sort((a, b) => a.number - b.number);
-    }
-
-    /**
-     * Parse InternalQA section of the StagingDeployCash issue body.
-     *
-     * @private
-     */
-    static getStagingDeployCashInternalQA(issue: OctokitIssueItem): StagingDeployCashBlocker[] {
-        let internalQASection: RegExpMatchArray | string | null = issue.body?.match(/Internal QA:\*\*\r?\n((?:- \[[ x]].*\r?\n)+)/) ?? null;
-        if (internalQASection?.length !== 2) {
-            return [];
-        }
-        internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
-            url: match[2].split('-').at(0)?.trim() ?? '',
-            number: Number.parseInt(match[3], 10),
-            isResolved: match[1] === 'x',
-        }));
-
-        return internalQAPRs.sort((a, b) => a.number - b.number);
-    }
-
-    /**
-     * Generate the issue body and assignees for a StagingDeployCash.
-     */
-    static generateStagingDeployCashBodyAndAssignees(
-        tag: string,
-        PRList: string[],
-        PRListMobileExpensify: string[],
-        verifiedPRList: string[] = [],
-        verifiedPRListMobileExpensify: string[] = [],
-        deployBlockers: string[] = [],
-        resolvedDeployBlockers: string[] = [],
-        resolvedInternalQAPRs: string[] = [],
-        isFirebaseChecked = false,
-        isGHStatusChecked = false,
-    ): Promise<void | StagingDeployCashBody> {
-        return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
-            .then((data) => {
-                const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === CONST.LABELS.INTERNAL_QA))) : [];
-                return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({url: pr.html_url, mergerLogin})))).then((results) => {
-                    // The format of this map is following:
-                    // {
-                    //    'https://github.com/Expensify/App/pull/9641': 'PauloGasparSv',
-                    //    'https://github.com/Expensify/App/pull/9642': 'mountiny'
-                    // }
-                    const internalQAPRMap = results.reduce<Record<string, string | undefined>>((acc, {url, mergerLogin}) => {
-                        acc[url] = mergerLogin;
-                        return acc;
-                    }, {});
-                    console.log('Found the following Internal QA PRs:', internalQAPRMap);
-
-                    const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
-                    console.log('Found the following NO QA PRs:', noQAPRs);
-                    const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
-
-                    const sortedPRList = [...new Set(arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort(
-                        (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
-                    );
-                    const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort(
-                        (a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b),
-                    );
-                    const sortedDeployBlockers = [...new Set(deployBlockers)].sort(
-                        (a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b),
-                    );
-
-                    // Tag version and comparison URL
-                    // eslint-disable-next-line max-len
-                    let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
-
-                    // Add Mobile-Expensify compare link if there are Mobile-Expensify PRs
-                    if (sortedPRListMobileExpensify.length > 0) {
-                        issueBody += `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\r\n`;
-                    }
-
-                    issueBody += '\r\n';
-
-                    // PR list
-                    if (sortedPRList.length > 0) {
-                        issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                        for (const URL of sortedPRList) {
-                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
-                            issueBody += ` ${URL}\r\n`;
-                        }
-                        issueBody += '\r\n\r\n';
-                    }
-
-                    // Mobile-Expensify PR list
-                    if (sortedPRListMobileExpensify.length > 0) {
-                        issueBody += '**Mobile-Expensify PRs:**\r\n';
-                        for (const URL of sortedPRListMobileExpensify) {
-                            issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
-                            issueBody += ` ${URL}\r\n`;
-                        }
-                        issueBody += '\r\n\r\n';
-                    }
-
-                    // Internal QA PR list
-                    if (!isEmptyObject(internalQAPRMap)) {
-                        console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
-                        issueBody += '**Internal QA:**\r\n';
-                        for (const URL of Object.keys(internalQAPRMap)) {
-                            const merger = internalQAPRMap[URL];
-                            const mergerMention = `@${merger}`;
-                            issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
-                            issueBody += `${URL}`;
-                            issueBody += ` - ${mergerMention}`;
-                            issueBody += '\r\n';
-                        }
-                        issueBody += '\r\n\r\n';
-                    }
-
-                    // Deploy blockers
-                    if (deployBlockers.length > 0) {
-                        issueBody += '**Deploy Blockers:**\r\n';
-                        for (const URL of sortedDeployBlockers) {
-                            issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
-                            issueBody += URL;
-                            issueBody += '\r\n';
-                        }
-                        issueBody += '\r\n\r\n';
-                    }
-
-                    issueBody += '**Deployer verifications:**';
-                    // eslint-disable-next-line max-len
-                    issueBody += `\r\n- [${
-                        isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/ios:com.expensify.expensifylite/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                    // eslint-disable-next-line max-len
-                    issueBody += `\r\n- [${
-                        isFirebaseChecked ? 'x' : ' '
-                    }] I checked [Firebase Crashlytics](https://console.firebase.google.com/u/0/project/expensify-mobile-app/crashlytics/app/android:org.me.mobiexpensifyg/issues?state=open&time=last-seven-days&types=crash&tag=all&sort=eventCount) for **the previous release version** and verified that the release did not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-                    // eslint-disable-next-line max-len
-                    issueBody += `\r\n- [${isGHStatusChecked ? 'x' : ' '}] I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.`;
-
-                    issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
-                    const issueAssignees = [...new Set(Object.values(internalQAPRMap))];
-                    const issue = {issueBody, issueAssignees};
-                    return issue;
-                });
-            })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
-    }
-
-    /**
      * Fetch all pull requests given a list of PR numbers.
      */
     static fetchAllPullRequests(pullRequestNumbers: number[]): Promise<OctokitPR[] | void> {
@@ -468,6 +174,21 @@ class GithubUtils {
                 pull_number: pullRequestNumber,
             })
             .then(({data: pullRequestComment}) => pullRequestComment.body);
+    }
+
+    static async getPullRequestMergeBaseSHA(pullRequestNumber: number): Promise<string> {
+        const {data: pullRequest} = await this.octokit.pulls.get({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullRequestNumber,
+        });
+        const {data: comparison} = await this.octokit.repos.compareCommits({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            base: pullRequest.base.ref,
+            head: pullRequest.head.sha,
+        });
+        return comparison.merge_base_commit.sha;
     }
 
     static getAllReviewComments(pullRequestNumber: number): Promise<string[]> {
@@ -568,6 +289,26 @@ class GithubUtils {
     }
 
     /**
+     * Get the workflow run URL for a specific commit SHA and workflow file.
+     * Returns the HTML URL of the matching run, or undefined if not found.
+     */
+    static async getWorkflowRunURLForCommit(commitSha: string, workflowFile: string): Promise<string | undefined> {
+        try {
+            const response = await this.octokit.actions.listWorkflowRuns({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                workflow_id: workflowFile,
+                head_sha: commitSha,
+                per_page: 1,
+            });
+            return response.data.workflow_runs.at(0)?.html_url;
+        } catch (error) {
+            console.warn(`Failed to find workflow run for commit ${commitSha}:`, error);
+            return undefined;
+        }
+    }
+
+    /**
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value: number, repositoryURL: string): string {
@@ -658,7 +399,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path: string, ref = CONST.DEFAULT_BASE_REF): Promise<string> {
+    static async getFileContents(path: string, ref: string = CONST.DEFAULT_BASE_REF): Promise<string> {
         const {data} = await this.octokit.repos.getContent({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
@@ -744,6 +485,7 @@ class GithubUtils {
                     commit: commit.sha,
                     subject: commit.commit.message,
                     authorName: commit.commit.author?.name ?? 'Unknown',
+                    date: commit.commit.committer?.date ?? '',
                 }),
             );
         } catch (error) {
@@ -776,4 +518,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, StagingDeployCashData, CommitType};
+export type {OctokitIssueItem, ListForRepoMethod, InternalOctokit, CreateCommentResponse, ListCommentsResponse, CommitType};

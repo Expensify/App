@@ -78,18 +78,17 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
 function getMakeDefaultPaymentOnyxData(
     bankAccountID: number,
-    fundID: number,
+    fundID?: number,
     previousPaymentMethod?: PaymentMethod,
     currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,
-): OnyxUpdate[] {
-    const onyxData: OnyxUpdate[] = [
+): Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> {
+    const onyxData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_LIST>> = [
         isOptimisticData
             ? {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
@@ -100,7 +99,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
@@ -260,7 +258,6 @@ function addSubscriptionPaymentCard(
     if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
             successData,
@@ -578,6 +575,7 @@ export {
     addPaymentCard,
     getPaymentMethods,
     makeDefaultPaymentMethod,
+    getMakeDefaultPaymentOnyxData,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,

@@ -1,8 +1,10 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -11,6 +13,7 @@ type CardRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
     gradientOpacityEnabled?: boolean;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 const barHeight = 7;
@@ -22,11 +25,11 @@ const rightSideElementWidth = 50;
 const centralPanePadding = 50;
 const rightButtonWidth = 20;
 
-function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: CardRowSkeletonProps) {
+function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, reasonAttributes}: CardRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    useSkeletonSpan('CardRowSkeleton');
+    useSkeletonSpan('CardRowSkeleton', reasonAttributes);
 
     return (
         <ItemListSkeletonView
@@ -41,13 +44,13 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         cy={32}
                         r={20}
                     />
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
 
-                    <Rect
+                    <SkeletonRect
                         transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
@@ -55,7 +58,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
 
                     {!shouldUseNarrowLayout && (
                         <>
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.
                                 transform={[
                                     {
@@ -67,7 +70,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                                 height={barHeight}
                             />
 
-                            <Rect
+                            <SkeletonRect
                                 // We have to calculate this value to make sure the element is aligned to the right border.
                                 transform={[
                                     {

@@ -246,7 +246,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     }
 
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isExported = isExportedUtil(reportActions);
+    const isExported = isExportedUtil(reportActions, report);
     if (isExported) {
         return false;
     }
@@ -436,7 +436,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     // We want to have action displayed for either paid or approved animations
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
@@ -556,4 +555,5 @@ export {
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    isMarkAsCashActionForTransaction,
 };

@@ -1,12 +1,14 @@
 import React from 'react';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSidePanelState from '@hooks/useSidePanelState';
 import type {ExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import SidePanelModal from './SidePanelModal';
 import SidePanelReport from './SidePanelReport';
 import useSyncSidePanelWithHistory from './useSyncSidePanelWithHistory';
 
 function SidePanel({navigation}: Pick<ExtraContentProps, 'navigation'>) {
-    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, closeSidePanel, reportID} = useSidePanel();
+    const {sidePanelNVP, isSidePanelTransitionEnded, shouldHideSidePanel, sidePanelTranslateX, shouldHideSidePanelBackdrop, reportID} = useSidePanelState();
+    const {closeSidePanel} = useSidePanelActions();
 
     // Hide side panel once animation ends
     // This hook synchronizes the side panel visibility with the browser history when it is displayed as RHP.
