@@ -210,13 +210,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     // task report/action on API failure so the task stays visible until the user dismiss the
     // error from chat.
     const failureData: Array<
-        OnyxUpdate<
-            | typeof ONYXKEYS.COLLECTION.REPORT
-            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
-            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
-            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-        >
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE>
     > = [];
 
     if (assigneeChatReport && assigneeChatReportID) {

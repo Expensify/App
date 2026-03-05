@@ -42,6 +42,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -1047,7 +1048,8 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                const reportActionID = reportActionItem.reportActionID;
+                // For created-task rows, reportActionID may not exist offline yet; skipping it prevents the report RHP from loading forever.
+                const reportActionID = isCreatedTaskReportAction(reportActionItem) ? undefined : reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }

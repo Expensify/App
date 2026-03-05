@@ -86,7 +86,8 @@ function TaskPreview({
     const {translate} = useLocalize();
     const theme = useTheme();
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
-    const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
+    // Prefer the live task report name so offline title edits are reflected immediately.
+    const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 

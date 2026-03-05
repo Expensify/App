@@ -2114,9 +2114,15 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
             const reportActions = Object.values(data[key]);
             n += reportActions.length;
             for (const reportAction of reportActions) {
-                const reportID = reportAction.reportID ?? reportIDFromKey;
+                // Always use the container reportID so "In <chat name>" rows open the parent chat, not a child task/thread report.
+                const reportID = reportIDFromKey;
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+                const report =
+                    getReportOrDraftReport(reportID) ??
+                    getReportOrDraftReport(reportAction.reportID) ??
+                    data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ??
+                    data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ??
+                    {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
                 const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
@@ -2138,6 +2144,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
 
                 reportActionItems.push({
                     ...reportAction,
+                    reportID,
                     from,
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
