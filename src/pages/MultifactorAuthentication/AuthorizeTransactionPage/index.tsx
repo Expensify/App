@@ -94,7 +94,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     };
 
     const onSilentlyDenyTransaction = () => {
-        addBreadcrumb('Silent deny (back button)', {transactionID}, 'warning');
+        addBreadcrumb('Silent deny (user canceled flow)', {transactionID}, 'warning');
         fireAndForgetDenyTransaction({transactionID});
         Navigation.closeRHPFlow();
     };
