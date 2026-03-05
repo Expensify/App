@@ -493,3 +493,4 @@ export type {default as SetTwoFactorAuthExemptEmailForDomainParams} from './SetT
 export type {default as ResetDomainMemberTwoFactorAuthParams} from './ResetDomainMemberTwoFactorAuthParams';
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as DenyTransactionParams} from './DenyTransactionParams';
+export type {default as ExportDomainMembersCSVParams} from './ExportDomainMembersCSVParams';
