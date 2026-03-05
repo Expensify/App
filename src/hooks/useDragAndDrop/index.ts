@@ -29,6 +29,16 @@ const useDragAndDrop: UseDragAndDrop = ({
     const dragCounter = useRef(0);
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Reset drag state when the screen loses focus or becomes disabled
+    const isActive = isFocused && !isDisabled;
+    const [prevIsActive, setPrevIsActive] = useState(isActive);
+    if (isActive !== prevIsActive) {
+        setPrevIsActive(isActive);
+        if (!isActive) {
+            setIsDraggingOver(false);
+        }
+    }
+
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
@@ -143,7 +153,7 @@ const useDragAndDrop: UseDragAndDrop = ({
         };
     }, [dropZone, dropZoneDragHandler]);
 
-    return {isDraggingOver: isFocused && !isDisabled && isDraggingOver};
+    return {isDraggingOver};
 };
 
 export default useDragAndDrop;
