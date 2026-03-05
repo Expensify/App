@@ -885,6 +885,8 @@ function getReportActionActorAccountID(
             return reportAction?.actorAccountID;
         }
 
+        case CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED:
+        case CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
@@ -2299,6 +2301,22 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         const message = getDynamicExternalWorkflowRoutedMessage(action, translate);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+        const originalMessage = getOriginalMessage(action);
+        const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+        const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+        return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isDynamicExternalWorkflowApproveFailedAction(action)) {
+        const originalMessage = getOriginalMessage(action);
+        const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
+        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+        const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+        return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     const actionMessage = action.previousMessage ?? action.message;
@@ -4091,9 +4109,20 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
 }
 
-function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+/**
+ * Check if the original report referenced by a report action is deleted.
+ */
+function isOriginalReportDeleted(action: OnyxEntry<ReportAction>, originalReport: OnyxEntry<Report>): boolean {
+    // isOriginalReportDeleted is set to true when the original report is deleted from the backend. We can fall back to check if the report is optimistically deleted on the frontend side.
+    return !!action?.isOriginalReportDeleted || originalReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, isReportDeleted: boolean, translate: LocalizedTranslate): string {
+    if (reportID === undefined) {
+        return '';
+    }
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName, reportID, isReportDeleted});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
@@ -4587,6 +4616,7 @@ export {
     getWorkspaceCategoriesUpdatedMessage,
     getHarvestCreatedExpenseReportMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    isOriginalReportDeleted,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,

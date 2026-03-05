@@ -16,6 +16,7 @@ import {
     filterInactiveCards,
     flattenWorkspaceCardsList,
     formatCardExpiration,
+    formatMaskedCardName,
     getAllCardsForWorkspace,
     getAssignedCardSortKey,
     getBankCardDetailsImage,
@@ -25,6 +26,7 @@ import {
     getCardFeedIcon,
     getCardFeedWithDomainID,
     getCardsByCardholderName,
+    getCardSettings,
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -43,6 +45,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
@@ -3232,5 +3235,225 @@ describe('CardUtils', () => {
             const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
             expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
         });
+    });
+
+    describe('isCardAlreadyAssigned', () => {
+        it('should detect Plaid card assigned in the same workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should detect Plaid card assigned in a different workspace with the same feed', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Workspace 100 checking, card is assigned in workspace 200 — should be detected
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should not match Plaid card from a different institution', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_99`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different institution feed (plaid.ins_19 vs plaid.ins_99)
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect commercial card assigned in the same domain', () => {
+            const workspaceCardFeeds = {
+                cards_100_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100, 'vcf')).toBe(true);
+        });
+
+        it('should not match commercial card with same display name in a different domain', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_DOMAIN_200',
+                        state: 3,
+                        domainName: 'other-company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different domain, different encrypted number — should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_DOMAIN_100', workspaceCardFeeds, 100, 'vcf')).toBe(false);
+        });
+
+        it('should not match card pending deletion', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect OAuth card assigned in a different workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_oauth.chase.com`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'CREDIT CARD...6607',
+                        encryptedCardNumber: 'CREDIT CARD...6607',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(true);
+        });
+
+        it('should fall back to domain-scoped check when feedName is not provided', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'other.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Without feedName, falls back to domain-scoped — domain 100 vs 200, should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100)).toBe(false);
+            // Same domain should match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 200)).toBe(true);
+        });
+    });
+    describe('getCardSettings', () => {
+        const flatSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            currentBalance: 1000,
+            remainingLimit: 49000,
+        } as ExpensifyCardSettings;
+
+        const nestedSettings = {
+            paymentBankAccountID: 12345,
+            limit: 50000,
+            US: {
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            },
+            TRAVEL_US: {
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            },
+        } as ExpensifyCardSettings;
+
+        it('should return undefined when cardSettings is undefined', () => {
+            expect(getCardSettings(undefined)).toBeUndefined();
+        });
+
+        it('should return undefined when cardSettings is null', () => {
+            // OnyxEntry may resolve to undefined rather than null,
+            // but we cast to cover runtime safety
+            expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
+        });
+
+        it('should return flat root when feedCountry is not provided', () => {
+            const result = getCardSettings(flatSettings);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return flat root when feedCountry is undefined', () => {
+            const result = getCardSettings(flatSettings, undefined);
+            expect(result).toBe(flatSettings);
+        });
+
+        it('should return nested object when feedCountry matches a nested key', () => {
+            const result = getCardSettings(nestedSettings, 'US');
+            expect(result).toEqual({
+                paymentBankAccountID: 67890,
+                limit: 30000,
+                currentBalance: 500,
+            });
+        });
+
+        it('should fall back to flat root when feedCountry key does not exist', () => {
+            const result = getCardSettings(nestedSettings, 'CA');
+            expect(result).toBe(nestedSettings);
+        });
+
+        it('should return TRAVEL_US nested settings when feedCountry is TRAVEL_US', () => {
+            const result = getCardSettings(nestedSettings, 'TRAVEL_US');
+            expect(result).toEqual({
+                paymentBankAccountID: 11111,
+                isEnabled: true,
+            });
+        });
+
+        it('should not return primitive values as nested settings', () => {
+            const result = getCardSettings(nestedSettings, 'limit');
+            expect(result).toBe(nestedSettings);
+        });
+    });
+});
+
+describe('formatMaskedCardName', () => {
+    it('pads a 4-digit card name with leading Xs and groups into 4-char segments', () => {
+        expect(formatMaskedCardName('3191')).toBe('XXXX-XXXX-XXXX-3191');
+    });
+
+    it('groups a full 16-char masked card name into 4-char segments', () => {
+        expect(formatMaskedCardName('553312XXXXXX3223')).toBe('5533-12XX-XXXX-3223');
+    });
+
+    it('returns non-commercial card names unchanged', () => {
+        expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
     });
 });

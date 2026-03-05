@@ -18,7 +18,7 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType} from '@libs/TransactionUtils';
+import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -545,6 +545,9 @@ function duplicateExpenseTransaction({
     // to try to create a transaction thread report with an ID that already exists.
     const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
 
+    // We remove waypoints for split distance expenses in order to preserve the split's amount and distance.
+    const waypoints = !isExpenseSplit(transaction) ? (transactionDetails?.waypoints as WaypointCollection) : undefined;
+
     const params: RequestMoneyInformation = {
         report: targetReport,
         optimisticChatReportID,
@@ -571,7 +574,7 @@ function duplicateExpenseTransaction({
             originalTransactionID: undefined,
             receipt: undefined,
             source: undefined,
-            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            waypoints,
             type: transaction?.comment?.type,
             count: transaction?.comment?.units?.count,
             rate: transaction?.comment?.units?.rate,
@@ -592,6 +595,11 @@ function duplicateExpenseTransaction({
         personalDetails,
     };
 
+    // Since we remove waypoints for split distance expenses, we need to re-add the distance param here
+    if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
+        params.transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
+    }
+
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
         const trackExpenseParams: CreateTrackExpenseParams = {
@@ -600,9 +608,21 @@ function duplicateExpenseTransaction({
                 ...(params.participantParams ?? {}),
                 participant: {accountID: userAccountID, selected: true},
             },
+            existingTransaction: {
+                ...(params.transactionParams ?? {}),
+                comment: {
+                    ...transaction.comment,
+                    originalTransactionID: undefined,
+                    source: undefined,
+                },
+                iouRequestType: getRequestType(transaction),
+                modifiedCreated: '',
+                reportID: '1',
+                transactionID: '1',
+            },
             transactionParams: {
                 ...(params.transactionParams ?? {}),
-                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                validWaypoints: waypoints,
             },
             report: undefined,
             isDraftPolicy: false,
@@ -633,7 +653,11 @@ function duplicateExpenseTransaction({
                 participants,
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
-                    comment: transaction.comment,
+                    comment: {
+                        ...transaction.comment,
+                        originalTransactionID: undefined,
+                        source: undefined,
+                    },
                     iouRequestType: getRequestType(transaction),
                     modifiedCreated: '',
                     reportID: '1',
@@ -642,7 +666,7 @@ function duplicateExpenseTransaction({
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
-                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                    validWaypoints: waypoints,
                 },
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,

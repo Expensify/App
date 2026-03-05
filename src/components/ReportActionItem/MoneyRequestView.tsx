@@ -382,7 +382,6 @@ function MoneyRequestView({
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory =
         (isPolicyExpenseChat && (categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
         (isExpenseUnreported && (!policyForMovingExpenses || hasEnabledOptions(policyCategories ?? {})));
@@ -417,14 +416,12 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
-    let rateToDisplay = isCustomUnitOutOfPolicy
-        ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    let rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
@@ -776,7 +773,6 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
         : getReportName(parentReport, reportAttributes) || parentReport?.reportName;

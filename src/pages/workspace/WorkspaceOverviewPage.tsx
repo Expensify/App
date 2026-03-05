@@ -42,7 +42,7 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -97,7 +97,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
+    const settings = getCardSettings(cardSettings);
+    const isBankAccountVerified = !!settings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -598,13 +599,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 if (!policyID) {
                                     return;
                                 }
-                                updateWorkspaceAvatar(policyID, file as File);
+                                updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
-                                deleteWorkspaceAvatar(policyID);
+                                deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
@@ -700,7 +701,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         hasVBA || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
