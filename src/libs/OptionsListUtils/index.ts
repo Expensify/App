@@ -2930,7 +2930,7 @@ function formatSectionsFromSearchTerm(
                               // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
                               const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                               const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
-                              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                              const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                               return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, chatReport, reportAttributesDerived);
                           }
                           return getParticipantsOption(participant, personalDetails);
@@ -2963,7 +2963,7 @@ function formatSectionsFromSearchTerm(
                           // TODO: This allReports usage is temporary and will be removed once the full Onyx.connect() refactor is complete (https://github.com/Expensify/App/issues/66378)
                           const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                           const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
-                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+                          const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
                           return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, chatReport, reportAttributesDerived);
                       }
                       return getParticipantsOption(participant, personalDetails);
