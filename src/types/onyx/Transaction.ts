@@ -2,6 +2,7 @@ import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
@@ -127,11 +128,11 @@ type Comment = {
     odometerEnd?: number;
 
     /** Both image fields are needed only locally because server receives only one merged image as receipt */
-    /** Odometer start image (File object on web, URI string on native) */
-    odometerStartImage?: File | string;
+    /** Odometer start image (File object with uri on web, URI string on native) */
+    odometerStartImage?: FileObject | string;
 
-    /** Odometer end image (File object on web, URI string on native) */
-    odometerEndImage?: File | string;
+    /** Odometer end image (File object with uri on web, URI string on native) */
+    odometerEndImage?: FileObject | string;
 };
 
 /** Model of transaction custom unit */
