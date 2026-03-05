@@ -216,6 +216,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -691,8 +693,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         transactionID?: string;
         reportID?: string;
-        action?: IOUAction;
-        iouType?: IOUType;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;

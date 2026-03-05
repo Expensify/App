@@ -24,6 +24,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -79,6 +80,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -135,8 +137,10 @@ function MoneyRequestReportPreviewContent({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -148,6 +152,12 @@ function MoneyRequestReportPreviewContent({
     const shouldShowAccessPlaceHolder = !iouReport && !shouldShowLoading;
     const shouldShowEmptyPlaceholder = transactions.length === 0 && !shouldShowLoading;
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportPreviewContent',
+        hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,
+        isTransactionsEmpty: transactions.length === 0,
+        isOptimisticReport: chatReportMetadata?.isOptimisticReport,
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -213,7 +223,10 @@ function MoneyRequestReportPreviewContent({
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
-    const isApproved = isReportApproved({report: iouReport, parentReportAction: action});
+    const isApproved = isReportApproved({
+        report: iouReport,
+        parentReportAction: action,
+    });
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
@@ -228,7 +241,9 @@ function MoneyRequestReportPreviewContent({
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
 
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
@@ -368,7 +383,11 @@ function MoneyRequestReportPreviewContent({
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true, formatPhoneNumber});
+            payerOrApproverName = getDisplayNameForParticipant({
+                accountID: managerID,
+                shouldUseShortForm: true,
+                formatPhoneNumber,
+            });
         }
 
         if (isApproved) {
@@ -379,7 +398,11 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
+            payerOrApproverName = getDisplayNameForParticipant({
+                accountID: chatReport?.ownerAccountID,
+                shouldUseShortForm: true,
+                formatPhoneNumber,
+            });
         }
         return translate(paymentVerb, payerOrApproverName);
     }, [
@@ -517,7 +540,11 @@ function MoneyRequestReportPreviewContent({
                     return;
                 }
 
-                carouselRef.current?.scrollToIndex({index, viewOffset: -2 * styles.gap2.gap, animated: true});
+                carouselRef.current?.scrollToIndex({
+                    index,
+                    viewOffset: -2 * styles.gap2.gap,
+                    animated: true,
+                });
             }, CONST.ANIMATED_TRANSITION);
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -539,7 +566,10 @@ function MoneyRequestReportPreviewContent({
         if (index > carouselTransactions.length - visibleItemsOnEndCount) {
             const lastScrollableIndex = carouselTransactions.length - visibleItemsOnEndCount;
             setOptimisticIndex(lastScrollableIndex);
-            carouselRef.current?.scrollToOffset({offset: snapOffsets.at(lastScrollableIndex) ?? 0, animated: true});
+            carouselRef.current?.scrollToOffset({
+                offset: snapOffsets.at(lastScrollableIndex) ?? 0,
+                animated: true,
+            });
             return;
         }
         if (index < 0) {
@@ -553,7 +583,10 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         setOptimisticIndex(index);
-        carouselRef.current?.scrollToOffset({offset: snapOffsets.at(index) ?? 0, animated: true});
+        carouselRef.current?.scrollToOffset({
+            offset: snapOffsets.at(index) ?? 0,
+            animated: true,
+        });
     };
 
     const renderItem = (itemInfo: ListRenderItemInfo<Transaction>) => {
@@ -605,7 +638,12 @@ function MoneyRequestReportPreviewContent({
         if (isSmallScreenWidth) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
         } else {
-            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(
+                ROUTES.EXPENSE_REPORT_RHP.getRoute({
+                    reportID: iouReportID,
+                    backTo: Navigation.getActiveRoute(),
+                }),
+            );
         }
     }, [iouReportID, isSmallScreenWidth]);
 
@@ -654,11 +692,24 @@ function MoneyRequestReportPreviewContent({
                 iouReport?.reportID,
                 policy,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, chatReportID, lastDistanceExpenseType],
+        [
+            translate,
+            expensifyIcons,
+            iouReport?.reportID,
+            iouReport?.parentReportID,
+            policy,
+            userBillingGraceEndPeriods,
+            amountOwed,
+            chatReportID,
+            lastDistanceExpenseType,
+            ownerBillingGraceEndPeriod,
+        ],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -844,23 +895,18 @@ function MoneyRequestReportPreviewContent({
                                                     </Animated.View>
                                                 </View>
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
-                                                    <MoneyReportHeaderStatusBarSkeleton />
+                                                    <MoneyReportHeaderStatusBarSkeleton reasonAttributes={skeletonReasonAttributes} />
                                                 ) : (
                                                     (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) &&
                                                     (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                             {shouldShowReportStatus && (
-                                                                <View
-                                                                    style={[
-                                                                        styles.reportStatusContainer,
-                                                                        styles.mr1,
-                                                                        {
-                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
-                                                                </View>
+                                                                <StatusBadge
+                                                                    text={reportStatus}
+                                                                    backgroundColor={reportStatusColorStyle?.backgroundColor}
+                                                                    textColor={reportStatusColorStyle?.textColor}
+                                                                    badgeStyles={styles.mr1}
+                                                                />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                                                         </View>

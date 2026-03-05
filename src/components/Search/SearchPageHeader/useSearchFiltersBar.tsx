@@ -26,7 +26,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
@@ -82,7 +82,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -141,7 +141,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
-    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, feedKeysWithCards);
+    const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feed = feedFilterValues ? feedOptions.filter((option) => feedFilterValues.includes(option.value)) : [];
 
     const statusOptions = type ? getStatusOptions(translate, type.value) : [];
@@ -215,15 +215,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             updatedFilterFormValues.columns = [];
         }
 
-        let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-            sortBy: queryJSON.sortBy,
-            sortOrder: queryJSON.sortOrder,
-            limit: queryJSON.limit,
-        });
-
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
-            queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
-        }
+        const queryString =
+            buildFilterQueryWithSortDefaults(
+                updatedFilterFormValues,
+                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+            ) ?? '';
         if (!queryString) {
             return;
         }
