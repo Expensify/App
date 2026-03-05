@@ -168,9 +168,10 @@ function AttachmentModalBaseContent({
 
         onClose?.();
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
