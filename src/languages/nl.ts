@@ -906,8 +906,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als copiloot voor',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `heeft dit rapport gemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> te bewaren die niet konden worden ingediend op de door jou gekozen frequentie`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `heeft dit rapport gemaakt voor uitgestelde uitgaven van <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `heeft dit rapport gemaakt voor alle vastgehouden uitgaven uit verwijderd rapport nr. ${reportID}`
+                : `heeft dit rapport gemaakt voor alle vastgehouden uitgaven van <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Laat iedereen in dit gesprek een melding krijgen',
@@ -1446,6 +1448,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Leg uit waarom je deze uitgave aanhoudt.',
             other: 'Leg uit waarom je deze uitgaven vasthoudt.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Leg uit wat je nodig hebt voordat je deze uitgave goedkeurt.',
+            other: 'Leg uit wat je nodig hebt voordat je deze uitgaven goedkeurt.',
+        }),
         retracted: 'ingetrokken',
         retract: 'Intrekken',
         reopened: 'heropend',
@@ -1540,7 +1546,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Vaste uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
-            reasonPageDescription: 'Leg uit waarom je deze declaratie afwijst.',
+            reasonPageDescription: 'Leg uit waarom je deze uitgave niet zult goedkeuren.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
             rejectedStatus: 'Deze uitgave is afgewezen. We wachten tot jij de problemen oplost en als opgelost markeert, zodat je deze opnieuw kunt indienen.',
@@ -1594,6 +1600,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `het is niet gelukt om het rapport in te dienen. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Je kunt afstandsvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
     },
     transactionMerge: {
         listPage: {
