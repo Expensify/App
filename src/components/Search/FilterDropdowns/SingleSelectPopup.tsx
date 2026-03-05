@@ -6,10 +6,12 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 
 type SingleSelectItem<T> = {
@@ -41,9 +43,22 @@ type SingleSelectPopupProps<T> = {
 
     /** The default value to set when reset is clicked */
     defaultValue?: string;
+
+    /** Whether the popup content is currently visible */
+    isVisible?: boolean;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({
+    label,
+    value,
+    items,
+    closeOverlay,
+    onChange,
+    isSearchable,
+    searchPlaceholder,
+    defaultValue,
+    isVisible = false,
+}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -51,37 +66,35 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const initialSelectedValues = useInitialSelectionRef(value ? [value.value] : [], {resetDeps: [isVisible]});
 
     const {options, noResultsFound} = useMemo(() => {
-        // If the selection is searchable, we push the initially selected item into its own section and display it at the top
-        if (isSearchable) {
-            const initiallySelectedOption = value?.text.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
-                ? [{text: value.text, keyForList: value.value, isSelected: selectedItem?.value === value.value}]
-                : [];
-            const remainingOptions = items
-                .filter((item) => item?.value !== value?.value && item?.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
-                .map((item) => ({
-                    text: item.text,
-                    keyForList: item.value,
-                    isSelected: selectedItem?.value === item.value,
-                }));
-            const allOptions = [...initiallySelectedOption, ...remainingOptions];
-            const isEmpty = allOptions.length === 0;
-            return {
-                options: allOptions,
-                noResultsFound: isEmpty,
-            };
-        }
+        const filteredItems = items.filter((item) => {
+            if (!isSearchable) {
+                return true;
+            }
+            const term = debouncedSearchTerm?.toLowerCase();
+            return item.text.toLowerCase().includes(term);
+        });
+
+        const mappedItems = filteredItems.map((item) => ({
+            text: item.text,
+            keyForList: item.value,
+            value: item.value,
+            isSelected: item.value === selectedItem?.value,
+        }));
+
+        const shouldReorderInitialSelection =
+            isVisible && !debouncedSearchTerm && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
+        const isEmpty = orderedItems.length === 0 && !!debouncedSearchTerm;
 
         return {
-            options: items.map((item) => ({
-                text: item.text,
-                keyForList: item.value,
-                isSelected: item.value === selectedItem?.value,
-            })),
-            noResultsFound: false,
+            options: orderedItems,
+            noResultsFound: isEmpty,
         };
-    }, [isSearchable, items, value, selectedItem?.value, debouncedSearchTerm]);
+    }, [isSearchable, items, selectedItem?.value, debouncedSearchTerm, isVisible, initialSelectedValues]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {

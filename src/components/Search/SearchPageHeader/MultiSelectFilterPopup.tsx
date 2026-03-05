@@ -13,7 +13,7 @@ type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
     isSearchable?: boolean;
 };
 
-function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
+function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey, items, value, onChangeCallback, isSearchable, isVisible}: MultiSelectFilterPopupProps<T>) {
     const {translate} = useLocalize();
     return (
         <MultiSelectPopup
@@ -23,6 +23,7 @@ function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey,
             closeOverlay={closeOverlay}
             onChange={onChangeCallback}
             isSearchable={isSearchable}
+            isVisible={isVisible}
         />
     );
 }

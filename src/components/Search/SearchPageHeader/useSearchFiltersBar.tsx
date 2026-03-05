@@ -242,17 +242,18 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
 
-    const typeComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const typeComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.type')}
             value={type}
             items={typeOptions}
             closeOverlay={closeOverlay}
             onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
+            isVisible={isVisible}
         />
     );
 
-    const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupByComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('search.groupBy')}
             items={groupByOptions}
@@ -266,20 +267,22 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     updateFilterForm({groupBy: newValue});
                 }
             }}
+            isVisible={isVisible}
         />
     );
 
-    const viewComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const viewComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('search.view.label')}
             items={viewOptions}
             value={viewValue}
             closeOverlay={closeOverlay}
             onChange={(item) => updateFilterForm({view: item?.value ?? CONST.SEARCH.VIEW.TABLE})}
+            isVisible={isVisible}
         />
     );
 
-    const groupCurrencyComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const groupCurrencyComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('common.groupCurrency')}
             items={groupCurrencyOptions}
@@ -288,6 +291,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
             isSearchable
             searchPlaceholder={translate('common.groupCurrency')}
+            isVisible={isVisible}
         />
     );
 
@@ -301,6 +305,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -311,6 +316,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             value={date}
             translationKey="common.date"
             updateFilterForm={updateFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -321,6 +327,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             value={posted}
             translationKey="search.filters.posted"
             updateFilterForm={updateFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -331,16 +338,18 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             value={withdrawn}
             translationKey="search.filters.withdrawn"
             updateFilterForm={updateFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
-    const withdrawalTypeComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const withdrawalTypeComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <SingleSelectPopup
             label={translate('search.withdrawalType')}
             items={withdrawalTypeOptions}
             value={withdrawalType}
             closeOverlay={closeOverlay}
             onChange={(item) => updateFilterForm({withdrawalType: item?.value})}
+            isVisible={isVisible}
         />
     );
 
@@ -355,6 +364,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             items={statusOptions}
             value={status}
             onChangeCallback={updateStatusFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -368,6 +378,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             items={hasOptions}
             value={has}
             onChangeCallback={updateHasFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -381,6 +392,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             items={isOptions}
             value={is}
             onChangeCallback={updateIsFilterForm}
+            isVisible={props.isVisible}
         />
     );
 
@@ -400,7 +412,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         updateFilterForm({policyID: items.map((item) => item.value)});
     };
 
-    const workspaceComponent = ({closeOverlay}: PopoverComponentProps) => (
+    const workspaceComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => (
         <MultiSelectPopup
             label={translate('workspace.common.workspace')}
             items={workspaceOptions}
@@ -408,6 +420,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             closeOverlay={closeOverlay}
             onChange={handleWorkspaceChange}
             isSearchable={shouldShowWorkspaceSearchInput}
+            isVisible={isVisible}
         />
     );
 

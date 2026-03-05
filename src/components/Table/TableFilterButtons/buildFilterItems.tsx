@@ -130,7 +130,7 @@ type MultiSelectPopoverFactoryProps<FilterKey extends string = string> = {
  * @returns The multi-select popover component.
  */
 function createMultiSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: MultiSelectPopoverFactoryProps<FilterKey>) {
-    return ({closeOverlay}: PopoverComponentProps) => {
+    return ({closeOverlay, isVisible}: PopoverComponentProps) => {
         const currentValueArray = Array.isArray(currentFilterValue) ? currentFilterValue : [];
         const selectedItems = filterConfig.options
             .filter((option) => currentValueArray.includes(option.value))
@@ -152,6 +152,7 @@ function createMultiSelectPopover<FilterKey extends string = string>({filterKey,
                     const values = items.map((item) => item.value);
                     setFilter(filterKey, values);
                 }}
+                isVisible={isVisible}
             />
         );
     };
@@ -180,7 +181,7 @@ type SingleSelectPopoverFactoryProps<FilterKey extends string = string> = {
  * @returns The single-select popover component.
  */
 function createSingleSelectPopover<FilterKey extends string = string>({filterKey, filterConfig, currentFilterValue, setFilter}: SingleSelectPopoverFactoryProps<FilterKey>) {
-    return ({closeOverlay}: PopoverComponentProps) => {
+    return ({closeOverlay, isVisible}: PopoverComponentProps) => {
         const foundOption = filterConfig.options.find((option) => option.value === currentFilterValue);
         const selectedItem = foundOption
             ? {
@@ -200,6 +201,7 @@ function createSingleSelectPopover<FilterKey extends string = string>({filterKey
                 value={selectedItem}
                 closeOverlay={closeOverlay}
                 onChange={(item) => setFilter(filterKey, item?.value ?? null)}
+                isVisible={isVisible}
             />
         );
     };

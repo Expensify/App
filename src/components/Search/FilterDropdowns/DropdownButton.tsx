@@ -21,6 +21,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
+    isVisible: boolean;
 };
 
 type DropdownButtonProps = WithSentryLabel & {
@@ -122,8 +123,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay});
-    }, [PopoverComponent, toggleOverlay]);
+        return PopoverComponent({closeOverlay: toggleOverlay, isVisible: isOverlayVisible});
+    }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
 
     return (
         <View

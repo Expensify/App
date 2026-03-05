@@ -103,6 +103,9 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     /** Whether to ignore focus events */
     shouldIgnoreFocus?: boolean;
 
+    /** Whether to scroll to the top when selecting an item in multi-select lists */
+    shouldScrollToTopOnSelect?: boolean;
+
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
 

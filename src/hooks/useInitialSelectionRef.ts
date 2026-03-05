@@ -1,9 +1,10 @@
+import type {DependencyList} from 'react';
 import {useCallback, useEffect, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 
 type UseInitialSelectionRefOptions = {
     /** Dependencies that should trigger refreshing the snapshot (e.g., when a modal opens) */
-    resetDeps?: React.DependencyList;
+    resetDeps?: DependencyList;
     /** Whether to refresh the snapshot whenever the screen gains focus */
     resetOnFocus?: boolean;
 };

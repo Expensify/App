@@ -91,6 +91,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    shouldScrollToTopOnSelect = false,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -209,6 +210,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             if (canSelectMultiple) {
+                if (shouldScrollToTopOnSelect && !isItemSelected(item)) {
+                    scrollToIndex(0);
+                }
                 if (shouldShowTextInput && shouldClearInputOnSelect) {
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
@@ -239,6 +243,9 @@ function BaseSelectionList<TItem extends ListItem>({
             textInputOptions,
             onCheckboxPress,
             setFocusedIndex,
+            shouldScrollToTopOnSelect,
+            isItemSelected,
+            scrollToIndex,
         ],
     );
 
