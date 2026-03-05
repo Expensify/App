@@ -22,6 +22,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,9 +45,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     onLayout,
     onSelectRow,
     onDismissError,
+    onScroll,
     onScrollBeginDrag,
     onEndReached,
     onEndReachedThreshold,
+    customListHeaderContent,
     customHeaderContent,
     rightHandSideComponent,
     listEmptyContent,
@@ -56,11 +59,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     addBottomSafeAreaPadding,
     isLoadingNewOptions,
     canSelectMultiple = false,
-    showLoadingPlaceholder = false,
-    showListEmptyContent = true,
+    shouldShowLoadingPlaceholder = false,
+    shouldShowListEmptyContent = true,
     shouldShowTooltips = true,
     disableKeyboardShortcuts = false,
-    disableMaintainingScrollPosition = false,
     shouldShowTextInput,
     shouldIgnoreFocus = false,
     shouldStopPropagation = false,
@@ -69,6 +71,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldScrollToFocusedIndex = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
+    canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -81,6 +86,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
@@ -127,6 +133,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused: isScreenFocused,
+        onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
     const getFocusedItem = (): TItem | undefined => {
@@ -267,17 +274,17 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 dataLength={flattenedData.length}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return <OptionsListSkeletonView />;
         }
-        if (showListEmptyContent) {
+        if (shouldShowListEmptyContent) {
             return listEmptyContent;
         }
     };
@@ -320,11 +327,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
+                        canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                         shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                         shouldHighlightSelectedItem
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        shouldDisableHoverStyle={shouldDisableHoverStyle}
                     />
                 );
             }
@@ -339,32 +348,36 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             onLayout={onLayout}
         >
             {textInputComponent()}
-            {itemsCount === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
+            {customHeaderContent}
+            {itemsCount === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
-                <>
-                    {customHeaderContent}
-                    <FlashList
-                        data={flattenedData}
-                        renderItem={renderItem}
-                        ref={listRef}
-                        extraData={flattenedData.length}
-                        getItemType={getItemType}
-                        initialScrollIndex={initialScrollIndex ?? initialFocusedIndex}
-                        keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={onEndReachedThreshold}
-                        onScrollBeginDrag={onScrollBeginDrag}
-                        scrollEnabled={scrollEnabled}
-                        indicatorStyle="white"
-                        showsVerticalScrollIndicator
-                        keyboardShouldPersistTaps="always"
-                        ListFooterComponent={listFooterContent}
-                        style={style?.listStyle}
-                        contentContainerStyle={style?.contentContainerStyle}
-                        maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
-                    />
-                </>
+                <FlashList
+                    data={flattenedData}
+                    renderItem={renderItem}
+                    ref={listRef}
+                    extraData={flattenedData.length}
+                    getItemType={getItemType}
+                    initialScrollIndex={initialScrollIndex ?? initialFocusedIndex}
+                    keyExtractor={(item) => ('flatListKey' in item ? item.flatListKey : item.keyForList)}
+                    onEndReached={onEndReached}
+                    onEndReachedThreshold={onEndReachedThreshold}
+                    onScrollBeginDrag={onScrollBeginDrag}
+                    scrollEnabled={scrollEnabled}
+                    onScroll={() => {
+                        onScroll?.();
+                        triggerScrollEvent();
+                    }}
+                    indicatorStyle="white"
+                    showsVerticalScrollIndicator
+                    keyboardShouldPersistTaps="always"
+                    ListHeaderComponent={customListHeaderContent}
+                    ListFooterComponent={listFooterContent}
+                    ListFooterComponentStyle={style?.listFooterContentStyle}
+                    style={style?.listStyle}
+                    contentContainerStyle={style?.contentContainerStyle}
+                    maintainVisibleContentPosition={{disabled: true}}
+                />
             )}
             {!!footerContent && (
                 <Footer<TItem>
