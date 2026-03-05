@@ -5336,6 +5336,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 removeCardFeed: 'Remover feed do cartão',
                 removeCardFeedTitle: (feedName: string) => `Remover feed ${feedName}`,
                 removeCardFeedDescription: 'Tem certeza de que deseja remover este feed de cartão? Isso removerá a atribuição de todos os cartões.',
+                assignNewCards: 'Atribuir novos cartões',
+                assignNewCardsDescription: 'Obtenha os cartões mais recentes do seu banco para atribuir',
+                refreshConnectionSuccess: 'Conexão atualizada',
+                refreshConnectionSuccessDescription: 'Sua conexão bancária foi reautenticada com sucesso. Agora você pode atribuir novos cartões.',
                 error: {
                     feedNameRequired: 'O nome do feed do cartão é obrigatório',
                     statementCloseDateRequired: 'Selecione uma data de fechamento do extrato.',

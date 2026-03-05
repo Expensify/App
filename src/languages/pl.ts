@@ -5331,6 +5331,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 removeCardFeed: 'Usuń źródło karty',
                 removeCardFeedTitle: (feedName: string) => `Usuń strumień ${feedName}`,
                 removeCardFeedDescription: 'Na pewno chcesz usunąć ten kanał kart? Spowoduje to odłączenie wszystkich kart.',
+                assignNewCards: 'Przypisz nowe karty',
+                assignNewCardsDescription: 'Pobierz najnowsze karty z banku do przypisania',
+                refreshConnectionSuccess: 'Połączenie odświeżone',
+                refreshConnectionSuccessDescription: 'Połączenie z bankiem zostało pomyślnie ponownie uwierzytelnione. Możesz teraz przypisać nowe karty.',
                 error: {
                     feedNameRequired: 'Nazwa źródła karty jest wymagana',
                     statementCloseDateRequired: 'Wybierz datę zamknięcia wyciągu.',

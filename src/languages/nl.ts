@@ -5336,6 +5336,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 removeCardFeed: 'Kaartfeed verwijderen',
                 removeCardFeedTitle: (feedName: string) => `Feed ${feedName} verwijderen`,
                 removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Hierdoor worden alle kaarten losgekoppeld.',
+                assignNewCards: 'Nieuwe kaarten toewijzen',
+                assignNewCardsDescription: 'Haal de nieuwste kaarten op van je bank om toe te wijzen',
+                refreshConnectionSuccess: 'Verbinding vernieuwd',
+                refreshConnectionSuccessDescription: 'Je bankverbinding is succesvol opnieuw geverifieerd. Je kunt nu nieuwe kaarten toewijzen.',
                 error: {
                     feedNameRequired: 'Naam van kaartfeed is vereist',
                     statementCloseDateRequired: 'Selecteer een afsluitdatum voor het afschrift.',

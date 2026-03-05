@@ -5365,6 +5365,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 removeCardFeed: 'Kartenfeed entfernen',
                 removeCardFeedTitle: (feedName: string) => `${feedName}-Feed entfernen`,
                 removeCardFeedDescription: 'Möchtest du diesen Kartenfeed wirklich entfernen? Dadurch werden alle Karten zugewiesen.',
+                assignNewCards: 'Neue Karten zuweisen',
+                assignNewCardsDescription: 'Die neuesten Karten von deiner Bank zum Zuweisen abrufen',
+                refreshConnectionSuccess: 'Verbindung aktualisiert',
+                refreshConnectionSuccessDescription: 'Deine Bankverbindung wurde erfolgreich erneut authentifiziert. Du kannst jetzt neue Karten zuweisen.',
                 error: {
                     feedNameRequired: 'Name des Kartenfeeds ist erforderlich',
                     statementCloseDateRequired: 'Bitte wählen Sie ein Abrechnungsenddatum aus.',

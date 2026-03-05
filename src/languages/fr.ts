@@ -5384,6 +5384,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 removeCardFeed: 'Supprimer le flux de cartes',
                 removeCardFeedTitle: (feedName: string) => `Supprimer le flux ${feedName}`,
                 removeCardFeedDescription: "Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l'assignation de toutes les cartes.",
+                assignNewCards: 'Attribuer de nouvelles cartes',
+                assignNewCardsDescription: 'Obtenez les dernières cartes à attribuer depuis votre banque',
+                refreshConnectionSuccess: 'Connexion actualisée',
+                refreshConnectionSuccessDescription: 'Votre connexion bancaire a été ré-authentifiée avec succès. Vous pouvez maintenant attribuer de nouvelles cartes.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est obligatoire',
                     statementCloseDateRequired: 'Veuillez sélectionner une date de clôture de relevé.',

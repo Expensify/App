@@ -5297,6 +5297,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
+                assignNewCards: '新しいカードを割り当てる',
+                assignNewCardsDescription: '銀行から最新のカードを取得して割り当てます',
+                refreshConnectionSuccess: '接続が更新されました',
+                refreshConnectionSuccessDescription: '銀行接続の再認証が正常に完了しました。新しいカードを割り当てることができます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
