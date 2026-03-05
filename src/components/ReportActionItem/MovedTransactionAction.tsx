@@ -59,9 +59,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
         );
     }
 
-    const htmlContent = isPendingDelete
-        ? `<del><comment><muted-text>${Parser.htmlToText(message)}</muted-text></comment></del>`
-        : `<comment><muted-text>${message}</muted-text></comment>`;
+    const htmlContent = isPendingDelete ? `<del><comment><muted-text>${Parser.htmlToText(message)}</muted-text></comment></del>` : `<comment><muted-text>${message}</muted-text></comment>`;
 
     return (
         <ReportActionItemBasicMessage message="">
