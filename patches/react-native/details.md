@@ -228,6 +228,6 @@
 ### [react-native+0.83.1+030+fix-exif-orientation.patch](react-native+0.83.1+030+fix-exif-orientation.patch)
 
 - Reason: In RN 0.83, PR [#54127](https://github.com/facebook/react-native/pull/54127) changed `RCTDecodeImageWithData` to use `CGImageSourceCreateImageAtIndex` instead of `CGImageSourceCreateThumbnailAtIndex` for full-size images (to fix memory crashes with large images). However, `CGImageSourceCreateImageAtIndex` does NOT apply EXIF orientation transform to pixels, unlike the previous thumbnail API which used `kCGImageSourceCreateThumbnailWithTransform`. The code still hardcodes `UIImageOrientationUp`, so EXIF orientation is silently lost. This causes camera-captured images (which have EXIF orientation metadata) to appear rotated when processed by `expo-image-manipulator`. The fix reads the EXIF orientation from image properties and passes it to `UIImage` for the full-size code path.
-- Upstream PR/issue: TBD
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
