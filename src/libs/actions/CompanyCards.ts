@@ -56,7 +56,6 @@ type ImportCSVCompanyCardsData = {
     layoutType: string;
     columnMappings: string[];
     csvData: string[][];
-    containsHeader: boolean;
     existingCardsList?: WorkspaceCardsList;
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
@@ -1062,7 +1061,6 @@ function importCSVCompanyCards({
     layoutType,
     columnMappings,
     csvData,
-    containsHeader,
     existingCardsList,
     lastSelectedFeed,
     workspaceCardFeeds,
@@ -1085,10 +1083,9 @@ function importCSVCompanyCards({
     const shouldSetNickname = !existingNicknames?.[feedName] && !!layoutName;
 
     const cardNumberColumnIndex = columnMappings.indexOf(CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER);
-    const rowsStartIndex = containsHeader ? 1 : 0;
     const cardNumbersFromCSV = new Set<string>();
     if (cardNumberColumnIndex !== -1) {
-        for (const row of csvData.slice(rowsStartIndex)) {
+        for (const row of csvData) {
             const cardNumber = row?.at(cardNumberColumnIndex)?.trim();
             if (cardNumber) {
                 cardNumbersFromCSV.add(cardNumber);
@@ -1111,7 +1108,7 @@ function importCSVCompanyCards({
     const newCardEntries = Object.fromEntries([...cardNumbersFromCSV].filter((cardName) => !existingCardNames.has(cardName)).map((cardName) => [cardName, cardName]));
     const mergedCardList = {...existingCardList, ...newCardEntries};
     const newCardEntriesCount = Object.keys(newCardEntries).length;
-    const transactionsCount = Math.max(csvData.length - rowsStartIndex, 0);
+    const transactionsCount = csvData.length;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>
@@ -1215,11 +1212,9 @@ function importCSVCompanyCards({
         });
 
         failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feedName}`,
-            value: {
-                cardList: existingCardList ?? null,
-            },
+            value: existingCardsList ?? null,
         });
     }
 

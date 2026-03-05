@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -39,12 +39,13 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
     const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
     const prefilledLayoutType = addNewCard?.data?.layoutType;
-    const layoutType = useMemo(() => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`, [prefilledLayoutType]);
+    const [generatedLayoutType] = useState(() => prefilledLayoutType ?? `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_${rand64()}_`);
+    const layoutType = prefilledLayoutType ?? generatedLayoutType;
     const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = useMemo(() => {
+    const columnRoles: ColumnRole[] = (() => {
         const baseRoles: ColumnRole[] = [
             {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, isRequired: true},
@@ -69,7 +70,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         ];
 
         return [...baseRoles, ...advancedRoles];
-    }, [shouldUseAdvancedFields, translate]);
+    })();
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired);
 
@@ -130,7 +131,6 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             layoutType,
             columnMappings,
             csvData: rows,
-            containsHeader: spreadsheet?.containsHeader ?? true,
             existingCardsList,
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,

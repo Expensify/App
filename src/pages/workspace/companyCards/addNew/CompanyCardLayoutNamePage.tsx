@@ -93,6 +93,4 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
     );
 }
 
-CompanyCardLayoutNamePage.displayName = 'CompanyCardLayoutNamePage';
-
 export default CompanyCardLayoutNamePage;
