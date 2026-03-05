@@ -141,7 +141,6 @@ function CategorySettingsPage({
             return '';
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     const requireItemizedReceiptsOverText = useMemo(() => {
@@ -285,7 +284,13 @@ function CategorySettingsPage({
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
+                                <Text
+                                    style={[styles.flexShrink1, styles.mr2]}
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.categories.enableCategory')}
+                                </Text>
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
