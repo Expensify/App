@@ -1,7 +1,7 @@
-import type { SkFont } from '@shopify/react-native-skia';
+import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
-import type { ChartDataPoint, LabelRotation, PieSlice } from './types';
+import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
  * Expensify Chart Color Palette.
@@ -152,16 +152,16 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: { centerX: number, centerY: number, radius: number }): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
     }
 
     return data
-        .map((point, index) => ({ label: point.label, absTotal: Math.abs(point.total), originalIndex: index }))
+        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
         .sort((a, b) => b.absTotal - a.absTotal)
-        .reduce<{ slices: PieSlice[]; angle: number }>(
+        .reduce<{slices: PieSlice[]; angle: number}>(
             (acc, slice, index) => {
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
@@ -177,12 +177,12 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
                     endAngle: acc.angle + sweepAngle,
                     originalIndex: slice.originalIndex,
                     ordinalIndex: index,
-                    tooltipPosition: { x: tooltipX, y: tooltipY }
+                    tooltipPosition: {x: tooltipX, y: tooltipY},
                 });
                 acc.angle += sweepAngle;
                 return acc;
             },
-            { slices: [], angle: startAngle },
+            {slices: [], angle: startAngle},
         ).slices;
 }
 
