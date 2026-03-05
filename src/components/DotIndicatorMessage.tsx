@@ -1,4 +1,3 @@
-/* eslint-disable react/no-array-index-key */
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React from 'react';
@@ -100,7 +99,6 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
 
         return (
             <Text
-                // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}

@@ -67,7 +67,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     footerContentAbovePagination,
     listEmptyContent,
     showScrollIndicator = true,
-    showLoadingPlaceholder = false,
+    shouldShowLoadingPlaceholder = false,
     LoadingPlaceholderComponent = OptionsListSkeletonView,
     showConfirmButton = false,
     isConfirmButtonDisabled = false,
@@ -247,7 +247,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
                     // If disabled, add to the disabled indexes array
                     const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (isItemDisabled || item.isDisabledCheckbox) {
                         disabledOptionsIndexes.push(disabledIndex);
                         if (isItemDisabled) {
@@ -448,7 +447,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -665,16 +664,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -683,15 +672,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
-                }}
-            >
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -728,14 +709,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
@@ -1019,7 +999,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder)) &&
         !!headerMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                 <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
@@ -1047,7 +1027,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
-            {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {flattenedSections.allOptions.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>

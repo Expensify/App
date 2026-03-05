@@ -140,7 +140,6 @@ const baseMobileExpensifyPRList = [
 ];
 
 const issueURL = (n: number) => `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${n}`;
-// eslint-disable-next-line max-len
 const baseExpectedOutput = (version = '1.0.2-1', includeMobileExpensifyCompare = true) =>
     // cspell:disable
     `**Release Version:** \`${version}\`\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\n${includeMobileExpensifyCompare ? `**Mobile-Expensify Changes:** https://github.com/${CONST.GITHUB_OWNER}/${CONST.MOBILE_EXPENSIFY_REPO}/compare/production...staging\n` : ''}\n**This release contains changes from the following pull requests:**\n`;
@@ -148,13 +147,10 @@ const baseExpectedOutput = (version = '1.0.2-1', includeMobileExpensifyCompare =
 const openCheckbox = '- [ ] ';
 const closedCheckbox = '- [x] ';
 const deployerVerificationsHeader = '**Deployer verifications:**';
-// eslint-disable-next-line max-len
 const sentryVerificationCurrentRelease = (version: string) =>
     `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=staging) for **this release version** and verified that this release does not introduce any new crashes. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-// eslint-disable-next-line max-len
 const sentryVerificationPreviousRelease = (version: string) =>
     `I checked [Sentry](https://expensify.sentry.io/releases/new.expensify%40${version}/?project=app&environment=production) for **the previous release version** and verified that the release did not introduce any new crashes. Because mobile deploys use a phased rollout, completing this checklist will deploy the previous release version to 100% of users. More detailed instructions on this verification can be found [here](https://stackoverflowteams.com/c/expensify/questions/15095/15096).`;
-// eslint-disable-next-line max-len
 const ghVerification = 'I checked [GitHub Status](https://www.githubstatus.com/) and verified there is no reported incident with Actions.';
 const ccApplauseLeads = `cc @Expensify/applauseleads\n`;
 const deployBlockerHeader = '**Deploy Blockers:**';
@@ -168,7 +164,6 @@ describe('createOrUpdateDeployChecklist', () => {
         number: 28,
         labels: [LABELS.STAGING_DEPLOY_CASH],
         html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-        // eslint-disable-next-line max-len
         body:
             `${baseExpectedOutput('1.0.1-0')}` +
             `${closedCheckbox}${basePRList.at(0)}` +
@@ -341,7 +336,6 @@ describe('createOrUpdateDeployChecklist', () => {
             title: 'Test Deploy Checklist',
             number: 29,
             labels: [LABELS.STAGING_DEPLOY_CASH],
-            // eslint-disable-next-line max-len
             body:
                 `${baseExpectedOutput()}` +
                 `${openCheckbox}${basePRList.at(5)}` +
@@ -431,9 +425,7 @@ describe('createOrUpdateDeployChecklist', () => {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-                // eslint-disable-next-line max-len
                 body:
                     `${baseExpectedOutput('1.0.2-2')}` +
                     `${openCheckbox}${basePRList.at(5)}` +
@@ -511,9 +503,7 @@ describe('createOrUpdateDeployChecklist', () => {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-                // eslint-disable-next-line max-len
                 body:
                     `${baseExpectedOutput('1.0.2-1')}` +
                     `${openCheckbox}${basePRList.at(5)}` +
@@ -571,9 +561,7 @@ describe('createOrUpdateDeployChecklist', () => {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 issue_number: openDeployChecklistBefore.number,
-                // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-                // eslint-disable-next-line max-len
                 body:
                     `${baseExpectedOutput('1.0.2-1', false)}` +
                     `${openCheckbox}${basePRList.at(5)}` +
