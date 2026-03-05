@@ -1901,7 +1901,7 @@ function MoneyReportHeader({
         showExportAgainModal();
     }, [exportModalStatus, showExportAgainModal]);
 
-    const allExpensesSelected = selectedTransactionIDs.length === transactions.length;
+    const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactions.length;
 
     const selectedTransactionsOptions = useMemo(() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
