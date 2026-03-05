@@ -703,7 +703,7 @@ function MoneyReportHeader({
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
-    const showDWEModal = useCallback(async () => {
+    const showDWEModal = async () => {
         const result = await showConfirmModal({
             confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
             title: translate('customApprovalWorkflow.title'),
@@ -714,100 +714,60 @@ function MoneyReportHeader({
         if (result.action === ModalActions.CONFIRM) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         }
-    }, [showConfirmModal, translate]);
+    };
 
-    const confirmApproval = useCallback(
-        (skipAnimation = false) => {
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                setIsHoldMenuVisible(true);
-                if (skipAnimation) {
-                    clearSelectedTransactions(true);
-                }
-            } else {
-                if (!skipAnimation) {
-                    startApprovedAnimation();
-                }
-                approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
-                if (skipAnimation) {
-                    clearSelectedTransactions(true);
-                }
-            }
-        },
-        [
-            policy,
-            isDEWBetaEnabled,
-            showDWEModal,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-            isAnyTransactionOnHold,
-            startApprovedAnimation,
-            moneyRequestReport,
-            accountID,
-            email,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            nextStep,
-            betas,
-            userBillingGraceEndPeriods,
-            clearSelectedTransactions,
-        ],
-    );
-
-    const handleSubmitReport = useCallback(
-        (skipAnimation = false) => {
-            if (!moneyRequestReport || shouldBlockSubmit) {
-                return;
-            }
-            if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
-                showDWEModal();
-                return;
-            }
-            if (!skipAnimation) {
-                startSubmittingAnimation();
-            }
-            submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isOffline,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                });
-            }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const confirmApproval = (skipAnimation = false) => {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showDWEModal();
+            return;
+        }
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            setIsHoldMenuVisible(true);
             if (skipAnimation) {
                 clearSelectedTransactions(true);
             }
-        },
-        [
-            moneyRequestReport,
-            shouldBlockSubmit,
-            policy,
-            isDEWBetaEnabled,
-            showDWEModal,
-            startSubmittingAnimation,
-            accountID,
-            email,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            nextStep,
-            userBillingGraceEndPeriods,
-            currentSearchQueryJSON,
-            isOffline,
-            currentSearchKey,
-            shouldCalculateTotals,
-            currentSearchResults?.search?.isLoading,
-            clearSelectedTransactions,
-        ],
-    );
+        } else {
+            if (!skipAnimation) {
+                startApprovedAnimation();
+            }
+            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
+            }
+        }
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleSubmitReport = (skipAnimation = false) => {
+        if (!moneyRequestReport || shouldBlockSubmit) {
+            return;
+        }
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
+            showDWEModal();
+            return;
+        }
+        if (!skipAnimation) {
+            startSubmittingAnimation();
+        }
+        submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+        if (currentSearchQueryJSON && !isOffline) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isOffline,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+        if (skipAnimation) {
+            clearSelectedTransactions(true);
+        }
+    };
 
     const markAsCash = useCallback(() => {
         if (!requestParentReportAction) {
