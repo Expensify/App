@@ -37,7 +37,6 @@ function emitOnyxUpdate<TKey extends OnyxKey>(args: Array<OnyxServerUpdate<TKey>
         updates: [
             {
                 eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 data: args as AnyOnyxServerUpdate[],
             },
         ],
