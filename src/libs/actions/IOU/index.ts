@@ -11704,8 +11704,8 @@ function submitReport(
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
     onSubmitted?.();
+    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 function cancelPayment(
