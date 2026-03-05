@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -94,6 +94,18 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+
+    // End scan shortcut span when Scan page finishes first render (only when opened from FAB with request type SCAN)
+    const isFromScanShortcut =
+        initialTransaction?.isFromFloatingActionButton === true &&
+        initialTransaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    useLayoutEffect(() => {
+        if (!isFromScanShortcut) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT);
+        return () => cancelSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT);
+    }, [isFromScanShortcut]);
 
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);

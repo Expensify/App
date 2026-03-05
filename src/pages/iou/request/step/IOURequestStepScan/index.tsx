@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {PanResponder, StyleSheet, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -85,6 +85,18 @@ function IOURequestStepScan({
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
+
+    // End scan shortcut span when Scan page finishes first render (only when opened from FAB with request type SCAN)
+    const isFromScanShortcut =
+        initialTransaction?.isFromFloatingActionButton === true &&
+        initialTransaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    useLayoutEffect(() => {
+        if (!isFromScanShortcut) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT);
+        return () => cancelSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT);
+    }, [isFromScanShortcut]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
