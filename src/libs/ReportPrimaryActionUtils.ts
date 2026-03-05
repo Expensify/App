@@ -48,12 +48,14 @@ import {
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasMissingSmartscanFields,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
+    isScanRequest,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
@@ -118,6 +120,14 @@ function isSubmitAction(
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const hasSmartScanFailedWithMissingFields = reportTransactions?.some(
+        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
+    );
+
+    if (hasSmartScanFailedWithMissingFields) {
         return false;
     }
 
