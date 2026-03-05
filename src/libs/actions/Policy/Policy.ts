@@ -226,6 +226,7 @@ type SetWorkspaceReimbursementActionParams = {
     state?: string;
     lastPaymentMethod?: LastPaymentMethodType | string;
     shouldUpdateLastPaymentMethod?: boolean;
+    bankAccountList?: BankAccountList;
 };
 
 type SetWorkspaceApprovalModeAdditionalData = {
@@ -1102,13 +1103,23 @@ function setWorkspaceReimbursement({
     state,
     lastPaymentMethod,
     shouldUpdateLastPaymentMethod,
+    bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const oldBankAccountID = Object.keys(bankAccountList ?? {}).find((accountID) => {
+        const account = bankAccountList?.[accountID];
+        return account?.accountData?.policyIDs?.includes(policyID);
+    });
+
+    if (oldBankAccountID !== undefined && String(bankAccountID) === oldBankAccountID) {
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.BANK_ACCOUNT_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1122,6 +1133,31 @@ function setWorkspaceReimbursement({
             },
         },
     ];
+
+    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+        const optimisticBankAccountList: BankAccountList = {};
+        if (oldBankAccountID) {
+            optimisticBankAccountList[oldBankAccountID] = {
+                ...optimisticBankAccountList[oldBankAccountID],
+                accountData: {
+                    policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs?.filter((id) => id !== policyID) ?? [],
+                },
+            };
+        }
+        const currentPolicyIDs = bankAccountList?.[bankAccountID]?.accountData?.policyIDs ?? [];
+        optimisticBankAccountList[bankAccountID] = {
+            ...optimisticBankAccountList[bankAccountID],
+            accountData: {
+                policyIDs: [...new Set([...currentPolicyIDs, policyID])],
+            },
+        };
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: optimisticBankAccountList,
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD>> = [
         {
@@ -1155,7 +1191,7 @@ function setWorkspaceReimbursement({
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.BANK_ACCOUNT_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1175,6 +1211,29 @@ function setWorkspaceReimbursement({
             },
         },
     ];
+
+    if (bankAccountID !== undefined && bankAccountList !== undefined) {
+        const failureBankAccountList: BankAccountList = {};
+        if (oldBankAccountID) {
+            failureBankAccountList[oldBankAccountID] = {
+                ...failureBankAccountList[oldBankAccountID],
+                accountData: {
+                    policyIDs: bankAccountList?.[oldBankAccountID]?.accountData?.policyIDs ?? [],
+                },
+            };
+        }
+        failureBankAccountList[bankAccountID] = {
+            ...failureBankAccountList[bankAccountID],
+            accountData: {
+                policyIDs: bankAccountList?.[bankAccountID]?.accountData?.policyIDs ?? [],
+            },
+        };
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            value: failureBankAccountList,
+        });
+    }
 
     const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice, bankAccountID};
 

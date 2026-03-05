@@ -12,14 +12,14 @@ import {deleteReport} from './Report';
 type IgnoreDirection = 'parent' | 'child';
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -27,7 +27,7 @@ Onyx.connect({
     },
 });
 
-function clearReportActionErrors(reportID: string, reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
+function clearReportActionErrors(reportAction: ReportAction, originalReportID: string | undefined, keys?: string[]) {
     if (!reportAction?.reportActionID) {
         return;
     }
@@ -112,7 +112,7 @@ function clearAllRelatedReportActionErrors(
         return;
     }
 
-    clearReportActionErrors(reportID, reportAction, originalReportID, keys);
+    clearReportActionErrors(reportAction, originalReportID, keys);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
@@ -135,7 +135,4 @@ function clearAllRelatedReportActionErrors(
 }
 
 export type {IgnoreDirection};
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    clearAllRelatedReportActionErrors,
-};
+export {clearAllRelatedReportActionErrors};

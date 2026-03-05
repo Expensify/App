@@ -106,7 +106,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
-                badgeStyles={styles.badgeNewFeature}
+                isCondensed
                 success
             />
         </View>
