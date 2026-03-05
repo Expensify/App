@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsSettingsPage({
         setAssignCardStepAndData({currentStep: initialStep});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
         });
     };
 

@@ -628,6 +628,7 @@ const SCREENS = {
         PROFILE: 'Workspace_Overview',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
+        COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
         COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: 'Workspace_CompanyCards_AssignCard_Assignee',
         COMPANY_CARDS_ASSIGN_CARD_BANK_CONNECTION: 'Workspace_CompanyCards_AssignCard_Bank_Connection',
         COMPANY_CARDS_ASSIGN_CARD_PLAID_CONNECTION: 'Workspace_CompanyCards_AssignCard_Plaid_Connection',

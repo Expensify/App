@@ -43,9 +43,12 @@ type BankConnectionProps = {
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
+
+    /** Whether this is a refresh card list flow — always opens bank connection and dismisses on re-auth */
+    isRefreshFlow?: boolean;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshFlow}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -120,6 +123,19 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             return;
         }
 
+        // Handle refresh card list flow — always open bank connection, dismiss on re-auth
+        if (feed && isRefreshFlow) {
+            if (!isFeedExpired) {
+                customWindow?.close();
+                Navigation.closeRHPFlow();
+                return;
+            }
+            if (!isPlaid && url) {
+                customWindow = openBankConnection(url);
+            }
+            return;
+        }
+
         // Handle assign card flow
         if (feed) {
             if (!isFeedExpired) {
@@ -190,6 +206,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        isRefreshFlow,
     ]);
 
     const getContent = () => {
