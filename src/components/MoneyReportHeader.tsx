@@ -716,7 +716,6 @@ function MoneyReportHeader({
         }
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const confirmApproval = (skipAnimation = false) => {
         if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             showDWEModal();
@@ -741,7 +740,6 @@ function MoneyReportHeader({
         }
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
@@ -1045,7 +1043,7 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = useMemo(() => {
+    const selectionModeReportLevelActions = (() => {
         if (!primaryAction) {
             return [];
         }
@@ -1080,7 +1078,7 @@ function MoneyReportHeader({
             });
         }
         return actions;
-    }, [primaryAction, translate, expensifyIcons, handleSubmitReport, confirmApproval, totalAmount, paymentButtonOptions]);
+    })();
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(translate, expensifyIcons, moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, undefined, undefined, lastDistanceExpenseType),
