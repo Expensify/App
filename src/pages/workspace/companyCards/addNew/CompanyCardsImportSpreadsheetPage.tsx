@@ -27,6 +27,4 @@ function CompanyCardsImportSpreadsheetPage({route}: CompanyCardsImportSpreadshee
     );
 }
 
-CompanyCardsImportSpreadsheetPage.displayName = 'CompanyCardsImportSpreadsheetPage';
-
 export default CompanyCardsImportSpreadsheetPage;
