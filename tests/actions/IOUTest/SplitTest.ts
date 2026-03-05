@@ -10,7 +10,7 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {rand64} from '@libs/NumberUtils';
 import {getOriginalMessage, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
+import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     addSplitExpenseField,
     completeSplitBill,
@@ -2663,12 +2663,16 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (v) => (allReports = v)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
-        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const transactionReport = getReportOrDraftReport(reportID);
+        const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+        const updateExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+        let policyTags: PolicyTagLists = {};
         await getOnyxData({
             waitForCollectionCallback: true,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
             callback: (tags) => {
-                allPolicyTags = tags;
+                policyTags = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${updateExpenseReport?.policyID}`] ?? {};
             },
         });
 
@@ -2677,7 +2681,7 @@ describe('updateSplitTransactions', () => {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [
                     {transactionID: 'split-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime()},
@@ -2697,7 +2701,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            allPolicyTags,
+            policyTags,
         });
         await waitForBatchedUpdates();
 
@@ -2790,12 +2794,16 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, waitForCollectionCallback: true, callback: (v) => (allReports = v)});
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
-        let allPolicyTags: OnyxCollection<PolicyTagLists>;
+        const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const transactionReport = getReportOrDraftReport(reportID);
+        const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+        const updateExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+        let policyTags: PolicyTagLists = {};
         await getOnyxData({
             waitForCollectionCallback: true,
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
             callback: (tags) => {
-                allPolicyTags = tags;
+                policyTags = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${updateExpenseReport?.policyID}`] ?? {};
             },
         });
 
@@ -2804,7 +2812,7 @@ describe('updateSplitTransactions', () => {
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
-                reportID: originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                reportID,
                 originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses: [
                     {transactionID: 'cat-tag-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime(), category: testCategory, tags: [testTag]},
@@ -2824,7 +2832,7 @@ describe('updateSplitTransactions', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
-            allPolicyTags,
+            policyTags,
         });
         await waitForBatchedUpdates();
 
