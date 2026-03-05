@@ -596,7 +596,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             threeDotsMenuItems,
             isAuthTokenRequired,
             isTrackExpenseAction: isTrackExpenseActionValue,
-            isLoading: !transaction && (reportMetadata?.isLoadingInitialReportActions || (isDraftTransaction && isLoadingOnyxValue(transactionDraftResult))),
+            isLoading: !transaction && (reportMetadata?.isLoadingInitialReportActions ?? (isDraftTransaction && isLoadingOnyxValue(transactionDraftResult))),
             shouldShowNotFoundPage,
             shouldShowCarousel: false,
             shouldShowRotateButton: false,
