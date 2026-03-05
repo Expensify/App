@@ -1,4 +1,4 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
