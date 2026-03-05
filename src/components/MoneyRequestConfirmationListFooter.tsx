@@ -69,7 +69,7 @@ import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
-import {ShowContextMenuContext} from './ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from './ShowContextMenuContext';
 import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
@@ -450,16 +450,22 @@ function MoneyRequestConfirmationListFooter({
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
     const shouldShowTimeRequestFields = isTimeRequest && action === CONST.IOU.ACTION.CREATE;
 
-    const contextMenuContextValue = useMemo(
+    const contextMenuStateValue = useMemo(
         () => ({
             anchor: null,
             report: undefined,
             isReportArchived: false,
             action: undefined,
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: () => {},
             isDisabled: true,
             shouldDisplayContextMenu: false,
+        }),
+        [],
+    );
+
+    const contextMenuActionsValue = useMemo(
+        () => ({
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
         }),
         [],
     );
@@ -522,33 +528,35 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <View key={translate('common.description')}>
-                    <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                        <MentionReportContext.Provider value={mentionReportContextValue}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                shouldParseTitle
-                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                title={iouComment}
-                                description={translate('common.description')}
-                                onPress={() => {
-                                    if (!transactionID) {
-                                        return;
-                                    }
+                    <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+                        <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                            <MentionReportContext.Provider value={mentionReportContextValue}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon={!isReadOnly}
+                                    shouldParseTitle
+                                    excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                    title={iouComment}
+                                    description={translate('common.description')}
+                                    onPress={() => {
+                                        if (!transactionID) {
+                                            return;
+                                        }
 
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                numberOfLinesTitle={2}
-                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            />
-                        </MentionReportContext.Provider>
-                    </ShowContextMenuContext.Provider>
+                                        Navigation.navigate(
+                                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                        );
+                                    }}
+                                    style={[styles.moneyRequestMenuItem]}
+                                    titleStyle={styles.flex1}
+                                    disabled={didConfirm}
+                                    interactive={!isReadOnly}
+                                    numberOfLinesTitle={2}
+                                    rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+                                />
+                            </MentionReportContext.Provider>
+                        </ShowContextMenuActionsContext.Provider>
+                    </ShowContextMenuStateContext.Provider>
                 </View>
             ),
             shouldShow: true,
@@ -1109,7 +1117,6 @@ function MoneyRequestConfirmationListFooter({
                         style={styles.h100}
                     >
                         <PDFThumbnail
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
                             style={styles.h100}
                             onLoadError={onPDFLoadError}

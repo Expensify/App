@@ -426,14 +426,13 @@ function getRate({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const transactionCurrency = getCurrency(transaction);
+    const isUnreportedExpense = isExpenseUnreported(transaction);
 
     // getRateForP2P returns the stored rate only if passed currency is same as the transaction's currency
     // For unreported transactions (and possibly for all existing transactions?), we always want to use the stored rate.
-    const currency = isExpenseUnreported(transaction) && !isFakeP2PRate ? transactionCurrency : policyCurrency;
+    const currency = isUnreportedExpense && !isFakeP2PRate ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    const isUnreportedExpense = isExpenseUnreported(transaction);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate =
         (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
     const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(currency, transaction) : customMileageRate;

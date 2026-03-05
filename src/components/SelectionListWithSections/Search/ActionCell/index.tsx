@@ -52,8 +52,6 @@ function ActionCell({
             <BadgeActionCell
                 action={action}
                 isLargeScreenWidth={isLargeScreenWidth}
-                isSelected={isSelected}
-                extraSmall={extraSmall}
                 shouldDisablePointerEvents={shouldDisablePointerEvents}
             />
         );
