@@ -72,7 +72,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 buttonSize={extraSmall ? CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL : CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(iouReport?.total ?? 0), currency)}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
