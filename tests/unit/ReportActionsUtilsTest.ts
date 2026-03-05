@@ -3852,6 +3852,78 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isRejectedAction', () => {
+        it('should return true for REJECTED action type', () => {
+            // Given a report action with REJECTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for REJECTED_TO_SUBMITTER action type', () => {
+            // Given a report action with REJECTED_TO_SUBMITTER action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true because REJECTED_TO_SUBMITTER is also a rejected action
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-rejected action type', () => {
+            // Given a report action with SUBMITTED action type (not rejected)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
     describe('hasReasoning', () => {
         it('should return true when the action has a non-empty reasoning field', () => {
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
