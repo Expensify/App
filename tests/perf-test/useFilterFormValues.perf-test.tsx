@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx} from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
@@ -96,6 +98,181 @@ describe('useFilterFormValues', () => {
             );
 
             await measureFunction(() => policyTagsSelector(tags));
+        });
+    });
+
+    describe('buildFilterFormValuesFromQuery execution', () => {
+        test('buildFilterFormValuesFromQuery with 500 policies, reports, categories, tags', async () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) => ({
+                    ...createRandomPolicy(index),
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: '',
+                        defaultValue: '10%',
+                        foreignTaxDefault: '',
+                        taxes: {tax1: {name: 'VAT', value: '20%', code: 'vat', modifiedName: 'VAT', isDisabled: false}},
+                    },
+                }),
+                POLICY_COUNT,
+            );
+            const reports = createCollection<Report>(
+                (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
+                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                REPORT_COUNT,
+            );
+            const categories = createCollection<PolicyCategories>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
+                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                CATEGORY_COUNT,
+            );
+            const tags = createCollection<PolicyTagLists>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
+                () =>
+                    ({
+                        Department: {
+                            name: 'Department',
+                            required: true,
+                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
+                        },
+                    }) as unknown as PolicyTagLists,
+                TAG_COUNT,
+            );
+            const taxRates = getAllTaxRates(policies);
+
+            await measureFunction(() => buildFilterFormValuesFromQuery(queryJSON, categories, tags, {}, {}, {}, reports, taxRates));
+        });
+    });
+
+    describe('hook render duration with unrelated Onyx changes', () => {
+        test('with selectors - render duration when policies change', async () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            function TestComponent() {
+                const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector});
+                const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
+                const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyCategoriesSelector});
+                const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, {}, {}, {}, allReports, taxRates);
+                return <View testID={String(Object.keys(formValues).length)} />;
+            }
+
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) => ({
+                    ...createRandomPolicy(index),
+                    taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
+                }),
+                POLICY_COUNT,
+            );
+            const categories = createCollection<PolicyCategories>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
+                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                CATEGORY_COUNT,
+            );
+            const tags = createCollection<PolicyTagLists>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
+                () =>
+                    ({
+                        Department: {
+                            name: 'Department',
+                            required: true,
+                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
+                        },
+                    }) as unknown as PolicyTagLists,
+                TAG_COUNT,
+            );
+            const reports = createCollection<Report>(
+                (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
+                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                REPORT_COUNT,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, categories);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_TAGS, tags);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
+            await waitForBatchedUpdates();
+
+            await measureRenders(<TestComponent />, {
+                scenario: async () => {
+                    for (let i = 0; i < 50; i++) {
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${i}`, {name: `Updated Policy ${i} ${Date.now()}`});
+                    }
+                    await waitForBatchedUpdates();
+                },
+            });
+        });
+
+        test('without selectors - render duration when policies change', async () => {
+            const queryJSON = buildSearchQueryJSON('type:expense status:all category:Category0 tag:Tag0');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            function TestComponent() {
+                const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+                const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+                const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+                const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+                const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+                const formValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, {}, {}, {}, allReports, taxRates);
+                return <View testID={String(Object.keys(formValues).length)} />;
+            }
+
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) => ({
+                    ...createRandomPolicy(index),
+                    taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
+                }),
+                POLICY_COUNT,
+            );
+            const categories = createCollection<PolicyCategories>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${index}`,
+                () => Object.fromEntries(Array.from({length: 40}, (_unused, i) => [`Category${i}`, {name: `Category${i}`, enabled: true}])) as unknown as PolicyCategories,
+                CATEGORY_COUNT,
+            );
+            const tags = createCollection<PolicyTagLists>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${index}`,
+                () =>
+                    ({
+                        Department: {
+                            name: 'Department',
+                            required: true,
+                            tags: Object.fromEntries(Array.from({length: 30}, (_unused, i) => [`Tag${i}`, {name: `Tag${i}`, enabled: true}])),
+                        },
+                    }) as unknown as PolicyTagLists,
+                TAG_COUNT,
+            );
+            const reports = createCollection<Report>(
+                (_, index) => `${ONYXKEYS.COLLECTION.REPORT}${index}`,
+                (index) => ({reportID: `${index}`, reportName: `Report ${index}`}) as unknown as Report,
+                REPORT_COUNT,
+            );
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, categories);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY_TAGS, tags);
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reports);
+            await waitForBatchedUpdates();
+
+            await measureRenders(<TestComponent />, {
+                scenario: async () => {
+                    for (let i = 0; i < 50; i++) {
+                        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${i}`, {name: `Updated Policy ${i} ${Date.now()}`});
+                    }
+                    await waitForBatchedUpdates();
+                },
+            });
         });
     });
 

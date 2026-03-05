@@ -43,7 +43,7 @@ import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitN
 import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
@@ -905,27 +905,26 @@ function buildFilterFormValuesFromQuery(
             filtersForm[filterKey] = filterValues.find((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            const tags = policyID
-                ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags)
-                      .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                      .flat()
-                : Object.values(policyTags ?? {})
-                      .filter((item) => !!item)
-                      .map((tagList) => getTagNamesFromTagsLists(tagList ?? {}))
-                      .flat();
-            const uniqueTags = new Set(tags);
+            const uniqueTags = new Set<string>();
+            const tagLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, policyTags) : Object.values(policyTags ?? {}).filter((item) => !!item);
+            for (const tagList of tagLists) {
+                for (const policyTagList of Object.values(tagList ?? {})) {
+                    for (const tag of Object.values(policyTagList.tags ?? {})) {
+                        uniqueTags.add(tag.name);
+                    }
+                }
+            }
             uniqueTags.add(CONST.SEARCH.TAG_EMPTY_VALUE);
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueTags.has(name));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            const categories = policyID
-                ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories)
-                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
-                      .flat()
-                : Object.values(policyCategories ?? {})
-                      .map((item) => Object.values(item ?? {}).map((category) => category.name))
-                      .flat();
-            const uniqueCategories = new Set(categories);
+            const uniqueCategories = new Set<string>();
+            const categoryLists = policyID ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, policyCategories) : Object.values(policyCategories ?? {});
+            for (const item of categoryLists) {
+                for (const category of Object.values(item ?? {})) {
+                    uniqueCategories.add(category.name);
+                }
+            }
             const hasEmptyCategoriesInFilter = filterValues.includes(CONST.SEARCH.CATEGORY_EMPTY_VALUE);
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);

@@ -908,6 +908,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
+    const seenKeys: Record<string, Set<string>> = {};
 
     for (const policy of Object.values(policies ?? {})) {
         if (!policy?.taxRates?.taxes) {
@@ -917,11 +918,13 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
         for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes ?? {})) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
+                seenKeys[taxRate.name] = new Set([taxRateKey]);
                 continue;
             }
-            if (allTaxRates[taxRate.name].includes(taxRateKey)) {
+            if (seenKeys[taxRate.name].has(taxRateKey)) {
                 continue;
             }
+            seenKeys[taxRate.name].add(taxRateKey);
             allTaxRates[taxRate.name].push(taxRateKey);
         }
     }
