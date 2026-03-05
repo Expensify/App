@@ -835,7 +835,11 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction);
-    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+    } else if (
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+        isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+    ) {
         lastMessageTextFromReport = Parser.htmlToText(getChangedApproverActionMessage(translate, lastReportAction));
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
