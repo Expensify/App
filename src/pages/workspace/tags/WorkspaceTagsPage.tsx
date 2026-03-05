@@ -276,7 +276,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => {
             const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
-            const approverDisplayName = approverPersonalDetail ? formatPhoneNumber(getDisplayNameOrDefault(approverPersonalDetail, approverEmail)) : '';
+            const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             return {
                 value: tag.name,
@@ -298,12 +299,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         </View>
                         {shouldShowApproverColumn && (
                             <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
-                                {approverPersonalDetail ? (
+                                {approverDisplayName ? (
                                     <>
                                         <Avatar
-                                            source={approverPersonalDetail.avatar}
+                                            source={avatar}
                                             name={approverDisplayName}
-                                            avatarID={approverPersonalDetail.accountID}
+                                            avatarID={accountID}
                                             type={CONST.ICON_TYPE_AVATAR}
                                             size={CONST.AVATAR_SIZE.SUBSCRIPT}
                                             containerStyles={[styles.mr3]}

@@ -214,7 +214,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             const approverEmail = shouldShowApproverColumn ? (getCategoryApproverRule(policy?.rules?.approvalRules ?? [], value.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
-            const approverDisplayName = approverPersonalDetail ? formatPhoneNumber(getDisplayNameOrDefault(approverPersonalDetail, approverEmail)) : '';
+            const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             acc.push({
                 text: getDecodedCategoryName(value.name),
@@ -234,12 +235,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         </View>
                         {shouldShowApproverColumn && (
                             <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
-                                {approverPersonalDetail ? (
+                                {approverDisplayName ? (
                                     <>
                                         <Avatar
-                                            source={approverPersonalDetail.avatar}
+                                            source={avatar}
                                             name={approverDisplayName}
-                                            avatarID={approverPersonalDetail.accountID}
+                                            avatarID={accountID}
                                             type={CONST.ICON_TYPE_AVATAR}
                                             size={CONST.AVATAR_SIZE.SUBSCRIPT}
                                             containerStyles={[styles.mr3]}
