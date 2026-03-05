@@ -12,7 +12,6 @@ const createDownloadLink = (href: string, fileName: string) => {
     link.href = href;
     link.style.display = 'none';
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
     link.download = fileName;
 
     // Append to html link element page

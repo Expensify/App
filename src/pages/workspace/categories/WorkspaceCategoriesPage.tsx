@@ -695,7 +695,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
-                        showListEmptyContent={false}
+                        shouldShowListEmptyContent={false}
                         onDismissError={dismissError}
                         showScrollIndicator={false}
                         shouldHeaderBeInsideList
