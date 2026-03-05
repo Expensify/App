@@ -5,22 +5,20 @@ import Log from '@libs/Log';
 import type {AuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import CONST from '@src/CONST';
 
-const EXPECTED_FAILURE_REASONS = new Set<MultifactorAuthenticationReason>([
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.NO_METHOD_AVAILABLE,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.NOT_SUPPORTED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_EXPIRED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_DENIED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TOO_MANY_ATTEMPTS,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_MISSING,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_NOT_FOUND,
-    CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED,
-]);
+type FailureClassification = 'routine' | 'anomalous' | 'unclassified';
+
+function classifyFailure(reason: MultifactorAuthenticationReason | undefined): FailureClassification {
+    if (!reason) {
+        return 'unclassified';
+    }
+    if (CONST.MULTIFACTOR_AUTHENTICATION.ROUTINE_FAILURES.has(reason)) {
+        return 'routine';
+    }
+    if (CONST.MULTIFACTOR_AUTHENTICATION.ANOMALOUS_FAILURES.has(reason)) {
+        return 'anomalous';
+    }
+    return 'unclassified';
+}
 
 type MFAFlowOutcomeContext = {
     isSuccessful: boolean;
@@ -35,7 +33,7 @@ type MFAFlowOutcomeContext = {
 
 function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
     try {
-        const isExpectedFailure = !context.isSuccessful && context.error?.reason !== undefined && EXPECTED_FAILURE_REASONS.has(context.error.reason);
+        const failureClassification = context.isSuccessful ? undefined : classifyFailure(context.error?.reason);
 
         const tags: Record<string, string> = {};
         if (context.scenario) {
@@ -46,7 +44,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
         }
 
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;
-        const level = context.isSuccessful || isExpectedFailure ? 'info' : 'error';
+        const level = context.isSuccessful || failureClassification === 'routine' ? 'info' : 'error';
 
         const extra = {
             isSuccessful: context.isSuccessful,
@@ -61,6 +59,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
                 httpStatusCode: context.error?.httpStatusCode,
                 message: context.error?.message,
             },
+            failureClassification,
             authenticationMethod: context.authenticationMethod,
             isRegistrationComplete: context.isRegistrationComplete,
             isAuthorizationComplete: context.isAuthorizationComplete,
