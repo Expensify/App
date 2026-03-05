@@ -61,7 +61,7 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
     return filterObject(
         cards ?? {},
-        (key, card) => card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card.fundID === '0'),
+        (key, card) => card?.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card?.fundID === '0'),
     );
 };
 
