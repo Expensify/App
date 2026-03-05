@@ -243,7 +243,7 @@ function SuggestionMention({
             );
 
             const trimmedCommentAfterMention = trimLeadingSpace(commentAfterMention);
-            const spacer = !trimmedCommentAfterMention || !CONST.REGEX.STARTS_WITH_PUNCTUATION_WITHOUT_SPACE.test(trimmedCommentAfterMention) ? ' ' : '';
+            const spacer = !trimmedCommentAfterMention || !CONST.REGEX.STARTS_WITH_PUNCTUATION.test(trimmedCommentAfterMention) ? ' ' : '';
 
             updateComment(`${commentBeforeAtSign}${mentionCode}${dotToAppend}${spacer}${trimmedCommentAfterMention}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + dotToAppend.length + spacer.length;
