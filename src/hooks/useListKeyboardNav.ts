@@ -3,6 +3,7 @@ import type React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import CONST from '@src/CONST';
+import useActiveElementRole from './useActiveElementRole';
 import useArrowKeyFocusManager from './useArrowKeyFocusManager';
 import useKeyboardShortcut from './useKeyboardShortcut';
 
@@ -114,12 +115,16 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         onSelect(focusedIndex);
     };
 
+    const activeElementRole = useActiveElementRole();
+    const isNativelyHandledRole = activeElementRole === CONST.ROLE.BUTTON || activeElementRole === CONST.ROLE.CHECKBOX;
+    const isShortcutActive = isActive && hasFocus && focusedIndex >= 0 && !!onSelect && !isNativelyHandledRole;
+
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: isActive && hasFocus && focusedIndex >= 0 && !!onSelect,
+        isActive: isShortcutActive,
     });
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedOption, {
-        isActive: isActive && hasFocus && focusedIndex >= 0 && !!onSelect,
+        isActive: isShortcutActive,
     });
 
     return {focusedIndex, setFocusedIndex};
