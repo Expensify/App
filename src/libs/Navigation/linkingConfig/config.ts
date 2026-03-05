@@ -2114,11 +2114,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
                     // We want to avoid that situation, so we will return an empty string instead.
                     parse: {
-                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                     stringify: {
-                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                 },
