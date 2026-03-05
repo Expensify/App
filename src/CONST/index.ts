@@ -3690,6 +3690,9 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        CARD_PROGRAM: {
+            CURRENT: 'CURRENT',
+        },
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individual',
