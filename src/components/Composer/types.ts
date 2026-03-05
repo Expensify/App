@@ -42,7 +42,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         onPasteFile?: (files: FileObject | FileObject[]) => void;
 
         /** General styles to apply to the text input */
-        // eslint-disable-next-line react/forbid-prop-types
         style?: StyleProp<TextStyle>;
 
         /** Whether or not this TextInput is disabled. */

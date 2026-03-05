@@ -21,7 +21,6 @@ type ReportActionItemCreatedProps = {
     reportID: string | undefined;
 
     /** The id of the policy */
-    // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
 function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
