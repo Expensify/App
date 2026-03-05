@@ -14,7 +14,7 @@ type CustomListHeaderProps = {
     shouldDivideEqualWidth?: boolean;
     shouldShowRightCaret?: boolean;
     /** Adjusts for fixed width avatar component in the first column */
-    shouldAdjustForAvatar?: boolean;
+    shouldAdjustWidthForAvatar?: boolean;
     containerStyles?: StyleProp<ViewStyle>;
 };
 
@@ -25,7 +25,7 @@ function CustomListHeader({
     rightHeaderMinimumWidth = 60,
     shouldDivideEqualWidth = false,
     shouldShowRightCaret = false,
-    shouldAdjustForAvatar = false,
+    shouldAdjustWidthForAvatar = false,
     containerStyles,
 }: CustomListHeaderProps) {
     const styles = useThemeStyles();
@@ -43,7 +43,8 @@ function CustomListHeader({
                 containerStyles,
             ]}
         >
-            <Text style={[styles.textMicroSupporting, shouldDivideEqualWidth && styles.flex1, shouldAdjustForAvatar && [!shouldUseNarrowLayout && styles.pr3, styles.mr13]]}>
+            {/* mr13 (margin: 52px) accounts for avatar width + spacing */}
+            <Text style={[styles.textMicroSupporting, shouldDivideEqualWidth && styles.flex1, shouldAdjustWidthForAvatar && [!shouldUseNarrowLayout && styles.pr3, styles.mr13]]}>
                 {leftHeaderText}
             </Text>
             <View style={[shouldDivideEqualWidth ? styles.flex1 : StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightCaret && styles.mr6]}>

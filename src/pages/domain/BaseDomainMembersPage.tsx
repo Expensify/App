@@ -192,15 +192,15 @@ function BaseDomainMembersPage({
         return getCustomListHeader();
     };
 
-    const showSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
     const listHeaderContent = (
         <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
             <View
-                style={[shouldUseNarrowLayout && styles.w100, showSearchBar && !shouldUseNarrowLayout && styles.h13, showSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter]}
+                style={[shouldUseNarrowLayout && styles.w100, shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13, shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter]}
             >
                 {searchBarAccessory}
             </View>
-            {showSearchBar ? (
+            {shouldShowSearchBar ? (
                 <View style={[shouldUseNarrowLayout && styles.w100]}>
                     <SearchBar
                         inputValue={inputValue}
