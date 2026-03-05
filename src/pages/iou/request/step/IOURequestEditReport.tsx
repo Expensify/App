@@ -1,10 +1,11 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -33,14 +34,16 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode} = route.params;
-
-    const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const [allReports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const personalDetails = usePersonalDetails();
@@ -77,6 +80,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
+                translate,
+                toLocaleDigit,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -94,7 +99,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             isASAPSubmitBetaEnabled,
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
+            policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
+            translate,
+            toLocaleDigit,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
