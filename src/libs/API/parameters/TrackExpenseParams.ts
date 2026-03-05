@@ -38,6 +38,8 @@ type TrackExpenseParams = {
     distance?: number;
     gpsCoordinates?: string;
     isDistance?: boolean;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 export default TrackExpenseParams;
