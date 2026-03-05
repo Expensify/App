@@ -313,18 +313,18 @@ describe('TravelInvoicingUtils', () => {
 
     describe('getTravelSettings (internal usage via other public methods)', () => {
         // We test this via getTravelSettlementFrequency which relies on getTravelSettings
-        it('Should merge root settings with partial nested TRAVEL_US settings', () => {
+        it('Should only use nested TRAVEL_US settings, not root-level data', () => {
             const cardSettings = {
-                monthlySettlementDate: new Date('2024-01-01'), // Root level
+                monthlySettlementDate: new Date('2024-01-01'), // Root level (Expensify Card data)
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 TRAVEL_US: {
                     isEnabled: true, // Nested level (partial)
                 },
             } as ExpensifyCardSettings;
 
-            // Should get frequency from root (Monthly) even though TRAVEL_US doesn't have it
+            // Root monthlySettlementDate should NOT be inherited — TRAVEL_US has no monthlySettlementDate so frequency is daily
             const result = getTravelSettlementFrequency(cardSettings);
-            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY);
+            expect(result).toBe(CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY);
 
             // Should get enabled state from nested (true)
             const isEnabled = getIsTravelInvoicingEnabled(cardSettings);

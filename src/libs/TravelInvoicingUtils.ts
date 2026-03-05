@@ -5,7 +5,6 @@ import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 import {getLastFourDigits} from './BankAccountUtils';
-import {getCardSettings} from './CardUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
 
 /**
@@ -19,11 +18,10 @@ function isTravelCVVTestingEnabled(): boolean {
 }
 
 /**
- * Gets the Travel Invoicing settings using getCardSettings to handle both
- * flattened (legacy) and unflattened (TRAVEL_US nested) card settings structures.
+ * Gets the Travel Invoicing settings from the nested TRAVEL_US object.
  */
 function getTravelSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>): ExpensifyCardSettingsBase | undefined {
-    return getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    return cardSettings?.TRAVEL_US;
 }
 
 /**
