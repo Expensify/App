@@ -2,15 +2,12 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useId, useRef, useState} from 'react';
+import React, {useEffect, useId, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
-import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
@@ -33,8 +30,12 @@ function getDraggableItemState(item: unknown): DraggableItemState {
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
 /**
- * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
+ * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only.
  *
+ * Supports two modes:
+ * - **Uncontrolled** (default): manages its own keyboard navigation internally
+ * - **Controlled**: when `focusedIndex` prop is provided, skips internal keyboard nav
+ *   and uses the external value. The parent is responsible for arrow keys, Enter/Space, and focus tracking.
  */
 function DraggableList<T>({
     data = [],
@@ -42,29 +43,18 @@ function DraggableList<T>({
     keyExtractor,
     onDragEnd: onDragEndCallback,
     onSelectRow,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
+    focusedIndex: controlledFocusedIndex,
     ref,
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
+    const isControlled = controlledFocusedIndex !== undefined;
     const containerRef = useRef<HTMLDivElement>(null);
-    const [hasFocus, setHasFocus] = useState(false);
-    const [hasBeenFocused, setHasBeenFocused] = useState(false);
 
-    // Arrow keys are active if:
-    // 1. The screen is focused AND focus hasn't entered+left the container yet (initial page state), OR
-    // 2. The container currently has DOM focus
-    const isArrowKeyActive = hasFocus || (isFocused && !hasBeenFocused);
-
-    // Unique ID per mount to ensure DndContext state resets when component remounts
     const instanceId = useId();
-
-    // Track if a drag is currently active to avoid dispatching global Escape when not needed
     const isDraggingRef = useRef(false);
 
-    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
             if (typeof document === 'undefined' || !isDraggingRef.current) {
@@ -80,94 +70,27 @@ function DraggableList<T>({
 
     const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        maxIndex: data.length - 1,
+    const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: !isControlled,
+        itemKeys: items,
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isArrowKeyActive,
-        disableCyclicTraversal: true,
+        onSelect: onSelectRow
+            ? (index: number) => {
+                  const focusedItem = data.at(index);
+                  if (focusedItem) {
+                      onSelectRow(focusedItem);
+                  }
+              }
+            : undefined,
     });
 
-    useEffect(() => {
-        const container = containerRef.current;
-        if (!container) {
-            return;
-        }
-        const handleFocusIn = () => {
-            setHasBeenFocused(true);
-            setHasFocus(true);
-        };
-        const handleFocusOut = (event: FocusEvent) => {
-            if (event.relatedTarget instanceof Node && container.contains(event.relatedTarget)) {
-                return;
-            }
-            setHasFocus(false);
-            // When relatedTarget is null the focused element was destroyed by a React re-render.
-            // Preserve focusedIndex so prevItemsRef can track the item to its new position.
-            if (event.relatedTarget) {
-                setFocusedIndex(-1);
-            }
-        };
-        container.addEventListener('focusin', handleFocusIn);
-        container.addEventListener('focusout', handleFocusOut);
-        return () => {
-            container.removeEventListener('focusin', handleFocusIn);
-            container.removeEventListener('focusout', handleFocusOut);
-        };
-    }, [setFocusedIndex]);
-
-    // Follow focus through data reorders — focus should track the item, not stay at the index.
-    const prevItemsRef = useRef<string[]>(items);
-    useEffect(() => {
-        const prevItems = prevItemsRef.current;
-        prevItemsRef.current = items;
-
-        if (focusedIndex < 0 || focusedIndex >= prevItems.length) {
-            return;
-        }
-
-        const focusedKey = prevItems.at(focusedIndex);
-        if (!focusedKey || (focusedIndex < items.length && items.at(focusedIndex) === focusedKey)) {
-            return;
-        }
-
-        const newIndex = items.indexOf(focusedKey);
-        if (newIndex >= 0 && newIndex !== focusedIndex) {
-            setFocusedIndex(newIndex);
-        }
-    }, [items, focusedIndex, setFocusedIndex]);
-
-    useEffect(() => {
-        if (focusedIndex <= data.length - 1) {
-            return;
-        }
-        setFocusedIndex(Math.max(data.length - 1, -1));
-    }, [data.length, focusedIndex, setFocusedIndex]);
-
-    const selectFocusedOption = () => {
-        const focusedItem = data.at(focusedIndex);
-        if (focusedItem && onSelectRow) {
-            onSelectRow(focusedItem);
-        }
-    };
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
-        isActive: hasFocus && focusedIndex >= 0 && !!onSelectRow,
-    });
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, selectFocusedOption, {
-        isActive: hasFocus && focusedIndex >= 0 && !!onSelectRow,
-    });
+    const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;
 
     const onDragStart = () => {
         isDraggingRef.current = true;
     };
 
-    /**
-     * Function to be called when the user finishes dragging an item
-     * It will reorder the list and call the callback function
-     * to notify the parent component about the change
-     */
     const onDragEnd = (event: DragEndEvent) => {
         isDraggingRef.current = false;
         const {active, over} = event;
@@ -178,7 +101,9 @@ function DraggableList<T>({
 
             const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
-            setFocusedIndex(-1);
+            if (!isControlled) {
+                setInternalFocusedIndex(-1);
+            }
         }
     };
 
@@ -189,7 +114,7 @@ function DraggableList<T>({
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
         const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
-        const isItemFocused = index === focusedIndex && !isItemDisabled;
+        const isItemFocused = index === activeFocusedIndex && !isItemDisabled;
 
         const renderedItem = renderItem({
             item,
@@ -229,7 +154,7 @@ function DraggableList<T>({
 
     const content = (
         <>
-            <div ref={containerRef}>
+            <div ref={isControlled ? undefined : containerRef}>
                 <DndContext
                     key={instanceId}
                     onDragStart={onDragStart}

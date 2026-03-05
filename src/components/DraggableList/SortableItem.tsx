@@ -1,6 +1,7 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import React, {useEffect, useRef} from 'react';
+import CONST from '@src/CONST';
 import type {SortableItemProps} from './types';
 
 function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
@@ -24,9 +25,8 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         outline: 'none',
     };
 
-    // Prevent Enter key from reaching MenuItem when dragging to avoid navigation conflicts
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (!isDragging || e.key !== 'Enter') {
+        if (!isDragging || e.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
         e.preventDefault();
@@ -40,7 +40,6 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
                 itemRef.current = node;
             }}
             style={style}
-            // Use capture phase to intercept Enter before MenuItem handles it
             onKeyDownCapture={handleKeyDown}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}

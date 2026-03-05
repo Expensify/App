@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,6 +72,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
     const {translate, localeCompare} = useLocalize();
+
+    const isGrouped = !!groupBy;
 
     const allCustomColumns = [...groupColumns, ...allColumns];
     const defaultCustomColumns = new Set([...defaultGroupColumns, ...defaultSelectedColumns]);
@@ -205,6 +208,28 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         );
     };
 
+    // Unified keyboard nav for grouped mode: per W3C APG, arrow keys cross group boundaries seamlessly.
+    const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
+    const groupLength = groupColumnsList.length;
+    const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
+    const containerRef = useRef<View>(null);
+
+    const {focusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: isGrouped,
+        itemKeys: combinedItems.map((item) => item.value),
+        disabledIndexes,
+        onSelect: (index: number) => {
+            const item = combinedItems.at(index);
+            if (item) {
+                onSelectItem(item);
+            }
+        },
+    });
+
+    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
+    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
+
     return (
         <ScreenWrapper
             testID="ColumnsSettingsList"
@@ -220,8 +245,8 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                     style={styles.flex1}
                     contentContainerStyle={styles.flex1}
                 >
-                    {!!groupBy && (
-                        <>
+                    {isGrouped ? (
+                        <View ref={containerRef}>
                             <View style={[styles.ph5, styles.pb3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
                             </View>
@@ -233,6 +258,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                                 onDragEnd={onGroupDragEnd}
                                 onSelectRow={onSelectItem}
                                 renderItem={renderItem}
+                                focusedIndex={groupFocusedIndex}
                             />
 
                             <View style={styles.dividerLine} />
@@ -240,17 +266,27 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
                             <View style={[styles.ph5, styles.pv3]}>
                                 <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
                             </View>
-                        </>
-                    )}
 
-                    <DraggableList
-                        disableScroll
-                        data={typeColumnsList}
-                        keyExtractor={(item) => item.value}
-                        onDragEnd={onTypeDragEnd}
-                        onSelectRow={onSelectItem}
-                        renderItem={renderItem}
-                    />
+                            <DraggableList
+                                disableScroll
+                                data={typeColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onTypeDragEnd}
+                                onSelectRow={onSelectItem}
+                                renderItem={renderItem}
+                                focusedIndex={typeFocusedIndex}
+                            />
+                        </View>
+                    ) : (
+                        <DraggableList
+                            disableScroll
+                            data={typeColumnsList}
+                            keyExtractor={(item) => item.value}
+                            onDragEnd={onTypeDragEnd}
+                            onSelectRow={onSelectItem}
+                            renderItem={renderItem}
+                        />
+                    )}
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>

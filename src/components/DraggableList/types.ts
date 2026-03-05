@@ -31,6 +31,9 @@ type DraggableListProps<T> = {
 
     /** Disables scrolling of the list */
     disableScroll?: boolean;
+
+    /** Externally controlled focused index. When provided, DraggableList skips its internal keyboard navigation. */
+    focusedIndex?: number;
 } & DraggableListData<T>;
 
 type SortableItemProps = {
