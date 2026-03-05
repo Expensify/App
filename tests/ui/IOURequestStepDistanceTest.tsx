@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
-import * as IOU from '../../src/libs/actions/IOU';
+import type * as IOU from '../../src/libs/actions/IOU';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -140,6 +140,7 @@ jest.mock('@components/DistanceRequest/DistanceRequestFooter', () => {
 });
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
