@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
+import type {Role, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -493,7 +493,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 <>
                     {!shouldHeaderBeInsideList && header}
                     <View
-                        role={canSelectMultiple ? undefined : CONST.ROLE.LISTBOX}
+                        role={canSelectMultiple ? undefined : (CONST.ROLE.LISTBOX as Role)}
                         style={styles.flex1}
                     >
                         <FlashList
