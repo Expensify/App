@@ -127,7 +127,6 @@ function MultiGestureCanvas({
             if (!isUsedInCarousel) {
                 return;
             }
-            // eslint-disable-next-line no-param-reassign
             isPagerScrollEnabled.set(!current);
         },
     );

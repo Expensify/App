@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     AddAdminToDomainParams,
@@ -15,7 +16,10 @@ import type {
     ToggleTwoFactorAuthRequiredForDomainParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1672,6 +1676,21 @@ function resetDomainMemberTwoFactorAuth(domainAccountID: number, targetAccountID
     API.write(WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH, params, {optimisticData, failureData, successData});
 }
 
+function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV, {
+        domainAccountID,
+    });
+
+    const fileName = 'DomainMembers.csv';
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -1707,4 +1726,5 @@ export {
     setTwoFactorAuthExemptEmailForDomain,
     clearTwoFactorAuthExemptEmailsErrors,
     resetDomainMemberTwoFactorAuth,
+    exportMembersToCSV,
 };

@@ -429,7 +429,6 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
@@ -494,7 +493,8 @@ const ViolationsUtils = {
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
-        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
+        const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
+        const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
         const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
