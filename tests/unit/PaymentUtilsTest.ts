@@ -177,7 +177,7 @@ describe('PaymentUtils', () => {
         const mockTriggerKYCFlow = jest.fn();
         const mockConfirmApproval = jest.fn();
         const testPolicy = createRandomPolicy(1) as OnyxEntry<Policy>;
-        const testPolicyID = testPolicy?.id ?? '';
+        const testPolicyID = testPolicy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,
