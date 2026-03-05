@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type React from 'react';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import CONST from '@src/CONST';
 import useActiveElementRole from './useActiveElementRole';
@@ -61,7 +61,7 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
             }
             setHasFocus(false);
             // When relatedTarget is null the focused element was destroyed by a React re-render.
-            // Preserve focusedIndex so prevKeysRef can track the item to its new position.
+            // Preserve focusedIndex so the item at the same position can be refocused.
             if (event.relatedTarget) {
                 setFocusedIndex(-1);
             }
@@ -74,37 +74,38 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         };
     }, [isActive, setFocusedIndex, containerRef]);
 
-    const prevKeysRef = useRef<string[]>(itemKeys);
     useEffect(() => {
-        if (!isActive) {
-            prevKeysRef.current = itemKeys;
+        if (!isActive || focusedIndex < 0) {
             return;
         }
-        const prevKeys = prevKeysRef.current;
-        prevKeysRef.current = itemKeys;
 
         let newIndex = focusedIndex;
-
-        // Track focused item across reorders
-        if (newIndex >= 0 && newIndex < prevKeys.length) {
-            const focusedKey = prevKeys.at(newIndex);
-            if (focusedKey && itemKeys.at(newIndex) !== focusedKey) {
-                const keyIndex = itemKeys.indexOf(focusedKey);
-                if (keyIndex >= 0) {
-                    newIndex = keyIndex;
-                }
-            }
-        }
 
         // Clamp to bounds when list shrinks
         if (newIndex > itemKeys.length - 1) {
             newIndex = Math.max(itemKeys.length - 1, -1);
         }
 
+        // Skip forward past disabled indexes
+        while (newIndex >= 0 && newIndex < itemKeys.length && disabledIndexes.includes(newIndex)) {
+            newIndex++;
+        }
+
+        // If we overshot the end, scan backward from the original position
+        if (newIndex >= itemKeys.length) {
+            newIndex = focusedIndex - 1;
+            while (newIndex >= 0 && disabledIndexes.includes(newIndex)) {
+                newIndex--;
+            }
+            if (newIndex < 0) {
+                newIndex = -1;
+            }
+        }
+
         if (newIndex !== focusedIndex) {
             setFocusedIndex(newIndex);
         }
-    }, [itemKeys, focusedIndex, setFocusedIndex, isActive]);
+    }, [itemKeys.length, focusedIndex, setFocusedIndex, isActive, disabledIndexes]);
 
     const selectFocusedOption = () => {
         if (!onSelect || focusedIndex < 0) {

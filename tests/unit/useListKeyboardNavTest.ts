@@ -229,7 +229,7 @@ describe('useListKeyboardNav', () => {
         cleanup();
     });
 
-    it('should track focused item across data reorders', () => {
+    it('should keep focusedIndex at same position when data reorders', () => {
         const {ref, cleanup} = createContainerRef();
         const {result, rerender} = renderHook(
             ({itemKeys}: {itemKeys: string[]}) =>
@@ -248,9 +248,9 @@ describe('useListKeyboardNav', () => {
         pressArrowDown();
         expect(result.current.focusedIndex).toBe(1);
 
-        // Reorder: 'b' moves to index 2
+        // Reorder: 'b' moves to index 2, focus stays at index 1 (now 'c')
         rerender({itemKeys: ['a', 'c', 'b']});
-        expect(result.current.focusedIndex).toBe(2);
+        expect(result.current.focusedIndex).toBe(1);
 
         cleanup();
     });
@@ -323,6 +323,59 @@ describe('useListKeyboardNav', () => {
         // Should skip index 1 (disabled) and go to index 2
         pressArrowDown();
         expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
+    it('should skip forward past disabled index when reorder lands focus on disabled item', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes,
+                    containerRef: ref,
+                    onSelect: jest.fn(),
+                }),
+            {initialProps: {itemKeys: ['disabled', 'a', 'b'], disabledIndexes: [0]}},
+        );
+
+        // Navigate to 'a' (index 1)
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        // Reorder: 'a' moves away, disabled item shifts to index 1
+        rerender({itemKeys: ['a', 'disabled', 'b'], disabledIndexes: [1]});
+        // Focus should skip past disabled index 1 to index 2
+        expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
+    it('should scan backward when all items after focused index are disabled', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes,
+                    containerRef: ref,
+                    onSelect: jest.fn(),
+                }),
+            {initialProps: {itemKeys: ['a', 'b', 'disabled'], disabledIndexes: [2]}},
+        );
+
+        // Navigate to 'b' (index 1)
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        // Reorder: disabled item moves to index 1, 'b' moves to index 2 (also disabled)
+        rerender({itemKeys: ['a', 'disabled', 'disabled2'], disabledIndexes: [1, 2]});
+        // Focus should scan backward from index 1 to index 0
+        expect(result.current.focusedIndex).toBe(0);
 
         cleanup();
     });

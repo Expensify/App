@@ -174,11 +174,34 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         });
     };
 
+    // Unified keyboard nav for grouped mode: per W3C APG, arrow keys cross group boundaries seamlessly.
+    const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
+    const groupLength = groupColumnsList.length;
+    const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
+    const containerRef = useRef<View>(null);
+
+    const {focusedIndex, setFocusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: isGrouped,
+        itemKeys: combinedItems.map((item) => item.value),
+        disabledIndexes,
+        onSelect: (index: number) => {
+            const item = combinedItems.at(index);
+            if (item) {
+                onSelectItem(item);
+            }
+        },
+    });
+
+    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
+    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
+
     const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
         const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingTypeColumns, ...newGroupColumns];
         setColumns(newColumns);
+        setFocusedIndex(-1);
     };
 
     const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
@@ -186,6 +209,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
         const newColumns = [...existingGroupColumns, ...newTypeColumns];
         setColumns(newColumns);
+        setFocusedIndex(-1);
     };
 
     const resetColumns = () => {
@@ -207,28 +231,6 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
             />
         );
     };
-
-    // Unified keyboard nav for grouped mode: per W3C APG, arrow keys cross group boundaries seamlessly.
-    const combinedItems = isGrouped ? [...groupColumnsList, ...typeColumnsList] : [];
-    const groupLength = groupColumnsList.length;
-    const disabledIndexes = combinedItems.flatMap((item, index) => (item.isDisabled ? [index] : []));
-    const containerRef = useRef<View>(null);
-
-    const {focusedIndex} = useListKeyboardNav({
-        containerRef,
-        isActive: isGrouped,
-        itemKeys: combinedItems.map((item) => item.value),
-        disabledIndexes,
-        onSelect: (index: number) => {
-            const item = combinedItems.at(index);
-            if (item) {
-                onSelectItem(item);
-            }
-        },
-    });
-
-    const groupFocusedIndex = focusedIndex >= 0 && focusedIndex < groupLength ? focusedIndex : -1;
-    const typeFocusedIndex = focusedIndex >= groupLength ? focusedIndex - groupLength : -1;
 
     return (
         <ScreenWrapper
