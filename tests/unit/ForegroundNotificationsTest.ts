@@ -23,12 +23,10 @@ function setupAndGetCallback(method: 'configureForegroundNotifications' | 'disab
     let callback: ForegroundCallback | undefined;
 
     jest.isolateModules(() => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
         const AirshipModule = require('@ua/react-native-airship') as {default: {push: {iOS: {setForegroundPresentationOptionsCallback: jest.Mock}}}};
         const {setForegroundPresentationOptionsCallback} = AirshipModule.default.push.iOS;
         setForegroundPresentationOptionsCallback.mockClear();
 
-        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
         const ForegroundNotifications = require('@libs/Notification/PushNotification/ForegroundNotifications/index.ios') as {
             default: {configureForegroundNotifications: () => void; disableForegroundNotifications: () => void};
         };

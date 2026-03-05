@@ -65,7 +65,6 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): {default: IconAsset} | 
             return {default: icon};
         })
         .catch((error) => {
-            // eslint-disable-next-line no-console
             console.error(`Failed to load ExpensifyIcon: ${iconName}`, error);
             throw error;
         });

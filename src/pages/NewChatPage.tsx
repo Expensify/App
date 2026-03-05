@@ -234,7 +234,6 @@ function NewChatPage({ref}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const currentUserAccountID = personalData.accountID;
@@ -498,7 +497,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
                 rightHandSideComponent={itemRightSideComponent}
                 footerContent={footerContent}
-                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
                 onEndReached={handleEndReached}

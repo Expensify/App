@@ -60,7 +60,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -96,7 +95,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }
@@ -121,7 +119,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 sectionIndex={sectionIndex}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             />
             {item.footerContent && item.footerContent}
         </>
