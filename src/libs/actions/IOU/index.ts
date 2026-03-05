@@ -7694,7 +7694,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 customUnitRateID,
                 description: parsedComment,
                 gpsCoordinates,
-                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
+                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction),
+                odometerStart,
+                odometerEnd,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
