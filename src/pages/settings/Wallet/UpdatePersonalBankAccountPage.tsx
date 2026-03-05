@@ -60,15 +60,7 @@ function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [realPrivatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    // TEMP MOCK — simulate account missing all personal info for testing
-    const privatePersonalDetails = {
-        ...realPrivatePersonalDetails,
-        legalFirstName: '',
-        legalLastName: '',
-        phoneNumber: '',
-        addresses: [{street: '', city: '', state: '', zip: '', country: ''}],
-    };
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);

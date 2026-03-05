@@ -170,7 +170,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
                 isBadgeSuccess={isNeedingAction ? true : undefined}
-                badgeStyle={item.isCardFrozen ? styles.badgeBordered : undefined}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isNeedingAction ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}

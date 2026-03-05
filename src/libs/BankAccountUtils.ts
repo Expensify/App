@@ -35,8 +35,6 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
  * Check if a US personal bank account in OPEN state is missing required personal information.
  */
 function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
-    // TEMP MOCK — forces update flow for testing
-    return true;
     if (accountData?.type !== CONST.BANK_ACCOUNT.TYPE.PERSONAL) {
         return false;
     }
