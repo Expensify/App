@@ -48,7 +48,6 @@ import type {
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -67,24 +66,12 @@ import type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
@@ -106,29 +93,21 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
     WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
@@ -2657,10 +2636,10 @@ ${amount} para ${merchant} - ${date}`,
         getStarted: 'Começar',
         whatsYourName: 'Qual é o seu nome?',
         peopleYouMayKnow: 'Pessoas que você talvez conheça já estão aqui! Verifique seu e-mail para se juntar a elas.',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `Alguém de ${domain} já criou um workspace. Insira o código mágico enviado para ${email}.`,
+        workspaceYouMayJoin: (domain: string, email: string) => `Alguém de ${domain} já criou um workspace. Insira o código mágico enviado para ${email}.`,
         joinAWorkspace: 'Participar de um workspace',
         listOfWorkspaces: 'Aqui está a lista de espaços de trabalho que você pode entrar. Não se preocupe, você sempre pode entrar neles mais tarde, se preferir.',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} membro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Onde você trabalha?',
         errorSelection: 'Selecione uma opção para continuar',
         purpose: {
@@ -3034,7 +3013,7 @@ ${
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link foi reenviado',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) => `Enviei um link mágico de acesso para ${login}. Verifique seu ${loginType} para entrar.`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `Enviei um link mágico de acesso para ${login}. Verifique seu ${loginType} para entrar.`,
         resendLink: 'Reenviar link',
     },
     unlinkLoginForm: {
@@ -6690,12 +6669,12 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 : `alterou a dica de descrição da categoria "${categoryName}" para “${newValue}” (antes “${oldValue}”)`;
         },
         updateTagListName: (oldName: string, newName: string) => `alterou o nome da lista de tags para "${newName}" (antes "${oldName}")`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `adicionou a tag "${tagName}" à lista "${tagListName}"`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `atualizou a lista de tags "${tagListName}" alterando a tag "${oldName}" para "${newName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'ativado' : 'desativado'} a tag "${tagName}" na lista "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removeu a tag "${tagName}" da lista "${tagListName}"`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `removeu "${count}" tags da lista "${tagListName}"`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `adicionou a tag "${tagName}" à lista "${tagListName}"`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `atualizou a lista de tags "${tagListName}" alterando a tag "${oldName}" para "${newName}"`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? 'ativado' : 'desativado'} a tag "${tagName}" na lista "${tagListName}"`,
+        deleteTag: (tagListName: string, tagName?: string) => `removeu a tag "${tagName}" da lista "${tagListName}"`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `removeu "${count}" tags da lista "${tagListName}"`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `atualizou a tag "${tagName}" na lista "${tagListName}" alterando ${updatedField} para "${newValue}" (antes "${oldValue}")`;
             }
@@ -6724,8 +6703,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removeu a taxa "${rateName}" da unidade personalizada "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `adicionou o campo de relatório de ${fieldType} "${fieldName}"`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
-            `definir o valor padrão do campo de relatório "${fieldName}" como "${defaultValue}"`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `definir o valor padrão do campo de relatório "${fieldName}" como "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `adicionou a opção "${optionName}" ao campo de relatório "${fieldName}"`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `removeu a opção "${optionName}" do campo de relatório "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6737,7 +6715,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             return `${allEnabled ? 'ativado' : 'desativado'} a opção "${optionName}" para o campo de relatório "${fieldName}", tornando todas as opções ${allEnabled ? 'ativado' : 'desativado'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removeu o campo de relatório ${fieldType} "${fieldName}"`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `atualizou "Impedir autoaprovação" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (anteriormente "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6881,9 +6859,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
             `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `adicionou o imposto "${taxName}"`,
+        deleteTax: (taxName: string) => `removeu o imposto "${taxName}"`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -6916,16 +6894,15 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         removedMaxExpenseAge: (oldValue: string) => `removeu a idade máxima de despesa (anteriormente "${oldValue}" dias)`,
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `atualizou ${count} categorias`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `atualizou as tags na lista "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `alterou a lista de tags "${tagListsName}" para ${isRequired ? 'obrigatório' : 'não obrigatório'}`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `alterou a lista de tags "${tagListsName}" para ${isRequired ? 'obrigatório' : 'não obrigatório'}`,
         importTags: 'importou tags de uma planilha',
         deletedAllTags: 'excluiu todas as tags',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `alterou a categoria padrão de ${customUnitName} para "${newValue}" ${oldValue ? `(antes "${oldValue}")` : ''}`,
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `taxas importadas para a unidade personalizada "${customUnitName}"`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `alterou a tarifa "${customUnitName}" taxa "${customUnitRateName}" sub‑taxa "${customUnitSubRateName}" ${updatedField} para "${newValue}" (antes "${oldValue}")`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `removeu a tarifa "${customUnitName}" tarifa "${customUnitRateName}" subtarifa "${removedSubRateName}"`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `com limite de notificação de “${notificationThreshold}%”` : '';
@@ -6999,7 +6976,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
             return `${enabled ? 'ativado' : 'desativado'} controle de tempo`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `alterou a tarifa horária para "${newRate}" (antes "${oldRate}")`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `adicionou "${prohibitedExpense}" às despesas proibidas`,
@@ -7787,7 +7764,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Valor acima do limite de ${formattedLimit}/pessoa`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Valor acima do limite diário de categoria de ${formattedLimit}/pessoa`,
         receiptNotSmartScanned: 'Recibo e detalhes da despesa adicionados manualmente.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `Recibo obrigatório acima do limite de categoria de ${formattedLimit}`;
             }
@@ -7800,7 +7777,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             return 'Recibo obrigatório';
         },
         itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `Recibo detalhado obrigatório${formattedLimit ? `acima de ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = 'Despesa proibida:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7831,7 +7808,17 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: string,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Não é possível conciliar automaticamente o recibo devido a uma conexão bancária com erro.';
             }
@@ -7860,10 +7847,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         markAsCashToIgnore: 'Marcar como dinheiro para ignorar e solicitar pagamento.',
         smartscanFailed: ({canEdit = true}) => `A digitalização do recibo falhou.${canEdit ? 'Insira os detalhes manualmente.' : ''}`,
         receiptGeneratedWithAI: 'Recibo possivelmente gerado por IA',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Faltando ${tagName ?? 'Etiqueta'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Etiqueta'} não é mais válido`,
+        someTagLevelsRequired: (tagName?: string) => `Faltando ${tagName ?? 'Etiqueta'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Etiqueta'} não é mais válido`,
         taxAmountChanged: 'O valor do imposto foi modificado',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'Imposto'} não é mais válido`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? 'Imposto'} não é mais válido`,
         taxRateChanged: 'A alíquota de imposto foi modificada',
         taxRequired: 'Alíquota de imposto ausente',
         none: 'Nenhum',

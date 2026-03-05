@@ -48,7 +48,6 @@ import type {
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -67,24 +66,12 @@ import type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
@@ -106,29 +93,21 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
     WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
@@ -2609,10 +2588,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         getStarted: '开始使用',
         whatsYourName: '你叫什么名字？',
         peopleYouMayKnow: '你可能认识的人已经在这里了！验证你的邮箱以加入他们。',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
+        workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
         purpose: {
@@ -2984,7 +2963,7 @@ ${
     },
     resendValidationForm: {
         linkHasBeenResent: '链接已重新发送',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) => `我已向 ${login} 发送了魔法登录链接。请检查你的 ${loginType} 以登录。`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `我已向 ${login} 发送了魔法登录链接。请检查你的 ${loginType} 以登录。`,
         resendLink: '重新发送链接',
     },
     unlinkLoginForm: {
@@ -6544,12 +6523,12 @@ ${reportName}
             return !oldValue ? `已为类别“${categoryName}”添加描述提示“${newValue}”` : `已将“${categoryName}”类别的描述提示更改为“${newValue}”（之前为“${oldValue}”）`;
         },
         updateTagListName: (oldName: string, newName: string) => `已将标签列表名称更改为“${newName}”（原为“${oldName}”）`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已将标签“${tagName}”添加到列表“${tagListName}”`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `通过将标签“${oldName}”更改为“${newName}”更新了标签列表“${tagListName}”`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '已启用' : '已禁用'} 列表“${tagListName}”上的标签“${tagName}”`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除标签“${tagName}”`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除“${count}”个标签`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `已将标签“${tagName}”添加到列表“${tagListName}”`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `通过将标签“${oldName}”更改为“${newName}”更新了标签列表“${tagListName}”`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? '已启用' : '已禁用'} 列表“${tagListName}”上的标签“${tagName}”`,
+        deleteTag: (tagListName: string, tagName?: string) => `已从列表“${tagListName}”中移除标签“${tagName}”`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `已从列表“${tagListName}”中移除“${count}”个标签`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `通过将${updatedField}从“${oldValue}”更改为“${newValue}”，更新了列表“${tagListName}”中的标签“${tagName}”`;
             }
@@ -6578,7 +6557,7 @@ ${reportName}
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加${fieldType}报表字段“${fieldName}”`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6590,7 +6569,7 @@ ${reportName}
             return `将报表字段“${fieldName}”的选项“${optionName}”设置为${allEnabled ? '已启用' : '已禁用'}，使所有选项均为${allEnabled ? '已启用' : '已禁用'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `已将“禁止自我审批”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6724,9 +6703,9 @@ ${reportName}
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `将自定义税种名称更改为"${newName}"（之前为"${oldName}"）`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `将工作区货币的默认税率更改为"${newName}"（之前为"${oldName}"）`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `将外币默认税率更改为"${newName}"（之前为"${oldName}"）`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费"${taxName}"`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `已添加税费"${taxName}"`,
+        deleteTax: (taxName: string) => `已移除税费“${taxName}”`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -6759,15 +6738,15 @@ ${reportName}
         removedMaxExpenseAge: (oldValue: string) => `已移除费用最长期限（之前为“${oldValue}”天）`,
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `已更新 ${count} 个类别`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `已更新列表“${tagListName}”上的标签`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `将标签列表“${tagListsName}”更改为 ${isRequired ? '必填' : '非必填'}`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `将标签列表“${tagListsName}”更改为 ${isRequired ? '必填' : '非必填'}`,
         importTags: '已从电子表格导入标签',
         deletedAllTags: '已删除所有标签',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `已将${customUnitName}的默认类别更改为“${newValue}” ${oldValue ? `（原为“${oldValue}”）` : ''}`,
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `已导入自定义单位“${customUnitName}”的费率`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `已将“${customUnitName}”费率“${customUnitRateName}”子费率“${customUnitSubRateName}”的${updatedField}修改为“${newValue}”（之前为“${oldValue}”）`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `已移除“${customUnitName}”费率“${customUnitRateName}”子费率“${removedSubRateName}”`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `，通知阈值为“${notificationThreshold}%”` : '';
@@ -6841,7 +6820,7 @@ ${reportName}
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
             return `${enabled ? '已启用' : '已禁用'} 时间追踪`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `将时薪更改为“${newRate}”（之前为“${oldRate}”）`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
@@ -7608,7 +7587,7 @@ ${reportName}
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `超出每人限额 ${formattedLimit} 的金额`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `金额超过每日 ${formattedLimit}/人类别限额`,
         receiptNotSmartScanned: '已手动添加收据和报销详情。',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `超过${formattedLimit}类别限额需提供收据`;
             }
@@ -7621,7 +7600,7 @@ ${reportName}
             return '需要收据';
         },
         itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `需要逐项明细收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = '禁止报销的费用：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7652,7 +7631,17 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: string,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
@@ -7679,10 +7668,10 @@ ${reportName}
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true}) => `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`,
         receiptGeneratedWithAI: '可能由 AI 生成的收据',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `缺少 ${tagName ?? '标签'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? '标签'} 不再有效`,
+        someTagLevelsRequired: (tagName?: string) => `缺少 ${tagName ?? '标签'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? '标签'} 不再有效`,
         taxAmountChanged: '税额已被修改',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? '税'} 不再有效`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? '税'} 不再有效`,
         taxRateChanged: '税率已被修改',
         taxRequired: '缺少税率',
         none: '无',

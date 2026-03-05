@@ -3,7 +3,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
-import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
+import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -2517,8 +2517,8 @@ ${amount} para ${merchant} - ${date}`,
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
         peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
-        workspaceMemberList: ({employeeCount, policyOwner}) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
-        workspaceYouMayJoin: ({domain, email}) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
+        workspaceMemberList: (employeeCount, policyOwner) => `${employeeCount} miembro${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceYouMayJoin: (domain, email) => `Alguien de ${domain} ya ha creado un espacio de trabajo. Por favor, introduce el código mágico enviado a ${email}.`,
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
@@ -2902,7 +2902,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({login, loginType}) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
+        weSentYouMagicSignInLink: (login, loginType) => `Te he enviado un hiperenlace mágico para iniciar sesión a ${login}. Por favor, revisa tu ${loginType}`,
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
@@ -6539,15 +6539,15 @@ ${amount} para ${merchant} - ${date}`,
         updateCategories: ({count}) => `actualizó ${count} categorías`,
         updateTagListName: (oldName, newName) => `cambió el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         updateTagList: ({tagListName}) => `actualizó las etiquetas de la lista "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}) => `cambió la lista de etiquetas "${tagListsName}" a ${isRequired ? 'requerida' : 'no requerida'}`,
+        updateTagListRequired: (tagListsName, isRequired) => `cambió la lista de etiquetas "${tagListsName}" a ${isRequired ? 'requerida' : 'no requerida'}`,
         importTags: 'importó etiquetas desde una hoja de cálculo',
         deletedAllTags: 'eliminó todas las etiquetas',
-        addTag: ({tagListName, tagName}) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
-        updateTagName: ({tagListName, newName, oldName}) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
-        deleteMultipleTags: ({count, tagListName}) => `eliminó "${count}" etiquetas de la lista "${tagListName}"`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}) => {
+        addTag: (tagListName, tagName) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
+        updateTagName: (tagListName, newName, oldName) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
+        updateTagEnabled: (tagListName, tagName, enabled) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
+        deleteTag: (tagListName, tagName) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        deleteMultipleTags: (count, tagListName) => `eliminó "${count}" etiquetas de la lista "${tagListName}"`,
+        updateTag: (tagListName, newValue, tagName, updatedField, oldValue) => {
             if (oldValue) {
                 return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
             }
@@ -6560,9 +6560,9 @@ ${amount} para ${merchant} - ${date}`,
         importCustomUnitRates: ({customUnitName}) => `importó tasas para la unidad personalizada "${customUnitName}"`,
         addCustomUnitRate: (customUnitName, rateName) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         deleteCustomUnitRate: ({customUnitName, rateName}) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}) =>
+        updateCustomUnitSubRate: (customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField) =>
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}) =>
+        removedCustomUnitSubRate: (customUnitName, customUnitRateName, removedSubRateName) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
@@ -6582,7 +6582,7 @@ ${amount} para ${merchant} - ${date}`,
         updatedCustomUnitRateEnabled: (customUnitName, customUnitRateName, newValue) => {
             return `${newValue ? 'habilitó' : 'deshabilitó'} la tasa de ${customUnitName} "${customUnitRateName}"`;
         },
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}) => `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
+        updateReportFieldDefaultValue: (defaultValue, fieldName) => `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
         addedReportFieldOption: (fieldName, optionName) => `añadió la opción "${optionName}" al campo de informe "${fieldName}"`,
         removedReportFieldOption: (fieldName, optionName) => `eliminó la opción "${optionName}" del campo de informe "${fieldName}"`,
         updateReportFieldOptionDisabled: (fieldName, optionName, optionEnabled) =>
@@ -6596,7 +6596,7 @@ ${amount} para ${merchant} - ${date}`,
             }`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
-        preventSelfApproval: ({oldValue, newValue}) =>
+        preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue, newValue) => `cambió el importe requerido del recibo a "${newValue}" (antes "${oldValue}")`,
@@ -6741,7 +6741,7 @@ ${amount} para ${merchant} - ${date}`,
             return `eliminó el presupuesto de ${entityLabel} "${entityName}"`;
         },
         updatedTimeEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de tiempo`,
-        updatedTimeRate: ({newRate, oldRate}) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
+        updatedTimeRate: (newRate, oldRate) => `cambió la tarifa por hora a "${newRate}" (anteriormente "${oldRate}")`,
         addedProhibitedExpense: ({prohibitedExpense}) => `añadió "${prohibitedExpense}" a los gastos prohibidos`,
         removedProhibitedExpense: ({prohibitedExpense}) => `eliminó "${prohibitedExpense}" de los gastos prohibidos`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}) =>
@@ -6876,9 +6876,9 @@ ${amount} para ${merchant} - ${date}`,
             oldValue
                 ? `cambió el sitio web de la empresa de la factura a "${newValue}" (previamente "${oldValue}")`
                 : `estableció el sitio web de la empresa de la factura como "${newValue}"`,
-        addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
-        deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}) => {
+        addTax: (taxName) => `añadió el impuesto "${taxName}"`,
+        deleteTax: (taxName) => `eliminó el impuesto "${taxName}"`,
+        updateTax: (oldValue, taxName, updatedField, newValue) => {
             if (!updatedField) {
                 return '';
             }
@@ -8030,7 +8030,7 @@ ${amount} para ${merchant} - ${date}`,
         overLimitAttendee: ({formattedLimit}) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Detalles del recibo y del gasto añadidos manualmente.',
-        receiptRequired: ({formattedLimit, category}) => {
+        receiptRequired: (formattedLimit, category) => {
             if (formattedLimit && category) {
                 return `Recibo obligatorio para importes sobre ${formattedLimit} el límite de la categoría`;
             }
@@ -8046,7 +8046,7 @@ ${amount} para ${merchant} - ${date}`,
             return 'Recibo obligatorio';
         },
         itemizedReceiptRequired: ({formattedLimit}) => `Recibo detallado requerido${formattedLimit ? ` para importes sobre ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}) => {
+        prohibitedExpense: (prohibitedExpenseTypes) => {
             const preMessage = 'Gastos prohibidos:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -8077,7 +8077,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         customRules: ({message}) => message,
         reviewRequired: 'Revisión requerida',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
@@ -8108,10 +8108,10 @@ ${amount} para ${merchant} - ${date}`,
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
         receiptGeneratedWithAI: 'Posible recibo generado por IA',
-        someTagLevelsRequired: ({tagName} = {}) => `Falta ${tagName ?? 'Tag'}`,
-        tagOutOfPolicy: ({tagName} = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
+        someTagLevelsRequired: (tagName) => `Falta ${tagName ?? 'Tag'}`,
+        tagOutOfPolicy: (tagName) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: ({taxName} = {}) => `${taxName ?? 'El impuesto'} ya no es válido`,
+        taxOutOfPolicy: (taxName) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
         none: 'Ninguno',

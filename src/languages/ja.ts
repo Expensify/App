@@ -48,7 +48,6 @@ import type {
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -67,24 +66,12 @@ import type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagListParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
     UpdatedPolicyTimeEnabledParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
@@ -106,29 +93,21 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletAgreementParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
-    WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkflowSettingsParam,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
     WorkspaceMembersCountParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceRouteParams,
     WorkspaceShareNoteParams,
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
@@ -2646,10 +2625,10 @@ ${date} の ${merchant} への ${amount}`,
         getStarted: 'はじめる',
         whatsYourName: 'あなたの名前は何ですか？',
         peopleYouMayKnow: '知り合いがすでにここに参加しています！一緒に参加するには、メールアドレスを確認してください。',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
+        workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
         errorSelection: '次に進むオプションを選択してください',
         purpose: {
@@ -3023,8 +3002,7 @@ ${
     },
     resendValidationForm: {
         linkHasBeenResent: 'リンクを再送信しました',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) =>
-            `${login} にマジックサインインリンクを送信しました。サインインするには ${loginType} を確認してください。`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `${login} にマジックサインインリンクを送信しました。サインインするには ${loginType} を確認してください。`,
         resendLink: 'リンクを再送',
     },
     unlinkLoginForm: {
@@ -6646,12 +6624,12 @@ ${reportName}
                 : `「${categoryName}」カテゴリの説明のヒントを「${newValue}」（以前は「${oldValue}」）に変更しました`;
         },
         updateTagListName: (oldName: string, newName: string) => `タグリスト名を「${newName}」（以前は「${oldName}」）に変更しました`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `タグ「${tagName}」をリスト「${tagListName}」に追加しました`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `タグリスト「${tagListName}」でタグ「${oldName}」を「${newName}」に変更して更新しました`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '有効' : '無効'} リスト「${tagListName}」のタグ「${tagName}」`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `タグ「${tagName}」をリスト「${tagListName}」から削除しました`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `リスト「${tagListName}」からタグ「${count}」個を削除しました`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `タグ「${tagName}」をリスト「${tagListName}」に追加しました`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `タグリスト「${tagListName}」でタグ「${oldName}」を「${newName}」に変更して更新しました`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? '有効' : '無効'} リスト「${tagListName}」のタグ「${tagName}」`,
+        deleteTag: (tagListName: string, tagName?: string) => `タグ「${tagName}」をリスト「${tagListName}」から削除しました`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `リスト「${tagListName}」からタグ「${count}」個を削除しました`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `${updatedField} を「${oldValue}」から「${newValue}」に変更して、リスト「${tagListName}」内のタグ「${tagName}」を更新しました`;
             }
@@ -6680,8 +6658,7 @@ ${reportName}
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `「${customUnitName}」レート「${rateName}」を削除しました`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}レポートフィールド「${fieldName}」を追加しました`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
-            `レポートフィールド「${fieldName}」のデフォルト値を「${defaultValue}」に設定する`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `レポートフィールド「${fieldName}」のデフォルト値を「${defaultValue}」に設定する`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `レポート項目「${fieldName}」にオプション「${optionName}」を追加しました`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `レポートフィールド「${fieldName}」からオプション「${optionName}」を削除しました`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6693,7 +6670,7 @@ ${reportName}
             return `レポート項目「${fieldName}」のオプション「${optionName}」を${allEnabled ? '有効' : '無効'}にし、すべてのオプションを${allEnabled ? '有効' : '無効'}にしました`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType}レポートフィールド「${fieldName}」を削除しました`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `「自分で承認を防止」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6833,9 +6810,9 @@ ${reportName}
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `カスタム税区分名を「${newName}」（以前は「${oldName}」）に変更しました`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `ワークスペースの通貨デフォルト税率を「${newName}」（以前は「${oldName}」）に変更しました`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `外貨のデフォルト税率を「${newName}」に変更しました（以前は「${oldName}」）。`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税金「${taxName}」を削除しました`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `税「${taxName}」を追加しました`,
+        deleteTax: (taxName: string) => `税金「${taxName}」を削除しました`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -6868,16 +6845,15 @@ ${reportName}
         removedMaxExpenseAge: (oldValue: string) => `最大経費日数を削除（以前は「${oldValue}」日）`,
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `${count} 個のカテゴリーを更新しました`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `リスト「${tagListName}」のタグを更新しました`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `タグリスト「${tagListsName}」を${isRequired ? '必須' : '必須ではありません'}に変更しました`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `タグリスト「${tagListsName}」を${isRequired ? '必須' : '必須ではありません'}に変更しました`,
         importTags: 'スプレッドシートからタグをインポートしました',
         deletedAllTags: 'すべてのタグを削除しました',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `${customUnitName}のデフォルトカテゴリを「${newValue}」に変更しました ${oldValue ? `（以前の値 "${oldValue}"）` : ''}`,
         importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `カスタム単位「${customUnitName}」のレートをインポートしました`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `「${customUnitName}」のレート「${customUnitRateName}」、サブレート「${customUnitSubRateName}」の${updatedField}を「${newValue}」（以前は「${oldValue}」）に変更しました`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `「${customUnitName}」のレート「${customUnitRateName}」からサブレート「${removedSubRateName}」を削除しました`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `通知しきい値「${notificationThreshold}%」で` : '';
@@ -6951,7 +6927,7 @@ ${reportName}
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
             return `${enabled ? '有効' : '無効'} 時間追跡`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `時給を「${newRate}」（以前は「${oldRate}」）に変更しました`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `禁止経費に「${prohibitedExpense}」を追加しました`,
@@ -7730,7 +7706,7 @@ ${reportName}
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `1人あたりの上限額 ${formattedLimit} を超過した金額`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `1人あたりの1日上限額 ${formattedLimit} を超えたカテゴリ金額`,
         receiptNotSmartScanned: 'レシートと経費の詳細が手動で追加されました。',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `レシートが必要です（カテゴリ上限 ${formattedLimit} を超過）`;
             }
@@ -7743,7 +7719,7 @@ ${reportName}
             return '領収書が必要です';
         },
         itemizedReceiptRequired: ({formattedLimit}: {formattedLimit?: string}) => `項目別の領収書が必要です${formattedLimit ? `${formattedLimit} を超過` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = '禁止経費：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7774,7 +7750,17 @@ ${reportName}
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '要レビュー',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '銀行連携の不具合により、領収書を自動照合できません。';
             }
@@ -7803,10 +7789,10 @@ ${reportName}
         markAsCashToIgnore: '現金としてマークして無視し、支払いをリクエストします。',
         smartscanFailed: ({canEdit = true}) => `レシートのスキャンに失敗しました。${canEdit ? '詳細を手動で入力してください。' : ''}`,
         receiptGeneratedWithAI: 'AI生成の可能性があるレシート',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'タグ'} が見つかりません`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'タグ'} は無効になりました`,
+        someTagLevelsRequired: (tagName?: string) => `${tagName ?? 'タグ'} が見つかりません`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'タグ'} は無効になりました`,
         taxAmountChanged: '税額が変更されました',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? '税金'} は有効期限切れです`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? '税金'} は有効期限切れです`,
         taxRateChanged: '税率が変更されました',
         taxRequired: '税率が未設定です',
         none: 'なし',

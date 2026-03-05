@@ -95,7 +95,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const policyIDItems = Object.values(joinablePolicies ?? {}).map((policyInfo) => ({
         text: policyInfo.policyName,
-        alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+        alternateText: translate('onboarding.workspaceMemberList', policyInfo.employeeCount, policyInfo.policyOwner),
         keyForList: policyInfo.policyID,
         isDisabled: true,
         rightElement: (
