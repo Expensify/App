@@ -1104,7 +1104,11 @@ function getOptionData({
             result.alternateText = translate('iou.reopened');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(translate, lastAction);
-        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+        } else if (
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE) ||
+            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
+        ) {
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
