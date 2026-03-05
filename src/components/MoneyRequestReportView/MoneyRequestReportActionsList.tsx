@@ -307,7 +307,7 @@ function MoneyRequestReportActionsList({
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, isDelegateAccessRestricted, dismissedRejectUseExplanation, showDelegateNoAccessModal]);
+    }, [originalSelectedTransactionsOptions, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const dismissRejectModalBasedOnAction = useCallback(() => {
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {

@@ -11916,7 +11916,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -12506,6 +12506,7 @@ class Git {
                         newStart,
                         newCount,
                         lines: [],
+                        contextLineCount: 0,
                     };
                 }
                 continue;
@@ -12533,7 +12534,8 @@ class Git {
                     });
                 }
                 else if (firstChar === ' ') {
-                    // Context line - skip it (we only care about added/removed lines)
+                    // Context line - count it so calculateLineNumber accounts for position advancement
+                    currentHunk.contextLineCount++;
                     continue;
                 }
                 else if (firstChar === '\\') {
@@ -12597,9 +12599,9 @@ class Git {
         const removedCount = hunk.lines.filter((l) => l.type === 'removed').length;
         switch (lineType) {
             case 'added':
-                return hunk.newStart + addedCount;
+                return hunk.newStart + hunk.contextLineCount + addedCount;
             case 'removed':
-                return hunk.oldStart + removedCount;
+                return hunk.oldStart + hunk.contextLineCount + removedCount;
             default:
                 throw new Error(`Unknown line type: ${String(lineType)}`);
         }
@@ -12795,6 +12797,7 @@ class Git {
                 newStart: 1,
                 newCount: lines.length,
                 lines: diffLines,
+                contextLineCount: 0,
             };
             const fileDiff = {
                 filePath,
