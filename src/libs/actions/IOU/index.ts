@@ -14048,6 +14048,7 @@ function updateMultipleMoneyRequests(
             isTransactionOnHold,
             policy,
             optimisticReportAction?.actorAccountID,
+            transactionChanges,
         );
 
         if (updatedMoneyRequestReport) {
@@ -14175,7 +14176,7 @@ function updateMultipleMoneyRequests(
  * just the storage key and never equals any actual transactionID.
  */
 function initBulkEditDraftTransaction(selectedTransactionIDs: string[]) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
         transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
         selectedTransactionIDs,
     });
