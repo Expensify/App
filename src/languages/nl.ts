@@ -1272,31 +1272,31 @@ const translations: TranslationDeepObject<typeof en> = {
     emptyMappedField: (fieldName: string) =>
       `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
     importSuccessfulTitle: "Import geslaagd",
-importCategoriesSuccessfulDescription: ({
-  added,
-  updated,
-}: {
-  added: number;
-  updated: number;
-}) => {
-  if (!added && !updated) {
-    return "Er zijn geen categorieën toegevoegd of bijgewerkt.";
-  }
+    importCategoriesSuccessfulDescription: ({
+      added,
+      updated,
+    }: {
+      added: number;
+      updated: number;
+    }) => {
+      if (!added && !updated) {
+        return "Er zijn geen categorieën toegevoegd of bijgewerkt.";
+      }
 
-  if (added && updated) {
-    return `${added} ${added === 1 ? "categorie" : "categorieën"} toegevoegd, ${updated} ${updated === 1 ? "categorie" : "categorieën"} bijgewerkt.`;
-  }
+      if (added && updated) {
+        return `${added} ${added === 1 ? "categorie" : "categorieën"} toegevoegd, ${updated} ${updated === 1 ? "categorie" : "categorieën"} bijgewerkt.`;
+      }
 
-  if (added) {
-    return added === 1
-      ? "1 categorie is toegevoegd."
-      : `${added} categorieën zijn toegevoegd.`;
-  }
+      if (added) {
+        return added === 1
+          ? "1 categorie is toegevoegd."
+          : `${added} categorieën zijn toegevoegd.`;
+      }
 
-  return updated === 1
-    ? "1 categorie is bijgewerkt."
-    : `${updated} categorieën zijn bijgewerkt.`;
-},
+      return updated === 1
+        ? "1 categorie is bijgewerkt."
+        : `${updated} categorieën zijn bijgewerkt.`;
+    },
     importMembersSuccessfulDescription: ({
       added,
       updated,
