@@ -167,13 +167,13 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         bankAccountListUpdates[key] = {
             accountData: {
                 additionalData: {
-                    firstName: parameters.legalFirstName,
-                    lastName: parameters.legalLastName,
-                    addressStreet: parameters.addressStreet,
-                    addressCity: parameters.addressCity,
-                    addressState: parameters.addressState,
-                    addressZipCode: parameters.addressZip,
-                    companyPhone: parameters.companyPhone,
+                    firstName: accountData?.legalFirstName,
+                    lastName: accountData?.legalLastName,
+                    addressStreet: formattedStreet,
+                    addressCity: accountData?.addressCity,
+                    addressState: accountData?.addressState,
+                    addressZipCode: accountData?.addressZipCode,
+                    companyPhone: accountData?.phoneNumber,
                 },
             },
         };
