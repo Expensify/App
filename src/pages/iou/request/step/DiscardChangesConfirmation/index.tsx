@@ -37,12 +37,10 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
      * (via navigation.getParent()) which does emit these events when the screen is being removed.
      */
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const targetNavigation = useParentStackForWebBack ? navigation.getParent() : navigation;
+        const targetNavigation = useParentStackForWebBack ? (navigation.getParent() as typeof navigation | undefined) : navigation;
         if (!targetNavigation) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         const unsubscribe = targetNavigation.addListener('transitionStart', ({data: {closing}}: {data: {closing: boolean}}) => {
             if (!hasUnsavedChanges || isConfirmed.current) {
                 return;
@@ -57,7 +55,6 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
             navigateAfterInteraction(() => setIsVisible(true));
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return unsubscribe;
     }, [hasUnsavedChanges, navigation, useParentStackForWebBack]);
 
