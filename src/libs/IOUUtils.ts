@@ -401,17 +401,27 @@ function getInitialPerDiemTargetReport(
     iouType: IOUType,
     defaultExpensePolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
     personalPolicy: OnyxEntry<Pick<Policy, 'autoReporting'>>,
+    isFromGlobalCreate: boolean,
 ): {targetReport: OnyxEntry<Report>; targetIouType: IOUType; transactionReportID: string | undefined} {
     let targetReport = report;
     let targetIouType = iouType;
-    const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-    if (!shouldAutoReport || targetIouType === CONST.IOU.TYPE.TRACK) {
+
+    if (isFromGlobalCreate) {
+        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+        if (!shouldAutoReport) {
+            targetReport = selfDMReport;
+        }
+    }
+
+    if (targetIouType === CONST.IOU.TYPE.TRACK) {
         targetReport = selfDMReport;
     }
+
     const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
     if (transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         targetIouType = CONST.IOU.TYPE.TRACK;
     }
+
     return {targetReport, targetIouType, transactionReportID};
 }
 

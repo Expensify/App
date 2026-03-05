@@ -5,8 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
@@ -16,10 +14,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
-type IOURequestStepPerDiemWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
+type IOURequestStepPerDiemWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDiemWorkspaceProps) {
+function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOURequestStepPerDiemWorkspaceProps) {
     const {
         params: {action, iouType, transactionID},
     } = route;
@@ -40,6 +40,7 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
                     iouType,
                     defaultExpensePolicy,
                     personalPolicy,
+                    transaction?.isFromGlobalCreate ?? false,
                 );
 
                 if (!targetReport) {
@@ -73,4 +74,4 @@ function IOURequestStepPerDiemWorkspace({route, navigation}: IOURequestStepPerDi
     );
 }
 
-export default IOURequestStepPerDiemWorkspace;
+export default withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace);
