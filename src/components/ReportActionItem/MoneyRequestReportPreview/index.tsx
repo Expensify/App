@@ -126,10 +126,7 @@ function MoneyRequestReportPreview({
     // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
-    const transactionPreviewContainerStyles = useMemo(
-        () => [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
-        [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle],
-    );
+    const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
