@@ -139,6 +139,7 @@ function MoneyRequestReportPreviewContent({
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -690,11 +691,12 @@ function MoneyRequestReportPreviewContent({
                 iouReport?.reportID,
                 policy,
                 userBillingGraceEndPeriods,
+                amountOwed,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, chatReportID, lastDistanceExpenseType],
+        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, amountOwed, chatReportID, lastDistanceExpenseType],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -875,6 +877,7 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {/* This will be fixed as follow up https://github.com/Expensify/App/pull/75357 */}
                                                             {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
+                                                            {}
                                                             {getReportName({report: iouReport, reportAttributes}) || action.childReportName}
                                                         </Text>
                                                     </Animated.View>

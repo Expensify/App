@@ -148,7 +148,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         setShowPopupButton(true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
     const onFocus = useCallback(() => {

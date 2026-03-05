@@ -50,7 +50,6 @@ const clearListeners = () => {
 };
 
 describe('Keyboard utils: general native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let utils: {dismiss: () => Promise<void>; dismissKeyboardAndExecute: (cb: () => void) => Promise<void>};
 
     beforeEach(() => {

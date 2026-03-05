@@ -88,7 +88,6 @@ function EnableGlobalReimbursements({route}: EnableGlobalReimbursementsProps) {
     }, []);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (enableGlobalReimbursements?.errors || enableGlobalReimbursements?.isEnablingGlobalReimbursements || !enableGlobalReimbursements?.isSuccess) {
             return;
         }

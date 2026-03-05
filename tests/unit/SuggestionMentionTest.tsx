@@ -113,7 +113,7 @@ describe('SuggestionMention', () => {
         mockPersonalDetails = {};
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
-        mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex, {current: null}]);
+        mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex]);
         mockUseCurrentReportIDState.mockReturnValue({currentReportID: ''});
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@gmail.com'});
         mockUseDebounce.mockImplementation((callback) => {
