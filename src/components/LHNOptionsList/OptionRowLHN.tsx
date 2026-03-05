@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -23,6 +23,7 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -225,7 +226,7 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-    const contextMenuAccessibilityLabel = Platform.OS === 'web' ? '. Context menu available, press SHIFT F10 to activate' : '';
+    const contextMenuAccessibilityLabel = getPlatform(true) === CONST.PLATFORM.WEB ? `. ${translate('accessibilityHints.contextMenuAvailable')}` : '';
 
     return (
         <OfflineWithFeedback

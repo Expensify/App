@@ -41,7 +41,6 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import getPlatform from '@libs/getPlatform';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -141,8 +140,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {isExecuting, singleExecution} = useSingleExecution();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const isDesktopWeb = getPlatform(true) === CONST.PLATFORM.WEB;
-    const contextMenuHint = isDesktopWeb ? translate('accessibilityHints.contextMenuAvailable') : undefined;
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
@@ -473,7 +470,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             ref={popoverAnchor}
                             shouldBlockSelection={!!item.link}
                             onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                            accessibilityHint={item.link ? contextMenuHint : undefined}
                             focused={isFocused}
                             isPaneMenu
                             sentryLabel={item.sentryLabel}
