@@ -13819,8 +13819,11 @@ function onceStrict (fn) {
 /***/ 2043:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-;(function (sax) { // wrapper for non-node envs
-  sax.parser = function (strict, opt) { return new SAXParser(strict, opt) }
+;(function (sax) {
+  // wrapper for non-node envs
+  sax.parser = function (strict, opt) {
+    return new SAXParser(strict, opt)
+  }
   sax.SAXParser = SAXParser
   sax.SAXStream = SAXStream
   sax.createStream = createStream
@@ -13837,9 +13840,18 @@ function onceStrict (fn) {
   sax.MAX_BUFFER_LENGTH = 64 * 1024
 
   var buffers = [
-    'comment', 'sgmlDecl', 'textNode', 'tagName', 'doctype',
-    'procInstName', 'procInstBody', 'entity', 'attribName',
-    'attribValue', 'cdata', 'script'
+    'comment',
+    'sgmlDecl',
+    'textNode',
+    'tagName',
+    'doctype',
+    'procInstName',
+    'procInstBody',
+    'entity',
+    'attribName',
+    'attribValue',
+    'cdata',
+    'script',
   ]
 
   sax.EVENTS = [
@@ -13860,10 +13872,10 @@ function onceStrict (fn) {
     'ready',
     'script',
     'opennamespace',
-    'closenamespace'
+    'closenamespace',
   ]
 
-  function SAXParser (strict, opt) {
+  function SAXParser(strict, opt) {
     if (!(this instanceof SAXParser)) {
       return new SAXParser(strict, opt)
     }
@@ -13875,6 +13887,9 @@ function onceStrict (fn) {
     parser.opt = opt || {}
     parser.opt.lowercase = parser.opt.lowercase || parser.opt.lowercasetags
     parser.looseCase = parser.opt.lowercase ? 'toLowerCase' : 'toUpperCase'
+    parser.opt.maxEntityCount = parser.opt.maxEntityCount || 512
+    parser.opt.maxEntityDepth = parser.opt.maxEntityDepth || 4
+    parser.entityCount = parser.entityDepth = 0
     parser.tags = []
     parser.closed = parser.closedRoot = parser.sawRoot = false
     parser.tag = parser.error = null
@@ -13882,7 +13897,10 @@ function onceStrict (fn) {
     parser.noscript = !!(strict || parser.opt.noscript)
     parser.state = S.BEGIN
     parser.strictEntities = parser.opt.strictEntities
-    parser.ENTITIES = parser.strictEntities ? Object.create(sax.XML_ENTITIES) : Object.create(sax.ENTITIES)
+    parser.ENTITIES =
+      parser.strictEntities ?
+        Object.create(sax.XML_ENTITIES)
+      : Object.create(sax.ENTITIES)
     parser.attribList = []
 
     // namespaces form a prototype chain.
@@ -13895,7 +13913,7 @@ function onceStrict (fn) {
     // disallow unquoted attribute values if not otherwise configured
     // and strict mode is true
     if (parser.opt.unquotedAttributeValues === undefined) {
-      parser.opt.unquotedAttributeValues = !strict;
+      parser.opt.unquotedAttributeValues = !strict
     }
 
     // mostly just for error reporting
@@ -13908,7 +13926,7 @@ function onceStrict (fn) {
 
   if (!Object.create) {
     Object.create = function (o) {
-      function F () {}
+      function F() {}
       F.prototype = o
       var newf = new F()
       return newf
@@ -13923,7 +13941,7 @@ function onceStrict (fn) {
     }
   }
 
-  function checkBufferLength (parser) {
+  function checkBufferLength(parser) {
     var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10)
     var maxActual = 0
     for (var i = 0, l = buffers.length; i < l; i++) {
@@ -13959,13 +13977,13 @@ function onceStrict (fn) {
     parser.bufferCheckPosition = m + parser.position
   }
 
-  function clearBuffers (parser) {
+  function clearBuffers(parser) {
     for (var i = 0, l = buffers.length; i < l; i++) {
       parser[buffers[i]] = ''
     }
   }
 
-  function flushBuffers (parser) {
+  function flushBuffers(parser) {
     closeText(parser)
     if (parser.cdata !== '') {
       emitNode(parser, 'oncdata', parser.cdata)
@@ -13978,11 +13996,20 @@ function onceStrict (fn) {
   }
 
   SAXParser.prototype = {
-    end: function () { end(this) },
+    end: function () {
+      end(this)
+    },
     write: write,
-    resume: function () { this.error = null; return this },
-    close: function () { return this.write(null) },
-    flush: function () { flushBuffers(this) }
+    resume: function () {
+      this.error = null
+      return this
+    },
+    close: function () {
+      return this.write(null)
+    },
+    flush: function () {
+      flushBuffers(this)
+    },
   }
 
   var Stream
@@ -13997,11 +14024,11 @@ function onceStrict (fn) {
     return ev !== 'error' && ev !== 'end'
   })
 
-  function createStream (strict, opt) {
+  function createStream(strict, opt) {
     return new SAXStream(strict, opt)
   }
 
-  function SAXStream (strict, opt) {
+  function SAXStream(strict, opt) {
     if (!(this instanceof SAXStream)) {
       return new SAXStream(strict, opt)
     }
@@ -14042,26 +14069,27 @@ function onceStrict (fn) {
           me.on(ev, h)
         },
         enumerable: true,
-        configurable: false
+        configurable: false,
       })
     })
   }
 
   SAXStream.prototype = Object.create(Stream.prototype, {
     constructor: {
-      value: SAXStream
-    }
+      value: SAXStream,
+    },
   })
 
   SAXStream.prototype.write = function (data) {
-    if (typeof Buffer === 'function' &&
+    if (
+      typeof Buffer === 'function' &&
       typeof Buffer.isBuffer === 'function' &&
-      Buffer.isBuffer(data)) {
+      Buffer.isBuffer(data)
+    ) {
       if (!this._decoder) {
-        var SD = (__nccwpck_require__(1576).StringDecoder)
-        this._decoder = new SD('utf8')
+        this._decoder = new TextDecoder('utf8')
       }
-      data = this._decoder.write(data)
+      data = this._decoder.decode(data, { stream: true })
     }
 
     this._parser.write(data.toString())
@@ -14073,6 +14101,14 @@ function onceStrict (fn) {
     if (chunk && chunk.length) {
       this.write(chunk)
     }
+    // Flush any remaining decoded data from the TextDecoder
+    if (this._decoder) {
+      var remaining = this._decoder.decode()
+      if (remaining) {
+        this._parser.write(remaining)
+        this.emit('data', remaining)
+      }
+    }
     this._parser.end()
     return true
   }
@@ -14081,7 +14117,10 @@ function onceStrict (fn) {
     var me = this
     if (!me._parser['on' + ev] && streamWraps.indexOf(ev) !== -1) {
       me._parser['on' + ev] = function () {
-        var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments)
+        var args =
+          arguments.length === 1 ?
+            [arguments[0]]
+          : Array.apply(null, arguments)
         args.splice(0, 0, ev)
         me.emit.apply(me, args)
       }
@@ -14104,30 +14143,34 @@ function onceStrict (fn) {
   // without a significant breaking change to either this  parser, or the
   // JavaScript language.  Implementation of an emoji-capable xml parser
   // is left as an exercise for the reader.
-  var nameStart = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
+  var nameStart =
+    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
 
-  var nameBody = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
+  var nameBody =
+    /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
 
-  var entityStart = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
-  var entityBody = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
+  var entityStart =
+    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/
+  var entityBody =
+    /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/
 
-  function isWhitespace (c) {
+  function isWhitespace(c) {
     return c === ' ' || c === '\n' || c === '\r' || c === '\t'
   }
 
-  function isQuote (c) {
-    return c === '"' || c === '\''
+  function isQuote(c) {
+    return c === '"' || c === "'"
   }
 
-  function isAttribEnd (c) {
+  function isAttribEnd(c) {
     return c === '>' || isWhitespace(c)
   }
 
-  function isMatch (regex, c) {
+  function isMatch(regex, c) {
     return regex.test(c)
   }
 
-  function notMatch (regex, c) {
+  function notMatch(regex, c) {
     return !isMatch(regex, c)
   }
 
@@ -14168,271 +14211,271 @@ function onceStrict (fn) {
     CLOSE_TAG: S++, // </a
     CLOSE_TAG_SAW_WHITE: S++, // </a   >
     SCRIPT: S++, // <script> ...
-    SCRIPT_ENDING: S++ // <script> ... <
+    SCRIPT_ENDING: S++, // <script> ... <
   }
 
   sax.XML_ENTITIES = {
-    'amp': '&',
-    'gt': '>',
-    'lt': '<',
-    'quot': '"',
-    'apos': "'"
+    amp: '&',
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    apos: "'",
   }
 
   sax.ENTITIES = {
-    'amp': '&',
-    'gt': '>',
-    'lt': '<',
-    'quot': '"',
-    'apos': "'",
-    'AElig': 198,
-    'Aacute': 193,
-    'Acirc': 194,
-    'Agrave': 192,
-    'Aring': 197,
-    'Atilde': 195,
-    'Auml': 196,
-    'Ccedil': 199,
-    'ETH': 208,
-    'Eacute': 201,
-    'Ecirc': 202,
-    'Egrave': 200,
-    'Euml': 203,
-    'Iacute': 205,
-    'Icirc': 206,
-    'Igrave': 204,
-    'Iuml': 207,
-    'Ntilde': 209,
-    'Oacute': 211,
-    'Ocirc': 212,
-    'Ograve': 210,
-    'Oslash': 216,
-    'Otilde': 213,
-    'Ouml': 214,
-    'THORN': 222,
-    'Uacute': 218,
-    'Ucirc': 219,
-    'Ugrave': 217,
-    'Uuml': 220,
-    'Yacute': 221,
-    'aacute': 225,
-    'acirc': 226,
-    'aelig': 230,
-    'agrave': 224,
-    'aring': 229,
-    'atilde': 227,
-    'auml': 228,
-    'ccedil': 231,
-    'eacute': 233,
-    'ecirc': 234,
-    'egrave': 232,
-    'eth': 240,
-    'euml': 235,
-    'iacute': 237,
-    'icirc': 238,
-    'igrave': 236,
-    'iuml': 239,
-    'ntilde': 241,
-    'oacute': 243,
-    'ocirc': 244,
-    'ograve': 242,
-    'oslash': 248,
-    'otilde': 245,
-    'ouml': 246,
-    'szlig': 223,
-    'thorn': 254,
-    'uacute': 250,
-    'ucirc': 251,
-    'ugrave': 249,
-    'uuml': 252,
-    'yacute': 253,
-    'yuml': 255,
-    'copy': 169,
-    'reg': 174,
-    'nbsp': 160,
-    'iexcl': 161,
-    'cent': 162,
-    'pound': 163,
-    'curren': 164,
-    'yen': 165,
-    'brvbar': 166,
-    'sect': 167,
-    'uml': 168,
-    'ordf': 170,
-    'laquo': 171,
-    'not': 172,
-    'shy': 173,
-    'macr': 175,
-    'deg': 176,
-    'plusmn': 177,
-    'sup1': 185,
-    'sup2': 178,
-    'sup3': 179,
-    'acute': 180,
-    'micro': 181,
-    'para': 182,
-    'middot': 183,
-    'cedil': 184,
-    'ordm': 186,
-    'raquo': 187,
-    'frac14': 188,
-    'frac12': 189,
-    'frac34': 190,
-    'iquest': 191,
-    'times': 215,
-    'divide': 247,
-    'OElig': 338,
-    'oelig': 339,
-    'Scaron': 352,
-    'scaron': 353,
-    'Yuml': 376,
-    'fnof': 402,
-    'circ': 710,
-    'tilde': 732,
-    'Alpha': 913,
-    'Beta': 914,
-    'Gamma': 915,
-    'Delta': 916,
-    'Epsilon': 917,
-    'Zeta': 918,
-    'Eta': 919,
-    'Theta': 920,
-    'Iota': 921,
-    'Kappa': 922,
-    'Lambda': 923,
-    'Mu': 924,
-    'Nu': 925,
-    'Xi': 926,
-    'Omicron': 927,
-    'Pi': 928,
-    'Rho': 929,
-    'Sigma': 931,
-    'Tau': 932,
-    'Upsilon': 933,
-    'Phi': 934,
-    'Chi': 935,
-    'Psi': 936,
-    'Omega': 937,
-    'alpha': 945,
-    'beta': 946,
-    'gamma': 947,
-    'delta': 948,
-    'epsilon': 949,
-    'zeta': 950,
-    'eta': 951,
-    'theta': 952,
-    'iota': 953,
-    'kappa': 954,
-    'lambda': 955,
-    'mu': 956,
-    'nu': 957,
-    'xi': 958,
-    'omicron': 959,
-    'pi': 960,
-    'rho': 961,
-    'sigmaf': 962,
-    'sigma': 963,
-    'tau': 964,
-    'upsilon': 965,
-    'phi': 966,
-    'chi': 967,
-    'psi': 968,
-    'omega': 969,
-    'thetasym': 977,
-    'upsih': 978,
-    'piv': 982,
-    'ensp': 8194,
-    'emsp': 8195,
-    'thinsp': 8201,
-    'zwnj': 8204,
-    'zwj': 8205,
-    'lrm': 8206,
-    'rlm': 8207,
-    'ndash': 8211,
-    'mdash': 8212,
-    'lsquo': 8216,
-    'rsquo': 8217,
-    'sbquo': 8218,
-    'ldquo': 8220,
-    'rdquo': 8221,
-    'bdquo': 8222,
-    'dagger': 8224,
-    'Dagger': 8225,
-    'bull': 8226,
-    'hellip': 8230,
-    'permil': 8240,
-    'prime': 8242,
-    'Prime': 8243,
-    'lsaquo': 8249,
-    'rsaquo': 8250,
-    'oline': 8254,
-    'frasl': 8260,
-    'euro': 8364,
-    'image': 8465,
-    'weierp': 8472,
-    'real': 8476,
-    'trade': 8482,
-    'alefsym': 8501,
-    'larr': 8592,
-    'uarr': 8593,
-    'rarr': 8594,
-    'darr': 8595,
-    'harr': 8596,
-    'crarr': 8629,
-    'lArr': 8656,
-    'uArr': 8657,
-    'rArr': 8658,
-    'dArr': 8659,
-    'hArr': 8660,
-    'forall': 8704,
-    'part': 8706,
-    'exist': 8707,
-    'empty': 8709,
-    'nabla': 8711,
-    'isin': 8712,
-    'notin': 8713,
-    'ni': 8715,
-    'prod': 8719,
-    'sum': 8721,
-    'minus': 8722,
-    'lowast': 8727,
-    'radic': 8730,
-    'prop': 8733,
-    'infin': 8734,
-    'ang': 8736,
-    'and': 8743,
-    'or': 8744,
-    'cap': 8745,
-    'cup': 8746,
-    'int': 8747,
-    'there4': 8756,
-    'sim': 8764,
-    'cong': 8773,
-    'asymp': 8776,
-    'ne': 8800,
-    'equiv': 8801,
-    'le': 8804,
-    'ge': 8805,
-    'sub': 8834,
-    'sup': 8835,
-    'nsub': 8836,
-    'sube': 8838,
-    'supe': 8839,
-    'oplus': 8853,
-    'otimes': 8855,
-    'perp': 8869,
-    'sdot': 8901,
-    'lceil': 8968,
-    'rceil': 8969,
-    'lfloor': 8970,
-    'rfloor': 8971,
-    'lang': 9001,
-    'rang': 9002,
-    'loz': 9674,
-    'spades': 9824,
-    'clubs': 9827,
-    'hearts': 9829,
-    'diams': 9830
+    amp: '&',
+    gt: '>',
+    lt: '<',
+    quot: '"',
+    apos: "'",
+    AElig: 198,
+    Aacute: 193,
+    Acirc: 194,
+    Agrave: 192,
+    Aring: 197,
+    Atilde: 195,
+    Auml: 196,
+    Ccedil: 199,
+    ETH: 208,
+    Eacute: 201,
+    Ecirc: 202,
+    Egrave: 200,
+    Euml: 203,
+    Iacute: 205,
+    Icirc: 206,
+    Igrave: 204,
+    Iuml: 207,
+    Ntilde: 209,
+    Oacute: 211,
+    Ocirc: 212,
+    Ograve: 210,
+    Oslash: 216,
+    Otilde: 213,
+    Ouml: 214,
+    THORN: 222,
+    Uacute: 218,
+    Ucirc: 219,
+    Ugrave: 217,
+    Uuml: 220,
+    Yacute: 221,
+    aacute: 225,
+    acirc: 226,
+    aelig: 230,
+    agrave: 224,
+    aring: 229,
+    atilde: 227,
+    auml: 228,
+    ccedil: 231,
+    eacute: 233,
+    ecirc: 234,
+    egrave: 232,
+    eth: 240,
+    euml: 235,
+    iacute: 237,
+    icirc: 238,
+    igrave: 236,
+    iuml: 239,
+    ntilde: 241,
+    oacute: 243,
+    ocirc: 244,
+    ograve: 242,
+    oslash: 248,
+    otilde: 245,
+    ouml: 246,
+    szlig: 223,
+    thorn: 254,
+    uacute: 250,
+    ucirc: 251,
+    ugrave: 249,
+    uuml: 252,
+    yacute: 253,
+    yuml: 255,
+    copy: 169,
+    reg: 174,
+    nbsp: 160,
+    iexcl: 161,
+    cent: 162,
+    pound: 163,
+    curren: 164,
+    yen: 165,
+    brvbar: 166,
+    sect: 167,
+    uml: 168,
+    ordf: 170,
+    laquo: 171,
+    not: 172,
+    shy: 173,
+    macr: 175,
+    deg: 176,
+    plusmn: 177,
+    sup1: 185,
+    sup2: 178,
+    sup3: 179,
+    acute: 180,
+    micro: 181,
+    para: 182,
+    middot: 183,
+    cedil: 184,
+    ordm: 186,
+    raquo: 187,
+    frac14: 188,
+    frac12: 189,
+    frac34: 190,
+    iquest: 191,
+    times: 215,
+    divide: 247,
+    OElig: 338,
+    oelig: 339,
+    Scaron: 352,
+    scaron: 353,
+    Yuml: 376,
+    fnof: 402,
+    circ: 710,
+    tilde: 732,
+    Alpha: 913,
+    Beta: 914,
+    Gamma: 915,
+    Delta: 916,
+    Epsilon: 917,
+    Zeta: 918,
+    Eta: 919,
+    Theta: 920,
+    Iota: 921,
+    Kappa: 922,
+    Lambda: 923,
+    Mu: 924,
+    Nu: 925,
+    Xi: 926,
+    Omicron: 927,
+    Pi: 928,
+    Rho: 929,
+    Sigma: 931,
+    Tau: 932,
+    Upsilon: 933,
+    Phi: 934,
+    Chi: 935,
+    Psi: 936,
+    Omega: 937,
+    alpha: 945,
+    beta: 946,
+    gamma: 947,
+    delta: 948,
+    epsilon: 949,
+    zeta: 950,
+    eta: 951,
+    theta: 952,
+    iota: 953,
+    kappa: 954,
+    lambda: 955,
+    mu: 956,
+    nu: 957,
+    xi: 958,
+    omicron: 959,
+    pi: 960,
+    rho: 961,
+    sigmaf: 962,
+    sigma: 963,
+    tau: 964,
+    upsilon: 965,
+    phi: 966,
+    chi: 967,
+    psi: 968,
+    omega: 969,
+    thetasym: 977,
+    upsih: 978,
+    piv: 982,
+    ensp: 8194,
+    emsp: 8195,
+    thinsp: 8201,
+    zwnj: 8204,
+    zwj: 8205,
+    lrm: 8206,
+    rlm: 8207,
+    ndash: 8211,
+    mdash: 8212,
+    lsquo: 8216,
+    rsquo: 8217,
+    sbquo: 8218,
+    ldquo: 8220,
+    rdquo: 8221,
+    bdquo: 8222,
+    dagger: 8224,
+    Dagger: 8225,
+    bull: 8226,
+    hellip: 8230,
+    permil: 8240,
+    prime: 8242,
+    Prime: 8243,
+    lsaquo: 8249,
+    rsaquo: 8250,
+    oline: 8254,
+    frasl: 8260,
+    euro: 8364,
+    image: 8465,
+    weierp: 8472,
+    real: 8476,
+    trade: 8482,
+    alefsym: 8501,
+    larr: 8592,
+    uarr: 8593,
+    rarr: 8594,
+    darr: 8595,
+    harr: 8596,
+    crarr: 8629,
+    lArr: 8656,
+    uArr: 8657,
+    rArr: 8658,
+    dArr: 8659,
+    hArr: 8660,
+    forall: 8704,
+    part: 8706,
+    exist: 8707,
+    empty: 8709,
+    nabla: 8711,
+    isin: 8712,
+    notin: 8713,
+    ni: 8715,
+    prod: 8719,
+    sum: 8721,
+    minus: 8722,
+    lowast: 8727,
+    radic: 8730,
+    prop: 8733,
+    infin: 8734,
+    ang: 8736,
+    and: 8743,
+    or: 8744,
+    cap: 8745,
+    cup: 8746,
+    int: 8747,
+    there4: 8756,
+    sim: 8764,
+    cong: 8773,
+    asymp: 8776,
+    ne: 8800,
+    equiv: 8801,
+    le: 8804,
+    ge: 8805,
+    sub: 8834,
+    sup: 8835,
+    nsub: 8836,
+    sube: 8838,
+    supe: 8839,
+    oplus: 8853,
+    otimes: 8855,
+    perp: 8869,
+    sdot: 8901,
+    lceil: 8968,
+    rceil: 8969,
+    lfloor: 8970,
+    rfloor: 8971,
+    lang: 9001,
+    rang: 9002,
+    loz: 9674,
+    spades: 9824,
+    clubs: 9827,
+    hearts: 9829,
+    diams: 9830,
   }
 
   Object.keys(sax.ENTITIES).forEach(function (key) {
@@ -14448,33 +14491,37 @@ function onceStrict (fn) {
   // shorthand
   S = sax.STATE
 
-  function emit (parser, event, data) {
+  function emit(parser, event, data) {
     parser[event] && parser[event](data)
   }
 
-  function emitNode (parser, nodeType, data) {
+  function emitNode(parser, nodeType, data) {
     if (parser.textNode) closeText(parser)
     emit(parser, nodeType, data)
   }
 
-  function closeText (parser) {
+  function closeText(parser) {
     parser.textNode = textopts(parser.opt, parser.textNode)
     if (parser.textNode) emit(parser, 'ontext', parser.textNode)
     parser.textNode = ''
   }
 
-  function textopts (opt, text) {
+  function textopts(opt, text) {
     if (opt.trim) text = text.trim()
     if (opt.normalize) text = text.replace(/\s+/g, ' ')
     return text
   }
 
-  function error (parser, er) {
+  function error(parser, er) {
     closeText(parser)
     if (parser.trackPosition) {
-      er += '\nLine: ' + parser.line +
-        '\nColumn: ' + parser.column +
-        '\nChar: ' + parser.c
+      er +=
+        '\nLine: ' +
+        parser.line +
+        '\nColumn: ' +
+        parser.column +
+        '\nChar: ' +
+        parser.c
     }
     er = new Error(er)
     parser.error = er
@@ -14482,11 +14529,14 @@ function onceStrict (fn) {
     return parser
   }
 
-  function end (parser) {
-    if (parser.sawRoot && !parser.closedRoot) strictFail(parser, 'Unclosed root tag')
-    if ((parser.state !== S.BEGIN) &&
-      (parser.state !== S.BEGIN_WHITESPACE) &&
-      (parser.state !== S.TEXT)) {
+  function end(parser) {
+    if (parser.sawRoot && !parser.closedRoot)
+      strictFail(parser, 'Unclosed root tag')
+    if (
+      parser.state !== S.BEGIN &&
+      parser.state !== S.BEGIN_WHITESPACE &&
+      parser.state !== S.TEXT
+    ) {
       error(parser, 'Unexpected end')
     }
     closeText(parser)
@@ -14497,7 +14547,7 @@ function onceStrict (fn) {
     return parser
   }
 
-  function strictFail (parser, message) {
+  function strictFail(parser, message) {
     if (typeof parser !== 'object' || !(parser instanceof SAXParser)) {
       throw new Error('bad call to strictFail')
     }
@@ -14506,10 +14556,10 @@ function onceStrict (fn) {
     }
   }
 
-  function newTag (parser) {
+  function newTag(parser) {
     if (!parser.strict) parser.tagName = parser.tagName[parser.looseCase]()
     var parent = parser.tags[parser.tags.length - 1] || parser
-    var tag = parser.tag = { name: parser.tagName, attributes: {} }
+    var tag = (parser.tag = { name: parser.tagName, attributes: {} })
 
     // will be overridden if tag contails an xmlns="foo" or xmlns:foo="bar"
     if (parser.opt.xmlns) {
@@ -14519,9 +14569,9 @@ function onceStrict (fn) {
     emitNode(parser, 'onopentagstart', tag)
   }
 
-  function qname (name, attribute) {
+  function qname(name, attribute) {
     var i = name.indexOf(':')
-    var qualName = i < 0 ? [ '', name ] : name.split(':')
+    var qualName = i < 0 ? ['', name] : name.split(':')
     var prefix = qualName[0]
     var local = qualName[1]
 
@@ -14534,13 +14584,15 @@ function onceStrict (fn) {
     return { prefix: prefix, local: local }
   }
 
-  function attrib (parser) {
+  function attrib(parser) {
     if (!parser.strict) {
       parser.attribName = parser.attribName[parser.looseCase]()
     }
 
-    if (parser.attribList.indexOf(parser.attribName) !== -1 ||
-      parser.tag.attributes.hasOwnProperty(parser.attribName)) {
+    if (
+      parser.attribList.indexOf(parser.attribName) !== -1 ||
+      parser.tag.attributes.hasOwnProperty(parser.attribName)
+    ) {
       parser.attribName = parser.attribValue = ''
       return
     }
@@ -14553,13 +14605,26 @@ function onceStrict (fn) {
       if (prefix === 'xmlns') {
         // namespace binding attribute. push the binding into scope
         if (local === 'xml' && parser.attribValue !== XML_NAMESPACE) {
-          strictFail(parser,
-            'xml: prefix must be bound to ' + XML_NAMESPACE + '\n' +
-            'Actual: ' + parser.attribValue)
-        } else if (local === 'xmlns' && parser.attribValue !== XMLNS_NAMESPACE) {
-          strictFail(parser,
-            'xmlns: prefix must be bound to ' + XMLNS_NAMESPACE + '\n' +
-            'Actual: ' + parser.attribValue)
+          strictFail(
+            parser,
+            'xml: prefix must be bound to ' +
+              XML_NAMESPACE +
+              '\n' +
+              'Actual: ' +
+              parser.attribValue
+          )
+        } else if (
+          local === 'xmlns' &&
+          parser.attribValue !== XMLNS_NAMESPACE
+        ) {
+          strictFail(
+            parser,
+            'xmlns: prefix must be bound to ' +
+              XMLNS_NAMESPACE +
+              '\n' +
+              'Actual: ' +
+              parser.attribValue
+          )
         } else {
           var tag = parser.tag
           var parent = parser.tags[parser.tags.length - 1] || parser
@@ -14579,14 +14644,14 @@ function onceStrict (fn) {
       parser.tag.attributes[parser.attribName] = parser.attribValue
       emitNode(parser, 'onattribute', {
         name: parser.attribName,
-        value: parser.attribValue
+        value: parser.attribValue,
       })
     }
 
     parser.attribName = parser.attribValue = ''
   }
 
-  function openTag (parser, selfClosing) {
+  function openTag(parser, selfClosing) {
     if (parser.opt.xmlns) {
       // emit namespace binding events
       var tag = parser.tag
@@ -14598,8 +14663,10 @@ function onceStrict (fn) {
       tag.uri = tag.ns[qn.prefix] || ''
 
       if (tag.prefix && !tag.uri) {
-        strictFail(parser, 'Unbound namespace prefix: ' +
-          JSON.stringify(parser.tagName))
+        strictFail(
+          parser,
+          'Unbound namespace prefix: ' + JSON.stringify(parser.tagName)
+        )
         tag.uri = qn.prefix
       }
 
@@ -14608,7 +14675,7 @@ function onceStrict (fn) {
         Object.keys(tag.ns).forEach(function (p) {
           emitNode(parser, 'onopennamespace', {
             prefix: p,
-            uri: tag.ns[p]
+            uri: tag.ns[p],
           })
         })
       }
@@ -14623,20 +14690,22 @@ function onceStrict (fn) {
         var qualName = qname(name, true)
         var prefix = qualName.prefix
         var local = qualName.local
-        var uri = prefix === '' ? '' : (tag.ns[prefix] || '')
+        var uri = prefix === '' ? '' : tag.ns[prefix] || ''
         var a = {
           name: name,
           value: value,
           prefix: prefix,
           local: local,
-          uri: uri
+          uri: uri,
         }
 
         // if there's any attributes with an undefined namespace,
         // then fail on them now.
         if (prefix && prefix !== 'xmlns' && !uri) {
-          strictFail(parser, 'Unbound namespace prefix: ' +
-            JSON.stringify(prefix))
+          strictFail(
+            parser,
+            'Unbound namespace prefix: ' + JSON.stringify(prefix)
+          )
           a.uri = prefix
         }
         parser.tag.attributes[name] = a
@@ -14665,7 +14734,7 @@ function onceStrict (fn) {
     parser.attribList.length = 0
   }
 
-  function closeTag (parser) {
+  function closeTag(parser) {
     if (!parser.tagName) {
       strictFail(parser, 'Weird empty close tag.')
       parser.textNode += '</>'
@@ -14712,7 +14781,7 @@ function onceStrict (fn) {
     parser.tagName = tagName
     var s = parser.tags.length
     while (s-- > t) {
-      var tag = parser.tag = parser.tags.pop()
+      var tag = (parser.tag = parser.tags.pop())
       parser.tagName = parser.tag.name
       emitNode(parser, 'onclosetag', parser.tagName)
 
@@ -14736,7 +14805,7 @@ function onceStrict (fn) {
     parser.state = S.TEXT
   }
 
-  function parseEntity (parser) {
+  function parseEntity(parser) {
     var entity = parser.entity
     var entityLC = entity.toLowerCase()
     var num
@@ -14761,7 +14830,12 @@ function onceStrict (fn) {
       }
     }
     entity = entity.replace(/^0+/, '')
-    if (isNaN(num) || numStr.toLowerCase() !== entity) {
+    if (
+      isNaN(num) ||
+      numStr.toLowerCase() !== entity ||
+      num < 0 ||
+      num > 0x10ffff
+    ) {
       strictFail(parser, 'Invalid character entity')
       return '&' + parser.entity + ';'
     }
@@ -14769,7 +14843,7 @@ function onceStrict (fn) {
     return String.fromCodePoint(num)
   }
 
-  function beginWhiteSpace (parser, c) {
+  function beginWhiteSpace(parser, c) {
     if (c === '<') {
       parser.state = S.OPEN_WAKA
       parser.startTagPosition = parser.position
@@ -14782,7 +14856,7 @@ function onceStrict (fn) {
     }
   }
 
-  function charAt (chunk, i) {
+  function charAt(chunk, i) {
     var result = ''
     if (i < chunk.length) {
       result = chunk.charAt(i)
@@ -14790,14 +14864,16 @@ function onceStrict (fn) {
     return result
   }
 
-  function write (chunk) {
+  function write(chunk) {
     var parser = this
     if (this.error) {
       throw this.error
     }
     if (parser.closed) {
-      return error(parser,
-        'Cannot write after close. Assign an onready handler.')
+      return error(
+        parser,
+        'Cannot write after close. Assign an onready handler.'
+      )
     }
     if (chunk === null) {
       return end(parser)
@@ -14855,11 +14931,17 @@ function onceStrict (fn) {
             }
             parser.textNode += chunk.substring(starti, i - 1)
           }
-          if (c === '<' && !(parser.sawRoot && parser.closedRoot && !parser.strict)) {
+          if (
+            c === '<' &&
+            !(parser.sawRoot && parser.closedRoot && !parser.strict)
+          ) {
             parser.state = S.OPEN_WAKA
             parser.startTagPosition = parser.position
           } else {
-            if (!isWhitespace(c) && (!parser.sawRoot || parser.closedRoot)) {
+            if (
+              !isWhitespace(c) &&
+              (!parser.sawRoot || parser.closedRoot)
+            ) {
               strictFail(parser, 'Text data outside of root node.')
             }
             if (c === '&') {
@@ -14921,10 +15003,14 @@ function onceStrict (fn) {
             parser.state = S.COMMENT
             parser.comment = ''
             parser.sgmlDecl = ''
-            continue;
+            continue
           }
 
-          if (parser.doctype && parser.doctype !== true && parser.sgmlDecl) {
+          if (
+            parser.doctype &&
+            parser.doctype !== true &&
+            parser.sgmlDecl
+          ) {
             parser.state = S.DOCTYPE_DTD
             parser.doctype += '<!' + parser.sgmlDecl + c
             parser.sgmlDecl = ''
@@ -14936,8 +15022,10 @@ function onceStrict (fn) {
           } else if ((parser.sgmlDecl + c).toUpperCase() === DOCTYPE) {
             parser.state = S.DOCTYPE
             if (parser.doctype || parser.sawRoot) {
-              strictFail(parser,
-                'Inappropriately located doctype declaration')
+              strictFail(
+                parser,
+                'Inappropriately located doctype declaration'
+              )
             }
             parser.doctype = ''
             parser.sgmlDecl = ''
@@ -15046,10 +15134,22 @@ function onceStrict (fn) {
           continue
 
         case S.CDATA:
+          var starti = i - 1
+          while (c && c !== ']') {
+            c = charAt(chunk, i++)
+            if (c && parser.trackPosition) {
+              parser.position++
+              if (c === '\n') {
+                parser.line++
+                parser.column = 0
+              } else {
+                parser.column++
+              }
+            }
+          }
+          parser.cdata += chunk.substring(starti, i - 1)
           if (c === ']') {
             parser.state = S.CDATA_ENDING
-          } else {
-            parser.cdata += c
           }
           continue
 
@@ -15102,7 +15202,7 @@ function onceStrict (fn) {
           if (c === '>') {
             emitNode(parser, 'onprocessinginstruction', {
               name: parser.procInstName,
-              body: parser.procInstBody
+              body: parser.procInstBody,
             })
             parser.procInstName = parser.procInstBody = ''
             parser.state = S.TEXT
@@ -15135,7 +15235,10 @@ function onceStrict (fn) {
             openTag(parser, true)
             closeTag(parser)
           } else {
-            strictFail(parser, 'Forward-slash in opening tag not followed by >')
+            strictFail(
+              parser,
+              'Forward-slash in opening tag not followed by >'
+            )
             parser.state = S.ATTRIB
           }
           continue
@@ -15185,7 +15288,7 @@ function onceStrict (fn) {
             parser.attribValue = ''
             emitNode(parser, 'onattribute', {
               name: parser.attribName,
-              value: ''
+              value: '',
             })
             parser.attribName = ''
             if (c === '>') {
@@ -15282,7 +15385,7 @@ function onceStrict (fn) {
           } else if (isMatch(nameBody, c)) {
             parser.tagName += c
           } else if (parser.script) {
-            parser.script += '</' + parser.tagName
+            parser.script += '</' + parser.tagName + c
             parser.tagName = ''
             parser.state = S.SCRIPT
           } else {
@@ -15328,16 +15431,36 @@ function onceStrict (fn) {
 
           if (c === ';') {
             var parsedEntity = parseEntity(parser)
-            if (parser.opt.unparsedEntities && !Object.values(sax.XML_ENTITIES).includes(parsedEntity)) {
+            if (
+              parser.opt.unparsedEntities &&
+              !Object.values(sax.XML_ENTITIES).includes(parsedEntity)
+            ) {
+              if ((parser.entityCount += 1) > parser.opt.maxEntityCount) {
+                error(
+                  parser,
+                  'Parsed entity count exceeds max entity count'
+                )
+              }
+
+              if ((parser.entityDepth += 1) > parser.opt.maxEntityDepth) {
+                error(
+                  parser,
+                  'Parsed entity depth exceeds max entity depth'
+                )
+              }
+
               parser.entity = ''
               parser.state = returnState
               parser.write(parsedEntity)
+              parser.entityDepth -= 1
             } else {
               parser[buffer] += parsedEntity
               parser.entity = ''
               parser.state = returnState
             }
-          } else if (isMatch(parser.entity.length ? entityBody : entityStart, c)) {
+          } else if (
+            isMatch(parser.entity.length ? entityBody : entityStart, c)
+          ) {
             parser.entity += c
           } else {
             strictFail(parser, 'Invalid character in entity name')
@@ -15363,7 +15486,7 @@ function onceStrict (fn) {
   /*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
   /* istanbul ignore next */
   if (!String.fromCodePoint) {
-    (function () {
+    ;(function () {
       var stringFromCharCode = String.fromCharCode
       var floor = Math.floor
       var fromCodePoint = function () {
@@ -15382,18 +15505,20 @@ function onceStrict (fn) {
           if (
             !isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
             codePoint < 0 || // not a valid Unicode code point
-            codePoint > 0x10FFFF || // not a valid Unicode code point
+            codePoint > 0x10ffff || // not a valid Unicode code point
             floor(codePoint) !== codePoint // not an integer
           ) {
             throw RangeError('Invalid code point: ' + codePoint)
           }
-          if (codePoint <= 0xFFFF) { // BMP code point
+          if (codePoint <= 0xffff) {
+            // BMP code point
             codeUnits.push(codePoint)
-          } else { // Astral code point; split in surrogate halves
+          } else {
+            // Astral code point; split in surrogate halves
             // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
             codePoint -= 0x10000
-            highSurrogate = (codePoint >> 10) + 0xD800
-            lowSurrogate = (codePoint % 0x400) + 0xDC00
+            highSurrogate = (codePoint >> 10) + 0xd800
+            lowSurrogate = (codePoint % 0x400) + 0xdc00
             codeUnits.push(highSurrogate, lowSurrogate)
           }
           if (index + 1 === length || codeUnits.length > MAX_SIZE) {
@@ -15408,14 +15533,14 @@ function onceStrict (fn) {
         Object.defineProperty(String, 'fromCodePoint', {
           value: fromCodePoint,
           configurable: true,
-          writable: true
+          writable: true,
         })
       } else {
         String.fromCodePoint = fromCodePoint
       }
-    }())
+    })()
   }
-})( false ? 0 : exports)
+})( false ? (0) : exports)
 
 
 /***/ }),
@@ -21160,14 +21285,6 @@ module.exports = require("punycode");
 
 "use strict";
 module.exports = require("stream");
-
-/***/ }),
-
-/***/ 1576:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("string_decoder");
 
 /***/ }),
 
@@ -37122,10 +37239,10 @@ const removeLeadingZero=value=>{const strValue=value.toString()
 if(0<value&&value<1&&strValue.startsWith("0"))return strValue.slice(1)
 if(-1<value&&value<0&&strValue[1]==="0")return strValue[0]+strValue.slice(2)
 return strValue}
+const hasScriptsEventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
 const hasScripts=node=>{if(node.name==="script"&&node.children.length!==0)return true
 if(node.name==="a"){const hasJsLinks=Object.entries(node.attributes).some((([attrKey,attrValue])=>(attrKey==="href"||attrKey.endsWith(":href"))&&attrValue!=null&&attrValue.trimStart().startsWith("javascript:")))
-if(hasJsLinks)return true}const eventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
-return eventAttrs.some((attr=>node.attributes[attr]!=null))}
+if(hasJsLinks)return true}return hasScriptsEventAttrs.some((attr=>node.attributes[attr]!=null))}
 const includesUrlReference=body=>new RegExp(regReferencesUrl).test(body)
 const findReferences=(attribute,value)=>{const results=[]
 if(referencesProps.has(attribute)){const matches=value.matchAll(regReferencesUrl)
@@ -37215,8 +37332,8 @@ const description$E='rounds numeric values to the fixed precision, removes defau
 const regNumericValues$3=/^([-+]?\d*\.?\d+([eE][-+]?\d+)?)(px|pt|pc|mm|cm|m|in|ft|em|ex|%)?$/
 const absoluteLengths$1={cm:96/2.54,mm:96/25.4,in:96,pt:4/3,pc:16,px:1}
 const fn$E=(_root,params)=>{const{floatPrecision:floatPrecision=3,leadingZero:leadingZero=true,defaultPx:defaultPx=true,convertToPx:convertToPx=true}=params
-return{element:{enter:node=>{if(node.attributes.viewBox!=null){const nums=node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g)
-node.attributes.viewBox=nums.map((value=>{const num=Number(value)
+return{element:{enter:node=>{if(node.attributes.viewBox!=null){const numbers=node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g)
+node.attributes.viewBox=numbers.map((value=>{const num=Number(value)
 return Number.isNaN(num)?value:Number(num.toFixed(floatPrecision))})).join(" ")}for(const[name,value]of Object.entries(node.attributes)){if(name==="version")continue
 const match=regNumericValues$3.exec(value)
 if(match){let num=Number(Number(match[1]).toFixed(floatPrecision))
@@ -37245,10 +37362,10 @@ if(currentColor&&maskCounter===0){let matched
 matched=typeof currentColor==="string"?val===currentColor:currentColor instanceof RegExp?currentColor.exec(val)!=null:val!=="none"
 matched&&(val="currentColor")}if(names2hex){const colorName=val.toLowerCase()
 colorsNames[colorName]!=null&&(val=colorsNames[colorName])}if(rgb2hex){const match=val.match(regRGB)
-if(match!=null){const nums=match.slice(1,4).map((m=>{let n
+if(match!=null){const numbers=match.slice(1,4).map((m=>{let n
 n=m.indexOf("%")>-1?Math.round(parseFloat(m)*2.55):Number(m)
 return Math.max(0,Math.min(n,255))}))
-val=convertRgbToHex(nums)}}convertCase&&!includesUrlReference(val)&&val!=="currentColor"&&(convertCase==="lower"?val=val.toLowerCase():convertCase==="upper"&&(val=val.toUpperCase()))
+val=convertRgbToHex(numbers)}}convertCase&&!includesUrlReference(val)&&val!=="currentColor"&&(convertCase==="lower"?val=val.toLowerCase():convertCase==="upper"&&(val=val.toUpperCase()))
 if(shorthex){const match=regHEX.exec(val)
 match!=null&&(val="#"+match[0][1]+match[0][3]+match[0][5])}if(shortname){const colorName=val.toLowerCase()
 colorsShortNames[colorName]!=null&&(val=colorsShortNames[colorName])}node.attributes[name]=val}},exit:node=>{node.name==="mask"&&maskCounter--}}}}
@@ -37286,7 +37403,7 @@ if(keepRoleAttr&&name==="role")continue
 if(name==="xmlns")continue
 if(name.includes(":")){const[prefix]=name.split(":")
 if(prefix!=="xml"&&prefix!=="xlink")continue}unknownAttrs&&allowedAttributes&&allowedAttributes.has(name)===false&&delete node.attributes[name]
-defaultAttrs&&node.attributes.id==null&&attributesDefaults&&attributesDefaults.get(name)===value&&computedParentStyle?.[name]==null&&delete node.attributes[name]
+defaultAttrs&&node.attributes.id==null&&attributesDefaults&&attributesDefaults.get(name)===value&&(computedParentStyle?.[name]!=null||stylesheet.rules.some((rule=>includesAttrSelector(rule.selector,name)))||delete node.attributes[name])
 if(uselessOverrides&&node.attributes.id==null){const style=computedParentStyle?.[name]
 presentationNonInheritableGroupAttrs.has(name)===false&&style!=null&&style.type==="static"&&style.value===value&&delete node.attributes[name]}}}}}}
 var removeUnknownsAndDefaults=Object.freeze({__proto__:null,description:description$C,fn:fn$C,name:name$C})
@@ -37439,10 +37556,7 @@ const value=node.attributes[attr]
 const id=value.slice(1)
 let refs=referencesById.get(id)
 if(!refs){refs=[]
-referencesById.set(id,refs)}refs.push({node:node,parentNode:parentNode})}const computedStyle=computeStyle(stylesheet,node)
-if(isHidden&&computedStyle.visibility&&computedStyle.visibility.type==="static"&&computedStyle.visibility.value==="hidden"&&querySelector(node,"[visibility=visible]")==null){removeElement(node,parentNode)
-return}if(displayNone&&computedStyle.display&&computedStyle.display.type==="static"&&computedStyle.display.value==="none"&&node.name!=="marker"){removeElement(node,parentNode)
-return}if(circleR0&&node.name==="circle"&&node.children.length===0&&node.attributes.r==="0"){removeElement(node,parentNode)
+referencesById.set(id,refs)}refs.push({node:node,parentNode:parentNode})}if(circleR0&&node.name==="circle"&&node.children.length===0&&node.attributes.r==="0"){removeElement(node,parentNode)
 return}if(ellipseRX0&&node.name==="ellipse"&&node.children.length===0&&node.attributes.rx==="0"){removeElement(node,parentNode)
 return}if(ellipseRY0&&node.name==="ellipse"&&node.children.length===0&&node.attributes.ry==="0"){removeElement(node,parentNode)
 return}if(rectWidth0&&node.name==="rect"&&node.children.length===0&&node.attributes.width==="0"){removeElement(node,parentNode)
@@ -37451,13 +37565,16 @@ return}if(patternWidth0&&node.name==="pattern"&&node.attributes.width==="0"){rem
 return}if(patternHeight0&&node.name==="pattern"&&node.attributes.height==="0"){removeElement(node,parentNode)
 return}if(imageWidth0&&node.name==="image"&&node.attributes.width==="0"){removeElement(node,parentNode)
 return}if(imageHeight0&&node.name==="image"&&node.attributes.height==="0"){removeElement(node,parentNode)
+return}if(polylineEmptyPoints&&node.name==="polyline"&&node.attributes.points==null){removeElement(node,parentNode)
+return}if(polygonEmptyPoints&&node.name==="polygon"&&node.attributes.points==null){removeElement(node,parentNode)
+return}const computedStyle=computeStyle(stylesheet,node)
+if(isHidden&&computedStyle.visibility&&computedStyle.visibility.type==="static"&&computedStyle.visibility.value==="hidden"&&querySelector(node,"[visibility=visible]")==null){removeElement(node,parentNode)
+return}if(displayNone&&computedStyle.display&&computedStyle.display.type==="static"&&computedStyle.display.value==="none"&&node.name!=="marker"){removeElement(node,parentNode)
 return}if(pathEmptyD&&node.name==="path"){if(node.attributes.d==null){removeElement(node,parentNode)
 return}const pathData=parsePathData(node.attributes.d)
 if(pathData.length===0){removeElement(node,parentNode)
 return}if(pathData.length===1&&computedStyle["marker-start"]==null&&computedStyle["marker-end"]==null){removeElement(node,parentNode)
-return}}if(polylineEmptyPoints&&node.name==="polyline"&&node.attributes.points==null){removeElement(node,parentNode)
-return}if(polygonEmptyPoints&&node.name==="polygon"&&node.attributes.points==null){removeElement(node,parentNode)
-return}for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
+return}}for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
 for(const id of ids)allReferences.add(id)}}},root:{exit:()=>{for(const id of removedDefIds){const refs=referencesById.get(id)
 if(refs)for(const{node:node,parentNode:parentNode}of refs)detachNodeFromParent(node,parentNode)}if(!deoptimized)for(const[nonRenderedNode,nonRenderedParent]of nonRenderedNodes.entries())canRemoveNonRenderingNode(nonRenderedNode)&&detachNodeFromParent(nonRenderedNode,nonRenderedParent)
 for(const[node,parentNode]of allDefs.entries())node.children.length===0&&detachNodeFromParent(node,parentNode)}}}}
@@ -38091,25 +38208,25 @@ let{command:command,args:args}=pathItem
 if(command==="m"){cursor[0]+=args[0]
 cursor[1]+=args[1]
 start[0]=cursor[0]
-start[1]=cursor[1]}if(command==="M"){i!==0&&(command="m")
+start[1]=cursor[1]}else if(command==="M"){i!==0&&(command="m")
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
 cursor[1]+=args[1]
 start[0]=cursor[0]
-start[1]=cursor[1]}if(command==="l"){cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="L"){command="l"
+start[1]=cursor[1]}else if(command==="l"){cursor[0]+=args[0]
+cursor[1]+=args[1]}else if(command==="L"){command="l"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
-cursor[1]+=args[1]}command==="h"&&(cursor[0]+=args[0])
-if(command==="H"){command="h"
+cursor[1]+=args[1]}else if(command==="h")cursor[0]+=args[0]
+else if(command==="H"){command="h"
 args[0]-=cursor[0]
-cursor[0]+=args[0]}command==="v"&&(cursor[1]+=args[0])
-if(command==="V"){command="v"
+cursor[0]+=args[0]}else if(command==="v")cursor[1]+=args[0]
+else if(command==="V"){command="v"
 args[0]-=cursor[1]
-cursor[1]+=args[0]}if(command==="c"){cursor[0]+=args[4]
-cursor[1]+=args[5]}if(command==="C"){command="c"
+cursor[1]+=args[0]}else if(command==="c"){cursor[0]+=args[4]
+cursor[1]+=args[5]}else if(command==="C"){command="c"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
@@ -38117,31 +38234,31 @@ args[3]-=cursor[1]
 args[4]-=cursor[0]
 args[5]-=cursor[1]
 cursor[0]+=args[4]
-cursor[1]+=args[5]}if(command==="s"){cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="S"){command="s"
+cursor[1]+=args[5]}else if(command==="s"){cursor[0]+=args[2]
+cursor[1]+=args[3]}else if(command==="S"){command="s"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
 args[3]-=cursor[1]
 cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="q"){cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="Q"){command="q"
+cursor[1]+=args[3]}else if(command==="q"){cursor[0]+=args[2]
+cursor[1]+=args[3]}else if(command==="Q"){command="q"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
 args[3]-=cursor[1]
 cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="t"){cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="T"){command="t"
+cursor[1]+=args[3]}else if(command==="t"){cursor[0]+=args[0]
+cursor[1]+=args[1]}else if(command==="T"){command="t"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="a"){cursor[0]+=args[5]
-cursor[1]+=args[6]}if(command==="A"){command="a"
+cursor[1]+=args[1]}else if(command==="a"){cursor[0]+=args[5]
+cursor[1]+=args[6]}else if(command==="A"){command="a"
 args[5]-=cursor[0]
 args[6]-=cursor[1]
 cursor[0]+=args[5]
-cursor[1]+=args[6]}if(command==="Z"||command==="z"){cursor[0]=start[0]
+cursor[1]+=args[6]}else if(command==="Z"||command==="z"){cursor[0]=start[0]
 cursor[1]=start[1]}pathItem.command=command
 pathItem.args=args
 pathItem.base=prevCoords
@@ -38371,12 +38488,19 @@ var removeEmptyAttrs=Object.freeze({__proto__:null,description:description$p,fn:
 const name$o="removeEmptyContainers"
 const description$o="removes empty container elements"
 const fn$o=root=>{const stylesheet=collectStylesheet(root)
-return{element:{exit:(node,parentNode)=>{if(node.name==="svg"||!elemsGroups.container.has(node.name)||node.children.length!==0)return
+const removedIds=new Set
+const usesById=new Map
+return{element:{enter:(node,parentNode)=>{if(node.name==="use")for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
+for(const id of ids){let references=usesById.get(id)
+if(references===void 0){references=[]
+usesById.set(id,references)}references.push({node:node,parent:parentNode})}}},exit:(node,parentNode)=>{if(node.name==="svg"||!elemsGroups.container.has(node.name)||node.children.length!==0)return
 if(node.name==="pattern"&&Object.keys(node.attributes).length!==0)return
 if(node.name==="mask"&&node.attributes.id!=null)return
 if(parentNode.type==="element"&&parentNode.name==="switch")return
 if(node.name==="g"&&(node.attributes.filter!=null||computeStyle(stylesheet,node).filter))return
-detachNodeFromParent(node,parentNode)}}}}
+detachNodeFromParent(node,parentNode)
+node.attributes.id&&removedIds.add(node.attributes.id)}},root:{exit:()=>{for(const id of removedIds){const uses=usesById.get(id)
+if(uses)for(const use of uses)detachNodeFromParent(use.node,use.parent)}}}}}
 var removeEmptyContainers=Object.freeze({__proto__:null,description:description$o,fn:fn$o,name:name$o})
 const name$n="mergePaths"
 const description$n="merges multiple paths in one if possible"
@@ -38644,7 +38768,7 @@ delete node.attributes.width
 delete node.attributes.height}}}})
 var removeDimensions=Object.freeze({__proto__:null,description:description$a,fn:fn$a,name:name$a})
 const name$9="removeElementsByAttr"
-const description$9="removes arbitrary elements by ID or className (disabled by default)"
+const description$9="removes arbitrary elements by ID or className"
 const fn$9=(root,params)=>{const ids=params.id==null?[]:Array.isArray(params.id)?params.id:[params.id]
 const classes=params.class==null?[]:Array.isArray(params.class)?params.class:[params.class]
 return{element:{enter:(node,parentNode)=>{node.attributes.id!=null&&ids.length!==0&&ids.includes(node.attributes.id)&&detachNodeFromParent(node,parentNode)
@@ -38653,7 +38777,7 @@ for(const item of classes)if(classList.includes(item)){detachNodeFromParent(node
 break}}}}}}
 var removeElementsByAttr=Object.freeze({__proto__:null,description:description$9,fn:fn$9,name:name$9})
 const name$8="removeOffCanvasPaths"
-const description$8="removes elements that are drawn outside of the viewBox (disabled by default)"
+const description$8="removes elements that are drawn outside of the viewBox"
 const fn$8=()=>{let viewBoxData=null
 return{element:{enter:(node,parentNode)=>{if(node.name==="svg"&&parentNode.type==="root"){let viewBox=""
 node.attributes.viewBox!=null?viewBox=node.attributes.viewBox:node.attributes.height!=null&&node.attributes.width!=null&&(viewBox=`0 0 ${node.attributes.width} ${node.attributes.height}`)
@@ -38675,11 +38799,11 @@ const viewBoxPathData=[{command:"M",args:[left,top]},{command:"h",args:[width]},
 intersects(viewBoxPathData,pathData)===false&&detachNodeFromParent(node,parentNode)}}}}}
 var removeOffCanvasPaths=Object.freeze({__proto__:null,description:description$8,fn:fn$8,name:name$8})
 const name$7="removeRasterImages"
-const description$7="removes raster images (disabled by default)"
+const description$7="removes raster images"
 const fn$7=()=>({element:{enter:(node,parentNode)=>{node.name==="image"&&node.attributes["xlink:href"]!=null&&/(\.|image\/)(jpe?g|png|gif)/.test(node.attributes["xlink:href"])&&detachNodeFromParent(node,parentNode)}}})
 var removeRasterImages=Object.freeze({__proto__:null,description:description$7,fn:fn$7,name:name$7})
 const name$6="removeScripts"
-const description$6="removes scripts (disabled by default)"
+const description$6="removes scripts"
 const eventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
 const fn$6=()=>({element:{enter:(node,parentNode)=>{if(node.name==="script"){detachNodeFromParent(node,parentNode)
 return}for(const attr of eventAttrs)node.attributes[attr]!=null&&delete node.attributes[attr]},exit:(node,parentNode)=>{if(node.name!=="a")return
@@ -38689,7 +38813,7 @@ const usefulChildren=node.children.filter((child=>child.type!=="text"))
 parentNode.children.splice(index,1,...usefulChildren)}}}})
 var removeScripts=Object.freeze({__proto__:null,description:description$6,fn:fn$6,name:name$6})
 const name$5="removeStyleElement"
-const description$5="removes <style> element (disabled by default)"
+const description$5="removes <style> element"
 const fn$5=()=>({element:{enter:(node,parentNode)=>{node.name==="style"&&detachNodeFromParent(node,parentNode)}}})
 var removeStyleElement=Object.freeze({__proto__:null,description:description$5,fn:fn$5,name:name$5})
 const name$4="removeTitle"
@@ -38700,8 +38824,8 @@ const name$3="removeViewBox"
 const description$3="removes viewBox attribute when possible"
 const viewBoxElems=new Set(["pattern","svg","symbol"])
 const fn$3=()=>({element:{enter:(node,parentNode)=>{if(viewBoxElems.has(node.name)&&node.attributes.viewBox!=null&&node.attributes.width!=null&&node.attributes.height!=null){if(node.name==="svg"&&parentNode.type!=="root")return
-const nums=node.attributes.viewBox.split(/[ ,]+/g)
-nums[0]==="0"&&nums[1]==="0"&&node.attributes.width.replace(/px$/,"")===nums[2]&&node.attributes.height.replace(/px$/,"")===nums[3]&&delete node.attributes.viewBox}}}})
+const numbers=node.attributes.viewBox.split(/[ ,]+/g)
+numbers[0]==="0"&&numbers[1]==="0"&&node.attributes.width.replace(/px$/,"")===numbers[2]&&node.attributes.height.replace(/px$/,"")===numbers[3]&&delete node.attributes.viewBox}}}})
 var removeViewBox=Object.freeze({__proto__:null,description:description$3,fn:fn$3,name:name$3})
 const name$2="removeXlink"
 const description$2="remove xlink namespace and replaces attributes with the SVG 2 equivalent where applicable"
@@ -38747,7 +38871,7 @@ continue}if(overriddenPrefixes.includes(prefix)){const index=overriddenPrefixes.
 overriddenPrefixes.splice(index,1)}}}}}}}
 var removeXlink=Object.freeze({__proto__:null,description:description$2,fn:fn$2,name:name$2})
 const name$1="removeXMLNS"
-const description$1="removes xmlns attribute (for inline svg, disabled by default)"
+const description$1="removes xmlns attribute (for inline svg)"
 const fn$1=()=>({element:{enter:node=>{node.name==="svg"&&delete node.attributes.xmlns}}})
 var removeXMLNS=Object.freeze({__proto__:null,description:description$1,fn:fn$1,name:name$1})
 const name="reusePaths"
@@ -38907,7 +39031,7 @@ for(const[name,value]of Object.entries(node.attributes)){attrs+=" "+name
 if(value!==void 0){const encodedValue=value.toString().replace(config.regValEntities,config.encodeEntity)
 attrs+=config.attrStart+encodedValue+config.attrEnd}}return attrs}
 const stringifyText=(node,config,state)=>createIndent(config,state)+config.textStart+node.value.replace(config.regEntities,config.encodeEntity)+(state.textContext?"":config.textEnd)
-const VERSION="4.0.0"
+const VERSION="4.0.1"
 const pluginsMap=new Map
 for(const plugin of builtinPlugins)pluginsMap.set(plugin.name,plugin)
 function getPlugin(name){if(name==="removeScriptElement"){console.warn("Warning: removeScriptElement has been renamed to removeScripts, please update your SVGO config")
