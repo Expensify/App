@@ -217,7 +217,6 @@ function AddPlaidBankAccount({
                         }
                     }}
                     // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onExit={onExitPlaid}
                     receivedRedirectURI={receivedRedirectURI}
                 />

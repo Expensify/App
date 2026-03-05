@@ -52,7 +52,6 @@ export default function PriorityModeController() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (hasSwitched.current || isInFocusMode || hasTriedFocusMode) {
             return;
         }

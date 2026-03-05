@@ -6,7 +6,6 @@ import type en from './en';
 import type {ConciergeBrokenCardConnectionParams, CreatedReportForUnapprovedTransactionsParams, PaidElsewhereParams, UpdatedPolicyTagParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
-/* eslint-disable max-len */
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         count: 'Contar',
@@ -1309,6 +1308,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Explica la razón para retener esta solicitud.',
             other: 'Explica la razón para retener estas solicitudes.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Explica qué necesitas antes de aprobar este gasto.',
+            other: 'Explica qué necesitas antes de aprobar estos gastos.',
+        }),
         retract: 'Retractar',
         reopened: 'reabrir',
         reopenReport: 'Reabrir informe',
@@ -1405,7 +1408,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
-            reasonPageDescription: 'Explica por qué estás rechazando este gasto.',
+            reasonPageDescription: 'Explica por qué no aprobarás este gasto.',
             rejectReason: 'Motivo del rechazo',
             markAsResolved: 'Marcar como resuelto',
             rejectedStatus: 'Este gasto fue rechazado. Estamos esperando que soluciones los problemas y lo marques como resuelto para poder enviarlo.',

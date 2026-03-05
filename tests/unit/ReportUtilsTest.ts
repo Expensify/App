@@ -4121,6 +4121,23 @@ describe('ReportUtils', () => {
             expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
         });
 
+        it('should return false for admins rooms thread when posting tasks in admins room', async () => {
+            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                parentReportID: '1',
+                parentReportActionID: '2',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeFalsy();
+        });
+
         it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
             const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
 
@@ -5249,7 +5266,6 @@ describe('ReportUtils', () => {
         it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS when the report has addWorkspaceRoom errors', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 errorFields: {addWorkspaceRoom: {1708946640843000: 'error creating room'}},
             };
 
@@ -5593,10 +5609,8 @@ describe('ReportUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
-            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const originalMessage = getOriginalMessage(reportAction);
             expect(originalMessage?.originalID).toBe(originalReportID);
-            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
