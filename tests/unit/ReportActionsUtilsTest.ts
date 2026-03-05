@@ -1759,18 +1759,35 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
-        it('should return the correct message with a valid report ID and report name', () => {
+        it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
+            const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
+                isReportDeleted,
             });
 
-            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('created this report for any held expenses from deleted report #123456');
+        });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
         });
     });
 
@@ -3782,6 +3799,55 @@ describe('ReportActionsUtils', () => {
             expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
             // Without write permission: join request hidden, so only the normal action remains
             expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
+        });
+    });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
         });
     });
 });

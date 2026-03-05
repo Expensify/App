@@ -183,7 +183,7 @@ function SearchFiltersExportedToPage() {
                     items={exportedToPickerOptions}
                     initiallySelectedItems={initiallySelectedPickerItems}
                     onSaveSelection={onSaveSelection}
-                    shouldShowTextInput
+                    shouldShowTextInput={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 />
             </View>
         </ScreenWrapper>

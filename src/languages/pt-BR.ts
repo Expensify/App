@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Sobrenome',
         scanning: 'Escaneando',
         analyzing: 'Analisando...',
+        thinking: 'Concierge está pensando...',
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
         phone: 'Telefone',
@@ -513,6 +514,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Atenção!',
         submitTo: 'Enviar para',
         forwardTo: 'Encaminhar para',
+        approvalLimit: 'Limite de aprovação',
+        overLimitForwardTo: 'Encaminhar se exceder o limite',
         merge: 'Mesclar',
         none: 'Nenhum',
         unstableInternetConnection: 'Conexão de internet instável. Verifique sua rede e tente novamente.',
@@ -542,7 +545,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Delegado de férias',
         expensifyLogo: 'Logo da Expensify',
         duplicateReport: 'Duplicar relatório',
-        explain: 'Explicar',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -550,6 +552,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Siga-nos no Instagram',
         facebook: 'Siga-nos no Facebook',
         linkedin: 'Siga-nos no LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Recolher raciocínio',
+        expandReasoning: 'Expandir raciocínio',
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -900,8 +906,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto de',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `criou este relatório para quaisquer despesas em espera de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
+                : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todas as pessoas nesta conversa',
@@ -1040,6 +1048,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 fireworksTitle: 'Tudo em dia',
                 fireworksDescription: 'As próximas tarefas aparecerão aqui.',
             },
+        },
+        upcomingTravel: 'Próximas viagens',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `Voo para ${destination}`,
+            trainTo: ({destination}: {destination: string}) => `Trem para ${destination}`,
+            hotelIn: ({destination}: {destination: string}) => `Hotel em ${destination}`,
+            carRentalIn: ({destination}: {destination: string}) => `Aluguel de carro em ${destination}`,
+            inOneWeek: 'Em 1 semana',
+            inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
+            today: 'Hoje',
         },
     },
     allSettingsScreen: {
@@ -1367,6 +1385,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: 'Insira uma distância válida antes de continuar',
             invalidReadings: 'Insira as leituras de início e fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
+            distanceAmountTooLarge: 'O valor total é muito alto. Diminua a distância ou reduza a tarifa.',
+            distanceAmountTooLargeReduceDistance: 'O valor total é muito alto. Diminua a distância.',
+            distanceAmountTooLargeReduceRate: 'O valor total é muito alto. Reduza a tarifa.',
+            odometerReadingTooLarge: (formattedMax: string) => `As leituras do hodômetro não podem exceder ${formattedMax}.`,
             invalidIntegerAmount: 'Insira um valor inteiro em dólares antes de continuar',
             invalidTaxAmount: (amount: string) => `O valor máximo de imposto é ${amount}`,
             invalidSplit: 'A soma das divisões deve ser igual ao valor total',
@@ -1422,6 +1444,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: 'Explique por que você está retendo esta despesa.',
             other: 'Explique por que você está segurando essas despesas.',
+        }),
+        explainHoldApprover: () => ({
+            one: 'Explique o que você precisa antes de aprovar esta despesa.',
+            other: 'Explique o que você precisa antes de aprovar estas despesas.',
         }),
         retracted: 'retraído',
         retract: 'Retrair',
@@ -1517,7 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Despesas retidas são deixadas para trás quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
-            reasonPageDescription: 'Explique por que você está rejeitando esta despesa.',
+            reasonPageDescription: 'Explique por que você não aprovará esta despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
             rejectedStatus: 'Esta despesa foi rejeitada. Estamos aguardando você corrigir os problemas e marcá-la como resolvida para permitir o envio.',
@@ -1553,6 +1579,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'O valor total é muito alto. Diminua as horas ou reduza a tarifa.',
         },
         correctRateError: 'Corrija o erro de taxa e tente novamente.',
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Explicar</strong></a> &#x2728;`,
         duplicateNonDefaultWorkspacePerDiemError: 'Você não pode duplicar despesas de diárias entre espaços de trabalho porque as tarifas podem variar entre eles.',
         rulesModifiedFields: {
             reimbursable: (value: boolean) => (value ? 'marcou a despesa como "reembolsável"' : 'marcou a despesa como “não reembolsável”'),
@@ -1570,6 +1597,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `falha ao enviar o relatório. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Você não pode duplicar despesas de distância entre espaços de trabalho porque as tarifas podem ser diferentes entre eles.',
     },
     transactionMerge: {
         listPage: {
@@ -2007,6 +2035,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Para admins de domínio: isso também pausa todas as atividades do Cartão Expensify e ações de administração em todo(s) o(s) seu(s) domínio(s).',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
         onceLocked: 'Depois de bloqueada, sua conta ficará restrita até que seja feita uma solicitação de desbloqueio e uma revisão de segurança',
+        unlockTitle: 'Recebemos sua solicitação',
+        unlockDescription: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -8327,6 +8357,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         outstandingFilter: '<tooltip>Filtrar despesas\nque <strong>precisam de aprovação</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Envie este recibo para\n<strong>concluir o test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.</tooltip>',
+        hasFilterNegation: '<tooltip>Pesquise despesas sem recibos usando <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
@@ -8499,7 +8530,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             resetDomain: 'Redefinir domínio',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Digite <strong>${domainName}</strong> para confirmar a redefinição do domínio.`,
             enterDomainName: 'Insira seu nome de domínio aqui',
-            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <ul><li>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</li> <li>Configurações de SAML e de grupo</li> </ul> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
+            resetDomainInfo: `Esta ação é <strong>permanente</strong> e os seguintes dados serão excluídos: <br/> <bullet-list><bullet-item>Conexões de cartões corporativos e quaisquer despesas não informadas desses cartões</bullet-item><bullet-item>Configurações de SAML e de grupo</bullet-item></bullet-list> Todas as contas, workspaces, relatórios, despesas e outros dados serão mantidos. <br/><br/>Observação: você pode remover este domínio da sua lista de domínios removendo o e-mail associado dos seus <a href="#">métodos de contato</a>.`,
         },
         domainMembers: 'Membros do domínio',
         members: {
@@ -8518,8 +8549,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 other: 'Fechar contas com segurança',
             }),
             closeAccountInfo: () => ({
-                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
-                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <ul><li>aprovações pendentes</li><li>reembolsos ativos</li><li>nenhum método de login alternativo</li></ul>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
+                one: 'Recomendamos fechar a conta com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento da conta selecionada.',
+                other: 'Recomendamos fechar as contas com segurança para evitar o fechamento caso haja: <bullet-list><bullet-item>aprovações pendentes</bullet-item><bullet-item>reembolsos ativos</bullet-item><bullet-item>nenhum método de login alternativo</bullet-item></bullet-list>Caso contrário, você pode ignorar as precauções de segurança acima e forçar o fechamento das contas selecionadas.',
             }),
             error: {
                 removeMember: 'Não foi possível remover este usuário. Tente novamente.',
@@ -8527,6 +8558,9 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 vacationDelegate: 'Não foi possível definir este usuário como delegado de férias. Tente novamente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Você não pode definir um procurador de férias para ${email} porque esta pessoa já é procuradora dos seguintes membros:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Tem certeza? Isso irá bloquear a conta de <strong>${email}</strong>. <br /><br /> Nossa equipe irá então analisar a conta e remover qualquer acesso não autorizado. Para recuperar o acesso, será necessário que trabalhem com a Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Vamos revisar a conta para verificar se é seguro desbloqueá-la e entraremos em contato via Concierge caso haja dúvidas.',
         },
         common: {
             settings: 'Configurações',
