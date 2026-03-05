@@ -810,6 +810,7 @@ function computeReportName(
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction, policyTags, reportPolicy);
     if (chatThreadReportName) {
         return chatThreadReportName;

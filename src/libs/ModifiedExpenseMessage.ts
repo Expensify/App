@@ -1,10 +1,8 @@
 import isEmpty from 'lodash/isEmpty';
-import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Entries, ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
@@ -31,19 +29,6 @@ import {isInvalidMerchantValue} from './ValidationUtils';
 
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
-
-let storedCurrentUserLogin = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- Onyx.connectWithoutView is being removed in https://github.com/Expensify/App/issues/66336
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, value is undefined
-        if (!value) {
-            return;
-        }
-        storedCurrentUserLogin = value?.email ?? '';
-    },
-});
 
 /**
  * Builds the partial message fragment for a modified field on the expense.
