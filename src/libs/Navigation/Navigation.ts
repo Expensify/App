@@ -60,6 +60,8 @@ const SET_UP_2FA_SCREENS = new Set<string>([
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
+const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
+
 let account: OnyxEntry<Account>;
 // We have used `connectWithoutView` here because it is not connected to any UI
 Onyx.connectWithoutView({
@@ -81,6 +83,10 @@ Onyx.connectWithoutView({
 
 function isTwoFactorSetupScreen(screen: string | undefined): boolean {
     return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
+}
+
+function isMFAFlowScreen(screen: string | undefined): boolean {
+    return screen ? MFA_FLOW_SCREENS.has(screen) : false;
 }
 
 function shouldShowRequire2FAPage() {
@@ -954,4 +960,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};
