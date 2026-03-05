@@ -250,7 +250,7 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
-function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[]): Promise<IOSEncryptPayload> {
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'ios',
@@ -258,6 +258,7 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
         certificates: JSON.stringify({certificates}),
         nonce,
         nonceSignature,
+        cardID,
     })
         .then((response) => {
             const data = response as unknown as IOSEncryptPayload;
