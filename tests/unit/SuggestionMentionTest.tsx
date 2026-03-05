@@ -202,4 +202,46 @@ describe('SuggestionMention', () => {
         expect(updateComment).toHaveBeenCalledWith('@a.smith@example.com ', true);
         expect(setSelection).toHaveBeenCalledWith({start: 21, end: 21});
     });
+
+    it('does not insert trailing space when mention is followed by a comma (punctuation)', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@a, thanks', updateComment, {start: 2, end: 2});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com, thanks', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 17, end: 17});
+    });
+
+    it('inserts trailing space when mention is followed by a regular word', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@a thanks', updateComment, {start: 2, end: 2});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com thanks', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
 });
