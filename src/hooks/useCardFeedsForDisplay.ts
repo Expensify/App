@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isCustomFeed} from '@libs/CardUtils';
@@ -27,39 +28,34 @@ const useCardFeedsForDisplay = () => {
         selector: eligiblePoliciesSelector,
     });
 
-    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
-    const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
+    const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards), [allFeeds, translate, feedKeysWithCards]);
 
-    let defaultCardFeed;
-    if (eligiblePoliciesIDs) {
+    const defaultCardFeed = useMemo(() => {
+        const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
+
         // Prioritize the active policy if eligible
         if (activePolicyID && eligiblePoliciesIDs.has(activePolicyID)) {
             const policyCardFeeds = cardFeedsByPolicy[activePolicyID];
             if (policyCardFeeds?.length) {
-                defaultCardFeed = policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+                return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
 
-        if (!defaultCardFeed) {
-            // If the active policy doesn't have card feeds, use the first eligible policy that does
-            for (const eligiblePolicyID of eligiblePoliciesIDs) {
-                const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
-                if (policyCardFeeds?.length) {
-                    defaultCardFeed = policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
-                    break;
-                }
+        // If the active policy doesn't have card feeds, use the first eligible policy that does
+        for (const eligiblePolicyID of eligiblePoliciesIDs) {
+            const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
+            if (policyCardFeeds?.length) {
+                return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
 
-        if (!defaultCardFeed) {
-            // Commercial feeds don't have preferred policies, so we need to include these in the list
-            const commercialFeeds = Object.values(cardFeedsByPolicy)
-                .flat()
-                .filter((feed) => !isCustomFeed(feed.name as CardFeedWithNumber));
+        // Commercial feeds don't have preferred policies, so we need to include these in the list
+        const commercialFeeds = Object.values(cardFeedsByPolicy)
+            .flat()
+            .filter((feed) => !isCustomFeed(feed.name as CardFeedWithNumber));
 
-            defaultCardFeed = commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
-        }
-    }
+        return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+    }, [eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare]);
 
     return {defaultCardFeed, cardFeedsByPolicy};
 };
