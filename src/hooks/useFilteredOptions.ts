@@ -63,7 +63,7 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
@@ -98,6 +98,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         }
         setReportsLimit((prev) => prev + batchSize);
     };
+
 
     return {
         options,

@@ -98,7 +98,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSelectItem}
-            showLoadingPlaceholder={!noResultsFound}
+            shouldShowLoadingPlaceholder={!noResultsFound}
             shouldStopPropagation
             shouldShowTooltips
             canSelectMultiple
