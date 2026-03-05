@@ -486,7 +486,6 @@ function BaseVideoPlayer({
                                             }
                                             videoPlayerElementParentRef.current = el;
                                         }}
-                                        pointerEvents="none"
                                     >
                                         <VideoView
                                             fullscreenOptions={{enable: true}}

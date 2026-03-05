@@ -141,7 +141,6 @@ function CategorySettingsPage({
             return '';
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     const requireItemizedReceiptsOverText = useMemo(() => {
