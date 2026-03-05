@@ -906,8 +906,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto de',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `criou este relatório para manter todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência escolhida por você`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `criou este relatório para quaisquer despesas em espera de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `criou este relatório para quaisquer despesas retidas do relatório excluído nº ${reportID}`
+                : `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todas as pessoas nesta conversa',
@@ -1443,6 +1445,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Explique por que você está retendo esta despesa.',
             other: 'Explique por que você está segurando essas despesas.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Explique o que você precisa antes de aprovar esta despesa.',
+            other: 'Explique o que você precisa antes de aprovar estas despesas.',
+        }),
         retracted: 'retraído',
         retract: 'Retrair',
         reopened: 'reaberto',
@@ -1537,7 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Despesas retidas são deixadas para trás quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
-            reasonPageDescription: 'Explique por que você está rejeitando esta despesa.',
+            reasonPageDescription: 'Explique por que você não aprovará esta despesa.',
             rejectReason: 'Motivo da rejeição',
             markAsResolved: 'Marcar como resolvido',
             rejectedStatus: 'Esta despesa foi rejeitada. Estamos aguardando você corrigir os problemas e marcá-la como resolvida para permitir o envio.',

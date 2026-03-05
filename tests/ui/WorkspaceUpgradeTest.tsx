@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {NavigationContainer} from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
