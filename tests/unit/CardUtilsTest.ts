@@ -2570,7 +2570,7 @@ describe('CardUtils', () => {
         it('should return true when card is CSV imported personal card (bank is PERSONAL_CARD.BANK_NAME.CSV)', () => {
             const csvPersonalCard: Card = {
                 accountID: 1,
-                bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+                bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
                 cardID: 2,
                 cardName: 'My Imported Card',
                 domainName: '',
