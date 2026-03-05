@@ -208,7 +208,6 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
                 [ONYXKEYS.COLLECTION.POLICY]: null,
             });
@@ -287,14 +286,13 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(addDays(new Date(), 3)), // not past due
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: accountID,
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -303,7 +301,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -311,7 +308,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -320,7 +317,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -328,7 +324,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -337,7 +333,6 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
@@ -345,7 +340,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param and is past due', async () => {
