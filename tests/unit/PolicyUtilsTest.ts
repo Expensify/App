@@ -1593,7 +1593,6 @@ describe('PolicyUtils', () => {
             const bankAccountID = '1';
             const currentUserLogin = adminEmail;
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
                     methodID: 12345,
                     accountData: {

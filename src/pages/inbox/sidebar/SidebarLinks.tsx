@@ -39,7 +39,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
