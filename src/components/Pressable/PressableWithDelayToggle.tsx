@@ -1,4 +1,3 @@
-/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
@@ -117,7 +116,6 @@ function PressableWithDelayToggle({
     const accessibilityLabel = accessibilityLabelProp || (!isActive ? tooltipTextChecked || textChecked : tooltipText || text) || text || '';
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
         text || textChecked ? (
             <Text
                 suppressHighlighting

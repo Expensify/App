@@ -49,7 +49,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
