@@ -1046,7 +1046,7 @@ type OriginalMessageDynamicExternalWorkflowRouted = {
     to: string;
 
     /** Explanation for why the report was routed that way */
-    message: string;
+    message?: string;
 };
 
 /** Model of `marked reimbursed` report action */

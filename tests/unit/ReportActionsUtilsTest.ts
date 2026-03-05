@@ -1175,6 +1175,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 originalMessage: {
                     to: 'example@gmail.com',
+                    message: '',
                 },
             };
 
@@ -2641,7 +2642,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '2',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com', message: ''}},
                 {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -2649,7 +2650,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '4',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com', message: ''}},
             ];
             const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
 
@@ -2710,12 +2711,12 @@ describe('ReportActionsUtils', () => {
             const secondDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '2DEW',
-                originalMessage: {to: 'example@gmail.com'},
+                originalMessage: {to: 'example@gmail.com', message: ''},
             } as ReportAction;
             const fourthDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '4DEW',
-                originalMessage: {to: 'example2@gmail.com'},
+                originalMessage: {to: 'example2@gmail.com', message: ''},
             } as ReportAction;
             const expected: ReportActions = {
                 [firstAction.reportActionID]: firstAction,
@@ -2766,14 +2767,33 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 created: '',
-                originalMessage: {to},
+                originalMessage: {to, message: ''},
             };
 
             // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
             // Then it should return the routed due to DEW message with the correct "to" value
-            const expected = translateLocal('iou.routedDueToDEW', to);
+            const expected = translateLocal('iou.routedDueToDEW', to, '');
+            expect(actual).toBe(expected);
+        });
+
+        it('should return the routed message with reason', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action with a reason message
+            const to = 'example@gmail.com';
+            const reason = 'the report total exceeds the auto-approval limit';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                created: '',
+                originalMessage: {to, message: reason},
+            };
+
+            // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
+            const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+
+            // Then it should return the routed due to DEW message with the correct "to" value and reason
+            const expected = translateLocal('iou.routedDueToDEW', to, reason);
             expect(actual).toBe(expected);
         });
     });
