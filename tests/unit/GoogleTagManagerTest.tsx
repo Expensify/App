@@ -91,6 +91,8 @@ jest.mock('@react-navigation/stack', () => ({
     },
 }));
 
+jest.mock('@libs/Navigation/Navigation');
+
 // Mock createPlatformStackNavigator
 jest.mock('@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator', () => {
     return jest.fn(() => {
