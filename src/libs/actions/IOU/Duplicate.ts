@@ -20,8 +20,8 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
-import {getRequestType, getTransactionType, isFromCreditCardImport, isPartialTransaction, isScanning, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
-import {createNewReport, updateReportName} from '@userActions/Report';
+import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit, isFromCreditCardImport, isPartialTransaction, isScanning} from '@libs/TransactionUtils';
+import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -692,6 +692,7 @@ type DuplicateReportParams = {
     sourceReportName: string;
     targetPolicy: OnyxEntry<OnyxTypes.Policy>;
     targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     ownerPersonalDetails: CurrentUserPersonalDetails;
     isASAPSubmitBetaEnabled: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -702,6 +703,7 @@ type DuplicateReportParams = {
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
 function duplicateReport({
@@ -709,6 +711,7 @@ function duplicateReport({
     sourceReportName,
     targetPolicy,
     targetPolicyCategories,
+    targetPolicyTags,
     ownerPersonalDetails,
     isASAPSubmitBetaEnabled,
     betas,
@@ -719,11 +722,10 @@ function duplicateReport({
     isSelfTourViewed,
     transactionViolations,
     translate,
+    recentWaypoints,
 }: DuplicateReportParams) {
-    const newReport = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas);
-
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    updateReportName(newReport.reportID, newReportName, newReport.reportName ?? '');
+    const newReport = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
         if (isFromCreditCardImport(transaction)) {
@@ -746,8 +748,7 @@ function duplicateReport({
     const policyParams = targetPolicy
         ? {
               policy: targetPolicy,
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
-              policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+              policyTagList: targetPolicyTags,
               policyCategories: targetPolicyCategories ?? {},
           }
         : undefined;
@@ -804,7 +805,53 @@ function duplicateReport({
             personalDetails,
         };
 
-        requestMoney(params);
+        const transactionType = getTransactionType(transaction);
+
+        switch (transactionType) {
+            case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+                const distanceParams: CreateDistanceRequestInformation = {
+                    ...params,
+                    participants,
+                    existingTransaction: {
+                        ...(params.transactionParams ?? {}),
+                        comment: transaction.comment,
+                        iouRequestType: getRequestType(transaction),
+                        modifiedCreated: '',
+                        reportID: '1',
+                        transactionID: '1',
+                    },
+                    transactionParams: {
+                        ...(params.transactionParams ?? {}),
+                        comment: Parser.htmlToMarkdown(transactionDetails.comment ?? ''),
+                        validWaypoints: transactionDetails.waypoints as WaypointCollection | undefined,
+                    },
+                    policyRecentlyUsedCurrencies,
+                    quickAction,
+                    customUnitPolicyID: targetPolicy?.id ?? '',
+                    personalDetails,
+                    recentWaypoints,
+                };
+                createDistanceRequest(distanceParams);
+                break;
+            }
+            case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
+                const perDiemParams: PerDiemExpenseInformation = {
+                    ...params,
+                    transactionParams: {
+                        ...(params.transactionParams ?? {}),
+                        comment: transactionDetails.comment ?? '',
+                        customUnit: transaction?.comment?.customUnit ?? {},
+                    },
+                    hasViolations: false,
+                    customUnitPolicyID: targetPolicy?.id ?? '',
+                };
+                submitPerDiemExpense(perDiemParams);
+                break;
+            }
+            default:
+                requestMoney(params);
+                break;
+        }
     }
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReport.reportID));

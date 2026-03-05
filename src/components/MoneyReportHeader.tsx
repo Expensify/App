@@ -1563,10 +1563,11 @@ function MoneyReportHeader({
                 const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
 
                 duplicateReportAction({
-                    sourceReportTransactions: transactions,
+                    sourceReportTransactions: nonPendingDeleteTransactions,
                     sourceReportName: moneyRequestReport?.reportName ?? '',
                     targetPolicy: targetPolicy ?? undefined,
                     targetPolicyCategories,
+                    targetPolicyTags: allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicy?.id}`] ?? {},
                     ownerPersonalDetails: currentUserPersonalDetails,
                     isASAPSubmitBetaEnabled,
                     betas,
@@ -1577,6 +1578,7 @@ function MoneyReportHeader({
                     isSelfTourViewed,
                     transactionViolations: allTransactionViolations,
                     translate,
+                    recentWaypoints: recentWaypoints ?? [],
                 });
             },
         },

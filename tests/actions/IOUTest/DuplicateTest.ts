@@ -1782,6 +1782,7 @@ describe('actions/Duplicate', () => {
             sourceReportName: 'Original Report',
             targetPolicy: mockPolicy,
             targetPolicyCategories: mockPolicyCategories,
+            targetPolicyTags: {},
             ownerPersonalDetails: mockOwnerPersonalDetails,
             isASAPSubmitBetaEnabled: false,
             betas: [CONST.BETAS.ALL],
@@ -1792,6 +1793,7 @@ describe('actions/Duplicate', () => {
             isSelfTourViewed: false,
             transactionViolations: {},
             translate: mockTranslate,
+            recentWaypoints: [],
         });
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
@@ -1827,11 +1829,10 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
-            expect(countWriteCommandCalls(WRITE_COMMANDS.SET_REPORT_NAME)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
 
-            const setReportNameCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.SET_REPORT_NAME) as unknown[] | undefined;
-            expect(setReportNameCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
+            const createReportCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as unknown[] | undefined;
+            expect(createReportCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
             expect(Navigation.navigate).toHaveBeenCalled();
         });
@@ -1880,6 +1881,51 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
         });
 
+        it('should route distance transactions through createDistanceRequest', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+        });
+
+        it('should route per diem transactions through submitPerDiemExpense', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([cashTx, perDiemTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+        });
+
         it('should still create the report when all transactions are ineligible', async () => {
             const cardTx = createCashTransaction('card1', {
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
@@ -1892,7 +1938,6 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
-            expect(countWriteCommandCalls(WRITE_COMMANDS.SET_REPORT_NAME)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
 
             expect(Navigation.navigate).toHaveBeenCalled();
