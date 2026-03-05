@@ -1801,12 +1801,6 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     }
 
     const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-
-    let newDistance;
-    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit) {
-        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), newDistanceUnit);
-    }
 
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -1814,7 +1808,6 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
                 customUnitRateID,
                 ...(!!policy && {defaultP2PRate: null}),
                 ...(newDistanceUnit && {distanceUnit: newDistanceUnit}),
-                ...(newDistance && {quantity: newDistance}),
             },
         },
     });
