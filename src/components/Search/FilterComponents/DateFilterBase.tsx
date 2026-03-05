@@ -11,7 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
-import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -94,7 +94,11 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
 
     const computedTitle = useMemo(() => {
         if (selectedDateModifier) {
-            return translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`);
+            if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+                return `${translate('statusPage.timePeriods.custom')} ${translate('common.range')}`;
+            }
+
+            return `${translate('statusPage.timePeriods.custom')} ${translate('common.date')}`;
         }
 
         return title;

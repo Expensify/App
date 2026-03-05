@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
-import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
+import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 
 type DateSelectPopupProps = {
@@ -60,6 +60,17 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         [value],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
+    const selectedDateModifierTitle = useMemo(() => {
+        if (!selectedDateModifier) {
+            return '';
+        }
+
+        if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return `${translate('statusPage.timePeriods.custom')} ${translate('common.range')}`;
+        }
+
+        return `${translate('statusPage.timePeriods.custom')} ${translate('common.date')}`;
+    }, [selectedDateModifier, translate]);
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
@@ -163,7 +174,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         <HeaderWithBackButton
                             shouldDisplayHelpButton={false}
                             style={[styles.h10, styles.pb3]}
-                            subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
+                            subtitle={selectedDateModifierTitle}
                             onBackButtonPress={handleBackPress}
                         />
                     )}
@@ -230,13 +241,13 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                                     fill={theme.icon}
                                 />
                             </PressableWithoutFeedback>
-                            <Text style={[styles.textLabelSupporting]}>{translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}</Text>
+                            <Text style={[styles.textLabelSupporting]}>{selectedDateModifierTitle}</Text>
                         </View>
                     ) : (
                         <HeaderWithBackButton
                             shouldDisplayHelpButton={false}
                             style={[styles.h10, styles.pb3]}
-                            subtitle={translate(`common.${selectedDateModifier.toLowerCase() as SearchDateModifierLower}`)}
+                            subtitle={selectedDateModifierTitle}
                             onBackButtonPress={handleBackPress}
                         />
                     ))}
