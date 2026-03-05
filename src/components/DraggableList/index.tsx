@@ -53,9 +53,13 @@ function DraggableList<T>({
     const hasKeyboardNav = !isControlled && !!onSelectRow;
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Unique ID per mount to ensure DndContext state resets when component remounts
     const instanceId = useId();
+
+    // Track if a drag is currently active to avoid dispatching global Escape when not needed
     const isDraggingRef = useRef(false);
 
+    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
         return () => {
             if (typeof document === 'undefined' || !isDraggingRef.current) {
