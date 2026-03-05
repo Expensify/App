@@ -7698,6 +7698,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 tag,
                 taxCode,
                 taxAmount,
+                taxPolicyID: policy?.id,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoint ? JSON.stringify(gpsPoint) : undefined,
