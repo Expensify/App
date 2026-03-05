@@ -6,7 +6,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
+import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -84,9 +84,11 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
-        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
-            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
-        </View>
+        <StatusBadge
+            text={badgeProps.text}
+            backgroundColor={badgeProps.badgeStyles.backgroundColor}
+            textColor={badgeProps.textStyles.color}
+        />
     );
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
 

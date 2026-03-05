@@ -26,6 +26,7 @@ import type {
     SearchWithdrawalType,
     SelectedReports,
     SelectedTransactionInfo,
+    SelectedTransactions,
     SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
@@ -117,6 +118,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getIcons,
+    getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReportName,
@@ -776,7 +778,7 @@ function getSuggestedSearches(
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
                 groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                status: [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED, CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -1102,7 +1104,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTo = formatPhoneNumber(toName);
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = getTransactionMerchant(transactionItem, policy);
+    const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
     const submitted = report?.submitted;
     const approved = report?.approved;
@@ -1863,7 +1865,6 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
-
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -2029,6 +2030,8 @@ function createAndOpenSearchTransactionThread(
     item: TransactionListItemType,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     backTo: string,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
@@ -2058,7 +2061,15 @@ function createAndOpenSearchTransactionThread(
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         // Use the full reportAction to preserve originalMessage.type (e.g., "track") for proper expense type detection
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(introSelected, item.report, reportActionToPass, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(
+            introSelected,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            item.report,
+            reportActionToPass,
+            transaction,
+            transactionViolations,
+        );
     }
 
     if (shouldNavigate) {
@@ -2272,6 +2283,7 @@ function getReportSections({
                         allReportTransactions,
                     );
 
+                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2292,6 +2304,10 @@ function getReportSections({
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
                     hasVisibleViolations: hasVisibleViolationsForReport,
+                    totalDisplaySpend,
+                    nonReimbursableSpend,
+                    reimbursableSpend,
+                    isAllScanning: false,
                 };
 
                 if (isIOUReport) {
@@ -2350,17 +2366,18 @@ function getReportSections({
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 category: isIOUReport ? '' : transactionItem?.category,
             };
-            if (reportIDToTransactions[reportKey]?.transactions) {
-                reportIDToTransactions[reportKey].transactions.push(transaction);
-                reportIDToTransactions[reportKey].from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
-            } else if (reportIDToTransactions[reportKey]) {
-                reportIDToTransactions[reportKey].transactions = [transaction];
-                reportIDToTransactions[reportKey].from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+            if (reportIDToTransactions[reportKey]) {
+                const reportSection = reportIDToTransactions[reportKey];
+                const hadTransactions = reportSection.transactions.length > 0;
+                reportSection.transactions.push(transaction);
+                reportSection.from = data?.personalDetailsList?.[data?.[reportKey as ReportKey]?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+                reportSection.isAllScanning = hadTransactions ? !!reportSection.isAllScanning && isScanning(transaction) : isScanning(transaction);
             }
         }
     }
 
     const reportIDToTransactionsValues = Object.values(reportIDToTransactions);
+
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length];
 }
 
@@ -3885,12 +3902,15 @@ function getFeedOptions(
     allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     allCards: OnyxTypes.CardList | undefined,
     translate: LocalizedTranslate,
+    localeCompare: LocaleContextProps['localeCompare'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
-    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards)).map<SingleSelectItem<string>>((cardFeed) => ({
-        text: cardFeed.name,
-        value: cardFeed.id,
-    }));
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards, translate, feedKeysWithCards))
+        .map<SingleSelectItem<string>>((cardFeed) => ({
+            text: cardFeed.name,
+            value: cardFeed.id,
+        }))
+        .sort((a, b) => localeCompare(a.text, b.text));
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
@@ -4522,6 +4542,71 @@ function shouldShowDeleteOption(
           });
 }
 
+function applySelectionToItem(
+    item: SearchListItem,
+    canSelectMultiple: boolean,
+    selectedTransactions: SelectedTransactions,
+): {originalItem: SearchListItem; itemWithSelection: SearchListItem; isSelected: boolean} {
+    // Simple items without transactions
+    if (!('transactions' in item) || !item.transactions) {
+        const isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+        const itemWithSelection = !!item.isSelected !== isSelected ? {...item, isSelected} : item;
+        return {originalItem: item, itemWithSelection, isSelected};
+    }
+
+    // Single-select mode: group items are never selected via selectedTransactions
+    if (!canSelectMultiple) {
+        const itemWithSelection = item.isSelected ? {...item, isSelected: false} : item;
+        return {originalItem: item, itemWithSelection, isSelected: false};
+    }
+
+    const isEmptyReportSelected = item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+
+    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
+
+    // Item thinks it's selected but nothing actually is → deselect
+    if (!hasAnySelected && item.isSelected) {
+        return {originalItem: item, itemWithSelection: {...item, isSelected: false}, isSelected: false};
+    }
+
+    // Empty report is selected
+    if (isEmptyReportSelected) {
+        const itemWithSelection = !item.isSelected ? {...item, isSelected: true} : item;
+        return {originalItem: item, itemWithSelection, isSelected: true};
+    }
+
+    // Map individual transactions and derive group selection state
+    let allNonDeletedSelected = true;
+    let hasNonDeletedTransactions = false;
+    let hasTransactionSelectionChanged = false;
+
+    const mappedTransactions = item.transactions.map((transaction) => {
+        const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
+
+        if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            hasNonDeletedTransactions = true;
+            if (!isTransactionSelected) {
+                allNonDeletedSelected = false;
+            }
+        }
+
+        if (!!transaction.isSelected !== isTransactionSelected) {
+            hasTransactionSelectionChanged = true;
+        }
+
+        return isTransactionSelected === !!transaction.isSelected ? transaction : {...transaction, isSelected: isTransactionSelected};
+    });
+
+    const isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
+
+    if (!hasTransactionSelectionChanged && !!item.isSelected === isSelected) {
+        return {originalItem: item, itemWithSelection: item, isSelected};
+    }
+
+    const transactions = hasTransactionSelectionChanged ? mappedTransactions : item.transactions;
+    return {originalItem: item, itemWithSelection: {...item, isSelected, transactions}, isSelected};
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -4588,5 +4673,6 @@ export {
     isTodoSearch,
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
+    applySelectionToItem,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
