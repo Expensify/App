@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
@@ -61,12 +60,9 @@ const useCardFeedsForDisplay = () => {
         selector: eligiblePoliciesSelector,
     });
 
-    const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards), [allFeeds, translate, feedKeysWithCards]);
+    const cardFeedsByPolicy = getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards);
 
-    const defaultCardFeed = useMemo(
-        () => getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare),
-        [eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare],
-    );
+    const defaultCardFeed = getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare);
 
     return {defaultCardFeed, cardFeedsByPolicy};
 };
