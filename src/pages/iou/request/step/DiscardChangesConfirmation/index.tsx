@@ -37,6 +37,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStack
      * (via navigation.getParent()) which does emit these events when the screen is being removed.
      */
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const targetNavigation = useParentStackForWebBack ? (navigation.getParent() as typeof navigation | undefined) : navigation;
         if (!targetNavigation) {
             return;
