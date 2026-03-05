@@ -29,6 +29,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const navigateForwardToPath: string | undefined = navigateForwardTo;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -64,13 +65,13 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
             onValidationSuccess?.();
 
-            if (navigateForwardTo) {
-                Navigation.navigate(navigateForwardTo, {forceReplace: true});
+            if (navigateForwardToPath) {
+                Navigation.navigate(navigateForwardToPath as Route, {forceReplace: true});
             } else {
                 handleCloseWithFallback();
             }
         },
-        [isUserValidated, navigateForwardTo, handleCloseWithFallback, onValidationSuccess] as React.DependencyList,
+        [isUserValidated, navigateForwardToPath, handleCloseWithFallback, onValidationSuccess] as React.DependencyList,
     );
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.

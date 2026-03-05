@@ -2111,14 +2111,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.REPORT]: {
                     path: ROUTES.REPORT_WITH_ID.route,
-                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
-                    // We want to avoid that situation, so we will return an empty string instead.
-                    parse: {
-                        reportID: (reportID: string | undefined) => reportID ?? '',
-                    },
-                    stringify: {
-                        reportID: (reportID: string | undefined) => reportID ?? '',
-                    },
                 },
             },
         },

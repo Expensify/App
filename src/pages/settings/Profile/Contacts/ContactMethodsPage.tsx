@@ -30,7 +30,7 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const navigateBackTo = route?.params?.backTo;
+    const navigateBackTo: string | undefined = route?.params?.backTo;
 
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
