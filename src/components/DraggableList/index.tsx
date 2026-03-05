@@ -11,20 +11,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import SortableItem from './SortableItem';
 import type DraggableListProps from './types';
 
-type DraggableItemState = {
-    isDragDisabled: boolean;
-    isDisabled: boolean;
+type DraggableItemFlags = {
+    isDragDisabled?: boolean;
+    isDisabled?: boolean;
 };
 
-function getDraggableItemState(item: unknown): DraggableItemState {
+function getDraggableItemFlags(item: unknown): DraggableItemFlags {
     if (!item || typeof item !== 'object') {
-        return {isDragDisabled: false, isDisabled: false};
+        return {};
     }
-
-    return {
-        isDragDisabled: 'isDragDisabled' in item && !!item.isDragDisabled,
-        isDisabled: 'isDisabled' in item && !!item.isDisabled,
-    };
+    return item as DraggableItemFlags;
 }
 
 const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
@@ -73,7 +69,7 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
-    const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemState(item).isDisabled ? [index] : []));
+    const disabledArrowKeyIndexes = data.flatMap((item, index) => (getDraggableItemFlags(item).isDisabled ? [index] : []));
 
     const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
         containerRef,
@@ -96,6 +92,11 @@ function DraggableList<T>({
         isDraggingRef.current = true;
     };
 
+    /**
+     * Function to be called when the user finishes dragging an item
+     * It will reorder the list and call the callback function
+     * to notify the parent component about the change
+     */
     const onDragEnd = (event: DragEndEvent) => {
         isDraggingRef.current = false;
         const {active, over} = event;
@@ -118,7 +119,7 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemState(item);
+        const {isDragDisabled, isDisabled: isItemDisabled} = getDraggableItemFlags(item);
         const isItemFocused = index === activeFocusedIndex && !isItemDisabled;
 
         const renderedItem = renderItem({

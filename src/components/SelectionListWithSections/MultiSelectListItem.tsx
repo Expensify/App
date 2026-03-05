@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import RadioListItem from './RadioListItem';
@@ -27,7 +27,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const isSelected = item.isSelected;
 
-    const checkboxComponent = () => {
+    const checkboxComponent = useCallback(() => {
         return (
             <Checkbox
                 shouldSelectOnPressEnter
@@ -40,7 +40,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 tabIndex={-1}
             />
         );
-    };
+    }, [isDisabled, isMultilineSupported, isSelected, item, onSelectRow, styles.ml3]);
 
     return (
         <RadioListItem
