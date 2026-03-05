@@ -13056,7 +13056,7 @@ function getTransactionSortValue(transaction: Transaction, key: SortableColumnNa
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return getTaxName(policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
-            return transaction.cardID ?? 0;
+            return transaction.cardID ?? CONST.DEFAULT_NUMBER_ID;
         default:
             return '';
     }
