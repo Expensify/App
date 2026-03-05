@@ -83,7 +83,7 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {login: currentUserLogin, email} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, localeCompare} = useLocalize();
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
 
@@ -137,7 +137,7 @@ function WalletPage() {
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserPersonalDetails.accountID);
+            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID);
             return;
         }
 
