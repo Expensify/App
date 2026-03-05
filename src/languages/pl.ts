@@ -1571,7 +1571,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
-        routedDueToDEW: (to: string) => `raport skierowano do ${to} z powodu niestandardowego przepływu zatwierdzania`,
+        routedDueToDEW: (to: string, reason?: string) => `raport przekazany do ${to}${reason ? `bo ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`,
             hrs: 'godz.',

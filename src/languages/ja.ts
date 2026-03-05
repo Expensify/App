@@ -1564,7 +1564,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'ワークスペースを選択',
-        routedDueToDEW: (to: string) => `カスタム承認ワークフローにより、レポートは${to}に回付されました`,
+        routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? `${reason} のため` : ''} に回覧されました`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
             hrs: '時間',

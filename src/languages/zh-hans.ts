@@ -1539,7 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择工作区',
-        routedDueToDEW: (to: string) => `报表因自定义审批流程被转交给 ${to}`,
+        routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? `因为 ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
             hrs: '小时',

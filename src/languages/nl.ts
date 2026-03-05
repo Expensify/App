@@ -1572,7 +1572,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Kies een werkruimte',
-        routedDueToDEW: (to: string) => `rapport doorgestuurd naar ${to} vanwege aangepast goedkeuringsworkflow`,
+        routedDueToDEW: (to: string, reason?: string) => `rapport doorgestuurd naar ${to}${reason ? `omdat ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`,
             hrs: 'uur',

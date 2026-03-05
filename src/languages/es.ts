@@ -1443,7 +1443,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
-        routedDueToDEW: (to) => `informe enviado a ${to} debido a un flujo de aprobación personalizado`,
+        routedDueToDEW: (to: string, reason?: string) => `informe enviado a ${to}${reason ? ` porque ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} a ${rate} / hora`,
             hrs: 'h',
