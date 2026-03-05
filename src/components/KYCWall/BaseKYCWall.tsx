@@ -260,7 +260,6 @@ function KYCWall({
                     return;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
@@ -296,7 +295,6 @@ function KYCWall({
                     return;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);

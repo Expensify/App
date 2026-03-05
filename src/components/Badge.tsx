@@ -17,6 +17,12 @@ type BadgeProps = {
     /** Is Error type */
     error?: boolean;
 
+    /** Whether badge uses strong (filled) style instead of outlined */
+    isStrong?: boolean;
+
+    /** Whether badge uses condensed (smaller) sizing */
+    isCondensed?: boolean;
+
     /** Whether badge is clickable */
     pressable?: boolean;
 
@@ -51,6 +57,8 @@ type BadgeProps = {
 function Badge({
     success = false,
     error = false,
+    isStrong = false,
+    isCondensed = false,
     pressable = false,
     text,
     environment = CONST.ENVIRONMENT.DEV,
@@ -68,17 +76,20 @@ function Badge({
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
-    const iconColor = StyleUtils.getIconColorStyle(success, error);
+    const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
+
+    const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [
             styles.defaultBadge,
+            isCondensed && styles.condensedBadge,
             styles.alignSelfCenter,
             styles.ml2,
+            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
             badgeStyles,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
         ],
-        [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
+        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
     );
 
     return (
@@ -93,15 +104,25 @@ function Badge({
             {!!icon && (
                 <View style={[styles.mr2, iconStyles]}>
                     <Icon
-                        width={shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall}
-                        height={shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall}
+                        width={iconSize}
+                        height={iconSize}
                         src={icon}
                         fill={iconColor}
                     />
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                style={[
+                    styles.badgeText,
+                    styles.textStrong,
+                    isCondensed && styles.condensedBadgeText,
+                    !isStrong && !success && !error && styles.badgeDefaultText,
+                    !isStrong && success && styles.badgeSuccessText,
+                    !isStrong && error && styles.badgeDangerText,
+                    isStrong && (success || error) && styles.badgeStrongText,
+                    textStyles,
+                    isDeleted ? styles.offlineFeedbackDeleted : {},
+                ]}
                 numberOfLines={1}
             >
                 {text}
