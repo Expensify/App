@@ -133,7 +133,7 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions, currentSearchHash);
+        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions, policyCategories, currentSearchHash);
         // Bulk edit can start from report (ID-based selection) or search (map-based selection),
         // so clear both stores to keep deselection behavior consistent.
         clearSelectedTransactions(true);

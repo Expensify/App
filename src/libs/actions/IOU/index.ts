@@ -13853,6 +13853,7 @@ function updateMultipleMoneyRequests(
     reports: OnyxCollection<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
     reportActions: OnyxCollection<OnyxTypes.ReportActions>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     hash?: number,
 ) {
     // Track running totals per report so multiple edits in the same report compound correctly.
@@ -13968,9 +13969,21 @@ function updateMultipleMoneyRequests(
         // Generate optimistic report action ID
         const modifiedExpenseReportActionID = NumberUtils.rand64();
 
-        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-        const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const optimisticData: Array<
+            OnyxUpdate<
+                typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            >
+        > = [];
+        const successData: Array<
+            OnyxUpdate<
+                typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            >
+        > = [];
+        const failureData: Array<
+            OnyxUpdate<
+                typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            >
+        > = [];
         const snapshotOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
         const snapshotFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
@@ -13988,6 +14001,39 @@ function updateMultipleMoneyRequests(
             policy,
         });
         const isTransactionOnHold = isOnHold(transaction);
+
+        // Optimistically update violations so they disappear immediately when the edited field resolves them
+        if (policy) {
+            const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            let optimisticViolations =
+                transactionChanges.amount !== undefined || transactionChanges.created || transactionChanges.currency
+                    ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                    : currentTransactionViolations;
+            optimisticViolations =
+                transactionChanges.category !== undefined && transactionChanges.category === ''
+                    ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
+                    : optimisticViolations;
+            const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] ?? {};
+            optimisticData.push(
+                ViolationsUtils.getViolationsOnyxData(
+                    updatedTransaction,
+                    optimisticViolations,
+                    policy,
+                    policyTagList,
+                    policyCategories ?? {},
+                    hasDependentTags(policy, policyTagList),
+                    isInvoiceReportReportUtils(iouReport),
+                    isSelfDM(iouReport),
+                    iouReport,
+                    isFromExpenseReport,
+                ),
+            );
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: currentTransactionViolations,
+            });
+        }
 
         // Optimistic transaction update
         optimisticData.push({
@@ -14159,11 +14205,23 @@ function updateMultipleMoneyRequests(
 
         API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {
             optimisticData: [...optimisticData, ...snapshotOptimisticData] as Array<
-                OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+                OnyxUpdate<
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+                    | typeof ONYXKEYS.COLLECTION.REPORT
+                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                >
             >,
             successData,
             failureData: [...failureData, ...snapshotFailureData] as Array<
-                OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+                OnyxUpdate<
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+                    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+                    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+                    | typeof ONYXKEYS.COLLECTION.REPORT
+                    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+                >
             >,
         });
     }
