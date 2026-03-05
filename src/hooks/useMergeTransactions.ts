@@ -21,6 +21,7 @@ type UseMergeTransactionsReturn = {
     sourceTransactionPolicy?: Policy;
 };
 
+// Both Onyx and snapshot data can be stale, merging them to maintain freshness
 function mergePolicyWithSearchSnapshot(onyxPolicy: OnyxEntry<Policy>, snapshotPolicy: OnyxEntry<Policy>) {
     if (!snapshotPolicy) {
         return onyxPolicy;
