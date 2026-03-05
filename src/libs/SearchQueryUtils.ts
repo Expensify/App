@@ -418,34 +418,6 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Returns default values for chart views (non-table views).
- * - Sets default groupBy based on view type (month for line charts, category for others)
- * - Sets default sortOrder to ASC for line charts (time-based graphs show chronologically oldest to newest)
- */
-function getChartViewDefaults(queryJSON: SearchQueryJSON): Partial<SearchQueryJSON> {
-    if (queryJSON.view === CONST.SEARCH.VIEW.TABLE) {
-        return {};
-    }
-
-    const defaults: Partial<SearchQueryJSON> = {};
-
-    // Default groupBy when not explicitly set
-    if (!queryJSON.groupBy) {
-        defaults.groupBy = queryJSON.view === CONST.SEARCH.VIEW.LINE ? CONST.SEARCH.GROUP_BY.MONTH : CONST.SEARCH.GROUP_BY.CATEGORY;
-    }
-
-    // Default sortOrder to ASC for LINE view, only if not explicitly set by the user
-    if (queryJSON.view === CONST.SEARCH.VIEW.LINE) {
-        const wasSortOrderExplicitlySet = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) ?? false;
-        if (!wasSortOrderExplicitlySet) {
-            defaults.sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
-        }
-    }
-
-    return defaults;
-}
-
-/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -489,8 +461,6 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
         }
-
-        Object.assign(result, getChartViewDefaults(result));
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
@@ -655,8 +625,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options?.sortOrder ?? CONST.SEARCH.SORT_ORDER.DESC}`);
+    if (options?.sortBy) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options.sortBy}`);
+    }
+    if (options?.sortOrder) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options.sortOrder}`);
+    }
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
@@ -1632,6 +1606,60 @@ function shouldHighlight(referenceText: string, searchText: string) {
 }
 
 /**
+ * Determines whether sortBy and sortOrder should be reset when filters change.
+ * Each view/groupBy combination has its own defaults derived by the parser,
+ * so we reset on any view or groupBy change to let the parser determine the correct defaults.
+ */
+function shouldResetSort({
+    newView,
+    oldView,
+    newGroupBy,
+    oldGroupBy,
+}: {
+    newView: string | undefined;
+    oldView: string | undefined;
+    newGroupBy: string | undefined;
+    oldGroupBy: string | undefined;
+}): boolean {
+    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
+    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
+    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
+}
+
+/**
+ * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
+ * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
+ * the query is round-tripped through the parser so that parser-derived defaults appear in the
+ * final query string.
+ *
+ * Returns undefined if the parser round-trip fails.
+ */
+function buildFilterQueryWithSortDefaults(
+    filterValues: Partial<SearchAdvancedFiltersForm>,
+    previousState: {view?: string; groupBy?: string},
+    currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
+): string | undefined {
+    const resetSort = shouldResetSort({
+        newView: filterValues.view,
+        oldView: previousState.view,
+        newGroupBy: filterValues.groupBy,
+        oldGroupBy: previousState.groupBy,
+    });
+
+    const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
+        limit: currentQueryOptions.limit,
+    });
+
+    if (!resetSort) {
+        return queryString;
+    }
+
+    return getQueryWithUpdatedValues(queryString, true);
+}
+
+/**
  * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
  */
 function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
@@ -1673,5 +1701,7 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    shouldResetSort,
+    buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
 };
