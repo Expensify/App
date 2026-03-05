@@ -3,7 +3,7 @@ import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, use
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useId, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -57,6 +57,22 @@ function DraggableList<T>({
     // 1. The screen is focused AND focus hasn't entered+left the container yet (initial page state), OR
     // 2. The container currently has DOM focus
     const isArrowKeyActive = hasFocus || (isFocused && !hasBeenFocused);
+
+    // Unique ID per mount to ensure DndContext state resets when component remounts
+    const instanceId = useId();
+
+    // Track if a drag is currently active to avoid dispatching global Escape when not needed
+    const isDraggingRef = useRef(false);
+
+    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
+    useEffect(() => {
+        return () => {
+            if (typeof document === 'undefined' || !isDraggingRef.current) {
+                return;
+            }
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true}));
+        };
+    }, []);
 
     const items = data.map((item, index) => {
         return keyExtractor(item, index);
@@ -143,12 +159,17 @@ function DraggableList<T>({
         isActive: hasFocus && focusedIndex >= 0 && !!onSelectRow,
     });
 
+    const onDragStart = () => {
+        isDraggingRef.current = true;
+    };
+
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
      * to notify the parent component about the change
      */
     const onDragEnd = (event: DragEndEvent) => {
+        isDraggingRef.current = false;
         const {active, over} = event;
 
         if (over !== null && active.id !== over.id) {
@@ -159,6 +180,10 @@ function DraggableList<T>({
             onDragEndCallback?.({data: reorderedItems});
             setFocusedIndex(-1);
         }
+    };
+
+    const onDragCancel = () => {
+        isDraggingRef.current = false;
     };
 
     const sortableItems = data.map((item, index) => {
@@ -194,6 +219,11 @@ function DraggableList<T>({
         }),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
+            keyboardCodes: {
+                start: ['Space'],
+                cancel: ['Escape'],
+                end: ['Space'],
+            },
         }),
     );
 
@@ -201,7 +231,10 @@ function DraggableList<T>({
         <>
             <div ref={containerRef}>
                 <DndContext
+                    key={instanceId}
+                    onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
+                    onDragCancel={onDragCancel}
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     modifiers={[restrictToParentElement, restrictToVerticalAxis]}

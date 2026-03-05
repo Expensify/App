@@ -20,10 +20,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, TransactionViolation} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const HTML_TAG_PATTERN = /<\/?[a-z][^>]*>/i;
 
-type TransactionItemRowRBRProps = {
+type TransactionItemRowRBRInnerProps = {
     /** Transaction item */
     transaction: Transaction;
 
@@ -40,7 +41,12 @@ type TransactionItemRowRBRProps = {
     missingFieldError?: string;
 };
 
-function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRProps) {
+type TransactionItemRowRBRProps = TransactionItemRowRBRInnerProps & {
+    /** The child report ID of the IOU action thread, used to detect thread errors without mounting the heavy inner component */
+    transactionThreadReportID?: string;
+};
+
+function TransactionItemRowRBRInner({transaction, violations, report, containerStyles, missingFieldError}: TransactionItemRowRBRInnerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -98,6 +104,28 @@ function TransactionItemRowRBR({transaction, violations, report, containerStyles
                 </View>
             </View>
         )
+    );
+}
+
+function TransactionItemRowRBR({transaction, violations, report, containerStyles, missingFieldError, transactionThreadReportID}: TransactionItemRowRBRProps) {
+    const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+    const hasThreadErrors = transactionThreadActions ? Object.values(transactionThreadActions).some((action) => !isEmptyObject(action.errors)) : false;
+
+    // When transactionThreadReportID is not provided (e.g. MoneyRequestReportView), we can't reliably detect thread errors,
+    // so we skip the early-return and always mount the inner component to avoid suppressing RBR messages.
+    if (transactionThreadReportID !== undefined && !violations?.length && !missingFieldError && isEmptyObject(transaction.errors) && !hasThreadErrors) {
+        return null;
+    }
+
+    return (
+        <TransactionItemRowRBRInner
+            transaction={transaction}
+            violations={violations}
+            report={report}
+            containerStyles={containerStyles}
+            missingFieldError={missingFieldError}
+        />
     );
 }
 

@@ -23,7 +23,6 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.INVITE
     | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
     | typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE
-    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
     | typeof SCREENS.WORKSPACE.WORKFLOWS
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW
@@ -88,7 +87,6 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 
         if (policyID && policyID.length > 0) {
