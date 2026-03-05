@@ -1002,7 +1002,7 @@ type OriginalMessageChangePolicy = {
     toPolicy: string;
 
     /** Whether this policy change action should be hidden from the user */
-    hidden?: boolean;
+    isHidden?: boolean;
 };
 
 /** Model of `UNREPORTED_TRANSACTION` report action */

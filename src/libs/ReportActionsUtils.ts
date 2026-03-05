@@ -1118,7 +1118,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) && getOriginalMessage(reportAction)?.hidden) {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) && getOriginalMessage(reportAction)?.isHidden) {
         return false;
     }
 

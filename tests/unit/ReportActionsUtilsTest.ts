@@ -1625,7 +1625,7 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {
                     fromPolicy: 'ABC123',
                     toPolicy: 'DEF456',
-                    hidden: true,
+                    isHidden: true,
                 },
             };
 
