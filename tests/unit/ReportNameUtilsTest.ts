@@ -22,6 +22,7 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const currentUserLogin = 'lagertha2@vikings.net';
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
     const computeReportName = (
@@ -33,7 +34,18 @@ describe('ReportNameUtils', () => {
         personalDetailsList?: PersonalDetailsList,
         reportActions?: OnyxCollection<ReportActions>,
         currentUserID = currentUserAccountID,
-    ) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
+    ) =>
+        computeReportNameOriginal({
+            report,
+            reports,
+            policies,
+            transactions,
+            allReportNameValuePairs,
+            personalDetailsList,
+            reportActions,
+            currentUserAccountID: currentUserID,
+            currentUserLogin,
+        });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
             accountID: 1,

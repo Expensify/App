@@ -140,6 +140,18 @@ import {
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
 
+type ComputeReportName = {
+    report?: Report;
+    reports?: OnyxCollection<Report>;
+    policies?: OnyxCollection<Policy>;
+    transactions?: OnyxCollection<Transaction>;
+    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
+    personalDetailsList?: PersonalDetailsList;
+    reportActions?: OnyxCollection<ReportActions>;
+    currentUserAccountID?: number;
+    currentUserLogin: string;
+};
+
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
 Onyx.connect({
@@ -670,6 +682,7 @@ function computeChatThreadReportName(
     isArchived: boolean,
     report: Report,
     reports: OnyxCollection<Report>,
+    currentUserLogin: string,
     parentReportAction?: ReportAction,
 ): string | undefined {
     if (!isChatThread(report)) {
@@ -737,6 +750,7 @@ function computeChatThreadReportName(
             policyID,
             movedFromReport,
             movedToReport,
+            currentUserLogin,
         });
         return formatReportLastMessageText(modifiedMessage);
     }
@@ -753,17 +767,17 @@ function computeChatThreadReportName(
  * @internal Use this only for computation in derived report attributes
  * In all other cases you should use `getReportName`
  */
-function computeReportName(
-    report?: Report,
-    reports?: OnyxCollection<Report>,
-    policies?: OnyxCollection<Policy>,
-    transactions?: OnyxCollection<Transaction>,
-    allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    personalDetailsList?: PersonalDetailsList,
-    reportActions?: OnyxCollection<ReportActions>,
-    currentUserAccountID?: number,
-    privateIsArchived?: string,
-): string {
+function computeReportName({
+    report,
+    reports,
+    policies,
+    transactions,
+    allReportNameValuePairs,
+    personalDetailsList,
+    reportActions,
+    currentUserAccountID,
+    currentUserLogin,
+}: ComputeReportName): string {
     if (!report || !report.reportID) {
         return '';
     }
@@ -786,7 +800,17 @@ function computeReportName(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const reportName = computeReportName(originalReport, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserAccountID);
+        const reportName = computeReportName({
+            report: originalReport,
+            reports,
+            policies,
+            transactions,
+            allReportNameValuePairs,
+            personalDetailsList,
+            reportActions,
+            currentUserAccountID,
+            currentUserLogin,
+        });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
@@ -797,10 +821,10 @@ function computeReportName(
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
-    const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const privateIsArchivedValue = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
+    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, currentUserLogin ?? '', parentReportAction);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }

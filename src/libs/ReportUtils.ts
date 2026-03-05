@@ -5228,7 +5228,7 @@ function getReportPreviewMessage(
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (isCopyAction) {
         if (report) {
-            return computeReportName(report) || (originalReportAction?.childReportName ?? '');
+            return computeReportName({report, currentUserLogin: ''}) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
