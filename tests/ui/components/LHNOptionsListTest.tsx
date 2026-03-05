@@ -16,9 +16,9 @@ import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock dynamic imports that break without --experimental-vm-modules
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flattenObject: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
 
     const cache = new Map<string, Record<string, unknown>>([['en', flattenObject(en)]]);
@@ -320,6 +320,326 @@ describe('LHNOptionsList', () => {
             await waitFor(() => {
                 expect(screen.queryByText('queued to submit via custom approval workflow')).toBeNull();
                 expect(screen.getByText(expectedLastMessage)).toBeTruthy();
+            });
+        });
+    });
+
+    describe('Workspace thread avatar rendering', () => {
+        it('should render a single avatar for a workspace thread (threadSuppression)', async () => {
+            // Given a workspace thread in a policyAdmins room — isWorkspaceThread returns true,
+            // so shouldReportShowSubscript is initially true, but threadSuppression in SidebarUtils
+            // overrides it to false. The icons should be trimmed to 1 for SINGLE rendering.
+            const policyID = 'threadTestPolicy';
+            const parentReportID = 'threadParentReport';
+            const reportID = 'threadTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Thread Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Admins Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const threadReport: Report = {
+                reportID,
+                reportName: 'Thread in Admins',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                policyID,
+                parentReportID,
+                parentReportActionID: 'parentAction1',
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, threadReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'admin1@test.com', displayName: 'Admin One', avatar: 'admin1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'admin2@test.com', displayName: 'Admin Two', avatar: 'admin2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the workspace thread
+            render(getLHNOptionsListElement({data: [threadReport]}));
+
+            // Then it should render a single avatar, not a diagonal (multiple) avatar
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
+            });
+        });
+    });
+
+    describe('Expense request thread avatar rendering', () => {
+        it('should render a subscript avatar for a workspace expense request thread', async () => {
+            // Given an expense request thread (chat thread whose parent is an expense report
+            // with a transaction action). Workspace expense request threads are excluded from
+            // thread suppression, so this renders as a subscript avatar.
+            const policyID = 'expReqPolicy';
+            const parentReportID = 'expReqParentReport';
+            const reportID = 'expReqThread';
+            const parentActionID = 'expReqParentAction';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Expense Request Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const parentAction: ReportAction = {
+                reportActionID: parentActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2024-01-01 00:00:00',
+                message: [{type: 'COMMENT', text: 'expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+
+            const threadReport: Report = {
+                reportID,
+                reportName: 'Expense Request Thread',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: '' as Report['chatType'],
+                policyID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentActionID]: parentAction,
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the expense request thread
+            render(getLHNOptionsListElement({data: [threadReport]}));
+
+            // Then it should render a subscript avatar (workspace expense requests preserve subscript)
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+            });
+        });
+    });
+
+    describe('Task report avatar rendering', () => {
+        it('should render a subscript avatar for a workspace task report (owner + workspace)', async () => {
+            // Given a task report inside a workspace (chatType policyExpenseChat).
+            // shouldReportShowSubscript returns true, and workspace tasks are excluded
+            // from taskSuppression. The icons show subscript (Large User + Small Workspace).
+            const policyID = 'taskTestPolicy';
+            const parentReportID = 'taskParentReport';
+            const reportID = 'taskTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'Task Test Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+            } as Policy;
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Workspace Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const taskReport: Report = {
+                reportID,
+                reportName: 'Workspace Task',
+                type: CONST.REPORT.TYPE.TASK,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                parentReportID,
+                parentReportActionID: 'taskParentAction1',
+                ownerAccountID: accountID1,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the task report
+            render(getLHNOptionsListElement({data: [taskReport]}));
+
+            // Then it should render a subscript avatar (Large User + Small Workspace)
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+            });
+        });
+    });
+
+    describe('Invoice report avatar rendering', () => {
+        it('should render subscript avatar for an individual invoice report', async () => {
+            // Given an invoice report whose parent is an invoice room with an individual receiver.
+            // The LHN should show a subscript avatar (workspace + user).
+            const policyID = 'invoiceTestPolicy';
+            const invoiceRoomID = 'invoiceRoomReport';
+            const invoiceReportID = 'invoiceTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+
+            const invoicePolicy: Policy = {
+                id: policyID,
+                name: 'Invoice Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                reportName: 'Invoice Room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: accountID2},
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const invoiceReport: Report = {
+                reportID: invoiceReportID,
+                reportName: 'Invoice Report',
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID,
+                chatReportID: invoiceRoomID,
+                parentReportID: invoiceRoomID,
+                ownerAccountID: accountID1,
+                participants: {
+                    [accountID1]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [accountID2]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, invoicePolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [accountID1]: {accountID: accountID1, login: 'sender@test.com', displayName: 'Sender', avatar: 'sender-avatar'},
+                    [accountID2]: {accountID: accountID2, login: 'receiver@test.com', displayName: 'Receiver', avatar: 'receiver-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the invoice report
+            render(getLHNOptionsListElement({data: [invoiceReport]}));
+
+            // Then it should render a subscript avatar (workspace icon + user avatar)
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+            });
+        });
+    });
+
+    describe('IOU report avatar rendering', () => {
+        it('should render diagonal avatars for an IOU report between two users', async () => {
+            // Given an IOU report with two participants (owner + manager).
+            // shouldShowSubscript is naturally false for IOU, so icons are not trimmed
+            // and LHNAvatar renders DIAGONAL (two small user avatars).
+            const policyID = 'iouTestPolicy';
+            const reportID = 'iouTestReport';
+            const ownerAccountID = 1;
+            const managerAccountID = 2;
+
+            const policy: Policy = {
+                id: policyID,
+                name: 'IOU Test Policy',
+                type: CONST.POLICY.TYPE.TEAM,
+            } as Policy;
+
+            const report: Report = {
+                reportID,
+                reportName: 'IOU Test Report',
+                type: CONST.REPORT.TYPE.IOU,
+                policyID,
+                ownerAccountID,
+                managerID: managerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [managerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
+                    [managerAccountID]: {accountID: managerAccountID, login: 'manager@test.com', displayName: 'Manager', avatar: 'manager-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the IOU report
+            render(getLHNOptionsListElement({data: [report]}));
+
+            // Then it should render diagonal (multiple) avatars
+            await waitFor(() => {
+                expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
+                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeNull();
+                expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });
     });

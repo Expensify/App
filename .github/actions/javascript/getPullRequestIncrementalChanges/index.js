@@ -11582,6 +11582,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
+const request_error_1 = __nccwpck_require__(537);
 const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
@@ -11655,7 +11656,25 @@ async function run() {
         }
         // Now we know there are local changes - get PR diff from the GitHub API to compare
         console.log(`🌐 Using GitHub API to validate ${localChangedFiles.size} files with local changes`);
-        const prDiff = Git_1.default.parseDiff(await GithubUtils_1.default.getPullRequestDiff(prNumber));
+        let prDiffString;
+        try {
+            prDiffString = await GithubUtils_1.default.getPullRequestDiff(prNumber);
+        }
+        catch (error) {
+            const isTooLarge = error instanceof request_error_1.RequestError &&
+                typeof error.response?.data === 'object' &&
+                error.response.data !== null &&
+                'errors' in error.response.data &&
+                (error.response.data.errors ?? []).some((e) => e.code === 'too_large');
+            if (!isTooLarge) {
+                throw error;
+            }
+            core.warning(`PR #${prNumber} diff is too large for the GitHub API. Skipping incremental change detection.`);
+            core.setOutput('CHANGED_FILES', JSON.stringify([]));
+            core.setOutput('HAS_CHANGES', false);
+            return;
+        }
+        const prDiff = Git_1.default.parseDiff(prDiffString);
         // Compare the local push diff with the PR diff and collect changed files, checking for overlapping content changes at the line level
         for (const prFileDiff of prDiff.files) {
             const filePath = prFileDiff.filePath;
@@ -11916,7 +11935,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -12506,6 +12525,7 @@ class Git {
                         newStart,
                         newCount,
                         lines: [],
+                        contextLineCount: 0,
                     };
                 }
                 continue;
@@ -12533,7 +12553,8 @@ class Git {
                     });
                 }
                 else if (firstChar === ' ') {
-                    // Context line - skip it (we only care about added/removed lines)
+                    // Context line - count it so calculateLineNumber accounts for position advancement
+                    currentHunk.contextLineCount++;
                     continue;
                 }
                 else if (firstChar === '\\') {
@@ -12597,9 +12618,9 @@ class Git {
         const removedCount = hunk.lines.filter((l) => l.type === 'removed').length;
         switch (lineType) {
             case 'added':
-                return hunk.newStart + addedCount;
+                return hunk.newStart + hunk.contextLineCount + addedCount;
             case 'removed':
-                return hunk.oldStart + removedCount;
+                return hunk.oldStart + hunk.contextLineCount + removedCount;
             default:
                 throw new Error(`Unknown line type: ${String(lineType)}`);
         }
@@ -12795,6 +12816,7 @@ class Git {
                 newStart: 1,
                 newCount: lines.length,
                 lines: diffLines,
+                contextLineCount: 0,
             };
             const fileDiff = {
                 filePath,

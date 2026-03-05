@@ -212,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: 'Nazwisko',
         scanning: 'Skanowanie',
         analyzing: 'Trwa analizowanie...',
+        thinking: 'Concierge myśli...',
         addCardTermsOfService: 'Regulamin Expensify',
         perPerson: 'na osobę',
         phone: 'Telefon',
@@ -514,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Uwaga!',
         submitTo: 'Przekaż do',
         forwardTo: 'Przekaż do',
+        approvalLimit: 'Limit zatwierdzenia',
+        overLimitForwardTo: 'Przekaż przy przekroczeniu limitu',
         merge: 'Scal',
         none: 'Brak',
         unstableInternetConnection: 'Niestabilne połączenie internetowe. Sprawdź swoją sieć i spróbuj ponownie.',
@@ -550,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Śledź nas na Instagram',
         facebook: 'Śledź nas na Facebook',
         linkedin: 'Śledź nas na LinkedIn',
+    },
+    concierge: {
+        collapseReasoning: 'Zwiń rozumowanie',
+        expandReasoning: 'Rozwiń rozumowanie',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -900,8 +907,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'jako drugi pilot dla',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `utworzył(-a) ten raport, aby zawierał wszystkie wydatki z <a href="${reportUrl}">${reportName}</a>, których nie można było złożyć z wybraną przez Ciebie częstotliwością`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `utworzył/-a ten raport dla wszystkich wstrzymanych wydatków z <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `utworzono ten raport dla wszystkich wstrzymanych wydatków z usuniętego raportu nr ${reportID}`
+                : `utworzył(-a) ten raport dla wszystkich wstrzymanych wydatków z <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Powiadom wszystkich w tej konwersacji',
@@ -1438,6 +1447,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Wyjaśnij, dlaczego wstrzymujesz ten wydatek.',
             other: 'Wyjaśnij, dlaczego wstrzymujesz te wydatki.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Wyjaśnij, czego potrzebujesz przed zatwierdzeniem tego wydatku.',
+            other: 'Wyjaśnij, czego potrzebujesz przed zatwierdzeniem tych wydatków.',
+        }),
         retracted: 'wycofano',
         retract: 'Wycofaj',
         reopened: 'ponownie otwarto',
@@ -1532,7 +1545,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Wstrzymane wydatki są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
-            reasonPageDescription: 'Wyjaśnij, dlaczego odrzucasz ten wydatek.',
+            reasonPageDescription: 'Wyjaśnij, dlaczego nie zatwierdzisz tego wydatku.',
             rejectReason: 'Powód odrzucenia',
             markAsResolved: 'Oznacz jako rozwiązane',
             rejectedStatus: 'Ten wydatek został odrzucony. Czekamy, aż naprawisz problemy i oznaczysz go jako rozwiązany, aby umożliwić przesłanie.',
@@ -1588,6 +1601,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) =>
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
     },
     transactionMerge: {
         listPage: {
@@ -2025,6 +2039,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'Dla administratorów domen: to również wstrzymuje całą aktywność Kart Expensify i działania administracyjne w twoich domenach.',
         areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
         onceLocked: 'Po zablokowaniu Twoje konto będzie ograniczone do czasu złożenia prośby o odblokowanie i przeprowadzenia kontroli bezpieczeństwa',
+        unlockTitle: 'Otrzymaliśmy Twoją prośbę',
+        unlockDescription: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
@@ -8336,6 +8352,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         outstandingFilter: '<tooltip>Filtruj wydatki,\nktóre <strong>wymagają zatwierdzenia</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Wyślij ten paragon, aby\n<strong>zakończyć jazdę próbną!</strong></tooltip>',
         gpsTooltip: '<tooltip>Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.</tooltip>',
+        hasFilterNegation: '<tooltip>Wyszukaj wydatki bez paragonów za pomocą <strong>-has:receipt</strong>.</tooltip>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',
@@ -8508,7 +8525,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             resetDomain: 'Resetuj domenę',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Wpisz proszę <strong>${domainName}</strong>, aby potwierdzić reset domeny.`,
             enterDomainName: 'Wprowadź tutaj swoją nazwę domeny',
-            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <ul><li>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</li> <li>Ustawień SAML i grup</li> </ul> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
+            resetDomainInfo: `Ta czynność jest <strong>trwała</strong> i spowoduje usunięcie następujących danych: <br/> <bullet-list><bullet-item>Połączeń z kartami firmowymi oraz wszystkich nierozliczonych wydatków z tych kart</bullet-item><bullet-item>Ustawień SAML i grup</bullet-item></bullet-list> Wszystkie konta, przestrzenie robocze, raporty, wydatki i inne dane pozostaną bez zmian. <br/><br/>Uwaga: Możesz usunąć tę domenę z listy swoich domen, usuwając powiązany adres e-mail z <a href="#">metod kontaktu</a>.`,
         },
         domainMembers: 'Członkowie domeny',
         members: {
@@ -8527,8 +8544,8 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 other: 'Zamknij konta bezpiecznie',
             }),
             closeAccountInfo: () => ({
-                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
-                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <ul><li>Oczekujące zatwierdzenia</li><li>Aktywne zwroty kosztów</li><li>Brak alternatywnych metod logowania</li></ul>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
+                one: 'Zalecamy bezpieczne zamknięcie konta, aby pominąć jego zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranego konta.',
+                other: 'Zalecamy bezpieczne zamknięcie kont, aby pominąć ich zamykanie w przypadku, gdy występują: <bullet-list><bullet-item>Oczekujące zatwierdzenia</bullet-item><bullet-item>Aktywne zwroty kosztów</bullet-item><bullet-item>Brak alternatywnych metod logowania</bullet-item></bullet-list>W przeciwnym razie możesz zignorować powyższe środki ostrożności i wymusić zamknięcie wybranych kont.',
             }),
             error: {
                 removeMember: 'Nie można usunąć tego użytkownika. Spróbuj ponownie.',
@@ -8536,6 +8553,9 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 vacationDelegate: 'Nie można ustawić tego użytkownika jako zastępującego na czas nieobecności. Spróbuj ponownie.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Nie możesz ustawić zastępstwa urlopowego dla ${email}, ponieważ jest on/ona obecnie zastępcą dla następujących członków:`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Czy na pewno? To zablokuje konto użytkownika <strong>${email}</strong>. <br /><br /> Nasz zespół następnie przejrzy konto i usunie wszelki nieautoryzowany dostęp. Aby odzyskać dostęp, będą musieli współpracować z Concierge.`,
+            reportSuspiciousActivityConfirmationPrompt: 'Przejrzymy konto, aby potwierdzić, że bezpiecznie je odblokować, i skontaktujemy się przez Concierge w razie pytań.',
         },
         common: {
             settings: 'Ustawienia',
