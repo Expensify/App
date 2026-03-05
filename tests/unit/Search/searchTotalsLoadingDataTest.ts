@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-multiple-api-calls */
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';

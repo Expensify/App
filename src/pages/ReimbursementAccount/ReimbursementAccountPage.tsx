@@ -155,6 +155,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             clearReimbursementAccount();
             getPaymentMethods(true);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
