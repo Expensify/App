@@ -2194,8 +2194,7 @@ function getReportSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
-    // Build transactionsByReportID map and compute report-level year flags in a single pass,
-    // eliminating the separate shouldShowYear(data, true) call and getTransactionsForReport O(R*N) scans.
+    // Build transactionsByReportID map and compute report-level year flags in a single pass for performance reasons.
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
     let shouldShowYearCreatedReport = false;
     let shouldShowYearSubmittedReport = false;
