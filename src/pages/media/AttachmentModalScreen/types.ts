@@ -29,6 +29,8 @@ type AttachmentModalScreenType =
     | typeof SCREENS.WORKSPACE_AVATAR
     | typeof SCREENS.TRANSACTION_RECEIPT
     | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW
+    | typeof SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW
+    | typeof SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW
     | typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT;
 
 type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;

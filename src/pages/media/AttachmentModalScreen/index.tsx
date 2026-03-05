@@ -47,7 +47,7 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
         );
     }
 
-    if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW) {
+    if (route.name === SCREENS.TRANSACTION_RECEIPT || route.name === SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW || route.name === SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW || route.name === SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW) {
         return (
             <TransactionReceiptModalContent
                 route={routeWithContext as RouteType<typeof SCREENS.TRANSACTION_RECEIPT>}

@@ -1120,7 +1120,19 @@ const ROUTES = {
             getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
-        route: ':action/:iouType/receipt/:transactionID/:reportID/:imageType?',
+        route: ':action/:iouType/receipt/:transactionID/:reportID',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false` as const;
+        },
+    },
+    MONEY_REQUEST_ODOMETER_PREVIEW: {
+        route: ':action/:iouType/odometer-image-preview/:transactionID/:reportID/:imageType?',
         getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
@@ -1128,7 +1140,19 @@ const ROUTES = {
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
             }
-            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
+            return `${action}/${iouType}/odometer-image-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
+        },
+    },
+    MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW: {
+        route: ':action/:iouType/odometer-image-confirmation-preview/:transactionID/:reportID/:imageType?',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            return `${action}/${iouType}/odometer-image-confirmation-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
     MONEY_REQUEST_EDIT_REPORT: {

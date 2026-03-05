@@ -305,22 +305,20 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
-    const handleCaptureImage = useCallback(
-        (imageType: OdometerImageType) => {
-            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport));
-        },
-        [action, iouType, transactionID, reportID, backToReport, isEditingConfirmation],
-    );
+    const handleCaptureImage = (imageType: OdometerImageType) => {
+        Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport));
+    };
 
-    const handleViewOdometerImage = useCallback(
-        (imageType: OdometerImageType) => {
-            if (!reportID || !transactionID) {
-                return;
-            }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
-        },
-        [reportID, transactionID, action, iouType],
-    );
+    const handleViewOdometerImage = (imageType: OdometerImageType) => {
+        if (!reportID || !transactionID) {
+            return;
+        }
+        if (isEditingConfirmation) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
+        } else {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
+        }
+    };
 
     const navigateBack = () => {
         if (isEditingConfirmation) {
