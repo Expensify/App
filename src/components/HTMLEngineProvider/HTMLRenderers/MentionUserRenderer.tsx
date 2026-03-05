@@ -7,7 +7,7 @@ import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -33,6 +33,8 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const htmlAttribAccountID = tnode.attributes.accountid;
     const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     let accountID: number;
     let mentionDisplayText: string;
@@ -74,56 +76,52 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
-        <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+        <Text
+            suppressHighlighting
+            onLongPress={(event) => {
+                if (isDisabled || !shouldDisplayContextMenu) {
+                    return;
+                }
+                return onShowContextMenu(() =>
+                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
+                );
+            }}
+            onPress={(event) => {
+                event.preventDefault();
+                if (!isEmpty(htmlAttribAccountID)) {
+                    Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
+                    return;
+                }
+                Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
+            }}
+            role={CONST.ROLE.LINK}
+            accessibilityLabel={`/${navigationRoute}`}
+        >
+            <UserDetailsTooltip
+                accountID={accountID}
+                fallbackUserDetails={{
+                    displayName: mentionDisplayText,
+                }}
+            >
                 <Text
-                    suppressHighlighting
-                    onLongPress={(event) => {
-                        if (isDisabled || !shouldDisplayContextMenu) {
-                            return;
-                        }
-                        return onShowContextMenu(() =>
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                        );
-                    }}
-                    onPress={(event) => {
-                        event.preventDefault();
-                        if (!isEmpty(htmlAttribAccountID)) {
-                            Navigation.navigate(ROUTES.PROFILE.getRoute(parseInt(htmlAttribAccountID, 10), Navigation.getReportRHPActiveRoute()));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute(), mentionDisplayText));
-                    }}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...defaultRendererProps}
+                    style={[
+                        styles.link,
+                        styleWithoutColor,
+                        StyleUtils.getMentionStyle(isOurMention),
+                        {color: StyleUtils.getMentionTextColor(isOurMention)},
+                        styles.breakWord,
+                        styles.textWrap,
+                    ]}
                     role={CONST.ROLE.LINK}
-                    accessibilityLabel={`/${navigationRoute}`}
+                    testID="mention-user"
+                    href={`/${navigationRoute}`}
                 >
-                    <UserDetailsTooltip
-                        accountID={accountID}
-                        fallbackUserDetails={{
-                            displayName: mentionDisplayText,
-                        }}
-                    >
-                        <Text
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...defaultRendererProps}
-                            style={[
-                                styles.link,
-                                styleWithoutColor,
-                                StyleUtils.getMentionStyle(isOurMention),
-                                {color: StyleUtils.getMentionTextColor(isOurMention)},
-                                styles.breakWord,
-                                styles.textWrap,
-                            ]}
-                            role={CONST.ROLE.LINK}
-                            testID="mention-user"
-                            href={`/${navigationRoute}`}
-                        >
-                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
-                        </Text>
-                    </UserDetailsTooltip>
+                    {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone ?? tnode} />}
                 </Text>
-            )}
-        </ShowContextMenuContext.Consumer>
+            </UserDetailsTooltip>
+        </Text>
     );
 }
 

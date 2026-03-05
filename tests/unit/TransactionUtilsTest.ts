@@ -424,6 +424,32 @@ describe('TransactionUtils', () => {
                 merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             });
         });
+
+        it('should negate modifiedAmount when isFromExpenseReport is true', () => {
+            const transaction = generateTransaction();
+            const newAmount = 500;
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: newAmount},
+            });
+
+            expect(updatedTransaction.modifiedAmount).toBe(-newAmount);
+        });
+
+        it('should not negate modifiedAmount when isFromExpenseReport is false', () => {
+            const transaction = generateTransaction();
+            const newAmount = 500;
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {amount: newAmount},
+            });
+
+            expect(updatedTransaction.modifiedAmount).toBe(newAmount);
+        });
     });
 
     describe('getTransactionType', () => {
