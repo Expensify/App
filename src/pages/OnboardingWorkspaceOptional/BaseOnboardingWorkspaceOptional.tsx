@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkspaceOptionalProps} from './types';
 
@@ -84,50 +85,57 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         },
     ];
 
-    const completeOnboarding = useCallback(() => {
-        if (!onboardingPurposeSelected) {
-            return;
-        }
+    const completeOnboarding = useCallback(
+        (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
+            const engagementChoice = overrides?.engagementChoice ?? onboardingPurposeSelected;
+            if (!engagementChoice) {
+                return;
+            }
 
-        completeOnboardingReport({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-            firstName: currentUserPersonalDetails.firstName,
-            lastName: currentUserPersonalDetails.lastName,
-            adminsChatReportID: onboardingAdminsChatReportID,
+            const resolvedAdminsChatReportID = overrides?.adminsChatReportID ?? onboardingAdminsChatReportID;
+            const resolvedPolicyID = overrides?.policyID ?? onboardingPolicyID;
+
+            completeOnboardingReport({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                firstName: currentUserPersonalDetails.firstName,
+                lastName: currentUserPersonalDetails.lastName,
+                adminsChatReportID: resolvedAdminsChatReportID,
+                onboardingPolicyID: resolvedPolicyID,
+                shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                introSelected,
+                betas,
+            });
+
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
+                archivedReportsIdSet,
+                resolvedPolicyID,
+                mergedAccountConciergeReportID,
+                false,
+            );
+        },
+        [
+            onboardingPurposeSelected,
+            currentUserPersonalDetails.firstName,
+            currentUserPersonalDetails.lastName,
+            onboardingAdminsChatReportID,
+            onboardingMessages,
             onboardingPolicyID,
-            shouldSkipTestDriveModal: (!!onboardingPolicyID && !onboardingAdminsChatReportID) || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-            introSelected,
-            betas,
-        });
-
-        setOnboardingAdminsChatReportID();
-        setOnboardingPolicyID();
-
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            conciergeChatReportID,
             archivedReportsIdSet,
-            onboardingPolicyID,
+            isSmallScreenWidth,
+            isBetaEnabled,
             mergedAccountConciergeReportID,
-            false,
-        );
-    }, [
-        onboardingPurposeSelected,
-        currentUserPersonalDetails.firstName,
-        currentUserPersonalDetails.lastName,
-        onboardingAdminsChatReportID,
-        onboardingMessages,
-        onboardingPolicyID,
-        archivedReportsIdSet,
-        isSmallScreenWidth,
-        isBetaEnabled,
-        mergedAccountConciergeReportID,
-        introSelected,
-        conciergeChatReportID,
-        betas,
-    ]);
+            introSelected,
+            conciergeChatReportID,
+            betas,
+        ],
+    );
 
     const createWorkspaceAndCompleteOnboarding = useCallback(() => {
         if (!onboardingPurposeSelected) {
@@ -157,30 +165,11 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-        completeOnboardingReport({
+        completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
-            firstName: currentUserPersonalDetails.firstName,
-            lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID,
-            onboardingPolicyID: policyID,
-            shouldSkipTestDriveModal: !!policyID && !adminsChatReportID,
-            introSelected,
-            betas,
-        });
-
-        setOnboardingAdminsChatReportID();
-        setOnboardingPolicyID();
-
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            conciergeChatReportID,
-            archivedReportsIdSet,
             policyID,
-            mergedAccountConciergeReportID,
-            false,
-        );
+        });
     }, [
         onboardingPurposeSelected,
         allPolicies,
@@ -190,18 +179,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         currentUserPersonalDetails.localCurrencyCode,
         currentUserPersonalDetails.accountID,
         currentUserPersonalDetails.email,
-        currentUserPersonalDetails.firstName,
-        currentUserPersonalDetails.lastName,
         introSelected,
         activePolicyID,
         isSelfTourViewed,
-        onboardingMessages,
-        betas,
-        isSmallScreenWidth,
-        isBetaEnabled,
-        conciergeChatReportID,
-        archivedReportsIdSet,
-        mergedAccountConciergeReportID,
+        completeOnboarding,
     ]);
 
     return (
