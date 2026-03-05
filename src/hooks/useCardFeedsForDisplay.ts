@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
 import {isCustomFeed} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -19,6 +20,38 @@ const eligiblePoliciesSelector = (policies: OnyxCollection<Policy>): string[] =>
     }, [] as string[]);
 };
 
+function getDefaultCardFeed(
+    eligiblePoliciesIDsArray: string[] | undefined,
+    activePolicyID: string | undefined,
+    cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
+    localeCompare: (a: string, b: string) => number,
+): CardFeedForDisplay | undefined {
+    const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
+
+    // Prioritize the active policy if eligible
+    if (activePolicyID && eligiblePoliciesIDs.has(activePolicyID)) {
+        const policyCardFeeds = cardFeedsByPolicy[activePolicyID];
+        if (policyCardFeeds?.length) {
+            return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
+        }
+    }
+
+    // If the active policy doesn't have card feeds, use the first eligible policy that does
+    for (const eligiblePolicyID of eligiblePoliciesIDs) {
+        const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
+        if (policyCardFeeds?.length) {
+            return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
+        }
+    }
+
+    // Commercial feeds don't have preferred policies, so we need to include these in the list
+    const commercialFeeds = Object.values(cardFeedsByPolicy)
+        .flat()
+        .filter((feed) => !isCustomFeed(feed.name as CardFeedWithNumber));
+
+    return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
+}
+
 const useCardFeedsForDisplay = () => {
     const {localeCompare, translate} = useLocalize();
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -30,32 +63,10 @@ const useCardFeedsForDisplay = () => {
 
     const cardFeedsByPolicy = useMemo(() => getCardFeedsForDisplayPerPolicy(allFeeds, translate, feedKeysWithCards), [allFeeds, translate, feedKeysWithCards]);
 
-    const defaultCardFeed = useMemo(() => {
-        const eligiblePoliciesIDs = new Set(eligiblePoliciesIDsArray);
-
-        // Prioritize the active policy if eligible
-        if (activePolicyID && eligiblePoliciesIDs.has(activePolicyID)) {
-            const policyCardFeeds = cardFeedsByPolicy[activePolicyID];
-            if (policyCardFeeds?.length) {
-                return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
-            }
-        }
-
-        // If the active policy doesn't have card feeds, use the first eligible policy that does
-        for (const eligiblePolicyID of eligiblePoliciesIDs) {
-            const policyCardFeeds = cardFeedsByPolicy[eligiblePolicyID];
-            if (policyCardFeeds?.length) {
-                return [...policyCardFeeds].sort((a, b) => localeCompare(a.name, b.name)).at(0);
-            }
-        }
-
-        // Commercial feeds don't have preferred policies, so we need to include these in the list
-        const commercialFeeds = Object.values(cardFeedsByPolicy)
-            .flat()
-            .filter((feed) => !isCustomFeed(feed.name as CardFeedWithNumber));
-
-        return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
-    }, [eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare]);
+    const defaultCardFeed = useMemo(
+        () => getDefaultCardFeed(eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare),
+        [eligiblePoliciesIDsArray, activePolicyID, cardFeedsByPolicy, localeCompare],
+    );
 
     return {defaultCardFeed, cardFeedsByPolicy};
 };
