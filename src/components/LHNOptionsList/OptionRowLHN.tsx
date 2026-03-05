@@ -14,7 +14,6 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -33,7 +32,6 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import type {OptionRowLHNProps} from './types';
@@ -55,6 +53,7 @@ function OptionRowLHN({
     shouldShowRBRorGBRTooltip,
     isScreenFocused = false,
     testID,
+    conciergeReportID,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -65,7 +64,6 @@ function OptionRowLHN({
 
     const personalDetails = usePersonalDetails();
     const session = useSession();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
