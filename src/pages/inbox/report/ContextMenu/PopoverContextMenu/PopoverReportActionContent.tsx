@@ -351,7 +351,6 @@ function PopoverReportActionContent({
         if (showDelete) {
             visibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
         }
-        visibleActions.push(overflowAction);
     }
 
     const emojiData = createEmojiReactionData({

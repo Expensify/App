@@ -793,7 +793,7 @@ function PureReportActionItem({
                     },
                     callbacks: {
                         onShow: toggleContextMenuFromActiveReportAction,
-                        onHide: toggleContextMenuFromActiveReportAction,
+                        onHide: () => setIsContextMenuActive(false),
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
                 });
@@ -2040,6 +2040,7 @@ function PureReportActionItem({
                             return;
                         }
                         const rect = node.getBoundingClientRect();
+                        setIsContextMenuActive(true);
                         showMiniContextMenu({
                             reportID,
                             reportActionID: action.reportActionID,
@@ -2054,6 +2055,7 @@ function PureReportActionItem({
                                 height: rect.height,
                                 right: rect.right,
                             },
+                            onMenuHide: () => setIsContextMenuActive(false),
                         });
                     }}
                     onHoverOut={() => {

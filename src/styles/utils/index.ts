@@ -1701,6 +1701,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         top: pos?.top ?? 0,
         right: pos?.right ?? 0,
         opacity: isVisible && pos ? 1 : 0,
+        ...styles.cursorDefault,
+        ...styles.userSelectNone,
+        overflowAnchor: 'none',
     }),
 
     /**

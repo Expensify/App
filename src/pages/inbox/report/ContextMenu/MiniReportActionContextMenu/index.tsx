@@ -71,8 +71,8 @@ function MiniReportActionContextMenu() {
     const position =
         isVisible && rowMeasurements && containerRect
             ? {
-                  top: rowMeasurements.top - containerRect.top + (displayAsGroup ? -8 : -4),
-                  right: containerRect.right - rowMeasurements.right + 4,
+                  top: rowMeasurements.top - containerRect.top + (displayAsGroup ? -32 : -16),
+                  right: containerRect.right - rowMeasurements.right + 16,
               }
             : null;
 
@@ -405,7 +405,13 @@ function MiniReportActionContextMenu() {
                     style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
                     pointerEvents={isVisible ? 'auto' : 'none'}
                 >
-                    <Hoverable onHoverOut={() => hideMiniContextMenu()}>
+                    <Hoverable
+                        onHoverIn={() => keepOpen()}
+                        onHoverOut={() => {
+                            release();
+                            hideMiniContextMenu();
+                        }}
+                    >
                         <View
                             ref={menuContainerRef}
                             style={wrapperStyle}
@@ -426,6 +432,7 @@ function MiniReportActionContextMenu() {
                                     key={action.id}
                                     tooltipText={action.text}
                                     onPress={action.onPress}
+                                    isDelayButtonStateComplete={false}
                                     sentryLabel={action.sentryLabel}
                                 >
                                     {({hovered, pressed}) => (
@@ -447,6 +454,7 @@ function MiniReportActionContextMenu() {
                                             keepOpen();
                                         }, true)
                                     }
+                                    isDelayButtonStateComplete={false}
                                     shouldPreventDefaultFocusOnPress={false}
                                     sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
                                 >
