@@ -301,13 +301,18 @@ describe('actions/Task', () => {
             global.fetch = getGlobalFetchMock();
 
             // Setup ReportUtils mocks
-            mockBuildOptimisticTaskReport.mockReturnValue({
-                reportID: 'task_report_123',
-                reportName: mockTitle,
-                description: mockDescription,
-                managerID: mockAssigneeAccountID,
-                type: CONST.REPORT.TYPE.TASK,
-                parentReportID: mockParentReportID,
+            mockBuildOptimisticTaskReport.mockImplementation((...args: unknown[]) => {
+                const parentChatType = args.at(7);
+
+                return {
+                    reportID: 'task_report_123',
+                    reportName: mockTitle,
+                    description: mockDescription,
+                    managerID: mockAssigneeAccountID,
+                    type: CONST.REPORT.TYPE.TASK,
+                    parentReportID: mockParentReportID,
+                    ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
+                };
             });
 
             mockBuildOptimisticCreatedReportAction.mockReturnValue({
@@ -416,6 +421,60 @@ describe('actions/Task', () => {
                     failureData: expect.any(Array),
                 }),
             );
+        });
+
+        it('should set optimistic task chatType to policyAdmins for tasks created in admins rooms', async () => {
+            // Given a task created in a parent report with policyAdmins chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should include policyAdmins chatType
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        });
+
+        it('should not set optimistic task chatType for tasks created in policy expense chats', async () => {
+            // Given a task created in a parent report with policyExpenseChat chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should keep chatType unset
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBeUndefined();
         });
 
         it('should handle task creation without assignee chat report', async () => {

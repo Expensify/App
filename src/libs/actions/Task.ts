@@ -105,7 +105,16 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         return;
     }
 
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(
+        currentUserAccountID,
+        parentReportID,
+        assigneeAccountID,
+        title,
+        description,
+        policyID,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReport?.chatType,
+    );
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
