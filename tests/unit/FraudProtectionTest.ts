@@ -13,7 +13,6 @@ jest.mock('@libs/FraudProtection/GroupIBSdkBridge', () => ({
 }));
 
 // Load the module once. Onyx connections are registered at module scope.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@libs/FraudProtection');
 
 beforeAll(() =>

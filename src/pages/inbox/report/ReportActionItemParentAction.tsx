@@ -41,7 +41,6 @@ type ReportActionItemParentActionProps = {
     index: number;
 
     /** The id of the report */
-    // eslint-disable-next-line react/no-unused-prop-types
     reportID: string;
 
     /** The current report is displayed */
