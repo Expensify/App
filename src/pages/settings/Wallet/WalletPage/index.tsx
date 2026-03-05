@@ -44,8 +44,9 @@ import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAd
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
+import {clearDraftValues} from '@userActions/FormActions';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
 import {enableCompanyCards} from '@userActions/Policy/Policy';
@@ -174,6 +175,8 @@ function WalletPage() {
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         if (isPersonalBankAccountMissingInfo(accountData)) {
+            clearPersonalBankAccount();
+            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
             Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(privatePersonalDetails)));
             return;
         }

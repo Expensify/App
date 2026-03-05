@@ -1,5 +1,6 @@
 type UpdatePersonalBankAccountInfoParams = {
-    phoneNumber?: string;
+    bankAccountID?: number;
+    companyPhone?: string;
     legalFirstName?: string;
     legalLastName?: string;
     addressStreet?: string;

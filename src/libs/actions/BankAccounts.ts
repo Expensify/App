@@ -152,23 +152,16 @@ function clearPersonalBankAccountErrors() {
 function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
     const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
 
-    const parameters = {
-        phoneNumber: accountData?.phoneNumber,
-        legalFirstName: accountData?.legalFirstName,
-        legalLastName: accountData?.legalLastName,
-        addressStreet: formattedStreet,
-        addressCity: accountData?.addressCity,
-        addressState: accountData?.addressState,
-        addressZip: accountData?.addressZipCode,
-        addressCountry: accountData?.country,
-    };
-
     type AdditionalDataUpdate = {firstName?: string; lastName?: string; addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string; companyPhone?: string};
     const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
     const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
+    let bankAccountID: number | undefined;
     for (const [key, bankAccount] of Object.entries(bankAccountList ?? {})) {
         if (!isPersonalBankAccountMissingInfo(bankAccount?.accountData)) {
             continue;
+        }
+        if (!bankAccountID) {
+            bankAccountID = bankAccount?.accountData?.bankAccountID;
         }
         const prevData = bankAccount?.accountData?.additionalData;
         bankAccountListUpdates[key] = {
@@ -180,7 +173,7 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     addressCity: parameters.addressCity,
                     addressState: parameters.addressState,
                     addressZipCode: parameters.addressZip,
-                    companyPhone: parameters.phoneNumber,
+                    companyPhone: parameters.companyPhone,
                 },
             },
         };
@@ -198,6 +191,18 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
             },
         };
     }
+
+    const parameters = {
+        bankAccountID,
+        companyPhone: accountData?.phoneNumber,
+        legalFirstName: accountData?.legalFirstName,
+        legalLastName: accountData?.legalLastName,
+        addressStreet: formattedStreet,
+        addressCity: accountData?.addressCity,
+        addressState: accountData?.addressState,
+        addressZip: accountData?.addressZipCode,
+        addressCountry: accountData?.country,
+    };
 
     const onyxData: OnyxData<
         | typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT

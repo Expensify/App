@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,7 +9,7 @@ import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
-import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
@@ -65,11 +65,6 @@ function UpdatePersonalBankAccountPage() {
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    useEffect(() => {
-        clearPersonalBankAccount();
-        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-    }, []);
-
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -79,11 +74,13 @@ function UpdatePersonalBankAccountPage() {
 
     const submitPersonalInfo = () => {
         const currentAddress = getCurrentAddress(privatePersonalDetails);
+        const [street1, street2] = getStreetLines(currentAddress?.street);
         const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
         const accountData = {
             legalFirstName: privatePersonalDetails?.legalFirstName,
             legalLastName: privatePersonalDetails?.legalLastName,
-            addressStreet: currentAddress?.street,
+            addressStreet: street1,
+            addressStreet2: street2,
             addressCity: currentAddress?.city,
             addressState: currentAddress?.state,
             addressZipCode: currentAddress?.zip,
