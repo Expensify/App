@@ -6,7 +6,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,19 +33,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
-        if (isLoggingInAsNewUser) {
+        if (isLoggingInAsNewUser || isSupportalLogin) {
             // We don't want to close react-native app in this particular case.
+            // Supportal logins always go through sign-out-and-redirect to clear stale Onyx data
+            // (e.g. policies from the support agent's own session), even when the transition URL
+            // email matches the current session email.
             signOutAndRedirectToSignIn(false, isSupportalLogin);
-            return;
-        }
-
-        if (isSupportalLogin) {
-            signInWithSupportAuthToken(shortLivedAuthToken);
-            Navigation.isNavigationReady().then(() => {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
-            });
             return;
         }
 
