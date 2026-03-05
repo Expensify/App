@@ -428,7 +428,6 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);

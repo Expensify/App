@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -137,7 +136,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -151,7 +149,6 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
 jest.mock('@src/libs/SearchQueryUtils', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -10064,7 +10061,6 @@ describe('actions/IOU', () => {
         const isValid = (value: unknown) => !value || typeof value !== 'object' || value instanceof Blob;
 
         beforeEach(() => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
         });
 
@@ -10118,7 +10114,6 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -10264,7 +10259,6 @@ describe('actions/IOU', () => {
 
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
@@ -10628,6 +10622,72 @@ describe('actions/IOU', () => {
             const fakeReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'EUR',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
+        });
+
+        it('should return 0 when the currency and amount of the transactions are the same for an invoice report', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, fakeTransaction, fakeTransaction)).toBe(0);
+        });
+
+        it('should return the correct diff for an invoice report (same sign convention as expense reports)', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+                currency: 'USD',
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                amount: 100,
+                currency: 'USD',
+            };
+            const updatedTransaction = {
+                ...fakeTransaction,
+                amount: 200,
+                currency: 'USD',
+            };
+
+            expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBe(-100);
+        });
+
+        it('should return null when the currency of the updated and current transactions differ for an invoice report', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
                 policyID: '1',
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
@@ -14772,7 +14832,6 @@ describe('actions/IOU', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
         beforeEach(async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
             await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
