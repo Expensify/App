@@ -594,6 +594,39 @@ describe('canSubmitReport', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
         expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current, '', currentUserAccountID)).toBe(false);
     });
+
+    it('returns false when SmartScan failed with missing fields before violation is written', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const policy: Policy = {
+            ...createRandomPolicy(8),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            harvesting: {enabled: false},
+        };
+        const report: Report = {
+            ...createRandomReport(8, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction: Transaction = {
+            ...createRandomTransaction(1),
+            reportID: report.reportID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: 'Coffee',
+            created: '',
+            amount: 100,
+        };
+
+        expect(canSubmitReport(report, policy, [transaction], undefined, false, '', currentUserAccountID)).toBe(false);
+    });
 });
 
 describe('Check valid amount for IOU/Expense request', () => {
