@@ -361,7 +361,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param but is not past due', async () => {
