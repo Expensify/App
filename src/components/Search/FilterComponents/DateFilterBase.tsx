@@ -15,7 +15,7 @@ import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {SearchDatePresetFilterBaseHandle} from './DatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
 type DateFilterBaseProps = {
@@ -112,7 +112,6 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
             setRangeDisplayText(searchDatePresetFilterBaseRef.current.getRangeDisplayText());
-            setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             return;
         }
@@ -120,6 +119,18 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
         searchDatePresetFilterBaseRef.current.clearDateValues();
         setRangeDisplayText('');
     }, [selectedDateModifier]);
+
+    const submitDateValues = useCallback(
+        (dateValues: SearchDateValues) => {
+            onSubmit({
+                [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                [dateRangeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+            });
+        },
+        [dateAfterKey, dateBeforeKey, dateOnKey, dateRangeKey, onSubmit],
+    );
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -132,20 +143,12 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
             }
 
             searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            setRangeDisplayText(searchDatePresetFilterBaseRef.current.getRangeDisplayText());
-            setSelectedDateModifier(null);
-            setShouldShowRangeError(false);
+            submitDateValues(searchDatePresetFilterBaseRef.current.getDateValues());
             return;
         }
 
-        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
-        onSubmit({
-            [dateOnKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
-            [dateBeforeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
-            [dateAfterKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
-            [dateRangeKey]: dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
-        });
-    }, [selectedDateModifier, dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey, onSubmit]);
+        submitDateValues(searchDatePresetFilterBaseRef.current.getDateValues());
+    }, [selectedDateModifier, submitDateValues]);
 
     const goBack = () => {
         if (selectedDateModifier) {

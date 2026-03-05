@@ -49,6 +49,10 @@ function getCustomDateModifierFromDateValues(dateValues: SearchDateValues): Cust
     return CONST.SEARCH.DATE_MODIFIERS.ON;
 }
 
+function isCustomDateModifier(dateModifier: SearchDateModifier | null): dateModifier is CustomDateModifier {
+    return !!dateModifier && dateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE;
+}
+
 type DatePresetFilterBaseHandle = {
     /** Gets date values */
     getDateValues: () => SearchDateValues;
@@ -237,7 +241,10 @@ function DatePresetFilterBase({
 
     const selectDateModifier = useCallback(
         (dateModifier: SearchDateModifier | null) => {
-            resetEphemeralDateValue(dateModifier);
+            const isSwitchingBetweenCustomDateModifiers = isCustomDateModifier(selectedDateModifier) && isCustomDateModifier(dateModifier);
+            if (!isSwitchingBetweenCustomDateModifiers) {
+                resetEphemeralDateValue(dateModifier);
+            }
             onRangeValidationErrorChange?.(false);
 
             if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
@@ -257,7 +264,7 @@ function DatePresetFilterBase({
 
             onSelectDateModifier(dateModifier);
         },
-        [resetEphemeralDateValue, onSelectDateModifier, onRangeValidationErrorChange],
+        [resetEphemeralDateValue, onSelectDateModifier, onRangeValidationErrorChange, selectedDateModifier],
     );
 
     const validate = useCallback(() => {
@@ -335,6 +342,7 @@ function DatePresetFilterBase({
                 const updatedValues = {...currentDateValues, [selectedDateModifier]: undefined};
                 dateValuesRef.current = updatedValues;
                 updateDateValues(updatedValues);
+                setEphemeralDateValue(undefined);
                 onRangeValidationErrorChange?.(false);
             },
 

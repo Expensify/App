@@ -112,15 +112,15 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             }
 
             searchDatePresetFilterBaseRef.current.setDateValueOfSelectedDateModifier();
-            updateRangeText();
-            clearSelection();
+            onChange(searchDatePresetFilterBaseRef.current.getDateValues());
+            closeOverlay();
             return;
         }
 
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         onChange(dateValues);
         closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateRangeText]);
+    }, [closeOverlay, onChange, selectedDateModifier]);
 
     const resetChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -130,7 +130,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
             updateRangeText();
-            clearSelection();
+            setShouldShowRangeError(false);
             return;
         }
 
@@ -145,7 +145,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         setShouldShowRangeError(false);
         onChange(emptyDateValues);
         closeOverlay();
-    }, [clearSelection, closeOverlay, onChange, selectedDateModifier, updateRangeText]);
+    }, [closeOverlay, onChange, selectedDateModifier, updateRangeText]);
 
     const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
