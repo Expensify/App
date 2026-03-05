@@ -1202,6 +1202,7 @@ function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: 
                   },
               ],
               approver,
+              id: '-1',
           };
 
     const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : [...filteredApprovalRules, updatedApproverRule];
