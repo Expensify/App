@@ -17,6 +17,9 @@ import SidebarLinksData from './SidebarLinksData';
 
 // Once the app finishes loading for the first time, we never show the skeleton again
 // (even if isLoadingApp briefly flips back to true during a reconnect).
+// This uses a module-level variable + connectWithoutView instead of a ref because
+// a ref resets on unmount, so the skeleton would flash again when the component
+// remounts (e.g. navigating between tabs).
 let hasEverFinishedLoading = false;
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_APP,
