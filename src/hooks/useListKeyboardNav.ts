@@ -83,30 +83,28 @@ function useListKeyboardNav<T extends View | HTMLElement>({isActive, itemKeys, d
         const prevKeys = prevKeysRef.current;
         prevKeysRef.current = itemKeys;
 
-        if (focusedIndex < 0 || focusedIndex >= prevKeys.length) {
-            return;
+        let newIndex = focusedIndex;
+
+        // Track focused item across reorders
+        if (newIndex >= 0 && newIndex < prevKeys.length) {
+            const focusedKey = prevKeys.at(newIndex);
+            if (focusedKey && itemKeys.at(newIndex) !== focusedKey) {
+                const keyIndex = itemKeys.indexOf(focusedKey);
+                if (keyIndex >= 0) {
+                    newIndex = keyIndex;
+                }
+            }
         }
 
-        const focusedKey = prevKeys.at(focusedIndex);
-        if (!focusedKey || (focusedIndex < itemKeys.length && itemKeys.at(focusedIndex) === focusedKey)) {
-            return;
+        // Clamp to bounds when list shrinks
+        if (newIndex > itemKeys.length - 1) {
+            newIndex = Math.max(itemKeys.length - 1, -1);
         }
 
-        const newIndex = itemKeys.indexOf(focusedKey);
-        if (newIndex >= 0 && newIndex !== focusedIndex) {
+        if (newIndex !== focusedIndex) {
             setFocusedIndex(newIndex);
         }
     }, [itemKeys, focusedIndex, setFocusedIndex, isActive]);
-
-    useEffect(() => {
-        if (!isActive) {
-            return;
-        }
-        if (focusedIndex <= itemKeys.length - 1) {
-            return;
-        }
-        setFocusedIndex(Math.max(itemKeys.length - 1, -1));
-    }, [itemKeys.length, focusedIndex, setFocusedIndex, isActive]);
 
     const selectFocusedOption = () => {
         if (!onSelect || focusedIndex < 0) {
