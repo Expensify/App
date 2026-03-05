@@ -44,7 +44,7 @@ function RequireTwoFactorAuthenticationPage() {
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(Navigation.getActiveRoute()));
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));

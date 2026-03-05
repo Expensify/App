@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -7,9 +8,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TwoFactorAuthWrapperProps = ChildrenProps & {
@@ -59,7 +64,9 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
-    const defaultGoBack = () => quitAndNavigateBack();
+    const route = useRoute<PlatformStackRouteProp<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.ROOT>>();
+    const backTo = route.params?.backTo;
+    const defaultGoBack = () => quitAndNavigateBack(backTo ?? ROUTES.SETTINGS_SECURITY);
 
     return (
         <ScreenWrapper
