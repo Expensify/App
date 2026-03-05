@@ -10,7 +10,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({hasUnsavedChanges, onCancel, useParentStackForWebBack}: DiscardChangesConfirmationProps) {
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
@@ -31,9 +31,18 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
      * We cannot programmatically stop the browser's back navigation like react-navigation's beforeRemove
      * Events like popstate and transitionStart are triggered AFTER the back navigation has already completed
      * So we need to go forward to get back to the current page
+     *
+     * When useParentStackForWebBack is true, the component is rendered inside a MaterialTopTabNavigator
+     * which does not emit transitionStart events. In that case, we listen on the parent stack navigator
+     * (via navigation.getParent()) which does emit these events when the screen is being removed.
      */
     useEffect(() => {
-        const unsubscribe = navigation.addListener('transitionStart', ({data: {closing}}) => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        const targetNavigation = useParentStackForWebBack ? (navigation.getParent() as typeof navigation | undefined) : navigation;
+        if (!targetNavigation) {
+            return;
+        }
+        const unsubscribe = targetNavigation.addListener('transitionStart', ({data: {closing}}: {data: {closing: boolean}}) => {
             if (!hasUnsavedChanges || isConfirmed.current) {
                 return;
             }
@@ -48,7 +57,7 @@ function DiscardChangesConfirmation({hasUnsavedChanges, onCancel}: DiscardChange
         });
 
         return unsubscribe;
-    }, [hasUnsavedChanges, navigation]);
+    }, [hasUnsavedChanges, navigation, useParentStackForWebBack]);
 
     const navigateBack = useCallback(() => {
         if (blockedNavigationAction.current) {

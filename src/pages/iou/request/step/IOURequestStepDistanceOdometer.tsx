@@ -643,7 +643,10 @@ function IOURequestStepDistanceOdometer({
                     />
                 </View>
             </View>
-            <DiscardChangesConfirmation hasUnsavedChanges={hasUnsavedChanges} />
+            <DiscardChangesConfirmation
+                hasUnsavedChanges={hasUnsavedChanges}
+                useParentStackForWebBack={isCreatingNewRequest}
+            />
         </StepScreenWrapper>
     );
 }
