@@ -293,6 +293,19 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should default draftTransactionIDs to empty array when allTransactionDrafts is undefined', () => {
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: undefined,
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: [],
+                }),
+            );
+        });
+
         it('should pass billable and reimbursable flags to trackExpense', () => {
             createTransaction({
                 ...baseParams,
@@ -889,6 +902,16 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 backTo,
                 draftTransactionIDs: [baseParams.transactionID],
+            });
+
+            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
+        });
+
+        it('should default draftTransactionIDs to empty array when undefined is passed', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                backTo,
+                draftTransactionIDs: undefined,
             });
 
             expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
