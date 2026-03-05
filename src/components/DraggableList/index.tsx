@@ -50,6 +50,7 @@ function DraggableList<T>({
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<RNScrollView>}) {
     const styles = useThemeStyles();
     const isControlled = controlledFocusedIndex !== undefined;
+    const hasKeyboardNav = !isControlled && !!onSelectRow;
     const containerRef = useRef<HTMLDivElement>(null);
 
     const instanceId = useId();
@@ -72,7 +73,7 @@ function DraggableList<T>({
 
     const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
         containerRef,
-        isActive: !isControlled,
+        isActive: hasKeyboardNav,
         itemKeys: items,
         disabledIndexes: disabledArrowKeyIndexes,
         onSelect: onSelectRow
