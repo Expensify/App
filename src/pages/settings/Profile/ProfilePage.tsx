@@ -49,7 +49,7 @@ function ProfilePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {restoreFocusOnReturn, setFocusTarget} = useAccessibilityFocusOnReturn();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
@@ -117,39 +117,18 @@ function ProfilePage() {
             title: legalName,
             pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
-            },
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
             pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
-            },
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
             pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
-            },
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
@@ -157,13 +136,6 @@ function ProfilePage() {
             title: getFormattedAddress(privateDetails),
             pageRoute: ROUTES.SETTINGS_ADDRESS,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
-            action: () => {
-                if (isActingAsDelegate) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-                Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
-            },
         },
     ];
 

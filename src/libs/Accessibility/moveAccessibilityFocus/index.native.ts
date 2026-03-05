@@ -35,7 +35,6 @@ const moveAccessibilityFocus: MoveAccessibilityFocus = (focusTarget) => {
     }
 
     const resolvedFocusTarget = resolveFocusTarget(focusTarget);
-
     if (!resolvedFocusTarget) {
         return;
     }

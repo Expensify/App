@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,6 +25,7 @@ function SaveTheWorldPage() {
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
@@ -43,13 +46,16 @@ function SaveTheWorldPage() {
         return baseMenuItems.map((item) => ({
             key: item.translationKey,
             title: translate(item.translationKey as TranslationPaths),
-            onPress: item.action,
+            onPress: (event: GestureResponderEvent | KeyboardEvent) => {
+                setFocusTarget(event);
+                return item.action();
+            },
             shouldShowRightIcon: true,
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: item.sentryLabel,
         }));
-    }, [translate, waitForNavigate, styles]);
+    }, [translate, waitForNavigate, styles, setFocusTarget]);
 
     return (
         <ScreenWrapper
@@ -57,6 +63,7 @@ function SaveTheWorldPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             <HeaderWithBackButton
                 title={translate('sidebarScreen.saveTheWorld')}

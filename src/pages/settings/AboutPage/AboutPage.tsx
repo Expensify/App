@@ -62,7 +62,7 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {restoreFocusOnReturn, setFocusTarget} = useAccessibilityFocusOnReturn();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const aboutIllustration = useAboutSectionIllustration();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

@@ -18,6 +18,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -51,7 +52,7 @@ type BaseMenuItemType = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;
-    action: () => Promise<void> | void;
+    action: (event?: GestureResponderEvent | KeyboardEvent) => Promise<void> | void;
     link?: string;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
@@ -75,6 +76,7 @@ function SecuritySettingsPage() {
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -157,7 +159,7 @@ function SecuritySettingsPage() {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
-                action: () => {
+                action: (event) => {
                     if (isActingAsDelegate) {
                         showDelegateNoAccessModal();
                         return;
@@ -167,9 +169,11 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (!isUserValidated) {
+                        setFocusTarget(event);
                         Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
                         return;
                     }
+                    setFocusTarget(event);
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
@@ -180,7 +184,8 @@ function SecuritySettingsPage() {
                 translationKey: 'multifactorAuthentication.revoke.title',
                 icon: icons.Fingerprint,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
-                action: () => {
+                action: (event) => {
+                    setFocusTarget(event);
                     Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
                 },
             });
@@ -190,18 +195,20 @@ function SecuritySettingsPage() {
             translationKey: 'mergeAccountsPage.mergeAccount',
             icon: icons.ArrowCollapse,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
-            action: () => {
+            action: (event) => {
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
                 }
                 if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    setFocusTarget(event);
                     Navigation.navigate(
                         ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
                     );
                     return;
                 }
 
+                setFocusTarget(event);
                 Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
             },
         });
@@ -211,14 +218,20 @@ function SecuritySettingsPage() {
                 translationKey: 'lockAccountPage.unlockAccount',
                 icon: icons.UserLock,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+                action: (event) => {
+                    setFocusTarget(event);
+                    return waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT))();
+                },
             });
         } else {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.reportSuspiciousActivity',
                 icon: icons.UserLock,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+                action: (event) => {
+                    setFocusTarget(event);
+                    return waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT))();
+                },
             });
         }
 
@@ -226,11 +239,12 @@ function SecuritySettingsPage() {
             translationKey: 'closeAccountPage.closeAccount',
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
-            action: () => {
+            action: (event) => {
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
                 }
+                setFocusTarget(event);
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);
             },
         });
@@ -261,6 +275,7 @@ function SecuritySettingsPage() {
         translate,
         styles.sectionMenuItemTopDescription,
         hasEverRegisteredForMultifactorAuthentication,
+        setFocusTarget,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -278,14 +293,17 @@ function SecuritySettingsPage() {
                             return;
                         }
                         if (!role) {
+                            setFocusTarget(e);
                             Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
                             return;
                         }
                         if (pendingFields?.role && !pendingFields?.email) {
+                            setFocusTarget(e);
                             Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
                             return;
                         }
 
+                        setFocusTarget(e);
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
                     };
 
@@ -313,7 +331,7 @@ function SecuritySettingsPage() {
             return sortAlphabetically(menuItems, 'title', localeCompare);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots, localeCompare],
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, icons.FallbackAvatar, icons.ThreeDots, localeCompare, setFocusTarget],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
@@ -403,6 +421,7 @@ function SecuritySettingsPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
@@ -465,12 +484,13 @@ function SecuritySettingsPage() {
                                         title={translate('delegate.addCopilot')}
                                         icon={icons.UserPlus}
                                         sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
-                                        onPress={() => {
+                                        onPress={(event) => {
                                             if (isActingAsDelegate) {
                                                 modalClose(() => showDelegateNoAccessModal());
                                                 return;
                                             }
                                             if (!isUserValidated) {
+                                                setFocusTarget(event);
                                                 Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
                                                 return;
                                             }
@@ -478,6 +498,7 @@ function SecuritySettingsPage() {
                                                 showLockedAccountModal();
                                                 return;
                                             }
+                                            setFocusTarget(event);
                                             Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
                                         }}
                                         shouldShowRightIcon

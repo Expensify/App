@@ -22,6 +22,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useAccessibilityFocusOnReturn from '@hooks/useAccessibilityFocusOnReturn';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -138,6 +139,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
+    const {setFocusTarget, restoreFocusOnReturn} = useAccessibilityFocusOnReturn();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
@@ -457,7 +459,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             icon={item.icon}
                             iconType={item.iconType}
                             disabled={isExecuting}
-                            onPress={singleExecution(item.action)}
+                            onPress={singleExecution((event) => {
+                                if (item.screenName) {
+                                    setFocusTarget(event);
+                                }
+                                return item.action();
+                            })}
                             iconStyles={item.iconStyles}
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
@@ -558,6 +565,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
+            onEntryTransitionEnd={restoreFocusOnReturn}
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
