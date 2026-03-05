@@ -1191,7 +1191,7 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
 type SplitMaskedCardNumberResult = {
