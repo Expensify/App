@@ -83,11 +83,9 @@ describe('DeployChecklistUtils', () => {
                     description: '',
                 },
             ],
-            // eslint-disable-next-line max-len
             body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/22\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/23\r\n\r\n`,
         };
         const issueWithDeployBlockers = {...baseIssue};
-        // eslint-disable-next-line max-len
         issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
 
         const baseExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
@@ -153,7 +151,6 @@ describe('DeployChecklistUtils', () => {
         test('Test finding an open issue with no PRs successfully', () => {
             const bareIssue: Issue = {
                 ...baseIssue,
-                // eslint-disable-next-line max-len
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
             };
 
