@@ -1087,9 +1087,9 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
     const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
         const programSettings = cardSettings[programKey as keyof typeof cardSettings];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
-            // Spread nested first so root-level optimistic writes (e.g. paymentBankAccountID
-            // from updateSettlementAccount) take precedence over stale nested values.
-            return {...(programSettings as ExpensifyCardSettingsBase), ...cardSettings} as ExpensifyCardSettingsBase;
+            // Nested program values take precedence — they are the authoritative source for
+            // program-specific fields once the backend sends the full nested format (Phase 2).
+            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
         }
         return undefined;
     };
