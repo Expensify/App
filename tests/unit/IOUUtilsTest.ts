@@ -347,6 +347,31 @@ describe('IOUUtils', () => {
     });
 });
 
+describe('formatCurrentUserToAttendee', () => {
+    test('should return undefined when currentUser is undefined', () => {
+        expect(IOUUtils.formatCurrentUserToAttendee(undefined, 'reportID')).toBeUndefined();
+    });
+
+    test('should return undefined when currentUser has no login and no accountID', () => {
+        const emptyUser = {login: '', accountID: 0, displayName: '', avatar: ''} as unknown as Parameters<typeof IOUUtils.formatCurrentUserToAttendee>[0];
+        expect(IOUUtils.formatCurrentUserToAttendee(emptyUser, 'reportID')).toBeUndefined();
+    });
+
+    test('should return attendee when currentUser has a valid login', () => {
+        const validUser = {login: 'test@example.com', accountID: 0, displayName: 'Test', avatar: ''} as unknown as Parameters<typeof IOUUtils.formatCurrentUserToAttendee>[0];
+        const result = IOUUtils.formatCurrentUserToAttendee(validUser, 'reportID');
+        expect(result).toBeDefined();
+        expect(result?.[0]?.email).toBe('test@example.com');
+    });
+
+    test('should return attendee when currentUser has a valid accountID but no login', () => {
+        const validUser = {login: '', accountID: 12345, displayName: 'Test', avatar: ''} as unknown as Parameters<typeof IOUUtils.formatCurrentUserToAttendee>[0];
+        const result = IOUUtils.formatCurrentUserToAttendee(validUser, 'reportID');
+        expect(result).toBeDefined();
+        expect(result?.[0]?.accountID).toBe(12345);
+    });
+});
+
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
         for (const iouType of Object.values(CONST.IOU.TYPE)) {

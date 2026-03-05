@@ -307,7 +307,7 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
 }
 
 function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {
-    if (!currentUser) {
+    if (!currentUser?.login && !currentUser?.accountID) {
         return;
     }
     const initialAttendee: Attendee = {
