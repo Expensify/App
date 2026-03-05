@@ -351,7 +351,8 @@ function MoneyRequestConfirmationList({
     const defaultRate = defaultMileageRate?.customUnitRateID;
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultRate) : defaultRate;
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft});
+    const shouldUseTransactionDistanceUnit = isReadOnly || action === CONST.IOU.ACTION.EDIT || isEditingSplitBill;
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, policyDraft, useTransactionDistanceUnit: shouldUseTransactionDistanceUnit});
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;
