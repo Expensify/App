@@ -124,7 +124,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
                 animationRef.current = newRef;
             }}
             autoPlay={!isReduceMotionEnabled}
-            progress={isReduceMotionEnabled ? 0.5 : undefined}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}

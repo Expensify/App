@@ -38,7 +38,6 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-
     return (
         <Modal
             onClose={onCancel}
