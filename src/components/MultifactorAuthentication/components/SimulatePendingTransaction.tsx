@@ -26,6 +26,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 const MERCHANTS = ['Grocery store', 'Restaurant', 'Gas station', 'Online retailer', 'Coffee shop', 'Bookstore', 'Clothing store', 'Pharmacy', 'Electronics store', 'Subscription service'];
 
+const OUTCOME_ITEMS = [
+    {labelKey: 'initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeApproveOrDeny', value: ''},
+    {labelKey: 'initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeMarqetaError', value: 'MARQETA_ERROR'},
+    {labelKey: 'initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyApproved', value: 'ALREADY_APPROVED'},
+    {labelKey: 'initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyDenied', value: 'ALREADY_DENIED'},
+] as const;
+
 type CardListItem = ListItem & {
     cardID: number;
 };
@@ -85,7 +92,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     const [merchant, setMerchant] = useState(() => MERCHANTS[generateRandomInt(0, MERCHANTS.length - 1)]);
     const [amount, setAmount] = useState(() => generateRandomInt(500, 100000));
     const [currency, setCurrency] = useState<string>(CONST.CURRENCY.GBP);
-    const [delayMinutesText, setDelayMinutesText] = useState('0');
+    const [delaySecondsText, setDelaySecondsText] = useState('0');
     const [expiryMinutesText, setExpiryMinutesText] = useState('8');
     const [simulatedOutcome, setSimulatedOutcome] = useState('');
     const [selectedCardID, setSelectedCardID] = useState<number | undefined>(undefined);
@@ -106,16 +113,6 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         }
         return expensifyCards.at(0)?.cardID;
     }, [selectedCardID, expensifyCards]);
-
-    const outcomeItems = useMemo(
-        () => [
-            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeApproveOrDeny'), value: ''},
-            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeMarqetaError'), value: 'MARQETA_ERROR'},
-            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyApproved'), value: 'ALREADY_APPROVED'},
-            {label: translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcomeAlreadyDenied'), value: 'ALREADY_DENIED'},
-        ],
-        [translate],
-    );
 
     const cardSelectionItems: CardListItem[] = useMemo(
         () =>
@@ -146,7 +143,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         if (effectiveCardID === undefined) {
             return;
         }
-        const delaySeconds = Math.max(0, Math.round((parseFloat(delayMinutesText) || 0) * 60));
+        const delaySeconds = Math.max(0, Math.round(parseFloat(delaySecondsText) || 0));
         const maxResponseTime = parseInt(expiryMinutesText, 10) || 8;
         simulateMarqeta3DSChallenge({
             merchant,
@@ -217,14 +214,14 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                 <View>
                     <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.outcome')}</Text>
                     <RadioButtons
-                        items={outcomeItems}
+                        items={OUTCOME_ITEMS.map(({value, labelKey}) => ({label: translate(labelKey), value}))}
                         value={simulatedOutcome}
                         onPress={setSimulatedOutcome}
                     />
                 </View>
 
                 <View>
-                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.merchant')}</Text>
+                    <Text>{translate('common.merchant')}</Text>
                     <View style={styles.mv2}>
                         <TextInput
                             placeholder={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.merchantPlaceholder')}
@@ -251,26 +248,31 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                     <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.delayBeforeDelivery')}</Text>
                     <TextInput
                         placeholder="0"
-                        value={delayMinutesText}
-                        onChangeText={setDelayMinutesText}
+                        value={delaySecondsText}
+                        onChangeText={setDelaySecondsText}
                         keyboardType="decimal-pad"
                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.delayAccessibilityLabel')}
                     />
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.now')}
-                            onPress={() => setDelayMinutesText('0')}
+                            text={translate('common.now')}
+                            onPress={() => setDelaySecondsText('0')}
                         />
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.oneMinute')}
-                            onPress={() => setDelayMinutesText('1')}
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.thirtySeconds')}
+                            onPress={() => setDelaySecondsText('30')}
                         />
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.fiveMinutes')}
-                            onPress={() => setDelayMinutesText('5')}
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.xMinutes', {count: 1})}
+                            onPress={() => setDelaySecondsText('60')}
+                        />
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.xMinutes', {count: 2})}
+                            onPress={() => setDelaySecondsText('120')}
                         />
                     </View>
                 </View>
@@ -287,17 +289,17 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                     <View style={[styles.flexRow, styles.gap2, styles.mv2]}>
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.eightMinutes')}
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.xMinutes', {count: 8})}
                             onPress={() => setExpiryMinutesText('8')}
                         />
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.fifteenMinutes')}
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.xMinutes', {count: 15})}
                             onPress={() => setExpiryMinutesText('15')}
                         />
                         <Button
                             small
-                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.oneHour')}
+                            text={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.xMinutes', {count: 60})}
                             onPress={() => setExpiryMinutesText('60')}
                         />
                     </View>
