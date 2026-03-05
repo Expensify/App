@@ -1,12 +1,11 @@
 ---
 
 title: Connecting Perk to Expensify
-description: Learn how to seamlessly integrate Perk with Expensify to automate travel expense tracking and improve financial workflows.
+description: Learn how to integrate Perk with Expensify to automate travel expense tracking.
 keywords: [Expensify Classic, Perk integration, connect Perk to Expensify, Travel Perk, travel booking sync, receipts@expensify.com, travel expenses, Receipt upload problem]
 ---
 
-
-Connect your Perk (formerly TravelPerk) account to Expensify to automatically sync travel bookings as expenses. Once connected, invoices and itineraries are sent to Expensify as soon as a trip is booked, reducing manual work and improving visibility into travel spend.
+Connect your Perk (formerly TravelPerk) account to Expensify to automatically sync travel bookings as expenses. Once connected, Perk sends invoices and itineraries to Expensify as soon as a trip is booked, reducing manual work and giving you better visibility into travel spend.
 
 ---
 
@@ -14,7 +13,7 @@ Connect your Perk (formerly TravelPerk) account to Expensify to automatically sy
 
 ## What are the requirements to connect Perk with Expensify 
 
-Before you begin connecting Perk and Expensify, make sure you: 
+Before you begin connecting Perk and Expensify, make sure you:
 
 - Have an active Expensify account
 - Are a **Workspace Admin** in Expensify
@@ -53,7 +52,7 @@ This eliminates the need to manually upload receipts or enter trip details.
 
 Expenses are created automatically after a booking is confirmed in Perk.
 
-## Why did I receive a “Receipt upload problem” notification?
+This typically happens when the traveler does not have an Expensify account or the traveler's email address is different in Perk and Expensify.
 
 This typically happens when the traveler does not have an Expensify account or the traveler's email address is different in Perk and Expensify
 
@@ -65,4 +64,4 @@ All integration settings are managed in your Perk account. Expensify does not ho
 
 ## Can I add out-of-pocket expenses to a Perk travel report?
 
-Yes, if you have additional travel costs (such as meals or transportation not booked through Perk), you can include them in the same expense report. [Learn how to add expenses to a report](https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense). 
+Yes, if you have additional travel costs (such as meals or transportation not booked through Perk), you can include them in the same expense report. [Learn how to add expenses to a report](https://help.expensify.com/articles/expensify-classic/expenses/Add-an-expense).
