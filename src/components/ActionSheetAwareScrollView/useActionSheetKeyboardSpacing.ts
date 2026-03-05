@@ -75,7 +75,6 @@ function useActionSheetKeyboardSpacing(scrollViewAnimatedRef: AnimatedRef<Reanim
     const {transitionActionSheetStateWorklet: transition, resetStateMachine} = useActionSheetAwareScrollViewActions();
 
     // Reset state machine when component unmounts
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => resetStateMachine();
     }, [resetStateMachine]);
