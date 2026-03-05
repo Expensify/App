@@ -47,8 +47,10 @@ function DebugDetailsConstantPickerPage({
 
     const renderPicker = useCallback(() => {
         if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {
+            const normalizedCurrencyCode = fieldValue?.match(/^[A-Z]{3}/i)?.[0] ?? fieldValue;
             return (
                 <CurrencySelectionList
+                    initiallySelectedCurrencyCode={normalizedCurrencyCode}
                     onSelect={({currencyCode}) =>
                         onSubmit({
                             text: currencyCode,
