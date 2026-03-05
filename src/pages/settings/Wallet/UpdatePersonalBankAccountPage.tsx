@@ -95,7 +95,8 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const skippedSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
-    const skipPages = skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
+    const skipPageCandidates = skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
+    const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 
     const firstPageName = getFirstPageName(privatePersonalDetails);
     const firstNonSkippedIndex = formPages.findIndex((p) => p.pageName === firstPageName);
