@@ -2178,12 +2178,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Persoonlijke kaart toevoegen',
+        addCompanyCard: 'Bedrijfskaart toevoegen',
+        lookingForCompanyCards: 'Bedrijfskaarten toevoegen?',
+        lookingForCompanyCardsDescription: 'Koppel je eigen kaarten van meer dan 10.000 banken wereldwijd.',
+        personalCardAdded: 'Persoonlijke kaart toegevoegd!',
+        personalCardAddedDescription: 'Gefeliciteerd, we beginnen met het importeren van transacties van uw kaart.',
+        isPersonalCard: 'Is dit een persoonlijke kaart?',
+        thisIsPersonalCard: 'Dit is een persoonlijke kaart',
+        thisIsCompanyCard: 'Dit is een bedrijfskaart',
+        askAdmin: 'Vraag uw beheerder',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Zo ja, prima! Maar als het een <strong>bedrijfs</strong>kaart is, ${isAdmin ? 'wijs deze dan toe vanuit je werkruimte.' : 'vraag je beheerder om deze vanuit de werkruimte aan je toe te wijzen.'}`,
+        bankConnectionError: 'Probleem met bankverbinding',
+        bankConnectionDescription: 'Probeer je kaarten opnieuw toe te voegen. Anders kun je',
+        connectWithPlaid: 'verbinden via Plaid.',
         fixCard: 'Kaart herstellen',
         brokenConnection: 'Je kaartkoppeling is verbroken.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `Je verbinding met de kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij je bank</a> om de kaart te herstellen.`
                 : `Je verbinding met de kaart ${cardName} is verbroken. Log in bij je bank om de kaart te herstellen.`,
+        addAdditionalCards: 'Extra kaarten toevoegen',
+        upgradeDescription: 'Meer kaarten toevoegen? Maak een werkruimte om extra persoonlijke kaarten toe te voegen of bedrijfskaarten aan het hele team toe te wijzen.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Beschikbaar in het Collect-abonnement, <strong>${formattedPrice}</strong> per lid per maand.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Maak een werkruimte om deze functie te gebruiken, of <a href="${subscriptionLink}">meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+        workspaceCreated: 'Werkruimte aangemaakt',
+        newWorkspace: 'Je hebt een werkruimte aangemaakt!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Je kunt nu extra kaarten toevoegen. <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
