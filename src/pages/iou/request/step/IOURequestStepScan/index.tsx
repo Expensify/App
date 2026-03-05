@@ -35,6 +35,7 @@ import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpa
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import variables from '@styles/variables';
 import {checkIfScanFileCanBeRead, replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -235,7 +236,6 @@ function IOURequestStepScan({
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -254,9 +254,10 @@ function IOURequestStepScan({
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTabActive]);
+        return () => {
+            setVideoConstraints(undefined);
+        };
+    }, [isTabActive, requestCameraPermission]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
@@ -286,7 +287,6 @@ function IOURequestStepScan({
             return;
         }
         for (const file of files) {
-            // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
         }
 
@@ -409,7 +409,7 @@ function IOURequestStepScan({
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         clearTorchConstraints();
-                    }, 2000);
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
                 });
             return;
         }
@@ -504,8 +504,8 @@ function IOURequestStepScan({
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                 >
                                     <Icon
-                                        height={16}
-                                        width={16}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
                                         src={lazyIcons.Bolt}
                                         fill={isFlashLightOn ? theme.white : theme.icon}
                                     />
@@ -538,8 +538,8 @@ function IOURequestStepScan({
                             sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={lazyIcons.Gallery}
                                 fill={theme.textSupporting}
                             />
@@ -569,8 +569,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={lazyIcons.ReceiptMultiple}
                             fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                         />
@@ -585,8 +585,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
                             fill={theme.textSupporting}
                         />

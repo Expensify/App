@@ -599,13 +599,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 if (!policyID) {
                                     return;
                                 }
-                                updateWorkspaceAvatar(policyID, file as File);
+                                updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
-                                deleteWorkspaceAvatar(policyID);
+                                deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
@@ -701,7 +701,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
                                     hintText={
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         hasVBA || isBankAccountVerified
                                             ? translate('workspace.editor.currencyInputDisabledText', policyCurrency)
                                             : translate('workspace.editor.currencyInputHelpText')
