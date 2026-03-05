@@ -75,7 +75,7 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
         });
 
         if (level === 'error') {
-            Log.hmmm(`[MFA] ${eventMessage}`, extra);
+            Log.warn(`[MFA] ${eventMessage}`, extra);
         } else {
             Log.info(`[MFA] ${eventMessage}`, false, extra);
         }
