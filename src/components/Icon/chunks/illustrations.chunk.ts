@@ -15,7 +15,8 @@ import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsf
 import CompanyCardsEmptyStateGeneric from '@assets/images/companyCards/companycards-generic.svg';
 import CompanyCardsEmptyStateUKEU from '@assets/images/companyCards/companycards-uk_eu.svg';
 import CompanyCardsEmptyStateUSCA from '@assets/images/companyCards/companycards-us_ca.svg';
-import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import LaptopAssignCard from '@assets/images/companyCards/emptystate__laptop-assign-card.svg';
+import LaptopReviewCard from '@assets/images/companyCards/emptystate__laptop-review-card.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
 import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
@@ -34,7 +35,7 @@ import Computer from '@assets/images/computer.svg';
 // Educational Illustrations
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
@@ -216,11 +217,12 @@ const Illustrations = {
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
     WellsFargoCompanyCardDetailLarge,
-    CompanyCardsEmptyState,
     CompanyCardsEmptyStateGeneric,
     CompanyCardsEmptyStateUKEU,
     CompanyCardsEmptyStateUSCA,
-    EmptyCardState,
+    LaptopAssignCard,
+    LaptopReviewCard,
+    ExpensifyCardCoins,
     PendingBank,
     CompanyCardsPendingState,
 

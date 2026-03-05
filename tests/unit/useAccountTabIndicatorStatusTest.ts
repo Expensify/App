@@ -103,7 +103,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             chatReportID: status === CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS ? undefined : '123',
         },
         [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             [userID]: {
                 partnerName: 'John Doe',
                 partnerUserID: userID,
