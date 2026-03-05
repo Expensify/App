@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
+import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -55,7 +56,6 @@ type ReportActionsViewProps = {
     isLoadingInitialReportActions?: boolean;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
     /** If the report has newer actions to load */
@@ -66,6 +66,15 @@ type ReportActionsViewProps = {
 
     /** If the report is a transaction thread report */
     isReportTransactionThread?: boolean;
+
+    /** Whether Concierge is currently processing */
+    isConciergeProcessing?: boolean;
+
+    /** Concierge reasoning history */
+    conciergeReasoningHistory?: ReasoningEntry[];
+
+    /** Concierge status label */
+    conciergeStatusLabel?: string;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -79,6 +88,9 @@ function ReportActionsView({
     hasNewerActions,
     hasOlderActions,
     isReportTransactionThread,
+    isConciergeProcessing,
+    conciergeReasoningHistory,
+    conciergeStatusLabel,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     usePendingConciergeResponse(report.reportID);
@@ -256,7 +268,6 @@ function ReportActionsView({
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const allReportActionIDs = useMemo(() => {
@@ -354,6 +365,9 @@ function ReportActionsView({
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
+                isConciergeProcessing={isConciergeProcessing}
+                conciergeReasoningHistory={conciergeReasoningHistory}
+                conciergeStatusLabel={conciergeStatusLabel}
             />
             <UserTypingEventListener report={report} />
         </>

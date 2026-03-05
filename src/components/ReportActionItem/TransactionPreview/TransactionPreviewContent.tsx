@@ -162,7 +162,7 @@ function TransactionPreviewContent({
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
-    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.MAX_LENGTH);
+    const description = Parser.truncateHTML(requestComment ?? '', CONST.REQUEST_PREVIEW.DESCRIPTION_PREVIEW_MAX_LENGTH);
     const isDescriptionHTML = !!description && Parser.isHTML(description);
     const requestDescription = truncate(requestComment ?? '', {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -326,7 +326,7 @@ function TransactionPreviewContent({
                                                         <Text
                                                             fontSize={variables.fontSizeNormal}
                                                             style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
-                                                            numberOfLines={2}
+                                                            numberOfLines={1}
                                                         >
                                                             {shouldShowMerchant ? requestMerchant : requestDescription}
                                                         </Text>
@@ -374,8 +374,8 @@ function TransactionPreviewContent({
                                                         fill={theme.icon}
                                                     />
                                                     <Text
-                                                        numberOfLines={2}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.preWrap, styles.flexShrink1]}
+                                                        numberOfLines={1}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {getDecodedCategoryName(category ?? '')}
                                                     </Text>
@@ -390,8 +390,8 @@ function TransactionPreviewContent({
                                                         fill={theme.icon}
                                                     />
                                                     <Text
-                                                        numberOfLines={2}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.preWrap, styles.flexShrink1]}
+                                                        numberOfLines={1}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {getCommaSeparatedTagNameWithSanitizedColons(tag)}
                                                     </Text>
