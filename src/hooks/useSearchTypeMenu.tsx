@@ -63,6 +63,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'CreditCard',
         'MoneyHourglass',
         'CreditCardHourglass',
+        'ExpensifyCard',
         'Bank',
         'User',
         'Folder',
@@ -215,6 +216,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
                         sectionItems.push({
                             badgeText: getItemBadgeText(item.key, reportCounts),
+                            isBadgeSuccess: true,
                             text: translate(item.translationPath),
                             isSelected,
                             icon,

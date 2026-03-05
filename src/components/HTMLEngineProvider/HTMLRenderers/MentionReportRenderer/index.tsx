@@ -2,7 +2,6 @@ import React, {useContext, useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
@@ -52,32 +51,28 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const {color, ...styleWithoutColor} = flattenStyle;
 
     return (
-        <ShowContextMenuContext.Consumer>
-            {() => (
-                <Text
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...defaultRendererProps}
-                    style={
-                        isGroupPolicyReport && (!exactlyMatch || navigationRoute)
-                            ? [styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]
-                            : [flattenStyle]
-                    }
-                    suppressHighlighting
-                    onPress={
-                        navigationRoute && isGroupPolicyReport
-                            ? (event) => {
-                                  event.preventDefault();
-                                  Navigation.navigate(navigationRoute);
-                              }
-                            : undefined
-                    }
-                    role={isGroupPolicyReport ? CONST.ROLE.LINK : undefined}
-                    accessibilityLabel={isGroupPolicyReport ? `/${navigationRoute}` : undefined}
-                >
-                    #{mentionDisplayText}
-                </Text>
-            )}
-        </ShowContextMenuContext.Consumer>
+        <Text
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...defaultRendererProps}
+            style={
+                isGroupPolicyReport && (!exactlyMatch || navigationRoute)
+                    ? [styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]
+                    : [flattenStyle]
+            }
+            suppressHighlighting
+            onPress={
+                navigationRoute && isGroupPolicyReport
+                    ? (event) => {
+                          event.preventDefault();
+                          Navigation.navigate(navigationRoute);
+                      }
+                    : undefined
+            }
+            role={isGroupPolicyReport ? CONST.ROLE.LINK : undefined}
+            accessibilityLabel={isGroupPolicyReport ? `/${navigationRoute}` : undefined}
+        >
+            #{mentionDisplayText}
+        </Text>
     );
 }
 

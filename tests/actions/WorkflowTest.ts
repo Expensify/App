@@ -19,7 +19,6 @@ jest.mock('@src/libs/WorkflowUtils', () => {
     const actual = jest.requireActual('@src/libs/WorkflowUtils');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         ...actual,
         calculateApprovers: jest.fn(),
     };
