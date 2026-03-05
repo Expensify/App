@@ -22,7 +22,7 @@ const EXPECTED_FAILURE_REASONS = new Set<MultifactorAuthenticationReason>([
     CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED,
 ]);
 
-type MfaFlowOutcomeContext = {
+type MFAFlowOutcomeContext = {
     isSuccessful: boolean;
     scenario: string | undefined;
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
@@ -33,7 +33,7 @@ type MfaFlowOutcomeContext = {
     softPromptApproved: boolean;
 };
 
-function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
+function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
     try {
         const isExpectedFailure = !context.isSuccessful && context.error?.reason !== undefined && EXPECTED_FAILURE_REASONS.has(context.error.reason);
 
@@ -81,8 +81,8 @@ function trackMfaFlowOutcome(context: MfaFlowOutcomeContext): void {
             Log.info(`[MFA] ${eventMessage}`, false, extra);
         }
     } catch (sentryError) {
-        Log.warn('[trackMfaFlowOutcome] Failed to track MFA flow outcome', {sentryError, originalContext: context});
+        Log.warn('[trackMFAFlowOutcome] Failed to track MFA flow outcome', {sentryError, originalContext: context});
     }
 }
 
-export default trackMfaFlowOutcome;
+export default trackMFAFlowOutcome;
