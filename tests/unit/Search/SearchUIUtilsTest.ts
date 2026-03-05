@@ -2,6 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
@@ -306,6 +307,29 @@ const policy = {
         },
     },
 } as OnyxTypes.Policy;
+
+const adminAvatarIcon = {
+    id: adminAccountID,
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Admin',
+    fallbackIcon: undefined,
+};
+
+const approverAvatarIcon = {
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    id: approverAccountID,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Approver',
+    fallbackIcon: undefined,
+};
+
+const policyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceU,
+    type: CONST.ICON_TYPE_WORKSPACE,
+    name: 'Unavailable workspace',
+    id: policyID,
+};
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -1100,6 +1124,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        isSubscriptAvatar: true,
         transactionCount: 1,
         transactions: [
             {
@@ -1210,6 +1237,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        isSubscriptAvatar: true,
         transactionCount: 1,
         transactions: [
             {
@@ -1319,6 +1349,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        primaryAvatar: approverAvatarIcon,
+        secondaryAvatar: adminAvatarIcon,
+        isSubscriptAvatar: false,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1503,6 +1536,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        isSubscriptAvatar: true,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -4376,6 +4412,108 @@ describe('SearchUIUtils', () => {
                 const data = makeSpendTestData({total: 0, transactionCount: 0, type: CONST.REPORT.TYPE.EXPENSE}, []);
                 const fields = getComputedFields(data);
                 expect(fields.isAllScanning).toBe(false);
+            });
+        });
+
+        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, isSubscriptAvatar)', () => {
+            const avatarTestReportID = 'avatar-test-report';
+            const avatarTestTxID = 'avatar-tx-1';
+
+            function makeAvatarTestData(reportOverrides: Partial<OnyxTypes.Report> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${avatarTestReportID}`]: {
+                        ...report1,
+                        reportID: avatarTestReportID,
+                        ownerAccountID: adminAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${avatarTestReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${avatarTestTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                        transactionID: avatarTestTxID,
+                        reportID: avatarTestReportID,
+                    },
+                };
+            }
+
+            function getAvatarFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === avatarTestReportID);
+                expect(item).toBeDefined();
+                return {
+                    primaryAvatar: item?.primaryAvatar,
+                    secondaryAvatar: item?.secondaryAvatar,
+                    isSubscriptAvatar: item?.isSubscriptAvatar,
+                };
+            }
+
+            it('should pre-compute primaryAvatar from the report owner personal details', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.primaryAvatar?.id).toBe(adminAccountID);
+                expect(fields.primaryAvatar?.type).toBe(CONST.ICON_TYPE_AVATAR);
+            });
+
+            it('should pre-compute secondaryAvatar as workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+                expect(fields.secondaryAvatar?.id).toBe(policyID);
+            });
+
+            it('should set isSubscriptAvatar=true for expense reports with a named workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.isSubscriptAvatar).toBe(true);
+            });
+
+            it('should set isSubscriptAvatar=true for IOU reports', () => {
+                const data = makeAvatarTestData({type: CONST.REPORT.TYPE.IOU, managerID: adminAccountID});
+                const fields = getAvatarFields(data);
+                // IOU reports return manager + owner icons, not subscript
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar).toBeDefined();
+            });
+
+            it('should use owner avatar from personalDetailsList when available', () => {
+                const data = makeAvatarTestData({ownerAccountID: receiverAccountID});
+                // Add receiver to personalDetailsList
+                data.personalDetailsList = {
+                    ...data.personalDetailsList,
+                    [receiverAccountID]: {
+                        accountID: receiverAccountID,
+                        avatar: 'https://example.com/receiver-avatar.png',
+                        displayName: 'Receiver',
+                        login: receiverEmail,
+                    },
+                };
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar?.id).toBe(receiverAccountID);
+                expect(fields.primaryAvatar?.source).toBe('https://example.com/receiver-avatar.png');
+            });
+
+            it('should produce stable avatar structure across identical calls', () => {
+                const data = makeAvatarTestData();
+                const fields1 = getAvatarFields(data);
+                const fields2 = getAvatarFields(data);
+                expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
+                expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
+                expect(fields1.isSubscriptAvatar).toBe(fields2.isSubscriptAvatar);
             });
         });
     });

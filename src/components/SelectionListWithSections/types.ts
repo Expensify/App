@@ -500,6 +500,15 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
+
+        /** Pre-computed primary avatar icon for the report */
+        primaryAvatar?: Icon;
+
+        /** Pre-computed secondary avatar icon for the report (workspace icon for subscript display) */
+        secondaryAvatar?: Icon;
+
+        /** Whether the avatar should be displayed as subscript (owner + workspace) */
+        isSubscriptAvatar?: boolean;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &

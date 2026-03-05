@@ -138,6 +138,7 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isSettled,
+    shouldReportShowSubscript,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
@@ -2281,6 +2282,9 @@ function getReportSections({
                     );
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
+                const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
+                const avatarIcons = getIcons(reportItem, formatPhoneNumber, data.personalDetailsList ?? {}, null, '', -1, policy, undefined, reportIsArchived);
+
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -2305,6 +2309,9 @@ function getReportSections({
                     nonReimbursableSpend,
                     reimbursableSpend,
                     isAllScanning: false,
+                    primaryAvatar: avatarIcons.at(0),
+                    secondaryAvatar: avatarIcons.at(1),
+                    isSubscriptAvatar: shouldReportShowSubscript(reportItem, reportIsArchived) && avatarIcons.length > 1 && !!avatarIcons.at(1)?.name,
                 };
 
                 if (isIOUReport) {
