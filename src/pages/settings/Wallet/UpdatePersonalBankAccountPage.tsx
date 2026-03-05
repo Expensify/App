@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatE164PhoneNumber} from '@libs/LoginUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,13 +60,20 @@ function UpdatePersonalBankAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [realPrivatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    // TEMP MOCK — simulate account missing all personal info for testing
+    const privatePersonalDetails = {
+        ...realPrivatePersonalDetails,
+        legalFirstName: '',
+        legalLastName: '',
+        phoneNumber: '',
+        addresses: [{street: '', city: '', state: '', zip: '', country: ''}],
+    };
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     useEffect(() => {
-        clearPersonalBankAccountErrors();
         clearPersonalBankAccount();
         clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
     }, []);

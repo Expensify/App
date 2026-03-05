@@ -277,13 +277,6 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
-                value: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.BANK_ACCOUNT_LIST,
                 value: bankAccountListRollback,
             },
