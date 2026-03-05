@@ -169,11 +169,18 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
  * Downloads a cached Travel Invoice Statement PDF.
  * Constructs a secure URL with encrypted auth token and triggers the download.
  */
-function downloadTravelInvoiceStatementPDF(translate: LocalizedTranslate, baseURL: string, fileName: string, startDate: string, endDate: string, currentUserEmail: string): Promise<void> {
+function downloadTravelInvoiceStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string,
+    startDate: string,
+    endDate: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
-    // @ts-expect-error -- For some reason Github typecheck run keeps failing with: Argument of type 'boolean' is not assignable to parameter of type 'string' even though locally I get no errors and the exact same code logic has no type issues in other files.
-    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '');
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
 /**

@@ -35,6 +35,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
     const {translate} = useLocalize();
     const {environment} = useEnvironment();
     const [travelInvoiceStatement] = useOnyx(ONYXKEYS.TRAVEL_INVOICE_STATEMENT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isGenerating = travelInvoiceStatement?.isGenerating ?? false;
@@ -168,15 +169,16 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         setIsDownloading(true);
 
         if (typeof travelInvoiceStatement?.[cacheKey] === 'string') {
-            // We already have a cached file for this statement, download it immediately
             const fileName = travelInvoiceStatement[cacheKey];
-            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '').finally(() => setIsDownloading(false));
+            downloadTravelInvoiceStatementPDF(translate, baseURL, fileName, startDate, endDate, currentUserPersonalDetails?.login ?? '', session?.encryptedAuthToken ?? '').finally(() =>
+                setIsDownloading(false),
+            );
             return;
         }
 
         // Request PDF generation — the useEffect will auto-download when it completes
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [baseURL, isGenerating, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, getDateRange, translate]);
+    }, [baseURL, isGenerating, travelInvoiceStatement, policyID, currentUserPersonalDetails?.login, session?.encryptedAuthToken, getDateRange, translate]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {
