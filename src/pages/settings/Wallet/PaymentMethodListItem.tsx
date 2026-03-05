@@ -183,8 +183,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 iconStyles={item.iconStyles}
                 badgeText={badgeText}
                 badgeIcon={badgeIcon}
-                isBadgeSuccess={isInSetupState ? true : undefined}
-                badgeError={isInLockedState ? true : undefined}
+                isBadgeSuccess={isInSetupState}
+                isBadgeError={isInLockedState}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 iconRight={isInSetupState ? undefined : item.iconRight}
                 shouldShowRightIcon={!showThreeDotsMenu && item.shouldShowRightIcon}

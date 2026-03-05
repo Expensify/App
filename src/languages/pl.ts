@@ -3208,8 +3208,7 @@ ${
         bbaAddedDescription: 'Jest gotowe do używania do płatności.',
         lockedBankAccount: 'Zablokowane konto bankowe',
         unlockBankAccount: 'Odblokuj konto bankowe',
-        youCantPayThis: 'Nie możesz zapłacić za ten raport, ponieważ masz',
-        tapBelow: 'Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.',
+        youCantPayThis: `Nie możesz zapłacić za ten raport, ponieważ masz <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">zablokowane konto bankowe</a>. Stuknij poniżej, a Concierge pomoże Ci w kolejnych krokach odblokowania.`,
         htmlUnlockMessage: (maskedAccountNumber: string) =>
             `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Dziękujemy za przesłanie prośby o odblokowanie konta bankowego. Wnioski o wypłatę mogą zostać odrzucone z powodu niewystarczających środków lub jeśli konto bankowe nie zostało aktywowane do polecenia zapłaty. Przeanalizujemy Twoją sprawę i skontaktujemy się z Tobą, jeśli będziemy potrzebować dodatkowych informacji w celu rozwiązania tego problemu.</p>`,
         textUnlockMessage: (maskedAccountNumber: string) =>
@@ -8331,6 +8330,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Wystąpił problem podczas synchronizacji połączenia przestrzeni roboczej',
             theresAProblemWithYourWallet: 'Wystąpił problem z Twoim portfelem',
             theresAProblemWithYourWalletTerms: 'Wystąpił problem z warunkami Twojego portfela',
+            aBankAccountIsLocked: 'Konto bankowe jest zablokowane',
         },
     },
     emptySearchView: {

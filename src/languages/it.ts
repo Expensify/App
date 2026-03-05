@@ -3218,8 +3218,7 @@ ${
         bbaAddedDescription: 'È pronto per essere utilizzato per i pagamenti.',
         lockedBankAccount: 'Conto bancario bloccato',
         unlockBankAccount: 'Sblocca conto bancario',
-        youCantPayThis: 'Non puoi pagare questo report perché hai un',
-        tapBelow: 'Tocca qui sotto e il Concierge ti aiuterà con i prossimi passi per sbloccarlo.',
+        youCantPayThis: `Non puoi pagare questo report perché hai un <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">conto bancario bloccato</a>. Tocca qui sotto e il Concierge ti aiuterà con i prossimi passi per sbloccarlo.`,
         htmlUnlockMessage: (maskedAccountNumber: string) =>
             `<h1>Expensify Business Bank Account ${maskedAccountNumber}</h1><p>Grazie per aver inviato una richiesta di sblocco del tuo conto bancario. Le richieste di prelievo possono essere rifiutate a causa di fondi insufficienti o se il conto bancario non è stato abilitato per l'addebito diretto. Esamineremo il tuo caso e ti contatteremo se avremo bisogno di ulteriori informazioni per risolvere questo problema.</p>`,
         textUnlockMessage: (maskedAccountNumber: string) =>
@@ -8368,6 +8367,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Si è verificato un problema durante la sincronizzazione della connessione dello spazio di lavoro',
             theresAProblemWithYourWallet: 'Si è verificato un problema con il tuo portafoglio',
             theresAProblemWithYourWalletTerms: 'C’è un problema con i termini del tuo portafoglio',
+            aBankAccountIsLocked: 'Un conto bancario è bloccato',
         },
     },
     emptySearchView: {

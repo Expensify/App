@@ -37,7 +37,6 @@ import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
-import type InitiatingBankAccountUnlock from '@src/types/onyx/InitiatingBankAccountUnlock';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -64,18 +63,6 @@ let bankAccountList: OnyxEntry<BankAccountList>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.BANK_ACCOUNT_LIST,
     callback: (value) => (bankAccountList = value),
-});
-
-let conciergeReportID: string | undefined;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => (conciergeReportID = value ?? undefined),
-});
-
-let initiatingBankAccountUnlockData: OnyxEntry<InitiatingBankAccountUnlock>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
-    callback: (value) => (initiatingBankAccountUnlockData = value),
 });
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
@@ -1507,9 +1494,8 @@ function openBankAccountSharePage() {
     });
 }
 
-function initiateBankAccountUnlock(bankAccountID: number) {
+function initiateBankAccountUnlock(bankAccountID: number, conciergeReportID: string | undefined, optimisticReportActionID: string | null | undefined) {
     const authToken = NetworkStore.getAuthToken();
-    const storedOptimisticReportActionID = initiatingBankAccountUnlockData?.optimisticReportActionID;
 
     const onyxData: OnyxData<typeof ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         optimisticData: [
@@ -1534,12 +1520,12 @@ function initiateBankAccountUnlock(bankAccountID: number) {
                     optimisticReportActionID: null,
                 },
             },
-            ...(storedOptimisticReportActionID && conciergeReportID
+            ...(optimisticReportActionID && conciergeReportID
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
                           key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
-                          value: {[storedOptimisticReportActionID]: null},
+                          value: {[optimisticReportActionID]: null},
                       },
                   ]
                 : []),
@@ -1554,12 +1540,12 @@ function initiateBankAccountUnlock(bankAccountID: number) {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
-            ...(storedOptimisticReportActionID && conciergeReportID
+            ...(optimisticReportActionID && conciergeReportID
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.MERGE,
                           key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}` as const,
-                          value: {[storedOptimisticReportActionID]: null},
+                          value: {[optimisticReportActionID]: null},
                       },
                   ]
                 : []),
@@ -1569,7 +1555,7 @@ function initiateBankAccountUnlock(bankAccountID: number) {
     return API.write(WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK, {bankAccountID, authToken}, onyxData);
 }
 
-function pressedOnLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate) {
+function pressLockedBankAccount(bankAccountID: number, translate: LocalizedTranslate, conciergeReportID: string | undefined) {
     let optimisticReportActionID: string | undefined;
 
     if (conciergeReportID) {
@@ -1668,5 +1654,5 @@ export {
     openBankAccountSharePage,
     clearShareBankAccountErrors,
     initiateBankAccountUnlock,
-    pressedOnLockedBankAccount,
+    pressLockedBankAccount,
 };

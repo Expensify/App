@@ -41,7 +41,7 @@ import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligible
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletTravelCVVSection from '@pages/settings/Wallet/TravelCVVPage/WalletTravelCVVSection';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressedOnLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
@@ -76,6 +76,8 @@ function WalletPage() {
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -126,8 +128,8 @@ function WalletPage() {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
-            pressedOnLockedBankAccount(accountData?.bankAccountID, translate);
-            navigateToConciergeChat(undefined);
+            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined);
+            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserPersonalDetails.accountID);
             return;
         }
 

@@ -60,6 +60,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithYourWallet';
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return 'debug.indicatorStatus.aBankAccountIsLocked';
         default:
             return undefined;
     }
@@ -93,6 +95,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
+            return ROUTES.SETTINGS_WALLET;
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
         default:
             return undefined;

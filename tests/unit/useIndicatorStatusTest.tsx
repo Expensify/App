@@ -112,6 +112,12 @@ const TEST_CASES = {
         policyIDWithErrors: undefined,
     },
     hasPolicyAdminCardFeedErrors: cardFeedErrorTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+        policyIDWithErrors: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -209,6 +215,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                     status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR
                         ? {
                               error: 'Something went wrong',
+                          }
+                        : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
                           }
                         : undefined,
             },

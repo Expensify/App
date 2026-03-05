@@ -8,12 +8,13 @@ import useOnyx from './useOnyx';
 
 function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {
     const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     useEffect(() => {
         if (!isConciergeChatReport(report) || !initiatingBankAccountUnlock?.bankAccountIDToUnlock) {
             return;
         }
-        initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock);
+        initiateBankAccountUnlock(initiatingBankAccountUnlock.bankAccountIDToUnlock, conciergeReportID ?? undefined, initiatingBankAccountUnlock.optimisticReportActionID);
         // We only want to re-fire when reportID changes, not on every report field update
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initiatingBankAccountUnlock?.bankAccountIDToUnlock, report?.reportID]);

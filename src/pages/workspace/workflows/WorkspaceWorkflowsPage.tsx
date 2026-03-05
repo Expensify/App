@@ -17,6 +17,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -58,7 +59,7 @@ import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRules
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {pressedOnLockedBankAccount} from '@userActions/BankAccounts';
+import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -97,6 +98,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isUserReimburser = policy?.achAccount?.reimburser !== undefined && account?.primaryLogin !== undefined && policy?.achAccount?.reimburser === account?.primaryLogin;
     const {approvalWorkflows, availableMembers, usedApproverEmails} = convertPolicyEmployeesToApprovalWorkflows({
         policy,
@@ -418,8 +422,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         }
                                         // User who is reimburser can initiate unlocking process
                                         if (state === CONST.BANK_ACCOUNT.STATE.LOCKED && bankAccountID && isUserReimburser) {
-                                            pressedOnLockedBankAccount(bankAccountID, translate);
-                                            navigateToConciergeChat(undefined);
+                                            pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined);
+                                            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID);
                                             return;
                                         }
 
@@ -443,8 +447,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                     badgeText={getBadgeText(accountData?.state)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT}
                                     badgeIcon={isAccountInSetupState || (isBusinessBankAccountLocked && isPolicyAdmin) ? expensifyIcons.DotIndicator : undefined}
-                                    isBadgeSuccess={isAccountInSetupState ? true : undefined}
-                                    badgeError={isBusinessBankAccountLocked && isPolicyAdmin ? true : undefined}
+                                    isBadgeSuccess={isAccountInSetupState}
+                                    isBadgeError={isBusinessBankAccountLocked && isPolicyAdmin}
                                     shouldShowRightIcon
                                     shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
                                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
@@ -557,6 +561,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         hasValidExistingAccounts,
         shouldShowContinueModal,
         confirmCurrencyChangeAndHideModal,
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
