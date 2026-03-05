@@ -68,12 +68,13 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector, canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
@@ -81,7 +82,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
-    const [report] = useOnyx(reportKey, {canBeMissing: true});
+    const [report] = useOnyx(reportKey);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -109,7 +110,6 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -162,7 +162,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
     if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID}));
+        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected}));
     }
 
     return (
@@ -181,6 +181,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
                                     <Avatar

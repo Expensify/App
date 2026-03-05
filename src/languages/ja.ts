@@ -17,7 +17,7 @@ import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
-import type {OriginalMessageSettlementAccountLocked, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
     AddBudgetParams,
@@ -65,8 +65,11 @@ import type {
     UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoriesParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitSubRateParams,
     UpdatedPolicyDefaultTitleParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyOwnershipParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -209,6 +212,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lastName: '姓',
         scanning: 'スキャン中',
         analyzing: '分析中…',
+        thinking: 'Concierge が考えています...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話',
@@ -391,6 +395,7 @@ const translations: TranslationDeepObject<typeof en> = {
         card: 'カード',
         whyDoWeAskForThis: 'なぜこの情報が必要なのですか？',
         required: '必須',
+        automatic: '自動',
         showing: '表示中',
         of: 'の',
         default: 'デフォルト',
@@ -510,6 +515,8 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'ご注意ください！',
         submitTo: '提出先',
         forwardTo: '転送先',
+        approvalLimit: '承認限度額',
+        overLimitForwardTo: '限度額超過時の転送先',
         merge: 'マージ',
         none: 'なし',
         unstableInternetConnection: 'インターネット接続が不安定です。ネットワークを確認して、もう一度お試しください。',
@@ -530,6 +537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         exchangeRate: '為替レート',
         reimbursableTotal: '精算対象合計',
         nonReimbursableTotal: '未払い対象外の合計',
+        opensInNewTab: '新しいタブで開きます',
         locked: 'ロックされています',
         month: '月',
         week: '週',
@@ -537,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '四半期',
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
+        duplicateReport: 'レポートを複製',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -544,6 +553,10 @@ const translations: TranslationDeepObject<typeof en> = {
         instagram: 'Instagramでフォロー',
         facebook: 'Facebookでフォロー',
         linkedin: 'LinkedInでフォロー',
+    },
+    concierge: {
+        collapseReasoning: '推論を折りたたむ',
+        expandReasoning: '推論を展開',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -640,6 +653,30 @@ const translations: TranslationDeepObject<typeof en> = {
         signIn: 'もう一度サインインしてください。',
     },
     multifactorAuthentication: {
+        reviewTransaction: {
+            reviewTransaction: '取引を確認',
+            pleaseReview: 'この取引を確認してください',
+            requiresYourReview: 'Expensifyカードの取引が、以下の内容であなたの確認を必要としています。',
+            transactionDetails: '取引の詳細',
+            deny: '拒否',
+            approve: '承認',
+            denyTransaction: '取引を却下',
+            transactionDenied: '取引が拒否されました',
+            transactionApproved: '取引が承認されました！',
+            areYouSureToDeny: 'よろしいですか？この画面を閉じると、その取引は拒否されます。',
+            youCanTryAgainAtMerchantOrReachOut:
+                '加盟店でもう一度お試しください。もしこの取引に心当たりがない場合は、不正の可能性がありますので、<concierge-link>Concierge に連絡してください</concierge-link>。',
+            youNeedToTryAgainAtMerchant: 'この取引は未認証のため、拒否されました。再度加盟店でお試しください。',
+            goBackToTheMerchant: '取引を続行するには、加盟店のサイトに戻ってください。',
+            attemptedTransaction: '試行された取引',
+            transactionFailed: '取引に失敗しました',
+            transactionCouldNotBeCompleted: '取引を完了できませんでした。加盟店で再度お試しください。',
+            transactionCouldNotBeCompletedReachOut:
+                '取引を完了できませんでした。心当たりのない取引の場合は、不正の可能性がありますので、<concierge-link>Conciergeに連絡してください</concierge-link>。',
+            reviewFailed: 'レビューに失敗しました',
+            alreadyReviewedSubtitle:
+                'この取引はすでに確認済みです。問題がある場合は、<transaction-history-link>取引履歴</transaction-history-link>をご確認いただくか、<concierge-link>Concierge</concierge-link>までご連絡ください。',
+        },
         biometricsTest: {
             biometricsTest: '生体認証テスト',
             authenticationSuccessful: '認証に成功しました',
@@ -690,7 +727,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
-            pleaseDownloadMobileApp: `<centered-text><muted-text> この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。</muted-text></centered-text>`,
+            pleaseDownloadMobileApp: `この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。`,
         },
         verificationFailed: '認証に失敗しました',
     },
@@ -866,8 +903,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: '共同操縦者として',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `選択した頻度で提出できなかった、<a href="${reportUrl}">${reportName}</a> のすべての経費を保持するためにこのレポートを作成しました`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `<a href="${reportUrl}">${reportName}</a> から保留中の経費を対象としてこのレポートを作成しました`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `削除されたレポート #${reportID} に保留されていた経費のためにこのレポートを作成しました`
+                : `<a href="${reportUrl}">${reportName}</a> の保留中経費すべてに対してこのレポートを作成しました`,
     },
     mentionSuggestions: {
         hereAlternateText: 'この会話の全員に通知',
@@ -933,6 +972,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
             },
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
@@ -943,20 +983,17 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaFix: '修正',
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `${feedName} 会社カード接続を修正` : '法人クレジットカードの接続を修正'),
-                defaultSubtitle: 'ワークスペース > 会社カード',
+                defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会社カード`,
             },
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `${integrationName} 接続を修正`,
-                defaultSubtitle: 'ワークスペース > 会計',
+                defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
-            fixPersonalCardConnection: {
-                title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'),
-                subtitle: 'ウォレット > 割り当てられたカード',
-            },
+            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
         },
-        assignedCards: '割り当て済みカード',
+        assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
         announcements: 'お知らせ',
         discoverSection: {
@@ -972,11 +1009,49 @@ const translations: TranslationDeepObject<typeof en> = {
             export: ({count}: {count: number}) => `${count} 件の ${count === 1 ? 'レポート' : 'レポート'} をエクスポート`,
             begin: '開始',
             emptyStateMessages: {
-                nicelyDone: 'よくできました',
-                keepAnEyeOut: '次に何が起こるか楽しみにしていてください！',
-                allCaughtUp: 'すべて確認済みです',
-                upcomingTodos: '今後のTo-doはここに表示されます。',
+                thumbsUpStarsTitle: '完了しました！',
+                thumbsUpStarsDescription: 'この調子です！新しいタスクをお楽しみに。',
+                smallRocketTitle: 'すべて確認済みです',
+                smallRocketDescription: '今後の To-do がここに表示されます。',
+                cowboyHatTitle: '完了しました！',
+                cowboyHatDescription: 'すべてのタスクが片付きました。次のタスクにご注目ください。',
+                trophy1Title: '表示するものがありません',
+                trophy1Description: 'やりました！次の To-do にご注目ください。',
+                palmTreeTitle: 'すべて確認済みです',
+                palmTreeDescription: 'ひと息つく時間ですが、今後のタスクをお楽しみに。',
+                fishbowlBlueTitle: '完了しました！',
+                fishbowlBlueDescription: '今後のタスクがここに表示されます。',
+                targetTitle: 'すべて確認済みです',
+                targetDescription: '目標どおりですね。次のタスクをまた確認してください！',
+                chairTitle: '表示するものがありません',
+                chairDescription: 'ゆっくりおくつろぎください。今後のやることリストはこちらに表示します。',
+                broomTitle: '完了しました！',
+                broomDescription: 'タスクは順調です。新しい To-do をお楽しみに。',
+                houseTitle: 'すべて確認済みです',
+                houseDescription: 'ここが今後のやることのホームベースです。',
+                conciergeBotTitle: '表示するものがありません',
+                conciergeBotDescription: 'ピッピッ、ブッブッ。次のタスクをまた確認してください！',
+                checkboxTextTitle: 'すべて確認済みです',
+                checkboxTextDescription: 'ここで今後のやることにチェックを付けましょう。',
+                flashTitle: '完了しました！',
+                flashDescription: '今後のタスクをここでサッと表示します。',
+                sunglassesTitle: '表示するものがありません',
+                sunglassesDescription: 'ひと休みするときですが、次の予定をお楽しみに！',
+                f1FlagsTitle: 'すべて確認済みです',
+                f1FlagsDescription: 'すべての未処理の To-do が完了しました。',
+                fireworksTitle: 'すべて確認済みです',
+                fireworksDescription: '今後のやることがここに表示されます。',
             },
+        },
+        upcomingTravel: '今後の出張',
+        upcomingTravelSection: {
+            flightTo: ({destination}: {destination: string}) => `${destination} 行きのフライト`,
+            trainTo: ({destination}: {destination: string}) => `${destination} 行きの電車`,
+            hotelIn: ({destination}: {destination: string}) => `${destination}のホテル`,
+            carRentalIn: ({destination}: {destination: string}) => `${destination}でのレンタカー`,
+            inOneWeek: '1週間後',
+            inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
+            today: '今日',
         },
     },
     allSettingsScreen: {
@@ -1070,6 +1145,7 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
         scanFailed: 'このレシートは、店舗名、日付、または金額が不足しているためスキャンできませんでした。',
+        crop: 'トリミング',
         addAReceipt: {
             phrase1: '領収書を追加',
             phrase2: 'または、ここにファイルをドラッグ＆ドロップしてください',
@@ -1166,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pendingMatchWithCreditCardDescription: 'レシートはカード取引との照合待ちです。現金としてマークしてキャンセルします。',
         markAsCash: '現金としてマーク',
         routePending: 'ルート保留中…',
+        automaticallyEnterExpenseDetails: 'コンシェルジュが自動的に経費の詳細を入力するか、手動で追加することができます。',
         receiptScanning: () => ({
             one: 'レシートをスキャンしています…',
             other: 'レシートをスキャンしています…',
@@ -1303,6 +1380,10 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidDistance: '続行する前に有効な距離を入力してください',
             invalidReadings: '開始値と終了値の両方を入力してください',
             negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
+            distanceAmountTooLarge: '合計金額が大きすぎます。距離を減らすか、レートを下げてください。',
+            distanceAmountTooLargeReduceDistance: '合計金額が大きすぎます。距離を減らしてください。',
+            distanceAmountTooLargeReduceRate: '合計金額が大きすぎます。レートを下げてください。',
+            odometerReadingTooLarge: (formattedMax: string) => `オドメーターの読み取り値は${formattedMax}を超えることはできません。`,
             invalidIntegerAmount: '続行する前にドルの整数金額を入力してください',
             invalidTaxAmount: (amount: string) => `最大税額は${amount}です`,
             invalidSplit: '分割した金額の合計は合計金額と一致している必要があります',
@@ -1359,6 +1440,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を保留している理由を説明してください。',
             other: 'これらの経費を保留している理由を説明してください。',
         }),
+        explainHoldApprover: () => ({
+            one: 'この経費を承認する前に必要なことを説明してください。',
+            other: 'これらの経費を承認する前に必要なことを説明してください。',
+        }),
         retracted: '取り消し済み',
         retract: '撤回',
         reopened: '再開しました',
@@ -1371,10 +1456,17 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseOnHold: 'この経費は保留されています。今後の手順についてコメントを確認してください。',
         expensesOnHold: 'すべての経費が保留になっています。次のステップについてはコメントを確認してください。',
         expenseDuplicate: 'この経費は別の経費と詳細がよく似ています。続行するには重複しているものを確認してください。',
-        someDuplicatesArePaid: 'これらの重複のうち、いくつかはすでに承認または支払い済みです。',
+        someDuplicatesArePaid: 'これらの重複の一部は、すでに承認または支払い済みです。',
         reviewDuplicates: '重複を確認',
         keepAll: 'すべて保持',
-        confirmApprovalWithHeldAmount: 'レポートには保留中の経費が含まれています。準拠している経費のみを承認しますか、それともレポート全体を承認しますか？',
+        noDuplicatesTitle: '準備完了！',
+        noDuplicatesDescription: '確認が必要な重複取引はありません。',
+        confirmApprove: '承認金額を確認',
+        confirmApprovalAmount: '準拠している経費のみを承認するか、レポート全体を承認します。',
+        confirmApprovalAllHoldAmount: () => ({
+            one: 'この経費は保留中です。それでも承認しますか？',
+            other: 'これらの経費は保留中です。それでも承認しますか？',
+        }),
         confirmPay: '支払金額を確認',
         confirmPayAmount: '保留されていない金額のみ支払うか、レポート全額を支払ってください。',
         confirmPayAllHoldAmount: () => ({
@@ -1446,7 +1538,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: '保留中の経費は、レポート全体を承認してもそのまま残ります。',
             rejectExpenseTitle: '承認や支払いを行う予定のない経費を却下します。',
             reasonPageTitle: '経費を却下',
-            reasonPageDescription: 'この経費を却下する理由を説明してください。',
+            reasonPageDescription: 'この経費を承認しない理由を説明してください。',
             rejectReason: '却下理由',
             markAsResolved: '解決済みにする',
             rejectedStatus: 'この経費は却下されました。問題を修正して解決済みにすると、再提出できるようになります。',
@@ -1455,7 +1547,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '却下理由を解決済みにしました',
             },
         },
-        moveExpenses: () => ({one: '経費を移動', other: '経費を移動'}),
+        moveExpenses: 'レポートに移動',
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         changeApprover: {
             title: '承認者を変更',
@@ -1482,18 +1574,25 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: '合計金額が大きすぎます。時間を減らすか、レートを下げてください。',
         },
         correctRateError: 'レートのエラーを修正して、もう一度お試しください。',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
-        policyRulesModifiedFields: {
-            reimbursable: (value: boolean) => (value ? '経費を「精算対象」としてマークしました' : '経費を「非精算」としてマークしました'),
+        AskToExplain: `・<a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>説明</strong></a> &#x2728;`,
+        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
+        rulesModifiedFields: {
+            reimbursable: (value: boolean) => (value ? '経費を「精算対象」に指定しました' : '経費を「精算対象外」にマークしました'),
             billable: (value: boolean) => (value ? '経費を「請求可能」に設定しました' : '経費を「請求不可」としてマークしました'),
             tax: (value: string, isFirst: boolean) => (isFirst ? `税率を「${value}」に設定する` : `税率を「${value}」に`),
-            common: (key: keyof PolicyRulesModifiedFields, value: string, isFirst: boolean) => {
+            reportName: (value: string) => `この経費をレポート「${value}」に移動しました`,
+            common: (key: keyof PolicyRulesModifiedFields | keyof PersonalRulesModifiedFields, value: string, isFirst: boolean) => {
                 const field = translations.common[key].toLowerCase();
                 return isFirst ? `${field} を「${value}」に設定する` : `${field} から「${value}」へ`;
             },
-            format: (fragments: string, route: string) => `${fragments}（<a href="${route}">ワークスペースルール</a>経由）`,
+            formatPersonalRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">個人経費ルール</a> 経由)`,
+            formatPolicyRules: (fragments: string, route: string) => `${fragments} (<a href="${route}">ワークスペースルール</a> 経由)`,
         },
-        duplicateNonDefaultWorkspacePerDiemError: 'ワークスペースごとに日当レートが異なる場合があるため、日当経費をワークスペース間で複製することはできません。',
+        failedToAutoSubmitViaDEW: (reason: string) => `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を使ったレポートの送信に失敗しました。${reason}`,
+        failedToSubmitViaDEW: (reason: string) => `レポートの送信に失敗しました。${reason}`,
+        failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
+        failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
+        cannotDuplicateDistanceExpense: '距離精算はワークスペースごとにレートが異なる可能性があるため、ワークスペース間で複製することはできません。',
     },
     transactionMerge: {
         listPage: {
@@ -1745,6 +1844,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新しい連絡方法',
         goBackContactMethods: '連絡方法に戻る',
+        yourDefaultContactMethodRestrictedSwitch: 'これは現在のデフォルトの連絡方法です。会社により、これを削除または変更することは制限されています。',
     },
     pronouns: {
         coCos: '会社 / コスト',
@@ -1930,6 +2030,8 @@ const translations: TranslationDeepObject<typeof en> = {
         domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン全体のすべての Expensify カードの利用と管理者による操作も一時停止されます。',
         areYouSure: 'Expensify アカウントをロックしてもよろしいですか？',
         onceLocked: 'ロックされると、解除リクエストとセキュリティ審査が完了するまでアカウントは制限されます',
+        unlockTitle: 'リクエストを受け付けました',
+        unlockDescription: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -3854,8 +3956,11 @@ ${
             clearFilter: 'フィルターをクリア',
             workspaceName: 'ワークスペース名',
             workspaceOwner: 'オーナー',
+            keepMeAsAdmin: '管理者のままにする',
             workspaceType: 'ワークスペースの種類',
             workspaceAvatar: 'ワークスペースのアバター',
+            clientID: 'クライアントID',
+            clientIDInputHint: 'クライアントの一意の識別子を入力してください',
             mustBeOnlineToViewMembers: 'このワークスペースのメンバーを表示するには、オンライン接続が必要です。',
             moreFeatures: 'その他の機能',
             requested: 'リクエスト済み',
@@ -4205,6 +4310,9 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            travelInvoicing: '出張請求書作成',
+            travelInvoicingVendor: '出張業者',
+            travelInvoicingPayableAccount: '旅費未払勘定',
         },
         workspaceList: {
             joinNow: '今すぐ参加',
@@ -5095,6 +5203,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     },
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
                 },
+                personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
             expensifyCard: {
                 title: 'Expensify カード',
@@ -6277,6 +6386,7 @@ ${reportName}
                 adultEntertainment: 'アダルトエンターテインメント',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
+                requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
             },
             expenseReportRules: {
                 title: '詳細設定',
@@ -6729,6 +6839,9 @@ ${reportName}
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `認可された支払者を「${newReimburser}」（以前は「${previousReimburser}」）に変更しました` : `承認済み支払担当者を「${newReimburser}」に変更しました`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'}件の精算`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `カスタム税区分名を「${newName}」（以前は「${oldName}」）に変更しました`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `ワークスペースの通貨デフォルト税率を「${newName}」（以前は「${oldName}」）に変更しました`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `外貨のデフォルト税率を「${newName}」に変更しました（以前は「${oldName}」）。`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税金「${taxName}」を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -7012,6 +7125,8 @@ ${reportName}
         groupColumns: '列をグループ化',
         expenseColumns: '経費列',
         statements: 'ステートメント',
+        cardStatements: 'カード明細',
+        monthlyAccrual: '月次発生',
         unapprovedCash: '未承認の現金',
         unapprovedCard: '未承認のカード',
         reconciliation: '照合',
@@ -7108,12 +7223,7 @@ ${reportName}
         },
         has: '持っている',
         groupBy: 'グループ化基準',
-        view: {
-            label: '表示',
-            table: 'テーブル',
-            bar: 'バー',
-            line: '折れ線',
-        },
+        view: {label: '表示', table: 'テーブル', bar: 'バー', line: '折れ線', pie: '円グラフ'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -7292,6 +7402,10 @@ ${reportName}
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify カードの精算に問題が発生したため自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
+                actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
+                    const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
+                    return `Expensify モバイルアプリを開いて、${amountAndMerchantText && `${amountAndMerchantText} `}の取引を確認してください`;
+                },
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
@@ -7345,6 +7459,9 @@ ${reportName}
         scrollToNewestMessages: '最新のメッセージまでスクロール',
         preStyledText: '事前にスタイル設定されたテキスト',
         viewAttachment: '添付ファイルを表示',
+        selectAllFeatures: 'すべての機能を選択',
+        selectAllTransactions: 'すべての取引を選択',
+        selectAllItems: 'すべての項目を選択',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',
@@ -7460,10 +7577,12 @@ ${reportName}
             endTitle: '走行距離計（終了時）の写真',
             deleteOdometerPhoto: '走行距離計の写真を削除',
             deleteOdometerPhotoConfirmation: 'この走行距離計の写真を削除してもよろしいですか？',
+            cameraAccessRequired: '写真を撮影するにはカメラへのアクセス権限が必要です。',
+            snapPhotoStart: '<muted-text-label>移動を<strong>開始</strong>するときに、走行距離計の写真を撮影してください。</muted-text-label>',
+            snapPhotoEnd: '<muted-text-label>走行の<strong>終了時</strong>に、オドメーターの写真を撮影してください。</muted-text-label>',
         },
     },
     gps: {
-        disclaimer: 'GPSを使用して移動履歴から経費を作成しましょう。追跡を開始するには、下の「開始」をタップしてください。',
         error: {
             failedToStart: '位置情報の追跡を開始できませんでした。',
             failedToGetPermissions: '必要な位置情報の権限を取得できませんでした。',
@@ -8176,6 +8295,7 @@ ${reportName}
         outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費を絞り込む</tooltip>',
         scanTestDriveTooltip: '<tooltip>このレシートを送信して\n<strong>試用を完了しましょう！</strong></tooltip>',
         gpsTooltip: '<tooltip>GPS追跡を実行中です！完了したら、下で追跡を停止してください。</tooltip>',
+        hasFilterNegation: '<tooltip><strong>-has:receipt</strong> を使って、レシートのない経費を検索します。</tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
@@ -8347,7 +8467,7 @@ ${reportName}
             resetDomain: 'ドメインをリセット',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `ドメインのリセットを確認するため、<strong>${domainName}</strong> と入力してください。`,
             enterDomainName: 'ここにドメイン名を入力してください',
-            resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <ul><li>会社カードの接続と、そのカードの未報告精算</li> <li>SAML およびグループ設定</li> </ul> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
+            resetDomainInfo: `この操作は<strong>元に戻せません</strong>。次のデータが削除されます：<br/> <bullet-list><bullet-item>会社カードの接続と、そのカードの未報告精算</bullet-item><bullet-item>SAML およびグループ設定</bullet-item></bullet-list> すべてのアカウント、ワークスペース、レポート、経費、およびその他のデータは保持されます。<br/><br/>注：<a href="#">連絡方法</a>から関連付けられているメールアドレスを削除すると、このドメインをドメイン一覧から消去できます。`,
         },
         domainMembers: 'ドメインメンバー',
         members: {
@@ -8366,23 +8486,35 @@ ${reportName}
                 other: 'アカウントを安全に閉じる',
             }),
             closeAccountInfo: () => ({
-                one: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
-                other: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <ul><li>保留中の承認</li><li>進行中の払い戻し</li><li>代替ログイン方法なし</li></ul>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
+                one: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <bullet-list><bullet-item>保留中の承認</bullet-item><bullet-item>進行中の払い戻し</bullet-item><bullet-item>代替ログイン方法なし</bullet-item></bullet-list>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
+                other: '保留中の承認、処理中の精算、代替ログイン方法がない場合などでもアカウントを閉鎖できるように、安全にアカウントを閉鎖することを推奨します: <bullet-list><bullet-item>保留中の承認</bullet-item><bullet-item>進行中の払い戻し</bullet-item><bullet-item>代替ログイン方法なし</bullet-item></bullet-list>それ以外の場合は、上記の安全上の注意を無視して、選択したアカウントを強制的に閉鎖できます。',
             }),
             error: {
                 removeMember: 'このユーザーを削除できません。もう一度お試しください。',
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
             },
+            cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `本当によろしいですか？これにより、<strong>${email}</strong> さんのアカウントがロックされます。<br /><br />その後、当社のチームがアカウントを確認し、不正アクセスを削除します。アクセスを回復するには、Concierge と連携して対応してもらう必要があります。`,
+            reportSuspiciousActivityConfirmationPrompt: 'アカウントが安全にロック解除できることを確認するために審査し、質問がある場合はConciergeを通じてご連絡します。',
+        },
+        common: {
+            settings: '設定',
             forceTwoFactorAuth: '2要素認証を必須にする',
             forceTwoFactorAuthSAMLEnabledDescription: (samlPageUrl: string) =>
                 `<muted-text>2 要素認証を必須にするには、<a href="${samlPageUrl}">SAML</a> を無効にしてください。</muted-text>`,
             forceTwoFactorAuthDescription: `<muted-text>このドメインのすべてのメンバーに二要素認証を必須にします。ドメインメンバーは、サインイン時に自分のアカウントで二要素認証を設定するよう求められます。</muted-text>`,
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
-            cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
+            resetTwoFactorAuth: '2 要素認証をリセット',
         },
-        common: {settings: '設定'},
         groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
+    },
+    proactiveAppReview: {
+        title: '新しい Expensify をお楽しみいただけていますか？',
+        description: '経費精算の体験をさらに良くできるよう、お知らせください。',
+        positiveButton: 'やった！',
+        negativeButton: 'そうでもありません',
     },
 };
 export default translations;

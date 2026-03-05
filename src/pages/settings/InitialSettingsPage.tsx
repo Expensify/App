@@ -13,6 +13,7 @@ import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TopBar from '@components/Navigation/TopBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -43,6 +44,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -88,6 +90,9 @@ type MenuData = WithSentryLabel & {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
+    isBadgeSuccess?: boolean;
+    isBadgeStrong?: boolean;
+    isBadgeCondensed?: boolean;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -110,24 +115,24 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Wallet',
         'Bolt',
     ] as const);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const allCards = useNonPersonalCardList();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
-    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
-    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
-    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
-    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING);
+    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
+    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -139,14 +144,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
-    const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
 
     const freeTrialText = getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -292,7 +297,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,
-            badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
+            isBadgeSuccess: !!freeTrialText,
+            isBadgeCondensed: !!freeTrialText,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
         });
@@ -455,6 +461,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             iconStyles={item.iconStyles}
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
+                            isBadgeSuccess={item.isBadgeSuccess}
+                            isBadgeStrong={item.isBadgeStrong}
+                            isBadgeCondensed={item.isBadgeCondensed}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
                             shouldStackHorizontally={item.shouldStackHorizontally}
@@ -477,10 +486,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const accountMenuItems = getMenuItemsSection(accountMenuItemsData);
     const generalMenuItems = getMenuItemsSection(generalMenuItemsData);
 
+    const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'InitialSettingsPage',
+        isPersonalDetailsEmpty,
+    };
+
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
-            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
+            {isPersonalDetailsEmpty ? (
+                <AccountSwitcherSkeletonView
+                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
+                    reasonAttributes={skeletonReasonAttributes}
+                />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
@@ -542,6 +560,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldEnableKeyboardAvoidingView={false}
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            {shouldUseNarrowLayout && (
+                <TopBar
+                    breadcrumbLabel={translate('initialSettingsPage.account')}
+                    shouldDisplaySearch
+                    shouldDisplayHelpButton
+                />
+            )}
             {headerContent}
             <ScrollView
                 ref={scrollViewRef}

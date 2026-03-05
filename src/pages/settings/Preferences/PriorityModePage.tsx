@@ -23,7 +23,7 @@ type PriorityModeItem = {
 
 function PriorityModePage() {
     const {translate} = useLocalize();
-    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const styles = useThemeStyles();
     const priorityModes = Object.values(CONST.PRIORITY_MODE).map<PriorityModeItem>((mode) => ({
         value: mode,

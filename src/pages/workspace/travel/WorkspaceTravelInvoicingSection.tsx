@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import ConfirmModal from '@components/ConfirmModal';
@@ -19,6 +19,7 @@ import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {
     getIsTravelInvoicingEnabled,
@@ -55,12 +56,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
 
+    // Ref to track if we should auto-resume the toggle flow after returning from TravelLegalNamePage
+    const shouldResumeToggleRef = useRef(false);
+
     // For Travel Invoicing, we use a travel-specific card settings key
     // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID), {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     // Use pure selectors to derive state
     const hasSettlementAccount = hasTravelInvoicingSettlementAccount(cardSettings);
@@ -115,6 +120,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      * When turning OFF: show confirmation modal, then call toggleTravelInvoicing(false).
      */
     const handleToggle = (isEnabled: boolean) => {
+        // Check if user is on a public domain - Travel Invoicing requires a private domain
+        if (account?.isFromPublicDomain) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
             if (hasOutstandingTravelBalance(cardSettings)) {
@@ -127,9 +138,9 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Check if user is on a public domain - Travel Invoicing requires a private domain
-        if (account?.isFromPublicDomain) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeToggleRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policyID));
             return;
         }
 
@@ -161,6 +172,19 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
         setIsDisableConfirmModalVisible(false);
         toggleTravelInvoicing(policyID, workspaceAccountID, false);
     };
+
+    // Auto-resume the toggle flow after returning from TravelLegalNamePage
+    // When the user saves their legal name and navigates back, privatePersonalDetails updates
+    // and this effect re-triggers handleToggle(true) to continue the enabling flow
+    useEffect(() => {
+        if (!shouldResumeToggleRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            return;
+        }
+
+        shouldResumeToggleRef.current = false;
+        handleToggle(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
+    }, [privatePersonalDetails]);
 
     const getCentralInvoicingSubtitle = () => {
         if (!isTravelInvoicingEnabled) {

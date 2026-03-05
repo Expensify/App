@@ -18,8 +18,8 @@ import {useTravelCVV} from './TravelCVVContextProvider';
  */
 function TravelCVVVerifyAccountPage() {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [cardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
     // Get state and actions from context
     const {isLoading, validateError, setCvv, setIsLoading, setValidateError} = useTravelCVV();
@@ -39,7 +39,6 @@ function TravelCVVVerifyAccountPage() {
         setIsLoading(true);
 
         // Call revealVirtualCardDetails and only extract CVV
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         revealVirtualCardDetails(+travelCard.cardID, validateCode)
             .then((cardDetails) => {
                 // Only store CVV - never persist PAN or other details

@@ -1156,10 +1156,10 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
-    if (!policy?.hasMultipleTagLists) {
+    if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -1564,6 +1564,30 @@ function getValidConnectedIntegration(policy: Policy | undefined, accountingInte
     );
 }
 
+/**
+ * Returns a set of connected integration names for the given policies.
+ * @param policies - Collection of policies to get connected integrations.
+ * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
+ */
+function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyIDs?: string[]): Set<string> {
+    if (!policies) {
+        return new Set();
+    }
+
+    const connectedIntegrationNames = new Set<string>();
+    const hasWorkspaceFilter = policyIDs && policyIDs.length > 0;
+    const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
+
+    for (const policy of policiesToCheck) {
+        const connectedIntegration = getValidConnectedIntegration(policy);
+        if (connectedIntegration) {
+            connectedIntegrationNames.add(connectedIntegration);
+        }
+    }
+
+    return connectedIntegrationNames;
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1929,6 +1953,7 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
+    getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,

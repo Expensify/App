@@ -58,13 +58,12 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
@@ -195,6 +194,7 @@ function WorkspaceReportFieldsPage({
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 />
                 {isLoading && (
