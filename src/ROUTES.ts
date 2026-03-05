@@ -529,7 +529,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
@@ -1423,7 +1422,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
@@ -2650,8 +2648,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
         route: 'workspaces/:policyID/distance-rates/new/upgrade',
-        getRoute: (policyID: string, transactionID?: string, reportID?: string, iouType?: string, action?: string) =>
-            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}${iouType ? `&iouType=${iouType}` : ''}${action ? `&action=${action}` : ''}` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',

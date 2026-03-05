@@ -185,7 +185,6 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
     if (shouldUseScrollView) {
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
     return <View style={contentContainerStyle}>{children}</View>;
 };
 
@@ -389,12 +388,10 @@ function BasePopoverMenu({
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
         return (
             <OfflineWithFeedback
-                // eslint-disable-next-line react/no-array-index-key
                 key={key ?? `${item.text}_${menuIndex}`}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
-                    // eslint-disable-next-line react/no-array-index-key
                     key={key ?? `${item.text}_${menuIndex}`}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
