@@ -854,7 +854,6 @@ function buildAddMembersToWorkspaceOnyxData(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
 ) {
     const policyID = policy.id;
@@ -886,7 +885,7 @@ function buildAddMembersToWorkspaceOnyxData(
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role,
-            submitsTo: approverEmail ?? getDefaultApprover(policy),
+            submitsTo: getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -986,7 +985,6 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    approverEmail?: string,
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -998,11 +996,10 @@ function addMembersToWorkspace(
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
-        approverEmail,
     );
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login, role, ...(approverEmail ? {submitsTo: approverEmail} : {})}))),
+        employees: JSON.stringify(logins.map((login) => ({email: login, role}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote, {
@@ -1021,6 +1018,10 @@ type PolicyMember = {
     role: string;
     submitsTo?: string;
     forwardsTo?: string;
+    customField1?: string;
+    customField2?: string;
+    approvalLimit?: string;
+    overLimitForwardsTo?: string;
 };
 
 function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
@@ -1032,7 +1033,17 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
+                const existingCustomField1 = employee.employeeUserID;
+                const existingCustomField2 = employee.employeePayrollID;
+                if (
+                    curr.role !== employee.role ||
+                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
+                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
+                    (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
+                    (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                ) {
                     acc.updated++;
                 }
             } else {
@@ -1046,7 +1057,18 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
 
     const parameters = {
         policyID: policy.id,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
+        employees: JSON.stringify(
+            members.map((member) => ({
+                email: member.email,
+                role: member.role,
+                submitsTo: member.submitsTo,
+                forwardsTo: member.forwardsTo,
+                ...(member.customField1 !== undefined && {customField1: member.customField1}),
+                ...(member.customField2 !== undefined && {customField2: member.customField2}),
+                ...(member.approvalLimit !== undefined && {approvalLimit: member.approvalLimit}),
+                ...(member.overLimitForwardsTo !== undefined && {overLimitForwardsTo: member.overLimitForwardsTo}),
+            })),
+        ),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
@@ -1196,17 +1218,6 @@ function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
 }
 
-function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
-    if (!approverEmail) {
-        return;
-    }
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
-}
-
-function clearWorkspaceInviteApproverDraft(policyID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, null);
-}
-
 /**
  * Accept user join request to a workspace
  */
@@ -1349,8 +1360,6 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
 
 function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
-    clearWorkspaceInviteRoleDraft(policyID);
-    clearWorkspaceInviteApproverDraft(policyID);
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
@@ -1387,8 +1396,6 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
-    setWorkspaceInviteApproverDraft,
-    clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
     clearImportedSpreadsheetMemberData,
 };

@@ -1,5 +1,7 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {translateLocal} from '../utils/TestHelper';
@@ -142,6 +144,38 @@ describe('DistanceRequestUtils', () => {
         });
     });
 
+    describe('getDistanceUnit', () => {
+        it('returns the transaction unit when it matches the mileage rate unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            } as MileageRate;
+
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
+
+        it('returns the mileage rate unit when it differs from the transaction unit', () => {
+            const transaction = {
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                },
+            } as Transaction;
+            const mileageRate = {
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            } as MileageRate;
+
+            expect(DistanceRequestUtils.getDistanceUnit(transaction, mileageRate)).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+        });
+    });
+
     describe('getDistanceForDisplay', () => {
         it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
             const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
@@ -176,6 +210,32 @@ describe('DistanceRequestUtils', () => {
                 true,
             );
             expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getRateForExpenseDisplay', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
+
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
+            expect(result).toBe('Default Rate');
+        });
+
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
     });
 });
