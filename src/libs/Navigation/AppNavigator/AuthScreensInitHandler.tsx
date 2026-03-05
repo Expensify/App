@@ -2,7 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
-import {connect} from '@libs/actions/Delegate';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -24,11 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-type AuthScreensInitHandlerProps = {
-    /** Callback fired when delegator authentication from OldDot is ready */
-    onDelegatorReady: () => void;
-};
-
 function initializePusher(currentUserAccountID?: number) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
@@ -43,19 +37,17 @@ function initializePusher(currentUserAccountID?: number) {
  * Component that does not render anything and owns mount-only initialization logic, network reconnect,
  * and all Onyx subscriptions that are only consumed during initialization.
  *
- * Extracted from AuthScreens to isolate 9 useOnyx subscriptions:
- * - CREDENTIALS, ACCOUNT, SESSION, NVP_INTRO_SELECTED, NVP_ACTIVE_POLICY_ID,
+ * Extracted from AuthScreens to isolate useOnyx subscriptions:
+ * - SESSION, NVP_INTRO_SELECTED, NVP_ACTIVE_POLICY_ID,
  *   NVP_ONBOARDING (tour selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
  *   IS_LOADING_APP
  */
-function AuthScreensInitHandler({onDelegatorReady}: AuthScreensInitHandlerProps) {
+function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
@@ -118,32 +110,18 @@ function AuthScreensInitHandler({onDelegatorReady}: AuthScreensInitHandlerProps)
         }
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-            if (delegatorEmail) {
-                connect({
-                    email: delegatorEmail,
-                    delegatedAccess: account?.delegatedAccess,
-                    credentials,
-                    session,
-                    activePolicyID,
-                    isFromOldDot: true,
-                })
-                    ?.then((success) => {
-                        App.setAppLoading(!!success);
-                    })
-                    .finally(() => {
-                        onDelegatorReady();
-                    });
-            } else {
-                const reportID = getReportIDFromLink(initialURL ?? null);
-                if (reportID && !isAuthenticatedAtStartup) {
-                    Report.openReport(reportID, introSelected);
-                    // Don't want to call `openReport` again when logging out and then logging in
-                    setIsAuthenticatedAtStartup(true);
-                }
-                App.openApp();
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+        // Delegator connect() is handled by DelegatorConnectGate.
+        if (delegatorEmail) {
+            // connect() handled by DelegatorConnectGate
+        } else if (SessionUtils.didUserLogInDuringSession()) {
+            const reportID = getReportIDFromLink(initialURL ?? null);
+            if (reportID && !isAuthenticatedAtStartup) {
+                Report.openReport(reportID, introSelected);
+                // Don't want to call `openReport` again when logging out and then logging in
+                setIsAuthenticatedAtStartup(true);
             }
+            App.openApp();
         } else {
             Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
