@@ -214,10 +214,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 return true;
             }
             return (
-                args.cursorX >= args.targetX - labelWidth / 2 &&
-                args.cursorX <= args.targetX + labelWidth / 2 &&
-                args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
-                args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
+                args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
+                args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
+                args.cursorY >= labelY - labelWidth / 2 &&
+                args.cursorY <= labelY + labelWidth / 2
             );
         },
         [labelWidths, angleRad, font],
