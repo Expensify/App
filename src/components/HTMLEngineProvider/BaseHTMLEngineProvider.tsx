@@ -177,6 +177,15 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
+            'bullet-list': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-list',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {marginVertical: 12},
+            }),
+            'bullet-item': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-item',
+                contentModel: HTMLContentModel.block,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
@@ -222,7 +231,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
-                // eslint-disable-next-line no-param-reassign
                 onText: (text) => {
                     // Avoid injecting LTR controls into whitespace-only nodes.
                     // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),
