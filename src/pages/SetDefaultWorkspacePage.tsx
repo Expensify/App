@@ -30,9 +30,9 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate, localeCompare} = useLocalize();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const session = useSession();
@@ -99,7 +99,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             ListItem={UserListItem}
                             textInputOptions={textInputOptions}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                         />
                     )}

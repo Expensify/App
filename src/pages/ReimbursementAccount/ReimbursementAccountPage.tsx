@@ -79,11 +79,11 @@ const OFFLINE_ACCESSIBLE_STEPS = [
 function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: ReimbursementAccountPageProps) {
     const {environmentURL} = useEnvironment();
     const session = useSession();
-    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
-    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [reimbursementAccount, reimbursementAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
+    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
 
     const {isBetaEnabled} = usePermissions();
@@ -188,11 +188,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     const shouldShowContinueSetupButtonValue = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDSetup);
-    }, [achData, isNonUSDSetup]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, policyIDParam);
+    }, [achData, isNonUSDWorkspace, policyIDParam]);
 
     const isDefaultReimbursementAccountData = deepEqual(reimbursementAccount, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
-    const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && reimbursementAccount?.isLoading === false;
+    const hasLoadedData = reimbursementAccount?.achData && !isDefaultReimbursementAccountData && !reimbursementAccount?.isLoading;
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
      Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
@@ -342,7 +342,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             navigation.setParams({stepToOpen});
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isOffline, reimbursementAccount?.draftStep, reimbursementAccount?.pendingAction, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
+        [isOffline, reimbursementAccount?.draftStep, reimbursementAccount?.pendingAction, reimbursementAccount?.isLoading, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
     );
 
     const continueUSDVBBASetup = useCallback(() => {
@@ -492,7 +492,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
-    if ((isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
+    if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 

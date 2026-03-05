@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -9,6 +10,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import TestNavigationContainer from '../utils/TestNavigationContainer';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
@@ -245,6 +247,98 @@ describe('Navigate', () => {
             const lastSplitAfterNavigate = rootStateAfterNavigate?.routes.at(-1);
             expect(lastSplitAfterNavigate?.name).toBe(NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
             expect(lastSplitAfterNavigate?.state?.routes.at(-1)?.name).toBe(SCREENS.RIGHT_MODAL.SETTINGS);
+        });
+
+        it.each([ROUTES.REPORT_ADD_ATTACHMENT.getRoute('1'), ROUTES.REPORT_ATTACHMENTS.getRoute()])(
+            'does not close the side panel when navigating to attachment routes (%s)',
+            async (route) => {
+                // Given the initialized navigation on the narrow layout with the reports split navigator
+                render(
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                    state: {
+                                        index: 1,
+                                        routes: [
+                                            {
+                                                name: SCREENS.INBOX,
+                                            },
+                                            {
+                                                name: SCREENS.REPORT,
+                                                params: {reportID: '1'},
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        }}
+                    />,
+                );
+
+                const closeSidePanelSpy = jest.spyOn(SidePanelActions, 'closeSidePanel');
+
+                // Open side panel on narrow screen
+                act(() => {
+                    SidePanelActions.openSidePanel(true);
+                });
+                await waitForBatchedUpdates();
+
+                // When navigate to an attachment route
+                act(() => {
+                    Navigation.navigate(route);
+                });
+
+                // Then side panel should remain open
+                expect(closeSidePanelSpy).not.toHaveBeenCalled();
+            },
+        );
+
+        it('closes the side panel when navigating to workspaces list', async () => {
+            // Given the initialized navigation on the narrow layout with the reports split navigator
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 0,
+                        routes: [
+                            {
+                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                state: {
+                                    index: 1,
+                                    routes: [
+                                        {
+                                            name: SCREENS.INBOX,
+                                        },
+                                        {
+                                            name: SCREENS.REPORT,
+                                            params: {reportID: '1'},
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    }}
+                />,
+            );
+
+            const closeSidePanelSpy = jest.spyOn(SidePanelActions, 'closeSidePanel');
+
+            // Open side panel on narrow screen
+            act(() => {
+                SidePanelActions.openSidePanel(true);
+            });
+            await waitForBatchedUpdates();
+
+            // When navigate to a non-attachment route
+            act(() => {
+                Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
+            });
+
+            // Then side panel should close on narrow screen
+            expect(closeSidePanelSpy).toHaveBeenCalledWith(true);
+            expect(closeSidePanelSpy).toHaveBeenCalledTimes(1);
         });
     });
 });

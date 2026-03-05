@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersIsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.is) {
             return [];

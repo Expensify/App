@@ -16,6 +16,7 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
@@ -101,15 +102,16 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
             };
         }
 
-        const foundPage = state.pagerItems.findIndex((item) => item.attachmentID === attachmentID);
+        const identifier = attachmentID ?? uri;
+        const foundPage = state.pagerItems.findIndex((item) => (item.attachmentID ?? item.source) === identifier);
         return {
             ...state,
             ...actions,
             isUsedInCarousel: !!state.pagerRef,
             isSingleCarouselItem: state.pagerItems.length === 1,
-            page: foundPage,
+            page: foundPage === -1 ? 0 : foundPage,
         };
-    }, [attachmentID, state, actions, isPagerScrollingFallback, isScrollingEnabledFallback]);
+    }, [attachmentID, uri, state, actions, isPagerScrollingFallback, isScrollingEnabledFallback]);
 
     /** Whether the Lightbox is used within an attachment carousel and there are more than one page in the carousel */
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
@@ -253,6 +255,18 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'Lightbox',
+            isImageLoaded,
+            isLoadingPreviousUri: previousUri !== uri,
+            isOffline,
+            isLoading,
+            isALocalFile,
+        }),
+        [isImageLoaded, previousUri, uri, isOffline, isLoading, isALocalFile],
+    );
+
     return (
         <View
             testID="lightbox-wrapper"
@@ -325,6 +339,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
+                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}
