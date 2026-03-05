@@ -12,7 +12,7 @@ import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getCurrentTaxID, getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
@@ -286,7 +286,8 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const matchingTaxRate = policyTaxRates[taxCode];
+            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}} as Policy, taxCode) ?? taxCode;
+            const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
             }
@@ -427,7 +428,7 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
+        const isTaxInPolicy = !!(updatedTransaction.taxCode && getCurrentTaxID(policy, updatedTransaction.taxCode));
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
