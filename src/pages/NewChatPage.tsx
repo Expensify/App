@@ -1,8 +1,8 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -19,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useInitialSelectionSnapshot from '@hooks/useInitialSelectionSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -41,6 +42,7 @@ import {
     getValidOptions,
 } from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -243,6 +245,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
+    const isFocused = useIsFocused();
+    const hasUserInteractedRef = useRef(false);
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -265,6 +269,23 @@ function NewChatPage({ref}: NewChatPageProps) {
         userToInvite,
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        hasUserInteractedRef.current = false;
+    }, [isFocused]);
+
+    const selectedKeys = useMemo(
+        () =>
+            selectedOptions
+                .map((option) => option.keyForList?.toString() ?? '')
+                .filter(Boolean),
+        [selectedOptions],
+    );
+    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteractedRef.current);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0;
 
     const sections: Section[] = [];
     let firstKeyForList = '';
@@ -317,10 +338,24 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
     }
 
+    const totalOptionsCount = sections.reduce((count, section) => count + (section.data?.length ?? 0), 0);
+
+    const orderedSections = useMemo(
+        () =>
+            shouldReorderInitialSelection
+                ? sections.map((section) => ({
+                      ...section,
+                      data: reorderItemsByInitialSelection(section.data, initialSelectedKeys, totalOptionsCount),
+                  }))
+                : sections,
+        [initialSelectedKeys, sections, shouldReorderInitialSelection, snapshotVersion, totalOptionsCount],
+    );
+
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
     const toggleOption = (option: ListItem & Partial<OptionData>) => {
+        hasUserInteractedRef.current = true;
         const isOptionInList = !!option.isSelected;
 
         let newSelectedOptions: SelectedOption[];
@@ -329,7 +364,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
             newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
-            selectionListRef?.current?.scrollToIndex(0, true);
         }
 
         selectionListRef?.current?.clearInputAfterSelect?.();
@@ -486,7 +520,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
                 ListItem={UserListItem}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                sections={areOptionsInitialized ? orderedSections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 onChangeText={setSearchTerm}
@@ -506,6 +540,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
                 textInputAutoFocus={false}
+                shouldScrollToTopOnSelect={false}
             />
         </ScreenWrapper>
     );

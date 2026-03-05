@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
+import {useIsFocused} from '@react-navigation/native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +17,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionSnapshot from '@hooks/useInitialSelectionSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -38,6 +40,7 @@ import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import {getReportName, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -69,6 +72,8 @@ function RoomInvitePage({
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const isFocused = useIsFocused();
+    const hasUserInteractedRef = useRef(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
@@ -135,6 +140,23 @@ function RoomInvitePage({
                   excludeLogins: excludedUsers,
               });
 
+    const selectedKeys = useMemo(
+        () =>
+            selectedOptions
+                .map((option) => option.keyForList?.toString() ?? option.login ?? '')
+                .filter(Boolean),
+        [selectedOptions],
+    );
+    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteractedRef.current);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0;
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        hasUserInteractedRef.current = false;
+    }, [isFocused]);
+
     const {personalDetails, userToInvite} = inviteOptions;
     const sections: Sections = [];
     if (areOptionsInitialized) {
@@ -179,7 +201,21 @@ function RoomInvitePage({
         }
     }
 
+    const totalOptionsCount = sections.reduce((count, section) => count + (section.data?.length ?? 0), 0);
+
+    const orderedSections = useMemo(
+        () =>
+            shouldReorderInitialSelection
+                ? sections.map((section) => ({
+                      ...section,
+                      data: reorderItemsByInitialSelection(section.data, initialSelectedKeys, totalOptionsCount),
+                  }))
+                : sections,
+        [initialSelectedKeys, sections, shouldReorderInitialSelection, snapshotVersion, totalOptionsCount],
+    );
+
     const toggleOption = (option: MemberForList) => {
+        hasUserInteractedRef.current = true;
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions: OptionData[];
@@ -283,7 +319,7 @@ function RoomInvitePage({
                     onBackButtonPress={() => Navigation.goBack(backRoute)}
                 />
                 <SelectionListWithSections
-                    sections={sections}
+                    sections={orderedSections}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleOption}
@@ -295,6 +331,7 @@ function RoomInvitePage({
                     isLoadingNewOptions={!!isSearchingForReports}
                     shouldShowTextInput
                     canSelectMultiple
+                    shouldScrollToTopOnSelect={false}
                 />
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton

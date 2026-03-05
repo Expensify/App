@@ -60,4 +60,46 @@ function moveInitialSelectionToTopByValue<T extends {value: string}>(items: T[],
     return reordered;
 }
 
-export {moveInitialSelectionToTopByKey, moveInitialSelectionToTopByValue};
+/**
+ * Reorders list items that expose `keyForList` using the provided initial selection keys.
+ * Keeps the relative ordering within selected and remaining groups.
+ */
+function reorderItemsByInitialSelection<T extends {keyForList?: string | number}>(items: T[], initialSelectedKeys: string[], overallItemCount?: number): T[] {
+    const itemsWithKey = items.filter((item) => item.keyForList !== undefined);
+    const itemsWithoutKey = items.filter((item) => item.keyForList === undefined);
+
+    const itemCountForThreshold = overallItemCount ?? itemsWithKey.length;
+
+    if (initialSelectedKeys.length === 0 || itemCountForThreshold <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+        return items;
+    }
+
+    const orderedKeys = moveInitialSelectionToTopByKey(
+        itemsWithKey.map((item) => item.keyForList?.toString() ?? ''),
+        initialSelectedKeys,
+    );
+
+    const itemsByKey = new Map<string, T[]>();
+    for (const item of itemsWithKey) {
+        const key = item.keyForList?.toString() ?? '';
+        const bucket = itemsByKey.get(key) ?? [];
+        bucket.push(item);
+        itemsByKey.set(key, bucket);
+    }
+
+    const reordered: T[] = [];
+    for (const value of orderedKeys) {
+        const bucket = itemsByKey.get(value);
+        if (!bucket || bucket.length === 0) {
+            continue;
+        }
+        const nextItem = bucket.shift();
+        if (nextItem) {
+            reordered.push(nextItem);
+        }
+    }
+
+    return [...reordered, ...itemsWithoutKey];
+}
+
+export {moveInitialSelectionToTopByKey, moveInitialSelectionToTopByValue, reorderItemsByInitialSelection};
