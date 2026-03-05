@@ -227,8 +227,8 @@ describe('isAngleInSlice', () => {
 
 describe('findSliceAtPosition', () => {
     const makeSlices = (): PieSlice[] => [
-        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0},
-        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1},
+        {label: 'A', value: 75, color: '#000', percentage: 75, startAngle: -90, endAngle: 180, originalIndex: 0, ordinalIndex: 0, tooltipPosition: {x: 0, y: 0}},
+        {label: 'B', value: 25, color: '#fff', percentage: 25, startAngle: 180, endAngle: 270, originalIndex: 1, ordinalIndex: 1, tooltipPosition: {x: 0, y: 0}},
     ];
 
     const center = 100;
@@ -266,7 +266,7 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], 0)).toEqual([]);
+        expect(processDataIntoSlices([], 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
@@ -274,12 +274,12 @@ describe('processDataIntoSlices', () => {
             {label: 'A', total: 0},
             {label: 'B', total: 0},
         ];
-        expect(processDataIntoSlices(data, 0)).toEqual([]);
+        expect(processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
         const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -295,7 +295,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Small', total: 10},
             {label: 'Large', total: 90},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -306,7 +306,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Positive', total: 75},
             {label: 'Negative', total: -25},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -321,7 +321,7 @@ describe('processDataIntoSlices', () => {
             {label: 'Medium', total: 50},
             {label: 'Large', total: 100},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -334,7 +334,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 33},
             {label: 'C', total: 34},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -346,7 +346,7 @@ describe('processDataIntoSlices', () => {
             {label: 'B', total: 30},
             {label: 'C', total: 20},
         ];
-        const slices = processDataIntoSlices(data, -90);
+        const slices = processDataIntoSlices(data, -90, {centerX: 0, centerY: 0, radius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
@@ -360,7 +360,7 @@ describe('processDataIntoSlices', () => {
             {label: 'C', total: 20},
             {label: 'D', total: 10},
         ];
-        const slices = processDataIntoSlices(data, 0);
+        const slices = processDataIntoSlices(data, 0, {centerX: 0, centerY: 0, radius: 0});
         const colors = slices.map((s) => s.color);
         const uniqueColors = new Set(colors);
 
