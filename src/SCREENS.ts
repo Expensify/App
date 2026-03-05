@@ -205,6 +205,8 @@ const SCREENS = {
             PERSONAL_CARD_DETAILS: 'Settings_Wallet_Personal_Card_Details',
             PERSONAL_CARD_EDIT_NAME: 'Settings_Wallet_Personal_Card_Edit_Name',
             PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: 'Settings_Wallet_Personal_Card_Edit_Transaction_Start_Date',
+            PERSONAL_CARD_WARNING: 'Settings_Wallet_PersonalCard_Warning',
+            PERSONAL_CARD_UPGRADE: 'Settings_Wallet_PersonalCard_Upgrade',
         },
 
         EXIT_SURVEY: {
@@ -445,6 +447,7 @@ const SCREENS = {
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         REPORT_LAYOUT: 'Report_Settings_Report_Layout',
+        COLUMNS: 'Report_Settings_Columns',
     },
 
     NEW_TASK: {
@@ -486,7 +489,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
@@ -955,6 +958,7 @@ const SCREENS = {
         GROUPS: 'Domain_Groups',
         MEMBER_RESET_TWO_FACTOR_AUTH: 'Member_Reset_Two_Factor_Auth',
         MEMBER_FORCE_TWO_FACTOR_AUTH: 'Member_Force_Two_Factor_Auth',
+        MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
@@ -964,6 +968,7 @@ const SCREENS = {
         PROMPT: 'Multifactor_Authentication_Prompt',
         NOT_FOUND: 'Multifactor_Authentication_Not_Found',
         REVOKE: 'Multifactor_Authentication_Revoke',
+        AUTHORIZE_TRANSACTION: 'Multifactor_Authentication_Authorize_Transaction',
     },
 } as const;
 

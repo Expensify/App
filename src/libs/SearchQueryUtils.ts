@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
@@ -417,34 +418,6 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
 }
 
 /**
- * Returns default values for chart views (non-table views).
- * - Sets default groupBy based on view type (month for line charts, category for others)
- * - Sets default sortOrder to ASC for line charts (time-based graphs show chronologically oldest to newest)
- */
-function getChartViewDefaults(queryJSON: SearchQueryJSON): Partial<SearchQueryJSON> {
-    if (queryJSON.view === CONST.SEARCH.VIEW.TABLE) {
-        return {};
-    }
-
-    const defaults: Partial<SearchQueryJSON> = {};
-
-    // Default groupBy when not explicitly set
-    if (!queryJSON.groupBy) {
-        defaults.groupBy = queryJSON.view === CONST.SEARCH.VIEW.LINE ? CONST.SEARCH.GROUP_BY.MONTH : CONST.SEARCH.GROUP_BY.CATEGORY;
-    }
-
-    // Default sortOrder to ASC for LINE view, only if not explicitly set by the user
-    if (queryJSON.view === CONST.SEARCH.VIEW.LINE) {
-        const wasSortOrderExplicitlySet = queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER) ?? false;
-        if (!wasSortOrderExplicitlySet) {
-            defaults.sortOrder = CONST.SEARCH.SORT_ORDER.ASC;
-        }
-    }
-
-    return defaults;
-}
-
-/**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
  * This format of query is most commonly shared between components and also sent to backend to retrieve search results.
  *
@@ -488,8 +461,6 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
             // Ensure policyID is always an array for consistency
             result.policyID = [result.policyID];
         }
-
-        Object.assign(result, getChartViewDefaults(result));
 
         // Normalize limit before computing hashes to ensure invalid values don't affect hash
         if (result.limit !== undefined) {
@@ -654,8 +625,12 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, groupBy, view, columns, limit, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options?.sortBy ?? CONST.SEARCH.TABLE_COLUMNS.DATE}`);
-    filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options?.sortOrder ?? CONST.SEARCH.SORT_ORDER.DESC}`);
+    if (options?.sortBy) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${options.sortBy}`);
+    }
+    if (options?.sortOrder) {
+        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${options.sortOrder}`);
+    }
 
     if (type) {
         const sanitizedType = sanitizeSearchValue(type);
@@ -1155,7 +1130,7 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
@@ -1217,9 +1192,9 @@ function getDisplayQueryFiltersForKey(
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
         return queryFilter.reduce((acc, filter) => {
             const feedKey = filter.value.toString();
-            const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList, translate, feedKeysWithCards);
             const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
             const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
             const idPrefix = feedKey?.split('_')?.at(0) ?? CONST.DEFAULT_NUMBER_ID;
@@ -1630,19 +1605,77 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
-function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
-    if (!queryJSON) {
-        return false;
+/**
+ * Determines whether sortBy and sortOrder should be reset when filters change.
+ * Each view/groupBy combination has its own defaults derived by the parser,
+ * so we reset on any view or groupBy change to let the parser determine the correct defaults.
+ */
+function shouldResetSort({
+    newView,
+    oldView,
+    newGroupBy,
+    oldGroupBy,
+}: {
+    newView: string | undefined;
+    oldView: string | undefined;
+    newGroupBy: string | undefined;
+    oldGroupBy: string | undefined;
+}): boolean {
+    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
+    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
+    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
+}
+
+/**
+ * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
+ * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
+ * the query is round-tripped through the parser so that parser-derived defaults appear in the
+ * final query string.
+ *
+ * Returns undefined if the parser round-trip fails.
+ */
+function buildFilterQueryWithSortDefaults(
+    filterValues: Partial<SearchAdvancedFiltersForm>,
+    previousState: {view?: string; groupBy?: string},
+    currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
+): string | undefined {
+    const resetSort = shouldResetSort({
+        newView: filterValues.view,
+        oldView: previousState.view,
+        newGroupBy: filterValues.groupBy,
+        oldGroupBy: previousState.groupBy,
+    });
+
+    const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
+        limit: currentQueryOptions.limit,
+    });
+
+    if (!resetSort) {
+        return queryString;
     }
 
-    const hasKeywordFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
-    const hasContextFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
-    const inputQuery = queryJSON.inputQuery?.toLowerCase() ?? '';
-    const hasInlineKeywordFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD.toLowerCase()}:`);
-    const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
-    const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    return getQueryWithUpdatedValues(queryString, true);
+}
 
-    return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
+/**
+ * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
+ */
+function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+    const searchQuery = buildCannedSearchQuery({type});
+    const searchQueryJSON = buildSearchQueryJSON(searchQuery);
+    if (!searchQueryJSON) {
+        return;
+    }
+    return {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
+        value: {
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            data,
+        },
+    };
 }
 
 export {
@@ -1668,5 +1701,7 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    shouldSkipSuggestedSearchNavigation,
+    shouldResetSort,
+    buildFilterQueryWithSortDefaults,
+    buildOptimisticSnapshotData,
 };

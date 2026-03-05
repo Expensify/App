@@ -98,7 +98,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return;
         }
         hasCalledOnLayout.current = true;
-
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
@@ -215,7 +214,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastMessageTextFromReport = '';
                 }
             }
-
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             let lastActionReport: OnyxEntry<Report> | undefined;
@@ -267,16 +265,16 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             );
         },
         [
+            reportAttributes,
             reports,
             reportNameValuePairs,
             reportActions,
-            isOffline,
-            reportAttributes,
             policy,
             transactions,
             draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
+            isFullscreenVisible,
             optionMode,
             shouldDisableFocusOptions,
             onSelectRow,
@@ -286,7 +284,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             activePolicyID,
             introSelected?.choice,
             onboarding,
-            isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
