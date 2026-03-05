@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
-import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
 
 type IntegrationType = typeof CONST.POLICY.CONNECTIONS.NAME.XERO | typeof CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
 
@@ -48,7 +48,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {startIntegrationFlow} = useAccountingContext();
+    const {startIntegrationFlow} = useAccountingActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);

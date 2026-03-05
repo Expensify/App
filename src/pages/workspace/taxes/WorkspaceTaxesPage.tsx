@@ -401,6 +401,7 @@ function WorkspaceTaxesPage({
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.taxes')}
                     shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedTaxesIDs([]);
@@ -432,7 +433,7 @@ function WorkspaceTaxesPage({
                     shouldUseDefaultRightHandSideCheckmark={false}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     onCheckboxPress={toggleTax}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress
