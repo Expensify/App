@@ -88,7 +88,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     }),
 }));
 
-// eslint-disable-next-line @typescript-eslint/naming-convention -- jest.requireMock returns a module-shaped object; destructured name must match the original export
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 
 const defaultParams = {
