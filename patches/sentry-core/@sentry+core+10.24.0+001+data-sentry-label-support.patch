@@ -3,7 +3,7 @@ index 3169c25..19acc49 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
- 
+
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -13,25 +13,12 @@ index 3169c25..19acc49 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -53,7 +53,38 @@ function htmlTreeAsString(
+@@ -53,7 +53,33 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
-+
-+    // If the clicked element itself has data-sentry-label, return just the label.
-+    // No CSS ancestor context needed — we know exactly what was clicked.
-+    // @ts-expect-error WINDOW has HTMLElement
-+    if (WINDOW.HTMLElement && elem instanceof HTMLElement && elem.dataset && elem.dataset['sentryLabel']) {
-+      return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
-+    }
-+
-+    // If a parent/container in the tree has the label,
-+    // preserve the CSS selector to identify which child was clicked.
-+    if (cssSelector.includes('[data-sentry-label="')) {
-+      return cssSelector;
-+    }
 +
 +    // Search for data-sentry-label up to 15 levels (beyond the 5 levels of cssSelector)
 +    let labelElem = elem;
@@ -46,6 +33,15 @@ index 3169c25..19acc49 100644
 +    }
 +
 +    if (dataLabel) {
++      // If the labeled element is a pressable, the label alone identifies the interaction
++      // @ts-expect-error labelElem is guaranteed to be an HTMLElement here (checked in loop above)
++      if (labelElem.dataset['tag'] === 'pressable') {
++        return `[data-sentry-label="${dataLabel}"]`;
++      }
++      // If the label was found within the 5-level CSS selector, return as is
++      if (cssSelector.includes('[data-sentry-label="')) {
++        return cssSelector;
++      }
 +      return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
 +    }
 +
@@ -53,8 +49,8 @@ index 3169c25..19acc49 100644
    } catch {
      return '<unknown>';
    }
-@@ -77,8 +108,12 @@ function _htmlElementAsString(el, keyAttrs) {
- 
+@@ -77,8 +103,12 @@ function _htmlElementAsString(el, keyAttrs) {
+
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
 -    // If using the component name annotation plugin, this value may be available on the DOM node
@@ -72,7 +68,7 @@ index 2ad52b0..fd184fb 100644
 --- a/node_modules/@sentry/core/build/esm/utils/browser.js
 +++ b/node_modules/@sentry/core/build/esm/utils/browser.js
 @@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
- 
+
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -82,25 +78,12 @@ index 2ad52b0..fd184fb 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -51,7 +51,38 @@ function htmlTreeAsString(
+@@ -51,7 +51,33 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
-+
-+    // If the clicked element itself has data-sentry-label, return just the label.
-+    // No CSS ancestor context needed — we know exactly what was clicked.
-+    // @ts-expect-error WINDOW has HTMLElement
-+    if (WINDOW.HTMLElement && elem instanceof HTMLElement && elem.dataset && elem.dataset['sentryLabel']) {
-+      return `[data-sentry-label="${elem.dataset['sentryLabel']}"]`;
-+    }
-+
-+    // If a parent/container in the tree has the label,
-+    // preserve the CSS selector to identify which child was clicked.
-+    if (cssSelector.includes('[data-sentry-label="')) {
-+      return cssSelector;
-+    }
 +
 +    // Search for data-sentry-label up to 15 levels (beyond the 5 levels of cssSelector)
 +    let labelElem = elem;
@@ -115,6 +98,15 @@ index 2ad52b0..fd184fb 100644
 +    }
 +
 +    if (dataLabel) {
++      // If the labeled element is a pressable, the label alone identifies the interaction
++      // @ts-expect-error labelElem is guaranteed to be an HTMLElement here (checked in loop above)
++      if (labelElem.dataset['tag'] === 'pressable') {
++        return `[data-sentry-label="${dataLabel}"]`;
++      }
++      // If the label was found within the 5-level CSS selector, return as is
++      if (cssSelector.includes('[data-sentry-label="')) {
++        return cssSelector;
++      }
 +      return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
 +    }
 +
@@ -122,8 +114,8 @@ index 2ad52b0..fd184fb 100644
    } catch {
      return '<unknown>';
    }
-@@ -75,8 +106,12 @@ function _htmlElementAsString(el, keyAttrs) {
- 
+@@ -75,8 +101,12 @@ function _htmlElementAsString(el, keyAttrs) {
+
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
 -    // If using the component name annotation plugin, this value may be available on the DOM node

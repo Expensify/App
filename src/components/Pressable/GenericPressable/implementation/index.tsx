@@ -22,6 +22,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}
             aria-valuetext={props.accessibilityValue?.text}
+            // Note: data-tag="pressable" is also used by Sentry's INP instrumentation patch to detect pressable containers
+            // and shorten interaction selectors. See patches/sentry-core/ before removing or renaming it.
             dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {sentryLabel}), ...props.dataSet}}
         />
     );
