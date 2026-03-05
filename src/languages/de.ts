@@ -1578,8 +1578,8 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Modal-Hintergrund',
     },
     nextStep: {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1596,7 +1596,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine*n Admin, der Ausgaben hinzufügt.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1613,14 +1612,12 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass ein Admin Spesen einreicht.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => `Keine weiteren Schritte erforderlich!`,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1657,7 +1654,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten, bis die Spesen eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1674,7 +1670,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine*n Admin, um die Probleme zu beheben.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1691,7 +1686,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warte darauf, dass eine Admin-Person Spesen genehmigt.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1708,7 +1702,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine*n Admin, um diesen Bericht zu exportieren.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1725,7 +1718,6 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass ein Admin Spesen bezahlt.`;
                 }
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
                 actor: string,
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1754,7 +1746,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warte, bis die Zahlung abgeschlossen ist${formattedETA}.`;
             },
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
                 _actor: string,
                 _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
@@ -1763,6 +1754,7 @@ const translations: TranslationDeepObject<typeof en> = {
             ) =>
                 `Ups! Sie scheinen diesen Bericht an <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder wenden Sie sich an Ihre Admin, um die empfangende Person zu ändern.`,
         },
+        /* eslint-enable @typescript-eslint/no-unused-vars */
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'in Kürze',
             [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'heute später',
