@@ -1327,7 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `已批准`,
-        rejectedThisReport: '已拒绝此报表',
+        rejectedThisReport: '已拒绝',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,

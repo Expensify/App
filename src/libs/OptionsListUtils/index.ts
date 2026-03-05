@@ -93,6 +93,7 @@ import {
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRejectedAction,
     isRenamedAction,
     isReportActionVisible,
     isReportPreviewAction,
@@ -791,7 +792,7 @@ function getLastMessageTextForReport({
         } else {
             lastMessageTextFromReport = translate('iou.forwarded');
         }
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    } else if (isRejectedAction(lastReportAction)) {
         lastMessageTextFromReport = translate('iou.rejectedThisReport');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         lastMessageTextFromReport = translate('workspaceActions.upgradedWorkspace');

@@ -1355,7 +1355,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `non approvata`,
         automaticallyForwarded: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: `approvato`,
-        rejectedThisReport: 'ha rifiutato questo report',
+        rejectedThisReport: 'rifiutato',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>

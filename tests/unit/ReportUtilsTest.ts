@@ -2382,7 +2382,27 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected this report');
+                    expect(reportName).toBe('rejected');
+                });
+
+                test('should return rejected action name for REJECTED_TO_SUBMITTER', () => {
+                    const rejectedToSubmitterAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: rejectedToSubmitterAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {[rejectedToSubmitterAction.reportActionID]: rejectedToSubmitterAction},
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe('rejected');
                 });
 
                 test('should handle integration sync failed action', () => {
