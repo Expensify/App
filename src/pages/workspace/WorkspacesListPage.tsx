@@ -302,7 +302,7 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade, policies);
 
     const resetLoadingSpinnerIconIndex = () => {
         setLoadingSpinnerIconIndex(null);
@@ -445,6 +445,7 @@ function WorkspacesListPage() {
                     accessible={false}
                     style={[styles.mh5]}
                     disabled={item.disabled}
+                    onPress={item.action}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
                 >
                     {({hovered}) => (
