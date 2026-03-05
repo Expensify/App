@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 
 function useUpdateGpsTripOnReconnect() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const updateAddressToHumanReadable = async (gpsPoint: GpsDraftDetails['gpsPoints'][number] | undefined, setAddress: typeof setStartAddress) => {
         if (!gpsPoint) {
@@ -37,7 +37,6 @@ function useUpdateGpsTripOnReconnect() {
     };
 
     // This is intentional to use async/await pattern for better readability
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     useNetwork({onReconnect: updateAddressesToHumanReadable});
 }
 

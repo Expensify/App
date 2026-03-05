@@ -1,4 +1,4 @@
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -10,21 +10,17 @@ function useReportScrollManager(): ReportScrollManagerData {
     /**
      * Scroll to the provided index.
      */
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToIndex({index});
-        },
-        [flatListRef],
-    );
+    const scrollToIndex = (index: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
+        flatListRef.current.scrollToIndex({index});
+    };
 
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = useCallback(() => {
+    const scrollToEnd = () => {
         if (!flatListRef?.current) {
             return;
         }
@@ -37,18 +33,14 @@ function useReportScrollManager(): ReportScrollManagerData {
         }
 
         flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef]);
+    };
 
-    const scrollToOffset = useCallback(
-        (offset: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToOffset({offset, animated: false});
-        },
-        [flatListRef],
-    );
+    const scrollToOffset = (offset: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
+        flatListRef.current.scrollToOffset({offset, animated: false});
+    };
 
     return {ref: flatListRef, scrollToIndex, scrollToEnd, scrollToOffset};
 }

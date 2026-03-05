@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -19,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -39,13 +38,13 @@ function TaskAssigneeSelectorModal() {
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [task] = useOnyx(ONYXKEYS.TASK);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -143,7 +142,7 @@ function TaskAssigneeSelectorModal() {
     const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
 
     const selectReport = (option: ListItem) => {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
         if (!option) {
             return;
         }
@@ -190,7 +189,6 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
             });
@@ -205,7 +203,7 @@ function TaskAssigneeSelectorModal() {
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm);
+        searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
     const textInputOptions = {
@@ -234,7 +232,7 @@ function TaskAssigneeSelectorModal() {
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput

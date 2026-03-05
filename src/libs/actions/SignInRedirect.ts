@@ -11,6 +11,8 @@ import {clearAllPolicies} from './Policy/Policy';
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
+let currentSessionAuthToken: string | undefined;
+let currentCredentialsValidateCode: string | undefined;
 
 // We use connectWithoutView here because we only need to track network state for sign-in redirect logic, which is not connected to any changes on the UI layer
 Onyx.connectWithoutView({
@@ -25,6 +27,20 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     callback: (value) => {
         currentIsUsingImportedState = value;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        currentSessionAuthToken = session?.authToken;
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: (credentials) => {
+        currentCredentialsValidateCode = credentials?.validateCode;
     },
 });
 
@@ -52,6 +68,15 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     if (currentIsUsingImportedState) {
         keysToPreserve.push(ONYXKEYS.IS_USING_IMPORTED_STATE);
         keysToPreserve.push(ONYXKEYS.NETWORK);
+    }
+
+    // When the user is in the middle of a 2FA sign-in flow (they've entered their magic code but not yet completed
+    // 2FA), we want to preserve their credentials and account state so that after a page refresh they are still
+    // prompted to enter their 2FA code rather than being sent back to the initial sign-in page.
+    const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;
+    if (isIncompleteSignIn) {
+        keysToPreserve.push(ONYXKEYS.CREDENTIALS);
+        keysToPreserve.push(ONYXKEYS.ACCOUNT);
     }
 
     return Onyx.clear(keysToPreserve).then(() => {
