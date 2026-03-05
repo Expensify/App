@@ -408,12 +408,14 @@ function getRate({
     policyDraft,
     useTransactionDistanceUnit = true,
     policyForMovingExpenses,
+    isFakeP2PRate = false,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
     policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
+    isFakeP2PRate?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
@@ -427,14 +429,14 @@ function getRate({
 
     // getRateForP2P returns the stored rate only if passed currency is same as the transaction's currency
     // For unreported transactions (and possibly for all existing transactions?), we always want to use the stored rate.
-    const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
+    const currency = isExpenseUnreported(transaction) && !isFakeP2PRate ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
     const isUnreportedExpense = isExpenseUnreported(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate =
         (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,

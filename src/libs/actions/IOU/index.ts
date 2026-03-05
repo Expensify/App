@@ -1536,7 +1536,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
+            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate: true})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
@@ -1558,7 +1558,6 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             }
         }
     }
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
             customUnit: {
