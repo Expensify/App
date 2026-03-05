@@ -9,6 +9,7 @@ import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} fro
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -345,6 +346,11 @@ function handleMoneyRequestStepScanParticipants({
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             const firstReceiptFile = files.at(0);
             if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
                 const splitReceipt: Receipt = firstReceiptFile.file ?? {};
@@ -582,6 +588,11 @@ function handleMoneyRequestStepDistanceNavigation({
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
