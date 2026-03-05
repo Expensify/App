@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,7 +10,6 @@ import {getExpenseTypeTranslationKey, getTransactionType, isExpensifyCardTransac
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
@@ -33,7 +31,7 @@ const getTypeIcon = (icons: Record<'Car' | 'CreditCard' | 'Cash' | 'Clock' | 'Ca
 
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
-    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList: OnyxEntry<CardList>) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (transactionItem.cardID ? cardList?.[transactionItem.cardID] : undefined)});
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Car', 'CreditCard', 'CreditCardHourglass', 'Cash', 'Clock', 'CalendarSolid']);
     const type = getTransactionType(transactionItem, card);
