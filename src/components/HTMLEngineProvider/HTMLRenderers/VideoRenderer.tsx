@@ -29,7 +29,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({report}) => (
+            {({report, action}) => (
                 <AttachmentContext.Consumer>
                     {({accountID, type, hashKey, reportID}) => (
                         <VideoPlayerPreview
@@ -49,6 +49,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 const route = ROUTES.REPORT_ATTACHMENTS.getRoute({
                                     attachmentID,
                                     reportID: report?.reportID,
+                                    reportActionID: action?.reportActionID,
                                     type,
                                     source: sourceURL,
                                     accountID,

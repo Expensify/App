@@ -223,8 +223,9 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
 
 /**
  * This function will add attachment ID attribute on img and video HTML tags inside the passed html content
- * of a report action. This attachment id is the reportActionID concatenated with the order index that the attachment
- * appears inside the report action message so as to identify attachments with identical source inside a report action.
+ * of a report action. For newer attachments, it will use the existing attachmentID unique id value. otherwise, it falls back to the reportActionID concatenated
+ * with the order index that the attachment appears inside the report action message, so as to identify
+ * attachments with identical source inside a report action.
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
     if (!reportActionID) {
@@ -234,12 +235,9 @@ function getHtmlWithAttachmentID(html: string, reportActionID: string | undefine
     let index = 0;
     return html.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT, (match) => {
         const attachmentID = match.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
-        if (attachmentID) {
-            return match;
-        }
-        return match.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX, (m) => {
-            return m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}"`);
-        });
+
+        // If the attachment ID is already present, skip it
+        return attachmentID ? match : match.replaceAll(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}"`));
     });
 }
 
