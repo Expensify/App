@@ -47,10 +47,10 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera/Camera';
-import ReceiptPreviews from './ReceiptPreviews';
+import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
+import ReceiptPreviews from './components/ReceiptPreviews';
+import useMobileReceiptScan from './hooks/useMobileReceiptScan';
 import type IOURequestStepScanProps from './types';
-import useReceiptScan from './useReceiptScan';
 
 function IOURequestStepScan({
     report,
@@ -294,7 +294,7 @@ function IOURequestStepScan({
         blinkStyle,
         showBlink,
         setTestReceiptAndNavigate,
-    } = useReceiptScan({
+    } = useMobileReceiptScan({
         report,
         reportID,
         initialTransactionID,

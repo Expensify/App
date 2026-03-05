@@ -2,7 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -18,10 +17,10 @@ import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyReq
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import DateUtils from '@libs/DateUtils';
-import HapticFeedback from '@libs/HapticFeedback';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -29,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ReceiptFile, UseReceiptScanParams} from './types';
 
 /**
  * Selector to derive whether we should start the location permission flow from the last prompt timestamp.
@@ -110,22 +108,9 @@ function useReceiptScan({
         if (isMultiScanEnabled) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setReceiptFiles([]);
     }, [isMultiScanEnabled]);
-
-    const blinkOpacity = useSharedValue(0);
-    const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.get(),
-    }));
-
-    function showBlink() {
-        blinkOpacity.set(
-            withTiming(1, {duration: 50}, () => {
-                blinkOpacity.set(withTiming(0, {duration: 150}));
-            }),
-        );
-        HapticFeedback.press();
-    }
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
@@ -302,8 +287,6 @@ function useReceiptScan({
         submitMultiScanReceipts,
         toggleMultiScan,
         dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
         setTestReceiptAndNavigate,
     };
 }
