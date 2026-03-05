@@ -65,9 +65,7 @@ import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -165,7 +163,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getAmount, getCurrency, getDistanceInMeters, hasValidModifiedAmount, isDistanceRequest, isManualDistanceRequest, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasValidModifiedAmount, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import {clearByKey} from '@userActions/CachedPDFPaths';
@@ -183,6 +181,7 @@ import {
     resolveOpenReportDuplicationConflictAction,
 } from '@userActions/RequestConflictUtils';
 import {isAnonymousUser} from '@userActions/Session';
+import {recalcUnreportedTransactionDetails} from '@userActions/Transaction';
 import {onServerDataReady} from '@userActions/Welcome';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcome/OnboardingFlow';
@@ -221,7 +220,6 @@ import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/Persona
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import type {Comment} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -5541,47 +5539,7 @@ function deleteAppReport({
             const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
 
-            const comment: NullishDeep<Comment> = {
-                hold: null,
-            };
-            let modifiedAmount: number | undefined;
-            let modifiedCurrency: string | undefined;
-            let modifiedMerchant: string | undefined;
-
-            // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
-            // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
-            if (isDistanceRequest(transaction)) {
-                const destinationCurrency = personalPolicy?.outputCurrency;
-                const currency = destinationCurrency && CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[destinationCurrency] ? destinationCurrency : CONST.CURRENCY.USD;
-                const {rate, unit} = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
-                const distance = parseFloat(
-                    DistanceRequestUtils.getRoundedDistanceInUnits(
-                        getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
-                        unit,
-                    ),
-                );
-                const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                comment.customUnit = {
-                    customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-                    defaultP2PRate: rate,
-                    distanceUnit: unit,
-                    quantity: distance,
-                };
-                modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-                modifiedCurrency = currency;
-                modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
-                    true,
-                    distanceInMeters,
-                    unit,
-                    rate,
-                    currency,
-                    translate,
-                    toLocaleDigit,
-                    getCurrencySymbol,
-                    isManualDistanceRequest(transaction),
-                );
-            }
+            const {comment, modifiedAmount, modifiedCurrency, modifiedMerchant} = recalcUnreportedTransactionDetails(transaction, personalPolicy?.outputCurrency, translate, toLocaleDigit);
 
             optimisticData.push(
                 {
