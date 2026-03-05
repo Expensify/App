@@ -193,30 +193,33 @@ function BaseDomainMembersPage({
     };
 
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
-    const listHeaderContent = (
-        <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
-            <View
-                style={[
-                    shouldUseNarrowLayout && styles.w100,
-                    shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
-                    shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
-                ]}
-            >
-                {searchBarAccessory}
+    const listHeaderContent =
+        searchBarAccessory || shouldShowSearchBar ? (
+            <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
+                {!!searchBarAccessory && (
+                    <View
+                        style={[
+                            shouldUseNarrowLayout && styles.w100,
+                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
+                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                        ]}
+                    >
+                        {searchBarAccessory}
+                    </View>
+                )}
+                {shouldShowSearchBar && (
+                    <View style={[shouldUseNarrowLayout && styles.w100]}>
+                        <SearchBar
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            label={searchPlaceholder}
+                            shouldShowEmptyState={!filteredData.length}
+                            style={[styles.flex1, styles.mh0, styles.mb0]}
+                        />
+                    </View>
+                )}
             </View>
-            {shouldShowSearchBar ? (
-                <View style={[shouldUseNarrowLayout && styles.w100]}>
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={searchPlaceholder}
-                        shouldShowEmptyState={!filteredData.length}
-                        style={[styles.flex1, styles.mh0, styles.mb0]}
-                    />
-                </View>
-            ) : undefined}
-        </View>
-    );
+        ) : null;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
