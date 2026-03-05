@@ -621,6 +621,7 @@ function MoneyRequestParticipantsSelector({
                 ref={selectionListRef}
                 onEndReached={onListEndReached}
                 onEndReachedThreshold={0.75}
+                shouldScrollToTopOnSelect={false}
             />
         </>
     );

@@ -47,6 +47,9 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** Whether to scroll the list to the top when selecting a new item in multi-select lists */
+    shouldScrollToTopOnSelect?: boolean;
+
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
 };
