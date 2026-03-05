@@ -161,22 +161,57 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
             }
             const ascent = Math.abs(fontMetrics.ascent);
             const descent = Math.abs(fontMetrics.descent);
-            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 2;
+
+            const centeredUpwardOffset = angleRad > 0 ? (Math.max(...labelWidths) / 2) * Math.sin(angleRad) : 0;
+            const labelY = args.chartBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
             if (angleRad === 0) {
-                return (
-                    args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
-                    args.cursorY <= labelY + variables.iconSizeExtraSmall / 2 &&
-                    args.cursorX >= args.targetX - labelWidth / 2 &&
-                    args.cursorX <= args.targetX + labelWidth / 2
-                );
-            }
-            if (angleRad < 1) {
                 return (
                     args.cursorX >= args.targetX - labelWidth / 2 &&
                     args.cursorX <= args.targetX + labelWidth / 2 &&
                     args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
                     args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
                 );
+            }
+            if (angleRad < 1) {
+                const rightUpperCorner = {
+                    x: args.targetX + (labelWidth / 2) * Math.sin(angleRad),
+                    y: labelY - (labelWidth / 2) * Math.sin(angleRad) - variables.iconSizeExtraSmall / 2,
+                };
+                const rightLowerCorner = {
+                    x: rightUpperCorner.x + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                    y: rightUpperCorner.y + variables.iconSizeExtraSmall * Math.sin(angleRad),
+                };
+                const leftUpperCorner = {
+                    x: rightUpperCorner.x - labelWidth * Math.sin(angleRad),
+                    y: rightUpperCorner.y + labelWidth * Math.sin(angleRad),
+                };
+                const leftLowerCorner = {
+                    x: rightLowerCorner.x - labelWidth * Math.sin(angleRad),
+                    y: rightLowerCorner.y + labelWidth * Math.sin(angleRad),
+                };
+                // Point-in-convex-polygon test using cross products
+                // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+                const corners = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
+                const px = args.cursorX;
+                const py = args.cursorY;
+                let sign = 0;
+                for (let i = 0; i < corners.length; i++) {
+                    const a = corners.at(i);
+                    const b = corners.at((i + 1) % corners.length);
+                    if (a == null || b == null) {
+                        continue;
+                    }
+                    const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
+                    if (cross !== 0) {
+                        const crossSign = cross > 0 ? 1 : -1;
+                        if (sign === 0) {
+                            sign = crossSign;
+                        } else if (crossSign !== sign) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
             }
             return (
                 args.cursorX >= args.targetX - labelWidth / 2 &&
