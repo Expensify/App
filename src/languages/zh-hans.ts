@@ -542,6 +542,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
         duplicateReport: '重复报销单',
+        approver: '审批人',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -893,8 +894,8 @@ const translations: TranslationDeepObject<typeof en> = {
     reportAction: {
         asCopilot: '作为副驾驶，用于',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报销单，用于保存所有来自 <a href="${reportUrl}">${reportName}</a> 且无法按照你选择的频率提交的费用`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `从<a href="${reportUrl}">${reportName}</a>创建了此报表，用于查看任何被暂扣的报销费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted ? `为已删除报销单 #${reportID} 中的所有暂挂报销创建了此报销单` : `为从<a href="${reportUrl}">${reportName}</a>中被暂挂的任何报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此会话中的所有人',
@@ -1326,7 +1327,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         forwarded: `已批准`,
-        rejectedThisReport: '已拒绝此报表',
+        rejectedThisReport: '已拒绝',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已开始付款，但正在等待${submitterDisplayName}添加银行账户。`,
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,
@@ -1416,6 +1417,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: '请解释你为何暂时保留这笔报销。',
             other: '请说明你为何保留这些报销。',
+        }),
+        explainHoldApprover: () => ({
+            one: '请说明在批准这笔报销之前你需要什么。',
+            other: '请说明在批准这些报销之前你需要什么。',
         }),
         retracted: '已撤回',
         retract: '撤回',
@@ -1509,7 +1514,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: '当你批准整份报销报告时，已搁置的报销会被保留在报告之外。',
             rejectExpenseTitle: '拒绝你不打算批准或报销的报销单。',
             reasonPageTitle: '拒绝报销',
-            reasonPageDescription: '请说明你拒绝此报销的原因。',
+            reasonPageDescription: '请说明你为何不会批准这笔报销。',
             rejectReason: '拒绝原因',
             markAsResolved: '标记为已解决',
             rejectedStatus: '该报销已被拒绝。请先修复问题并标记为已解决，然后才能提交。',
@@ -1563,6 +1568,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `报表提交失败。${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
+        cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
     },
     transactionMerge: {
         listPage: {
@@ -2135,10 +2141,33 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: '添加个人卡',
+        addCompanyCard: '添加公司卡',
+        lookingForCompanyCards: '需要添加公司卡？',
+        lookingForCompanyCardsDescription: '从全球 10,000 多家银行添加您自己的卡。',
+        personalCardAdded: '个人卡已添加！',
+        personalCardAddedDescription: '恭喜，我们将开始导入您卡的交易记录。',
+        isPersonalCard: '这是个人卡吗？',
+        thisIsPersonalCard: '这是个人卡',
+        thisIsCompanyCard: '这是公司卡',
+        askAdmin: '请咨询您的管理员',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `如果是，那就太好了！但如果是<strong>公司</strong>卡，请 ${isAdmin ? '请从您的工作区分配。' : '请您的管理员从工作区将其分配给您。'}`,
+        bankConnectionError: '银行连接问题',
+        bankConnectionDescription: '请尝试重新添加您的银行卡。否则，您将无法',
+        connectWithPlaid: '通过 Plaid 连接。',
         fixCard: '修复卡片',
         brokenConnection: '您的银行卡连接已断开。',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink ? `您的 ${cardName} 卡连接已中断。<a href="${connectionLink}">登录您的网上银行</a>以修复该卡。` : `您的 ${cardName} 卡连接已中断。登录您的网上银行以修复该卡。`,
+        addAdditionalCards: '添加其他卡片',
+        upgradeDescription: '需要添加更多卡片吗？创建工作区以添加其他个人卡片或将公司卡片分配给整个团队。',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>此功能在 Collect 套餐中可用，每位成员每月费用为 <strong>${formattedPrice}</strong>。</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) => `<muted-text>创建工作区以使用此功能，或<a href="${subscriptionLink}">了解更多关于我们的套餐和定价的信息</a>。</muted-text>`,
+        workspaceCreated: '工作区已创建',
+        newWorkspace: '您已创建工作区！',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>您现在可以添加其他卡片了。<a href="${subscriptionLink}">查看您的订阅</a>了解更多详情。</centered-text>`,
     },
     walletPage: {
         balance: '余额',
