@@ -13,7 +13,14 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {
+    getIOURequestPolicyID,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
+    updateMoneyRequestDistanceRate,
+} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -149,6 +156,7 @@ function IOURequestStepDistanceRate({
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
             setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
             setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
+            setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
         }
 
         if (currentRateID !== customUnitRateID) {
