@@ -418,9 +418,7 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        if (shouldSkipConfirmation) {
-            setShouldEnableDiscardConfirmation(false);
-        }
+        setShouldEnableDiscardConfirmation(false);
 
         handleMoneyRequestStepDistanceNavigation({
             iouType,
