@@ -33,9 +33,9 @@ const pages = [
 function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimbursementsBusinessPageProps) {
     const {translate} = useLocalize();
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
-    const country = bankAccountList?.[bankAccountID]?.bankCountry as Country;
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const currency = bankAccount?.bankCurrency ?? '';
+    const country = bankAccount?.bankCountry as Country;
 
     const goToAgreementsPage = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));

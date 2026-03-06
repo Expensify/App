@@ -15,9 +15,9 @@ type EnableGlobalReimbursementsSignPageProps = PlatformStackScreenProps<Settings
 
 function EnableGlobalReimbursementsSignPage({route}: EnableGlobalReimbursementsSignPageProps) {
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
-    const country = bankAccountList?.[bankAccountID]?.bankCountry;
+    const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
+    const currency = bankAccount?.bankCurrency ?? '';
+    const country = bankAccount?.bankCountry;
     const [enableGlobalReimbursements] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.ACH_AUTHORIZATION_FORM] ?? [];

@@ -21,8 +21,7 @@ const inputIDs = {
 
 function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimbursementsAgreementsPageProps) {
     const bankAccountID = route.params?.bankAccountID;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const currency = bankAccountList?.[bankAccountID]?.bankCurrency ?? '';
+    const [currency = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]?.bankCurrency});
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
         Object.keys(inputIDs).map((key) => {
