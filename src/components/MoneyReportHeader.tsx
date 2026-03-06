@@ -1011,10 +1011,11 @@ function MoneyReportHeader({
                 },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-                text: translate('workspace.common.exportIntegrationSelected', {
+                text: translate(
+                    'workspace.common.exportIntegrationSelected',
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    connectionName: connectedIntegrationFallback!,
-                }),
+                    connectedIntegrationFallback!,
+                ),
                 icon: (() => {
                     return getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons);
                 })(),
@@ -1145,10 +1146,11 @@ function MoneyReportHeader({
         [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
             <Button
                 success
-                text={translate('workspace.common.exportIntegrationSelected', {
+                text={translate(
+                    'workspace.common.exportIntegrationSelected',
                     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    connectionName: connectedIntegration!,
-                })}
+                    connectedIntegration!,
+                )}
                 onPress={() => {
                     if (!connectedIntegration || !moneyRequestReport) {
                         return;
@@ -1287,11 +1289,7 @@ function MoneyReportHeader({
         return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
 
-    const connectedIntegrationName = connectedIntegration
-        ? translate('workspace.accounting.connectionName', {
-              connectionName: connectedIntegration,
-          })
-        : '';
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = useMemo(
         () => (
             <Text>
@@ -1775,10 +1773,7 @@ function MoneyReportHeader({
         }
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: connectedIntegration ?? connectedIntegrationFallback,
-                reportName: moneyRequestReport?.reportName ?? '',
-            }),
+            prompt: translate('workspace.exportAgainModal.description', moneyRequestReport?.reportName ?? '', connectedIntegration ?? connectedIntegrationFallback),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {

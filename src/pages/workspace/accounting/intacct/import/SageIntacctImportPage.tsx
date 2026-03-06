@@ -53,7 +53,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
                 const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
                 return {
-                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName: mapping})),
+                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
                     action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
                     title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
                     subscribedSettings: [mapping],
