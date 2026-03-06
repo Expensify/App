@@ -923,10 +923,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 ...value,
                 pendingFields: {
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    preventSelfApproval: shouldResetPreventSelfApproval ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : policy?.pendingFields?.preventSelfApproval,
+                    ...(shouldResetPreventSelfApproval && {preventSelfApproval: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
-                preventSelfApproval: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? false : policy?.preventSelfApproval,
                 employeeList: optimisticMembersState,
+                ...(shouldResetPreventSelfApproval && {preventSelfApproval: false}),
             },
         },
     ];
@@ -941,10 +941,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 approver: policy?.approver,
                 approvalMode: policy?.approvalMode,
-                preventSelfApproval: policy?.preventSelfApproval,
-                pendingFields: {approvalMode: null, preventSelfApproval: policy?.pendingFields?.preventSelfApproval},
+                pendingFields: {approvalMode: null, ...(shouldResetPreventSelfApproval && {preventSelfApproval: policy?.pendingFields?.preventSelfApproval})},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
                 employeeList: policy?.employeeList,
+                ...(shouldResetPreventSelfApproval && {preventSelfApproval: policy?.preventSelfApproval}),
             },
         },
     ];
@@ -959,7 +959,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 pendingFields: {
                     approvalMode: null,
-                    preventSelfApproval: shouldResetPreventSelfApproval ? null : policy?.pendingFields?.preventSelfApproval,
+                    ...(shouldResetPreventSelfApproval && {preventSelfApproval: null}),
                 },
             },
         },
