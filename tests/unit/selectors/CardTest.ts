@@ -6,7 +6,6 @@ import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFr
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
-import {translateLocal} from '../../utils/TestHelper';
 
 /**
  * Test helper replicating the logic that was moved inline into useTimeSensitiveCards hook.
@@ -160,8 +159,8 @@ describe('filterCardsHiddenFromSearch', () => {
 
 describe('defaultExpensifyCardSelector', () => {
     it('Should return undefined if allCards is undefined or empty', () => {
-        expect(defaultExpensifyCardSelector(undefined, translateLocal)).toBeUndefined();
-        expect(defaultExpensifyCardSelector({}, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(undefined)).toBeUndefined();
+        expect(defaultExpensifyCardSelector({})).toBeUndefined();
     });
 
     it('Should return undefined if cards do not have Expensify Card bank', () => {
@@ -170,7 +169,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomCompanyCard(2, {bank: 'stripe'}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return undefined if Expensify Card does not have fundID', () => {
@@ -179,7 +178,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: ''}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return the first Expensify Card feed when multiple Expensify Cards exist', () => {
@@ -187,7 +186,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: '5555'}),
             '2': createRandomExpensifyCard(2, {fundID: '6666'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -203,7 +202,7 @@ describe('defaultExpensifyCardSelector', () => {
             '3': createRandomExpensifyCard(3, {fundID: '6666'}),
         };
 
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -217,7 +216,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: undefined}),
             '2': createRandomExpensifyCard(2, {fundID: '5555'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
