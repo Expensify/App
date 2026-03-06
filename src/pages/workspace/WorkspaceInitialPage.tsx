@@ -174,9 +174,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevPendingFields = usePrevious(policy?.pendingFields);
 
     // Detect the most recently enabled feature for highlight animation
-    const highlightedFeature = (Object.keys(policyFeatureStates) as PolicyFeatureName[]).find(
-        (key) => policyFeatureStates[key] && !prevPendingFields?.[key] && policy?.pendingFields?.[key],
-    );
+    const highlightedFeature = (Object.keys(policyFeatureStates) as PolicyFeatureName[]).find((key) => policyFeatureStates[key] && !prevPendingFields?.[key] && policy?.pendingFields?.[key]);
 
     const prevPolicy = usePrevious(policy);
     const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
@@ -196,7 +194,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     useFocusEffect(
         useCallback(() => {
             fetchPolicyData();
-        }, [fetchPolicyData])
+        }, [fetchPolicyData]),
     );
     useConfirmReadyToOpenApp();
 
