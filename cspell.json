@@ -857,7 +857,8 @@
         "Invoicify",
         "liveupdate",
         "UKEU",
-        "USCA"
+        "USCA",
+        "widgetkit"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
