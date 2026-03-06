@@ -6002,6 +6002,115 @@ const getConvertTrackedExpenseInformation = (
     return {optimisticData, successData, failureData, modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID};
 };
 
+type GetConvertTrackedExpenseWorkspaceFailureDataParams = {
+    iouReportID: string;
+    iouCreatedReportActionID: string | undefined;
+    iouReportActionID: string;
+    chatReportID: string;
+    chatPreviewReportActionID: string;
+    transactionID: string;
+    linkedTrackedExpenseReportID: string;
+    linkedTrackedExpenseReportActionID: string;
+    transactionThreadReportID: string | undefined;
+    modifiedExpenseReportActionID: string;
+};
+
+function getConvertTrackedExpenseWorkspaceFailureData({
+    iouReportID,
+    iouCreatedReportActionID,
+    iouReportActionID,
+    chatReportID,
+    chatPreviewReportActionID,
+    transactionID,
+    linkedTrackedExpenseReportID,
+    linkedTrackedExpenseReportActionID,
+    transactionThreadReportID,
+    modifiedExpenseReportActionID,
+}: GetConvertTrackedExpenseWorkspaceFailureDataParams): Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> {
+    const additionalFailureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
+    const previousIOUReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    const shouldClearOptimisticIOUReport = !previousIOUReport || previousIOUReport.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    if (shouldClearOptimisticIOUReport) {
+        additionalFailureData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`,
+                value: null,
+            },
+        );
+    } else {
+        additionalFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            value: previousIOUReport,
+        });
+    }
+
+    const previousReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]?.[chatPreviewReportActionID];
+    additionalFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+        value: {
+            [chatPreviewReportActionID]: previousReportPreviewAction ?? null,
+        },
+    });
+
+    const previousIOUReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`];
+    const previousIOUAction = previousIOUReportActions?.[iouReportActionID];
+    additionalFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`,
+        value: {
+            [iouReportActionID]: previousIOUAction ?? null,
+            ...(iouCreatedReportActionID ? {[iouCreatedReportActionID]: previousIOUReportActions?.[iouCreatedReportActionID] ?? null} : {}),
+        },
+    });
+
+    additionalFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            pendingAction: null,
+            reportID: linkedTrackedExpenseReportID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        },
+    });
+
+    if (transactionThreadReportID) {
+        additionalFailureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [modifiedExpenseReportActionID]: null,
+            },
+        });
+    }
+
+    additionalFailureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
+        value: {
+            [linkedTrackedExpenseReportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                pendingAction: null,
+            },
+        },
+    });
+
+    return additionalFailureData;
+}
+
 type ConvertTrackedWorkspaceParams = {
     category: string | undefined;
     tag: string | undefined;
@@ -6141,73 +6250,17 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     }
 
     if (workspaceParams) {
-        const additionalFailureData: Array<OnyxUpdate<BuildOnyxDataForMoneyRequestKeys>> = [];
-        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouParams.reportID}`];
-        const shouldClearOptimisticIOUReport = !iouReport || iouReport.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-
-        if (shouldClearOptimisticIOUReport) {
-            additionalFailureData.push(
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouParams.reportID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouParams.reportID}`,
-                    value: null,
-                },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouParams.reportID}`,
-                    value: null,
-                },
-            );
-        }
-
-        const reportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`]?.[chatParams.reportPreviewReportActionID];
-        if (!reportPreviewAction || reportPreviewAction.isOptimisticAction) {
-            const previousPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`]?.[chatParams.reportPreviewReportActionID];
-
-            // Restore the optimistic preview action if it exists from an earlier request in the same chat/report; otherwise, clear it.
-            additionalFailureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatParams.reportID}`,
-                value: {
-                    [chatParams.reportPreviewReportActionID]: previousPreviewAction ?? null,
-                },
-            });
-        }
-
-        additionalFailureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingAction: null,
-                reportID: linkedTrackedExpenseReportID,
-                status: CONST.TRANSACTION.STATUS.POSTED,
-            },
-        });
-
-        if (transactionThreadReportID) {
-            additionalFailureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {
-                    [convertTrackedExpenseInformation.modifiedExpenseReportActionID]: null,
-                },
-            });
-        }
-
-        additionalFailureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${linkedTrackedExpenseReportID}`,
-            value: {
-                [linkedTrackedExpenseReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
-                    pendingAction: null,
-                },
-            },
+        const additionalFailureData = getConvertTrackedExpenseWorkspaceFailureData({
+            iouReportID: iouParams.reportID,
+            iouCreatedReportActionID: iouParams.createdReportActionID,
+            iouReportActionID: iouParams.reportActionID,
+            chatReportID: chatParams.reportID,
+            chatPreviewReportActionID: chatParams.reportPreviewReportActionID,
+            transactionID,
+            linkedTrackedExpenseReportID,
+            linkedTrackedExpenseReportActionID: linkedTrackedExpenseReportAction.reportActionID,
+            transactionThreadReportID,
+            modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
         });
 
         // Removing the ghost IOU report on API failure which can cause unexpected errors.
