@@ -1,5 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
@@ -27,7 +27,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const {splashScreenState} = useSplashScreenState();
 
     const inputRef = useRef<TextInput | null>(null);
-    const navigation = useNavigation();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
@@ -47,47 +47,44 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         };
     }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
-    useEffect(() => {
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
-            if (event.data.closing) {
-                return;
-            }
-            setIsScreenTransitionEnded(true);
-        });
-
-        const unsubscribeBlur = navigation.addListener('blur', () => {
-            setIsScreenTransitionEnded(false);
-        });
-
-        return () => {
-            unsubscribeTransitionEnd();
-            unsubscribeBlur();
-        };
-    }, [navigation]);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                setIsScreenTransitionEnded(true);
+            }, CONST.ANIMATED_TRANSITION);
+            return () => {
+                setIsScreenTransitionEnded(false);
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     // Trigger focus when Side Panel transition ends
     const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanelState();
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
-    const wasSidePanelClosedRef = useRef(false);
+    const [wasSidePanelClosed, setWasSidePanelClosed] = useState(false);
 
     useEffect(() => {
         // Track when side panel transitions from visible to hidden
         if (!(shouldHideSidePanel && !prevShouldHideSidePanel)) {
             return;
         }
-        wasSidePanelClosedRef.current = true;
+        setWasSidePanelClosed(true);
     }, [shouldHideSidePanel, prevShouldHideSidePanel]);
 
     useEffect(() => {
         // Trigger focus when:
         // 1. Side panel was just closed
         // 2. Transition has fully completed
-        if (!wasSidePanelClosedRef.current || !isSidePanelTransitionEnded) {
+        if (!wasSidePanelClosed || !isSidePanelTransitionEnded) {
             return;
         }
-        wasSidePanelClosedRef.current = false;
+        setWasSidePanelClosed(true);
         Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
-    }, [isSidePanelTransitionEnded]);
+    }, [isSidePanelTransitionEnded, wasSidePanelClosed]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
