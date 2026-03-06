@@ -1180,18 +1180,7 @@ describe('split expense', () => {
             },
         });
 
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-
-        let policyTags: PolicyTagLists = {};
-        await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                policyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
-            },
-        });
+        const policyTags = await getPolicyTags(reportID);
 
         // When splitting the expense
         updateSplitTransactionsFromSplitExpensesFlow({
@@ -1298,16 +1287,6 @@ describe('startSplitBill', () => {
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
-    let allPolicyTags: OnyxCollection<PolicyTagLists>;
-    beforeEach(async () => {
-        await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allPolicyTags = value;
-            },
-        });
-    });
     it('should delete the original transaction thread report', async () => {
         const expenseReport: Report = {
             ...createRandomReport(1, undefined),
@@ -1375,10 +1354,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1493,10 +1469,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1623,10 +1596,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1783,10 +1753,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = originalReportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -1887,16 +1854,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 });
 
 describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
-    let allPolicyTags: OnyxCollection<PolicyTagLists>;
-    beforeEach(async () => {
-        await getOnyxData({
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            waitForCollectionCallback: true,
-            callback: (value) => {
-                allPolicyTags = value;
-            },
-        });
-    });
     it("should update split transaction's description correctly ", async () => {
         const amount = 10000;
         let expenseReport: OnyxEntry<Report>;
@@ -2029,10 +1986,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -2201,10 +2155,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
@@ -2386,10 +2337,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         // it should use splitExpensesTotal in its calculation
         updateSplitTransactionsFromSplitExpensesFlow({
@@ -2595,10 +2543,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const splitTransactionReport = getReportOrDraftReport(reportID);
-        const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-        const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-        const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+        const policyTags = await getPolicyTags(reportID);
 
         // When splitting the held expense
         updateSplitTransactionsFromSplitExpensesFlow({
