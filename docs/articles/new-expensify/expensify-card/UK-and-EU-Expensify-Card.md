@@ -19,8 +19,6 @@ Workspace Admins can issue virtual Expensify Cards to members and manage spendin
 
 To get started with the UK/EU Expensify Card, you'll need to meet a few eligibility requirements and connect a business bank account in GBP or EUR.
 
-<!-- Also known as: issue cards in Europe, UK card setup, virtual cards, smart limit card, Euro business card -->
-
 ## Who can set up the Expensify Cards in the UK and EU
 
 The card is currently available for:
