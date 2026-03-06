@@ -11,12 +11,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateTravelInvoiceSettlementFrequency} from '@libs/actions/TravelInvoicing';
+import {getCardSettings} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getTravelSettlementFrequency} from '@libs/TravelInvoicingUtils';
+import {getTravelInvoicingCardSettingsKey, getTravelSettlementFrequency} from '@libs/TravelInvoicingUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTravelInvoicingSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY>;
@@ -30,9 +30,10 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}` as const, {canBeMissing: true});
+    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
-    const currentFrequency = getTravelSettlementFrequency(cardSettings);
+    const currentFrequency = getTravelSettlementFrequency(travelSettings);
     const frequencies = [CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY, CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY];
 
     function getSettlementFrequencyLabel(frequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) {
@@ -52,7 +53,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
     }));
 
     const selectFrequency = (item: FrequencyItem) => {
-        updateTravelInvoiceSettlementFrequency(policyID, workspaceAccountID, item.value, cardSettings?.monthlySettlementDate ? new Date(cardSettings.monthlySettlementDate) : undefined);
+        updateTravelInvoiceSettlementFrequency(workspaceAccountID, item.value, travelSettings?.monthlySettlementDate ? new Date(travelSettings.monthlySettlementDate) : undefined);
         Navigation.goBack();
     };
 

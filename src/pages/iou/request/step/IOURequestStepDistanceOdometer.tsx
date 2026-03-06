@@ -1,10 +1,9 @@
-import reportsSelector from '@selectors/Attributes';
+import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {GalleryPlus} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import Text from '@components/Text';
@@ -13,11 +12,13 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,6 +26,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance, setMoneyRequestOdometerReading, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -63,7 +65,7 @@ function IOURequestStepDistanceOdometer({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceOdometerProps) {
-    const {translate} = useLocalize();
+    const {translate, fromLocaleDigit, numberFormat} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -89,31 +91,35 @@ function IOURequestStepDistanceOdometer({
     const initialEndImageRef = useRef<FileObject | string | undefined>(undefined);
     const prevSelectedTabRef = useRef<string | undefined>(undefined);
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
+    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const reportAttributesDerived = useReportAttributes();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
@@ -121,10 +127,12 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
+    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
     const customUnitRateID = getRateID(transaction);
 
-    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+    const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
+    const unit = mileageRate.unit;
+    const rate = mileageRate.rate ?? 0;
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
@@ -168,22 +176,27 @@ function IOURequestStepDistanceOdometer({
         if (hasInitializedRefs.current) {
             return;
         }
-        const currentStart = transaction?.comment?.odometerStart;
-        const currentEnd = transaction?.comment?.odometerEnd;
+        const currentStart = currentTransaction?.comment?.odometerStart;
+        const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
         const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
         initialStartReadingRef.current = startValue;
         initialEndReadingRef.current = endValue;
-        initialStartImageRef.current = transaction?.comment?.odometerStartImage;
-        initialEndImageRef.current = transaction?.comment?.odometerEndImage;
+        initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
+        initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage]);
+    }, [
+        currentTransaction?.comment?.odometerStart,
+        currentTransaction?.comment?.odometerEnd,
+        currentTransaction?.comment?.odometerStartImage,
+        currentTransaction?.comment?.odometerEndImage,
+    ]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
     // This updates the current state, but NOT the initial refs (those are set only once on mount)
     useEffect(() => {
-        const currentStart = transaction?.comment?.odometerStart;
-        const currentEnd = transaction?.comment?.odometerEnd;
+        const currentStart = currentTransaction?.comment?.odometerStart;
+        const currentEnd = currentTransaction?.comment?.odometerEnd;
 
         // Only initialize if:
         // 1. We haven't initialized yet AND transaction has data, OR
@@ -207,12 +220,12 @@ function IOURequestStepDistanceOdometer({
                 endReadingRef.current = endValue;
             }
         }
-    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
+    }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
-        const start = parseFloat(startReading);
-        const end = parseFloat(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
             return null;
         }
@@ -271,37 +284,53 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    const cleanOdometerReading = (text: string): string => {
-        // Allow digits and one decimal point or comma
-        // Remove all characters except digits, dots, and commas
-        let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-        // Replace comma with dot for consistency
-        cleaned = cleaned.replaceAll(',', '.');
-        // Allow only one decimal point
-        const parts = cleaned.split('.');
+    // Per-keystroke validation: enforce format constraints and cap the max value.
+    // The max-value check allows edits that *reduce* the value (e.g. backspacing
+    // a legacy over-max reading) but rejects keystrokes that would increase
+    // beyond ODOMETER_MAX_VALUE.  Submit-time validation in handleNext is the
+    // final safety net.
+    const isOdometerInputValid = (text: string, previousText: string): boolean => {
+        if (!text) {
+            return true;
+        }
+        const stripped = DistanceRequestUtils.normalizeOdometerText(text, fromLocaleDigit);
+        const parts = stripped.split('.');
         if (parts.length > 2) {
-            cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
+            return false;
         }
-        // Don't allow decimal point at the start
-        if (cleaned.startsWith('.')) {
-            cleaned = `0${cleaned}`;
+        if (parts.length === 2 && (parts.at(1) ?? '').length > 1) {
+            return false;
         }
-        return cleaned;
+        const value = parseFloat(stripped);
+
+        // Allow edits that reduce the value (e.g. backspacing a legacy over-max reading),
+        // but reject keystrokes that would increase beyond the max.
+        if (!Number.isNaN(value) && value > CONST.IOU.ODOMETER_MAX_VALUE) {
+            const previousValue = parseFloat(DistanceRequestUtils.normalizeOdometerText(previousText, fromLocaleDigit));
+            if (Number.isNaN(previousValue) || value >= previousValue) {
+                return false;
+            }
+        }
+        return true;
     };
 
     const handleStartReadingChange = (text: string) => {
-        const cleaned = cleanOdometerReading(text);
-        setStartReading(cleaned);
-        startReadingRef.current = cleaned;
+        if (!isOdometerInputValid(text, startReading)) {
+            return;
+        }
+        setStartReading(text);
+        startReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
     };
 
     const handleEndReadingChange = (text: string) => {
-        const cleaned = cleanOdometerReading(text);
-        setEndReading(cleaned);
-        endReadingRef.current = cleaned;
+        if (!isOdometerInputValid(text, endReading)) {
+            return;
+        }
+        setEndReading(text);
+        endReadingRef.current = text;
         if (formError) {
             setFormError('');
         }
@@ -332,12 +361,13 @@ function IOURequestStepDistanceOdometer({
         Navigation.goBack();
     };
 
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
     // Navigate to next page following Manual tab pattern
     const navigateToNextPage = () => {
-        const start = parseFloat(startReading);
-        const end = parseFloat(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
 
         // Store odometer readings in transaction.comment.odometerStart/odometerEnd
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
@@ -350,6 +380,22 @@ function IOURequestStepDistanceOdometer({
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
 
         if (isEditing) {
+            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+            if (isEditingSplit && transaction) {
+                setDraftSplitTransaction(
+                    transaction.transactionID,
+                    splitDraftTransaction,
+                    {
+                        distance: calculatedDistance,
+                        odometerStart: start,
+                        odometerEnd: end,
+                    },
+                    policy,
+                );
+                Navigation.goBack();
+                return;
+            }
+
             // Update existing transaction
             const previousDistance = transaction?.comment?.customUnit?.quantity;
             const previousStart = transaction?.comment?.odometerStart;
@@ -422,6 +468,10 @@ function IOURequestStepDistanceOdometer({
             odometerEnd: end,
             odometerDistance: calculatedDistance,
             betas,
+            recentWaypoints,
+            unit,
+            personalOutputCurrency: personalPolicy?.outputCurrency,
+            amountOwed,
         });
     };
 
@@ -433,18 +483,28 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
-        const start = parseFloat(startReading);
-        const end = parseFloat(endReading);
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
 
         if (Number.isNaN(start) || Number.isNaN(end)) {
             setFormError(translate('iou.error.invalidReadings'));
             return;
         }
 
-        // Validation: Calculated distance (end - start) must be > 0
+        if (start > CONST.IOU.ODOMETER_MAX_VALUE || end > CONST.IOU.ODOMETER_MAX_VALUE) {
+            setFormError(translate('iou.error.odometerReadingTooLarge', numberFormat(CONST.IOU.ODOMETER_MAX_VALUE, {maximumFractionDigits: 1})));
+            return;
+        }
+
         const distance = end - start;
         if (distance <= 0) {
             setFormError(translate('iou.error.negativeDistanceNotAllowed'));
+            return;
+        }
+
+        // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distance, rate)) {
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
         }
 
@@ -464,7 +524,7 @@ function IOURequestStepDistanceOdometer({
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, styles.mb5]}>
                 <View>
                     {/* Start Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`start-${inputKey}`}
@@ -477,40 +537,42 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                            onPress={() => {
-                                if (odometerStartImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={startImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.startTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
+                                onPress={() => {
+                                    if (odometerStartImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={startImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={icons.GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
                     {/* End Reading */}
-                    <View style={[styles.mb6, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.mb6, styles.flexRow, !isEditing && [styles.alignItemsCenter, styles.gap3]]}>
                         <View style={[styles.flex1]}>
                             <TextInput
                                 key={`end-${inputKey}`}
@@ -523,37 +585,39 @@ function IOURequestStepDistanceOdometer({
                                 inputMode={CONST.INPUT_MODE.DECIMAL}
                             />
                         </View>
-                        <PressableWithFeedback
-                            accessible={false}
-                            accessibilityRole="button"
-                            sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                            onPress={() => {
-                                if (odometerEndImage) {
-                                    handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                } else {
-                                    handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                }
-                            }}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={endImageSource ?? ''}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={GalleryPlus}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
+                        {!isEditing && (
+                            <PressableWithFeedback
+                                accessibilityRole="button"
+                                accessibilityLabel={translate('distance.odometer.endTitle')}
+                                sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
+                                onPress={() => {
+                                    if (odometerEndImage) {
+                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    } else {
+                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+                                    }
+                                }}
+                                style={[
+                                    StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
+                                    StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                    styles.overflowHidden,
+                                    StyleUtils.getBackgroundColorStyle(theme.border),
+                                ]}
+                            >
+                                <ReceiptImage
+                                    source={endImageSource ?? ''}
+                                    shouldUseThumbnailImage
+                                    thumbnailContainerStyles={styles.bgTransparent}
+                                    isAuthTokenRequired
+                                    fallbackIcon={icons.GalleryPlus}
+                                    fallbackIconSize={variables.iconSizeNormal}
+                                    fallbackIconColor={theme.icon}
+                                    iconSize="x-small"
+                                    loadingIconSize="small"
+                                    shouldUseInitialObjectPosition
+                                />
+                            </PressableWithFeedback>
+                        )}
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}

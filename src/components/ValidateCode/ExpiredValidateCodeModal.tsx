@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);

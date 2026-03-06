@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 
 type SingleSelectItem<T> = {
     text: string;
@@ -125,7 +126,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     textInputOptions={textInputOptions}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                    showLoadingPlaceholder={!noResultsFound}
+                    shouldShowLoadingPlaceholder={!noResultsFound}
                 />
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
@@ -134,6 +135,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
                 />
                 <Button
                     success
@@ -141,6 +143,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
                 />
             </View>
         </View>

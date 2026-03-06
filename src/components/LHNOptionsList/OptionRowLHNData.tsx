@@ -1,14 +1,18 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
+import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import {getMovedReportID} from '@src/libs/ModifiedExpenseMessage';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -50,13 +54,24 @@ function OptionRowLHNData({
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const optionItemRef = useRef<OptionData | undefined>(undefined);
 
-    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
-    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
+    const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
+    const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {login} = useCurrentUserPersonalDetails();
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
     // Check the report errors equality to avoid re-rendering when there are no changes
     const prevReportErrors = usePrevious(reportAttributes?.reportErrors);
     const areReportErrorsEqual = useMemo(() => deepEqual(prevReportErrors, reportAttributes?.reportErrors), [prevReportErrors, reportAttributes?.reportErrors]);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
+
+    const isIOUReport = fullReport?.type === CONST.REPORT.TYPE.IOU;
+    const [chatReportForIOU] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isIOUReport ? fullReport?.chatReportID : undefined)}`);
+    const reportPreviewSenderID = useReportPreviewSenderID({
+        iouReport: isIOUReport ? fullReport : undefined,
+        action: parentReportAction,
+        chatReport: chatReportForIOU,
+    });
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -68,6 +83,7 @@ function OptionRowLHNData({
             personalDetails,
             policy,
             parentReportAction,
+            conciergeReportID,
             lastMessageTextFromReport,
             invoiceReceiverPolicy,
             card,
@@ -80,6 +96,8 @@ function OptionRowLHNData({
             movedToReport,
             currentUserAccountID,
             reportAttributesDerived,
+            policyTags,
+            currentUserLogin: login ?? '',
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -90,6 +108,7 @@ function OptionRowLHNData({
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
+        // Listen to lastAction to update when action is deleted or gets pendingAction
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         fullReport,
@@ -104,12 +123,15 @@ function OptionRowLHNData({
         preferredLocale,
         policy,
         parentReportAction,
+        conciergeReportID,
         iouReportReportActions,
         transaction,
         receiptTransactions,
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
+        lastAction,
+        lastActionReport,
         translate,
         localeCompare,
         isReportArchived,
@@ -117,14 +139,28 @@ function OptionRowLHNData({
         movedToReport,
         currentUserAccountID,
         reportAttributesDerived,
+        policyTags,
+        login,
     ]);
+
+    // For single-sender IOUs, trim to the sender's avatar to match the header.
+    // The header uses reportPreviewSenderID as accountID for its primary avatar,
+    // so we pick the matching icon from getIconsForIOUReport to stay consistent.
+    const finalOptionItem = useMemo(() => {
+        if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
+            return optionItem;
+        }
+        // eslint-disable-next-line rulesdir/prefer-at -- .find() is needed to search by predicate (matching icon.id to senderID), not by index
+        const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
+        return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
+    }, [optionItem, isIOUReport, reportPreviewSenderID]);
 
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             isOptionFocused={isReportFocused}
-            optionItem={optionItem}
+            optionItem={finalOptionItem}
             report={fullReport}
         />
     );
