@@ -7,6 +7,7 @@ type SimulateMarqeta3DSChallengeParams = {
     cardID: number;
     simulatedOutcome?: string;
     maxResponseTime?: number;
+    createdTime?: string;
 };
 
 export default SimulateMarqeta3DSChallengeParams;

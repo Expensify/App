@@ -95,6 +95,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
     const [delaySecondsText, setDelaySecondsText] = useState('0');
     const [expiryMinutesText, setExpiryMinutesText] = useState('8');
     const [simulatedOutcome, setSimulatedOutcome] = useState('');
+    const [createdTime, setCreatedTime] = useState('');
     const [selectedCardID, setSelectedCardID] = useState<number | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -157,6 +158,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
             simulatedOutcome,
             maxResponseTime,
             cardID: effectiveCardID,
+            createdTime,
         });
         setIsLoading(false);
         if (result.success) {
@@ -172,7 +174,7 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
         }
         setIsLoading(true);
         setErrorMessage(undefined);
-        const result = await simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID});
+        const result = await simulateMarqeta3DSChallenge({shouldRunAllFlows: true, cardID: effectiveCardID, createdTime});
         setIsLoading(false);
         if (result.success) {
             onClose();
@@ -319,6 +321,21 @@ function SimulatePendingTransaction({isVisible, onClose}: SimulatePendingTransac
                             onPress={() => setExpiryMinutesText('60')}
                         />
                     </View>
+                </View>
+
+                <View>
+                    <Text>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.createdTime')}</Text>
+                    <View style={styles.mv2}>
+                        <TextInput
+                            placeholder={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.createdTimePlaceholder')}
+                            value={createdTime}
+                            onChangeText={setCreatedTime}
+                            shouldHideClearButton={false}
+                            onClearInput={() => setCreatedTime('')}
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.createdTimeAccessibilityLabel')}
+                        />
+                    </View>
+                    <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('initialSettingsPage.troubleshoot.simulate3DSPendingTransaction.createdTimeDescription')}</Text>
                 </View>
             </View>
         </ScrollView>
