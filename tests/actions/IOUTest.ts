@@ -11241,7 +11241,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -11300,7 +11300,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
 
             expect(writeSpy).not.toHaveBeenCalled();
 
@@ -11348,7 +11348,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([firstTransactionID, secondTransactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
 
             const getOptimisticTotal = (callIndex: number) => {
                 const onyxData = writeSpy.mock.calls.at(callIndex)?.[2] as {optimisticData: Array<{key: string; value?: {total?: number}}>};
@@ -11405,7 +11405,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {amount: -1000}, policy, reports, transactions, {}, undefined);
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -11466,7 +11466,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {billable: true, reimbursable: false}, policy, reports, transactions, {}, undefined);
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {billable: boolean; reimbursable: boolean};
@@ -11518,7 +11518,7 @@ describe('actions/IOU', () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
-            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {amount: 1000}, policy, reports, transactions, {}, undefined);
 
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
             const updates = JSON.parse(params.updates) as {amount: number};
@@ -11568,7 +11568,7 @@ describe('actions/IOU', () => {
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             // No canEditFieldOfMoneyRequest mock — unreported expenses must bypass that check
-            updateMultipleMoneyRequests([transactionID], {merchant: 'New merchant'}, policy, reports, transactions, {});
+            updateMultipleMoneyRequests([transactionID], {merchant: 'New merchant'}, policy, reports, transactions, {}, undefined);
 
             expect(writeSpy).toHaveBeenCalled();
             const params = writeSpy.mock.calls.at(0)?.[1] as {updates: string};
@@ -11576,6 +11576,95 @@ describe('actions/IOU', () => {
             expect(updates.merchant).toBe('New merchant');
 
             writeSpy.mockRestore();
+        });
+
+        it('removes DUPLICATED_TRANSACTION violation optimistically when amount is changed', async () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests([transactionID], {amount: 2000}, policy, reports, transactions, {}, undefined);
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).not.toContain(CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+            canEditFieldSpy.mockRestore();
+        });
+
+        it('removes CATEGORY_OUT_OF_POLICY violation optimistically when category is cleared', async () => {
+            const transactionID = 'transaction-1';
+            const transactionThreadReportID = 'thread-1';
+            const iouReportID = 'iou-1';
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                category: 'OldCategory',
+            };
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+            await waitForBatchedUpdates();
+
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+
+            updateMultipleMoneyRequests([transactionID], {category: ''}, policy, reports, transactions, {}, undefined);
+            await waitForBatchedUpdates();
+
+            const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            const violationNames = updatedViolations?.map((v) => v.name) ?? [];
+            expect(violationNames).not.toContain(CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY);
+
+            canEditFieldSpy.mockRestore();
         });
     });
 

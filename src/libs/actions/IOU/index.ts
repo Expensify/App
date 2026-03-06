@@ -13958,7 +13958,7 @@ function updateMultipleMoneyRequests(
         if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             transactionChanges.currency = changes.currency;
         }
-        if (changes.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
+        if (changes.category !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
         if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
@@ -13989,7 +13989,7 @@ function updateMultipleMoneyRequests(
         if (transactionChanges.currency) {
             updates.currency = transactionChanges.currency;
         }
-        if (transactionChanges.category) {
+        if (transactionChanges.category !== undefined) {
             updates.category = transactionChanges.category;
         }
         if (transactionChanges.tag) {
