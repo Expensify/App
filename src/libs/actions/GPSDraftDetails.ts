@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {updateGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
 function resetGPSDraftDetails() {
@@ -21,7 +23,7 @@ function setEndAddress(endAddress: GpsDraftDetails['endAddress']) {
     });
 }
 
-function initGpsDraft(reportID: string) {
+function initGpsDraft(reportID: string, unit: Unit) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [],
         isTracking: true,
@@ -29,6 +31,7 @@ function initGpsDraft(reportID: string) {
         startAddress: {value: '', type: 'coordinates'},
         endAddress: {value: '', type: 'coordinates'},
         reportID,
+        unit,
     });
 }
 
@@ -68,6 +71,10 @@ function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, newGpsPoints:
     const updatedDistance = capturedDistance + distanceToAdd;
 
     const updatedGpsPoints = [...capturedPoints, ...gpsPointsToAdd];
+
+    if (updatedDistance > 0) {
+        updateGpsTripNotification(updatedDistance);
+    }
 
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: updatedGpsPoints,

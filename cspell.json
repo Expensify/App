@@ -679,6 +679,7 @@
         "strikethrough",
         "Strikethrough",
         "subcomponents",
+        "subfolders",
         "sublicensees",
         "sublocality",
         "subpremise",
@@ -855,7 +856,8 @@
         "canvaskit",
         "Invoicify",
         "UKEU",
-        "USCA"
+        "USCA",
+        "widgetkit"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
