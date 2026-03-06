@@ -699,7 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nie registriert',
             statusNotRegistered: 'Nicht registriert',
-            statusRegisteredOtherDevice: () => ({one: 'Ein anderes Gerät registriert', other: 'Andere Geräte registriert'}),
+            statusRegisteredOtherDevice: () => ({one: 'Weiteres Gerät registriert', other: 'Andere Geräte registriert'}),
             statusRegisteredThisDevice: 'Registriert',
         },
         pleaseEnableInSystemSettings: {
@@ -733,9 +733,9 @@ const translations: TranslationDeepObject<typeof en> = {
             ctaAll: 'Alle widerrufen',
             thisDevice: 'Dieses Gerät',
             otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
-                const numberWords = ['Ein', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
+                const numberWords = ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                return `${displayCount} ${otherDeviceCount === 1 ? 'anderes Gerät' : 'andere Geräte'}`;
+                return `${displayCount} ${otherDeviceCount === 1 ? 'weiteres Gerät' : 'andere Geräte'}`;
             },
             confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
             confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesen Geräten.',
