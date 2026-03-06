@@ -3303,9 +3303,8 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
 
     const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
     const street1 = street1Raw?.trim() ?? '';
-    const trimmedStreet2 = address.addressStreet2?.trim();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
-    const street2 = trimmedStreet2 || street2Raw?.trim() || '';
+    const street2 = address.addressStreet2?.trim() || street2Raw?.trim() || '';
     const parts: string[] = [];
 
     if (street1) {
@@ -3315,20 +3314,18 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         parts.push(street2);
     }
     if (address.city) {
-        parts.push(address.city.trim());
+        parts.push(address.city);
     }
 
     let stateZip = '';
-    const state = address.state?.trim();
-    const zipCode = address.zipCode?.trim();
 
-    if (state) {
-        stateZip = state;
-        if (zipCode) {
-            stateZip += ` ${zipCode}`;
+    if (address.state) {
+        stateZip = address.state;
+        if (address.zipCode) {
+            stateZip += ` ${address.zipCode}`;
         }
-    } else if (zipCode) {
-        stateZip = zipCode;
+    } else if (address.zipCode) {
+        stateZip = address.zipCode;
     }
 
     if (stateZip) {
