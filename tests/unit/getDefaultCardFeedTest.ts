@@ -27,6 +27,7 @@ describe('getDefaultCardFeed', () => {
 
     it('falls back to commercial feeds when no eligible policy has feeds', () => {
         const cardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             '': [commercialFeedZ, commercialFeed],
         };
         const result = getDefaultCardFeed(['POLICY_1'], 'POLICY_1', cardFeedsByPolicy, localeCompare);
