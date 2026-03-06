@@ -1005,7 +1005,9 @@ describe('actions/Report', () => {
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
                 participantLoginList: ['test@user.com'],
-                newReportObject: {reportID: REPORT_ID},
+                newReportObject: {
+                    reportID: REPORT_ID,
+                },
             });
         }
 
@@ -1058,12 +1060,7 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
-        Report.openReport({
-            reportID: CHILD_REPORT_ID,
-            introSelected: undefined,
-            transaction: transaction ?? undefined,
-            parentReportID: SELF_DM_ID,
-        });
+        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1111,7 +1108,9 @@ describe('actions/Report', () => {
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
                 participantLoginList: ['test@user.com'],
-                newReportObject: {reportID: REPORT_ID},
+                newReportObject: {
+                    reportID: REPORT_ID,
+                },
             });
         }
 
@@ -2549,7 +2548,12 @@ describe('actions/Report', () => {
                     enabled: false,
                 },
             };
-            const chatReport: OnyxTypes.Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), policyID: fakePolicy.id, hasOutstandingChildRequest: true};
+            const chatReport: OnyxTypes.Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: fakePolicy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
 
             const expenseReport1: OnyxTypes.Report = {
                 ...createRandomReport(5, undefined),

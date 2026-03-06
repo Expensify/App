@@ -56,7 +56,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -79,7 +79,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
-    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
+    const {popoverAnchorRefs} = useAccountingState();
+    const {startIntegrationFlow} = useAccountingActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();

@@ -52,6 +52,7 @@ import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canSubmitAndIsAwaitingForCurrentUser,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -65,18 +66,14 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
-    isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -137,8 +134,10 @@ function MoneyRequestReportPreviewContent({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -251,14 +250,12 @@ function MoneyRequestReportPreviewContent({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
 
-    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
-
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
-        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
-    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions),
+        [iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions],
+    );
 
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -690,11 +687,24 @@ function MoneyRequestReportPreviewContent({
                 iouReport?.reportID,
                 policy,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, chatReportID, lastDistanceExpenseType],
+        [
+            translate,
+            expensifyIcons,
+            iouReport?.reportID,
+            iouReport?.parentReportID,
+            policy,
+            userBillingGraceEndPeriods,
+            amountOwed,
+            chatReportID,
+            lastDistanceExpenseType,
+            ownerBillingGraceEndPeriod,
+        ],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
