@@ -5,12 +5,12 @@ index 2eacddf..346bbb9 100644
 @@ -138,6 +138,11 @@ - (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
    }
  }
- 
+
 ++ (BOOL)shouldBeRecycled
 +{
 +    return NO;
 +}
 +
  #pragma mark - Events
- 
+
  - (void)dispatchEvent:(nonnull NSString *)eventName payload:(nullable id)payload
