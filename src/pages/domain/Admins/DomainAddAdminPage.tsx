@@ -123,7 +123,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
         const searchedUserPersonalDetails = availableOptions.personalDetails.find(({login}) => login?.toLowerCase() === searchValue);
         if (!availableOptions.userToInvite && searchedUserPersonalDetails?.accountID && adminIDs?.includes(searchedUserPersonalDetails.accountID)) {
-            return translate('messages.userIsAlreadyAnAdmin', {login: searchValue, name: domainName ?? ''});
+            return translate('messages.userIsAlreadyAnAdmin', searchValue, domainName ?? '');
         }
         return getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!availableOptions.userToInvite, searchValue, countryCode, false);
     };

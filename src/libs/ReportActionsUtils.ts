@@ -4063,7 +4063,7 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
 
 function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+    return translate('reportAction.createdReportForUnapprovedTransactions', reportUrl, reportName);
 }
 
 function getDynamicExternalWorkflowRoutedMessage(

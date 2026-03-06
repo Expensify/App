@@ -181,7 +181,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         !availableOptions.userToInvite &&
         excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
     ) {
-        headerMessage = translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
+        headerMessage = translate('messages.userIsAlreadyMember', searchValue, policy?.name ?? '');
     }
 
     const footerContent = (

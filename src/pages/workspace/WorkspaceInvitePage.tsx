@@ -204,7 +204,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             !availableOptions.userToInvite &&
             excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]
         ) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
+            return translate('messages.userIsAlreadyMember', searchValue, policyName);
         }
         return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
     }, [

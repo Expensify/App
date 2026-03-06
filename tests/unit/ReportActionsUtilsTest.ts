@@ -1763,10 +1763,7 @@ describe('ReportActionsUtils', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
             const reportUrl = getReportURLForCurrentContext(reportID);
-            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
-                reportUrl,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', reportUrl, reportName);
 
             const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 

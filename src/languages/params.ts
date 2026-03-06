@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
@@ -59,10 +61,10 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
-type CreatedReportForUnapprovedTransactionsParams = {
-    reportUrl: string;
-    reportName: string;
-};
+// type CreatedReportForUnapprovedTransactionsParams = {
+//     reportUrl: string;
+//     reportName: string;
+// };
 
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
@@ -82,7 +84,7 @@ type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
-type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
+// type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
 type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
@@ -90,13 +92,13 @@ type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberParams = {login: string; name: string};
+// type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
-type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
+// type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
 
-type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
+// type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type WalletProgramParams = {walletProgram: string};
 
@@ -108,7 +110,7 @@ type ViolationsInvoiceMarkupParams = {invoiceMarkup: number};
 
 type ViolationsMaxAgeParams = {maxAge: number};
 
-type ViolationsMissingTagParams = {tagName?: string} | undefined;
+// type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
@@ -413,21 +415,21 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
-    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
-    ResolutionConstraintsParams,
+    // CreatedReportForUnapprovedTransactionsParams,
+    // ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
+    // UpdatedTheDistanceMerchantParams,
+    // UpdatedTheRequestParams,
     UsePlusButtonParams,
-    UserIsAlreadyMemberParams,
+    // UserIsAlreadyMemberParams,
     UserSplitParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
-    ViolationsMissingTagParams,
+    // ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsOverAutoApprovalLimitParams,
     ViolationsOverCategoryLimitParams,
