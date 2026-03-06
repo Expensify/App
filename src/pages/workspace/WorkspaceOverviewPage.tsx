@@ -57,11 +57,11 @@ import {
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
-import {formatWorkspaceAddress} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -116,7 +116,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
-    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatWorkspaceAddress(policy.address) : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 

@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import {formatWorkspaceAddress, getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
+import {getBrickRoadForPolicy, getChatTabBrickRoad, getChatTabBrickRoadReportID, getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -193,30 +193,6 @@ describe('WorkspacesSettingsUtils', () => {
                 streetLineOne: '123 Main St',
                 streetLineTwo: 'Legacy Line 2',
             });
-        });
-    });
-
-    describe('formatWorkspaceAddress', () => {
-        it('Should format full workspace address', () => {
-            const result = formatWorkspaceAddress({
-                addressStreet: '123 Main St',
-                addressStreet2: 'Suite 200',
-                city: 'San Francisco',
-                state: 'CA',
-                zipCode: '94105',
-            });
-
-            expect(result).toBe('123 Main St, Suite 200, San Francisco, CA 94105');
-        });
-
-        it('Should fallback to legacy newline and handle missing state with zip code', () => {
-            const result = formatWorkspaceAddress({
-                addressStreet: '123 Main St\nLegacy Suite',
-                city: 'San Francisco',
-                zipCode: '94105',
-            });
-
-            expect(result).toBe('123 Main St, Legacy Suite, San Francisco, 94105');
         });
     });
 });

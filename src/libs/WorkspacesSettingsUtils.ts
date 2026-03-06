@@ -9,14 +9,6 @@ import {convertToDisplayString} from './CurrencyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
-type WorkspaceAddress = {
-    addressStreet?: string;
-    addressStreet2?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-};
-
 type WorkspaceAddressStreetLines = {
     streetLineOne: string;
     streetLineTwo: string;
@@ -63,47 +55,6 @@ function getWorkspaceAddressStreetLines(addressStreet = '', addressStreet2?: str
         streetLineOne: legacyStreetLineOne?.trim() ?? '',
         streetLineTwo: addressStreet2?.trim() ?? legacyStreetLineTwo?.trim() ?? '',
     };
-}
-
-/**
- * Format workspace address as "street1, street2 (if exists), city, state zipCode".
- */
-function formatWorkspaceAddress(address: WorkspaceAddress | null | undefined): string {
-    if (!address) {
-        return '';
-    }
-
-    const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(address.addressStreet ?? '', address.addressStreet2);
-    const parts: string[] = [];
-
-    if (streetLineOne) {
-        parts.push(streetLineOne);
-    }
-    if (streetLineTwo) {
-        parts.push(streetLineTwo);
-    }
-    if (address.city) {
-        parts.push(address.city.trim());
-    }
-
-    let stateZip = '';
-    const state = address.state?.trim();
-    const zipCode = address.zipCode?.trim();
-
-    if (state) {
-        stateZip = state;
-        if (zipCode) {
-            stateZip += ` ${zipCode}`;
-        }
-    } else if (zipCode) {
-        stateZip = zipCode;
-    }
-
-    if (stateZip) {
-        parts.push(stateZip);
-    }
-
-    return parts.join(', ');
 }
 
 /**
@@ -181,13 +132,5 @@ function getOwnershipChecksDisplayText(
     return {title, text, buttonText};
 }
 
-export {
-    getChatTabBrickRoadReportID,
-    getBrickRoadForPolicy,
-    getChatTabBrickRoad,
-    getUnitTranslationKey,
-    getOwnershipChecksDisplayText,
-    getWorkspaceAddressStreetLines,
-    formatWorkspaceAddress,
-};
-export type {BrickRoad, WorkspaceAddress, WorkspaceAddressStreetLines};
+export {getChatTabBrickRoadReportID, getBrickRoadForPolicy, getChatTabBrickRoad, getUnitTranslationKey, getOwnershipChecksDisplayText, getWorkspaceAddressStreetLines};
+export type {BrickRoad, WorkspaceAddressStreetLines};

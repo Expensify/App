@@ -15,8 +15,8 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
-import {formatWorkspaceAddress} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
 import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -70,7 +70,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         return Object.values(policyTags).reduce((sum, tagGroup) => sum + Number(Object.values(tagGroup.tags)?.length ?? 0), 0);
     }, [policyTags]);
 
-    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatWorkspaceAddress(policy.address) : '';
+    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const items = useMemo(() => {
         const rules = getWorkspaceRules(policy, translate);
