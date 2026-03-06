@@ -5,15 +5,32 @@
 {% assign activeHub = urlParts[3] %}
 {% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-{% comment %} Build section path from URL (e.g. netsuite or netsuite/troubleshooting) - strip hub prefix and .html {% endcomment %}
+{% comment %} Build section path from URL (e.g. netsuite or netsuite/Troubleshooting) {% endcomment %}
 {% assign hubPrefix = "/" | append: activePlatform | append: "/hubs/" | append: activeHub | append: "/" %}
 {% assign activeSectionPath = page.url | replace: ".html", "" | replace: hubPrefix, "" | replace_first: "/", "" %}
+{% assign sectionParts = activeSectionPath | split: "/" %}
 
-{% if hub.flatSections %}
-    {% assign section = hub.flatSections | where: "href", activeSectionPath | first %}
-{% endif %}
+{% assign topSectionHref = sectionParts[0] %}
+{% assign section = hub.sections | where: "href", topSectionHref | first %}
+
 {% if section == nil %}
     {% assign section = hub.sections | where: "href", activeSectionPath | first %}
+{% endif %}
+
+{% if section and section.href != activeSectionPath and section.sections %}
+    {% assign nestedSection = section.sections | where: "href", activeSectionPath | first %}
+    {% if nestedSection %}
+        {% assign section = nestedSection %}
+    {% endif %}
+{% endif %}
+
+{% if section and section.href != activeSectionPath and section.sections %}
+    {% for child in section.sections %}
+        {% assign nestedSection = child.sections | where: "href", activeSectionPath | first %}
+        {% if nestedSection %}
+            {% assign section = nestedSection %}
+        {% endif %}
+    {% endfor %}
 {% endif %}
 
 <h1 class="title">
