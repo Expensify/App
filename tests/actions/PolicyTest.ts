@@ -1050,6 +1050,267 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('updateWorkspaceAvatar', () => {
+        it('should update workspace avatar optimistically and succeed', async () => {
+            // Given a workspace with no avatar
+            const policy = {
+                ...createRandomPolicy(0),
+                avatarURL: '',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting the workspace avatar
+            const file = {
+                uri: 'file://path/to/avatar.png',
+                name: 'avatar.png',
+                type: 'image/png',
+            } as File;
+            Policy.updateWorkspaceAvatar(policy.id, '', file);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.avatarURL).toBe(file.uri);
+            expect(updatedPolicy?.originalFileName).toBe(file.name);
+            expect(updatedPolicy?.errorFields?.avatarURL).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBeUndefined();
+        });
+
+        it('should revert workspace avatar when fail', async () => {
+            // Given a workspace with an avatar
+            const policy = {
+                ...createRandomPolicy(0),
+                avatarURL: 'https://example.com/avatar.png',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the workspace avatar but fail
+            mockFetch.fail();
+            const file = {
+                uri: 'file://path/to/avatar.png',
+                name: 'avatar.png',
+                type: 'image/png',
+            } as File;
+            Policy.updateWorkspaceAvatar(policy.id, policy.avatarURL, file);
+            await waitForBatchedUpdates();
+
+            // Then the avatar should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.avatarURL).toBe(policy.avatarURL);
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBeUndefined();
+        });
+    });
+
+    describe('deleteWorkspaceAvatar', () => {
+        it('should delete workspace avatar optimistically and succeed', async () => {
+            // Given a workspace with an avatar
+            const policy = {
+                ...createRandomPolicy(0),
+                avatarURL: 'https://example.com/avatar.png',
+                originalFileName: 'old_avatar.png',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When deleting the workspace avatar
+            Policy.deleteWorkspaceAvatar(policy.id, policy.avatarURL, policy.originalFileName);
+            await waitForBatchedUpdates();
+
+            // Then optimistic data should be set
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.avatarURL).toBe('');
+            expect(updatedPolicy?.originalFileName).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.avatarURL).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBeUndefined();
+        });
+
+        it('should revert workspace avatar deletion when fail', async () => {
+            // Given a workspace with an avatar
+            const policy = {
+                ...createRandomPolicy(0),
+                avatarURL: 'https://example.com/avatar.png',
+                originalFileName: 'old_avatar.png',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When deleting the workspace avatar but fail
+            mockFetch.fail();
+            Policy.deleteWorkspaceAvatar(policy.id, policy.avatarURL, policy.originalFileName);
+            await waitForBatchedUpdates();
+
+            // Then the avatar should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.avatarURL).toBe(policy.avatarURL);
+            expect(updatedPolicy?.originalFileName).toBe('old_avatar.png');
+            expect(updatedPolicy?.pendingFields?.avatarURL).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.avatarURL).not.toBeUndefined();
+        });
+    });
+
+    describe('updateGeneralSettings', () => {
+        const NEW_NAME = 'New Workspace Name';
+        const NEW_CURRENCY = CONST.CURRENCY.EUR;
+
+        it('should update workspace name optimistically and succeed', async () => {
+            // Given a workspace and a paused fetch
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Old Name',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the workspace name
+            mockFetch.pause();
+            Policy.updateGeneralSettings(policy, NEW_NAME, policy.outputCurrency);
+            await waitForBatchedUpdates();
+
+            // Then optimistic data should be set
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.name).toBe(NEW_NAME);
+            expect(updatedPolicy?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.errorFields?.name).toBeUndefined();
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.name).toBeUndefined();
+        });
+
+        it('should revert workspace name update when fail', async () => {
+            // Given a workspace
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Old Name',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the workspace name but fail
+            mockFetch.fail();
+            Policy.updateGeneralSettings(policy, NEW_NAME, policy.outputCurrency);
+            await waitForBatchedUpdates();
+
+            // Then the name should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.name).toBe(policy.name);
+            expect(updatedPolicy?.pendingFields?.name).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.name).not.toBeUndefined();
+        });
+
+        it('should update workspace currency and distance rates optimistically and succeed', async () => {
+            // Given a workspace with distance rates
+            const customUnitID = 'unit_123';
+            const rateID = 'rate_456';
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {
+                            [rateID]: {
+                                customUnitRateID: rateID,
+                                name: 'Default Rate',
+                                rate: 50,
+                                currency: CONST.CURRENCY.USD,
+                            },
+                        },
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the workspace currency
+            mockFetch.pause();
+            Policy.updateGeneralSettings(policy, policy.name, NEW_CURRENCY);
+            await waitForBatchedUpdates();
+
+            // Then optimistic data should be set
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.outputCurrency).toBe(NEW_CURRENCY);
+            expect(updatedPolicy?.pendingFields?.outputCurrency).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.errorFields?.outputCurrency).toBeUndefined();
+
+            let updatedRate = updatedPolicy?.customUnits?.[customUnitID]?.rates?.[rateID];
+            expect(updatedRate?.currency).toBe(NEW_CURRENCY);
+            expect(updatedRate?.pendingFields?.currency).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.outputCurrency).toBeUndefined();
+
+            updatedRate = updatedPolicy?.customUnits?.[customUnitID]?.rates?.[rateID];
+            expect(updatedRate?.pendingFields?.currency).toBeUndefined();
+        });
+
+        it('should revert workspace currency update when fail', async () => {
+            // Given a workspace with distance rates
+            const customUnitID = 'unit_123';
+            const rateID = 'rate_456';
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {
+                            [rateID]: {
+                                customUnitRateID: rateID,
+                                name: 'Default Rate',
+                                rate: 50,
+                                currency: CONST.CURRENCY.USD,
+                            },
+                        },
+                    },
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When updating the workspace currency but fail
+            mockFetch.fail();
+            Policy.updateGeneralSettings(policy, policy.name, NEW_CURRENCY);
+            await waitForBatchedUpdates();
+
+            // Then the currency should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.outputCurrency).toBe(policy.outputCurrency);
+            expect(updatedPolicy?.pendingFields?.outputCurrency).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.outputCurrency).not.toBeUndefined();
+
+            const updatedRate = updatedPolicy?.customUnits?.[customUnitID]?.rates?.[rateID];
+            expect(updatedRate?.currency).toBe(policy.outputCurrency);
+            expect(updatedRate?.pendingFields?.currency).toBeUndefined();
+            expect(updatedRate?.errorFields?.currency).not.toBeUndefined();
+        });
+    });
+
     describe('leaveWorkspace', () => {
         it("should remove all non-owned workspace chats and keep the user's own workspace chat when leaving a workspace", async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
