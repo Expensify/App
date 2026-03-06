@@ -4,6 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {useMemo} from 'react';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
@@ -35,7 +36,8 @@ function useReceiptScanDrop() {
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
 
-    const newReportID = generateReportID();
+    // Memoize the new report ID to avoid re-generating it on every render and cause the hook to re-run, which leads to performance issues.
+    const newReportID = useMemo(() => generateReportID(), []);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
