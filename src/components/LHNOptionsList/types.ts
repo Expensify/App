@@ -211,6 +211,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

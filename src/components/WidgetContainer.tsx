@@ -26,9 +26,7 @@ function WidgetContainer({children, title, containerStyles}: WidgetContainerProp
     return (
         <View style={[styles.widgetContainer, containerStyles]}>
             <View style={styles.getWidgetContainerHeaderStyle(shouldUseNarrowLayout)}>
-                <View style={[styles.flexShrink1, styles.flexGrow1, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                    {!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>}
-                </View>
+                <View style={[styles.flexShrink1, styles.flexGrow1, styles.gap2]}>{!!title && <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{title}</Text>}</View>
             </View>
             {children}
         </View>
