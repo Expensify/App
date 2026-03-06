@@ -29,13 +29,16 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listFooterContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Component to display on the right side of each item */
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
+
+    /** Custom content to display in the header of list component. */
+    customListHeaderContent?: React.JSX.Element | null;
 
     /** Called when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
@@ -62,7 +65,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listEmptyContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the empty list content */
-    showListEmptyContent?: boolean;
+    shouldShowListEmptyContent?: boolean;
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
@@ -105,6 +108,12 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Configuration for the confirm button */
     confirmButtonOptions?: ConfirmButtonOptions<TItem>;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to set the hover style */
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 /**
@@ -128,9 +137,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
-
-        /** Custom content to display in the header of list component. */
-        customListHeaderContent?: React.JSX.Element | null;
 
         /** Custom component to render while data is loading */
         customLoadingPlaceholder?: React.JSX.Element;
@@ -173,12 +179,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
-
-        /** Whether hover style should be disabled */
-        shouldDisableHoverStyle?: boolean;
-
-        /** Whether to set the hover style */
-        setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
 type SelectionListStyle = {
