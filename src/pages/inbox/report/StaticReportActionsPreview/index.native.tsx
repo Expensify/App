@@ -8,10 +8,12 @@ function StaticReportActionsPreview({children, showSpacer}: StaticReportActionsP
     const styles = useThemeStyles();
 
     return (
-        <View style={styles.flex1}>
+        <>
             {showSpacer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
-            <ScrollView style={styles.pt4}>{children}</ScrollView>
-        </View>
+            <View style={[styles.pt4]}>
+                <ScrollView>{children}</ScrollView>
+            </View>
+        </>
     );
 }
 
