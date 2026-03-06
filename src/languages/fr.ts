@@ -1582,7 +1582,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisir un espace de travail',
-        routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? `parce que ${reason}` : ''}`,
+        routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`,
             hrs: 'h',
