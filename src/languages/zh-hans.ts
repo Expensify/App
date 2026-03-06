@@ -2958,7 +2958,6 @@ ${
                 '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专家。我已经为你创建了一个工作区，用来管理你的收据和报销。要充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作即可！',
             onboardingChatSplitMessage: '和朋友分摊账单就像发条消息一样简单。操作方法如下。',
             onboardingAdminMessage: '了解如何以管理员身份管理您团队的工作区，并提交您自己的报销。',
-            onboardingLookingAroundMessage: 'Expensify 以报销、差旅和公司卡管理而闻名，但我们的功能远不止于此。告诉我你感兴趣的内容，我会帮你开始使用。',
             onboardingTestDriveReceiverMessage: '*您已获得 3 个月的免费使用！请从下面开始。*',
         },
         workspace: {
@@ -5147,6 +5146,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
                     payBalanceModal: {title: (amount: string) => `支付 ${amount} 的余额？`, body: '付款将被加入队列，并会在稍后处理。此操作一旦开始将无法撤销。'},
+                    exportToPDF: '导出为 PDF',
+                    exportToCSV: '导出为 CSV',
+                    selectDateRangeError: '请选择要导出的日期范围',
+                    invalidDateRangeError: '开始日期必须早于结束日期',
                     enabled: '中央开票已启用！',
                     enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },

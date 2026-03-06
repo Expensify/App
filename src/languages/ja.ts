@@ -3000,8 +3000,6 @@ ${
                 '# セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップ担当です。すでに領収書と経費を管理するためのワークスペースを作成してあります。30日間の無料トライアルを最大限に活用するために、残りのセットアップ手順に従って進めてください！',
             onboardingChatSplitMessage: '友だちとの割り勘は、メッセージを送るくらい簡単です。やり方はこちら。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
-            onboardingLookingAroundMessage:
-                'Expensify は、経費精算、出張、法人カード管理でよく知られていますが、それだけにとどまりません。ご興味のあることを教えていただければ、始められるようお手伝いします。',
             onboardingTestDriveReceiverMessage: '*3か月無料でご利用いただけます！下から始めましょう。*',
         },
         workspace: {
@@ -5231,6 +5229,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: (amount: string) => `残高 ${amount} を支払いますか？`,
                         body: '支払いはキューに追加され、その後まもなく処理されます。この操作は一度開始すると元に戻すことはできません。',
                     },
+                    exportToPDF: 'PDF にエクスポート',
+                    exportToCSV: 'CSV にエクスポート',
+                    selectDateRangeError: 'エクスポートする日付範囲を選択してください',
+                    invalidDateRangeError: '開始日は終了日より前でなければなりません',
                     enabled: '集中請求が有効になりました！',
                     enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
