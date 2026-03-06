@@ -21,7 +21,7 @@ The name on your Expensify Card is pulled from the legal name in your profile. T
 4. Update your **Legal first name** and **Legal last name**.
 5. Click **Save**.
 
-Your updated legal name will apply to your Expensify Card. To get a new physical card with the updated name embossed on it, request a replacement card. 
+Your updated legal name will apply to your Expensify Card. To get a new physical card with the updated name embossed on it, [request a replacement card](/articles/new-expensify/expensify-card/How-to-Request-a-New-Expensify-Card).
 
 ---
 
@@ -77,7 +77,7 @@ Yes, but only if the card has not shipped yet.
 
 If your card hasn’t shipped, you can update the mailing address during the replacement flow and click **Back** instead of shipping a new card. This updates the address without deactivating your current card.
 
-If the card has already shipped, you’ll need to request a replacement card.
+If the card has already shipped, you’ll need to [request a replacement card](/articles/new-expensify/expensify-card/How-to-Request-a-New-Expensify-Card).
 
 ## What happens when I report my Expensify Card as lost or stolen?
 
@@ -89,4 +89,4 @@ A new Expensify Visa® Commercial Card will be issued and mailed to the address 
 
 Updating your legal name in Account > Profile updates your account records, but it does not automatically reissue your physical Expensify Card.
 
-To receive a card with your updated name embossed on it, you must request a replacement card from Account > Wallet.
+To receive a card with your updated name embossed on it, you must [request a replacement card](/articles/new-expensify/expensify-card/How-to-Request-a-New-Expensify-Card) from Account > Wallet.
