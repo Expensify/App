@@ -194,5 +194,14 @@ describe('WorkspacesSettingsUtils', () => {
                 streetLineTwo: 'Legacy Line 2',
             });
         });
+
+        it('Should fallback to legacy newline street line 2 when explicit line 2 is empty', () => {
+            const result = getWorkspaceAddressStreetLines('123 Main St\nLegacy Line 2', '   ');
+
+            expect(result).toEqual({
+                streetLineOne: '123 Main St',
+                streetLineTwo: 'Legacy Line 2',
+            });
+        });
     });
 });

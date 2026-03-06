@@ -3030,6 +3030,28 @@ describe('ReportActionsUtils', () => {
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
+
+        it('should fallback to newline-split second line when addressStreet2 is empty', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        addressStreet2: '   ',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
     });
 
     describe('getUpdateACHAccountMessage', () => {

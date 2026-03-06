@@ -3303,7 +3303,9 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
 
     const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
     const street1 = street1Raw?.trim() ?? '';
-    const street2 = address.addressStreet2?.trim() ?? street2Raw?.trim() ?? '';
+    const trimmedStreet2 = address.addressStreet2?.trim();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+    const street2 = trimmedStreet2 || street2Raw?.trim() || '';
     const parts: string[] = [];
 
     if (street1) {

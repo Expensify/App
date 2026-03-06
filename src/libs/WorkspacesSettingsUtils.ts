@@ -53,9 +53,11 @@ function getChatTabBrickRoad(orderedReportIDs: string[], reportAttributes: Repor
  */
 function getWorkspaceAddressStreetLines(addressStreet: WorkspaceAddress['addressStreet'] = '', addressStreet2?: WorkspaceAddress['addressStreet2']): WorkspaceAddressStreetLines {
     const [legacyStreetLineOne, legacyStreetLineTwo] = (addressStreet ?? '').split('\n');
+    const trimmedStreetLineTwo = addressStreet2?.trim();
     return {
         streetLineOne: legacyStreetLineOne?.trim() ?? '',
-        streetLineTwo: addressStreet2?.trim() ?? legacyStreetLineTwo?.trim() ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
+        streetLineTwo: trimmedStreetLineTwo || legacyStreetLineTwo?.trim() || '',
     };
 }
 
