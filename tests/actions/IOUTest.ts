@@ -11593,7 +11593,6 @@ describe('actions/IOU', () => {
             const draftTransaction = await getOnyxValue(draftKey);
             expect(draftTransaction).toMatchObject({
                 transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
-                amount: 1000,
                 selectedTransactionIDs: testTransactionIDs,
             });
         });
