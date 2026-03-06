@@ -251,7 +251,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
-        openReport(reportIDFromRoute, introSelected, '', [], undefined, undefined, false, []);
+        openReport({reportID: reportIDFromRoute, introSelected});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:

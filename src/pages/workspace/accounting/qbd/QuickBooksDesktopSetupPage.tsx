@@ -40,6 +40,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     const fetchSetupLink = useCallback(() => {
         setHasError(false);
+        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
         getQuickbooksDesktopCodatSetupLink(policyID).then((response) => {
             if (!response?.jsonCode) {
                 return;
