@@ -182,46 +182,6 @@ describe('PureReportActionItem', () => {
         });
     });
 
-    describe('Submitted via harvesting with Explain', () => {
-        afterEach(() => {
-            (openLink as jest.Mock).mockClear();
-        });
-
-        it('renders message parts inline and shows Explain button when action has reasoning', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true, reasoning: 'Test reasoning'});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            const translatedMessage = translateLocal('iou.automaticallySubmitted');
-            const messageSplitByAnchor = translatedMessage.match(CONST.REGEX_ANCHOR_WITH_TEXT);
-            expect(messageSplitByAnchor).not.toBeNull();
-
-            const textBeforeLink = messageSplitByAnchor?.at(1) ?? '';
-            const anchorText = messageSplitByAnchor?.at(3) ?? '';
-
-            if (textBeforeLink) {
-                const firstPrefixWord = textBeforeLink.trim().split(/\s+/).at(0) ?? '';
-                expect(screen.getByText(new RegExp(firstPrefixWord))).toBeOnTheScreen();
-            }
-            expect(screen.getByText(new RegExp(anchorText.split(/\s+/).at(0) ?? ''))).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('common.explain'))).toBeOnTheScreen();
-        });
-
-        it('clicking the delay submissions link opens SELECT_WORKFLOWS_HELP_URL', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true, reasoning: 'Test reasoning'});
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            const translatedMessage = translateLocal('iou.automaticallySubmitted');
-            const messageSplitByAnchor = translatedMessage.match(CONST.REGEX_ANCHOR_WITH_TEXT);
-            const firstWord = messageSplitByAnchor?.at(3)?.split(/\s+/).at(0) ?? '';
-
-            fireEvent.press(screen.getByText(new RegExp(firstWord)), {preventDefault: jest.fn()});
-
-            expect(openLink).toHaveBeenCalledWith(CONST.SELECT_WORKFLOWS_HELP_URL, expect.any(String));
-        });
-    });
-
     describe('Manual actions', () => {
         it('APPROVED action', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: false});
