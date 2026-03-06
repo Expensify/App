@@ -439,6 +439,16 @@ function PaymentMethodList({
             };
             const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
 
+            // eslint-disable-next-line no-console
+            console.log(
+                '[DEBUG PaymentMethodList] account check:',
+                JSON.stringify({
+                    methodID: paymentMethod.methodID,
+                    isMissingPersonalInfo,
+                    additionalData: paymentMethod.accountData?.additionalData,
+                }),
+            );
+
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,

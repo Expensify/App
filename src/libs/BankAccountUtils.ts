@@ -32,6 +32,29 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
 }
 
 /**
+ * Step numbers for the personal bank account update flow.
+ */
+const PERSONAL_INFO_STEP = {
+    NAME: 1,
+    ADDRESS: 2,
+    PHONE: 3,
+} as const;
+
+type AdditionalData = AccountData['additionalData'];
+
+function hasOwnerName(additionalData: AdditionalData): boolean {
+    return !!additionalData?.firstName && !!additionalData?.lastName;
+}
+
+function hasOwnerAddress(additionalData: AdditionalData): boolean {
+    return !!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode;
+}
+
+function hasOwnerPhone(additionalData: AdditionalData): boolean {
+    return !!additionalData?.companyPhone;
+}
+
+/**
  * Check if a US personal bank account in OPEN state is missing required personal information.
  */
 function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined): boolean {
@@ -51,16 +74,11 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
     }
 
     const {additionalData} = accountData;
-    const hasName = !!additionalData?.firstName && !!additionalData?.lastName;
-    const hasAddress = !!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode;
-    const hasPhone = !!additionalData?.companyPhone;
-
-    return !hasName || !hasAddress || !hasPhone;
+    return !hasOwnerName(additionalData) || !hasOwnerAddress(additionalData) || !hasOwnerPhone(additionalData);
 }
 
 /**
- * Returns step numbers (1=name, 2=address, 3=phone) that already have data on the bank account
- * and can be skipped in the update flow.
+ * Returns step numbers that already have data on the bank account and can be skipped in the update flow.
  */
 function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number[] {
     const missingAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
@@ -71,14 +89,14 @@ function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.Ba
     const {additionalData} = missingAccount.accountData ?? {};
     const completedSteps: number[] = [];
 
-    if (!!additionalData?.firstName && !!additionalData?.lastName) {
-        completedSteps.push(1);
+    if (hasOwnerName(additionalData)) {
+        completedSteps.push(PERSONAL_INFO_STEP.NAME);
     }
-    if (!!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode) {
-        completedSteps.push(2);
+    if (hasOwnerAddress(additionalData)) {
+        completedSteps.push(PERSONAL_INFO_STEP.ADDRESS);
     }
-    if (!!additionalData?.companyPhone) {
-        completedSteps.push(3);
+    if (hasOwnerPhone(additionalData)) {
+        completedSteps.push(PERSONAL_INFO_STEP.PHONE);
     }
 
     return completedSteps;
@@ -92,4 +110,5 @@ export {
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    PERSONAL_INFO_STEP,
 };

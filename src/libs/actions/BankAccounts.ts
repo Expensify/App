@@ -16,6 +16,7 @@ import type {
     SendReminderForCorpaySignerInformationParams,
     ShareBankAccountParams,
     UnshareBankAccountParams,
+    UpdatePersonalBankAccountInfoParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -36,6 +37,7 @@ import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType, PersonalBankAccount} from '@src/types/onyx';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -152,7 +154,12 @@ function clearPersonalBankAccountErrors() {
 function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
     const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
 
-    type AdditionalDataUpdate = {firstName?: string; lastName?: string; addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string; companyPhone?: string};
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG updatePersonalBankAccountInfo] accountData:', JSON.stringify(accountData));
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG updatePersonalBankAccountInfo] formattedStreet:', JSON.stringify(formattedStreet));
+
+    type AdditionalDataUpdate = Partial<Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>>;
     const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
     const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
     let bankAccountID: number | undefined;
@@ -164,17 +171,18 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
             bankAccountID = bankAccount?.accountData?.bankAccountID;
         }
         const prevData = bankAccount?.accountData?.additionalData;
+        const additionalDataUpdate: AdditionalDataUpdate = {
+            ...(accountData?.legalFirstName && {firstName: accountData.legalFirstName}),
+            ...(accountData?.legalLastName && {lastName: accountData.legalLastName}),
+            ...(formattedStreet && {addressStreet: formattedStreet}),
+            ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
+            ...(accountData?.addressState && {addressState: accountData.addressState}),
+            ...(accountData?.addressZipCode && {addressZipCode: accountData.addressZipCode}),
+            ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
+        };
         bankAccountListUpdates[key] = {
             accountData: {
-                additionalData: {
-                    firstName: accountData?.legalFirstName,
-                    lastName: accountData?.legalLastName,
-                    addressStreet: formattedStreet,
-                    addressCity: accountData?.addressCity,
-                    addressState: accountData?.addressState,
-                    addressZipCode: accountData?.addressZipCode,
-                    companyPhone: accountData?.phoneNumber,
-                },
+                additionalData: additionalDataUpdate,
             },
         };
         bankAccountListRollback[key] = {
@@ -192,16 +200,16 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         };
     }
 
-    const parameters = {
+    const parameters: UpdatePersonalBankAccountInfoParams = {
         bankAccountID,
-        companyPhone: accountData?.phoneNumber,
-        legalFirstName: accountData?.legalFirstName,
-        legalLastName: accountData?.legalLastName,
-        addressStreet: formattedStreet,
-        addressCity: accountData?.addressCity,
-        addressState: accountData?.addressState,
-        addressZip: accountData?.addressZipCode,
-        addressCountry: accountData?.country,
+        ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
+        ...(accountData?.legalFirstName && {legalFirstName: accountData.legalFirstName}),
+        ...(accountData?.legalLastName && {legalLastName: accountData.legalLastName}),
+        ...(formattedStreet && {addressStreet: formattedStreet}),
+        ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
+        ...(accountData?.addressState && {addressState: accountData.addressState}),
+        ...(accountData?.addressZipCode && {addressZip: accountData.addressZipCode}),
+        ...(accountData?.country && {addressCountry: accountData.country}),
     };
 
     const onyxData: OnyxData<
@@ -278,6 +286,10 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
         ],
     };
 
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG updatePersonalBankAccountInfo] optimistic bankAccountListUpdates:', JSON.stringify(bankAccountListUpdates));
+    // eslint-disable-next-line no-console
+    console.log('[DEBUG updatePersonalBankAccountInfo] parameters:', JSON.stringify(parameters));
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
 }
 

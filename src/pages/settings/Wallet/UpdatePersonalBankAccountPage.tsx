@@ -9,7 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
+import {getCompletedStepsForBankAccount, PERSONAL_INFO_STEP} from '@libs/BankAccountUtils';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
@@ -18,6 +18,7 @@ import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalBankAccountForm} from '@src/types/form/PersonalBankAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
@@ -26,6 +27,20 @@ import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/Pho
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
 const PAGE_NAMES: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
+
+/**
+ * Wrapper that enables draft saving on the address form to preserve values across navigation.
+ */
+function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
+    return (
+        <Address
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            shouldSaveDraft
+        />
+    );
+}
 
 /**
  * Wrapper that delays auto-focus to avoid validation errors during URL-based navigation transitions.
@@ -43,7 +58,7 @@ function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
 
 const formPages = [
     {pageName: PAGE_NAME.LEGAL_NAME, component: LegalName},
-    {pageName: PAGE_NAME.ADDRESS, component: Address},
+    {pageName: PAGE_NAME.ADDRESS, component: AddressWithDraft},
     {pageName: PAGE_NAME.PHONE_NUMBER, component: DelayedPhoneNumber},
 ];
 
@@ -67,6 +82,8 @@ function UpdatePersonalBankAccountPage() {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
+    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
+
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
         clearPersonalBankAccount();
@@ -75,26 +92,31 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const submitPersonalInfo = () => {
-        const currentAddress = getCurrentAddress(privatePersonalDetails);
-        const [street1, street2] = getStreetLines(currentAddress?.street);
-        const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
-        const parsed = parsePhoneNumber(finalPhoneNumber, {regionCode: CONST.COUNTRY.US});
-        const accountData = {
-            legalFirstName: privatePersonalDetails?.legalFirstName,
-            legalLastName: privatePersonalDetails?.legalLastName,
-            addressStreet: street1,
-            addressStreet2: street2,
-            addressCity: currentAddress?.city,
-            addressState: currentAddress?.state,
-            addressZipCode: currentAddress?.zip,
-            country: currentAddress?.country,
-            ...personalBankAccountDraft,
-            phoneNumber: parsed.number?.significant ?? '',
-        };
+        const accountData: Partial<PersonalBankAccountForm> = {};
+
+        // Only include data for steps that weren't skipped
+        if (!completedSteps.includes(PERSONAL_INFO_STEP.NAME)) {
+            accountData.legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName;
+            accountData.legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName;
+        }
+        if (!completedSteps.includes(PERSONAL_INFO_STEP.ADDRESS)) {
+            const currentAddress = getCurrentAddress(privatePersonalDetails);
+            const [street1, street2] = getStreetLines(currentAddress?.street);
+            accountData.addressStreet = personalBankAccountDraft?.addressStreet ?? street1;
+            accountData.addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? street2;
+            accountData.addressCity = personalBankAccountDraft?.addressCity ?? currentAddress?.city;
+            accountData.addressState = personalBankAccountDraft?.addressState ?? currentAddress?.state;
+            accountData.addressZipCode = personalBankAccountDraft?.addressZipCode ?? currentAddress?.zip;
+            accountData.country = personalBankAccountDraft?.country ?? currentAddress?.country;
+        }
+        if (!completedSteps.includes(PERSONAL_INFO_STEP.PHONE)) {
+            const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
+            const parsed = parsePhoneNumber(finalPhoneNumber, {regionCode: CONST.COUNTRY.US});
+            accountData.phoneNumber = parsed.number?.significant ?? '';
+        }
+
         updatePersonalBankAccountInfo(accountData);
     };
-
-    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
     const skipPageCandidates = completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 

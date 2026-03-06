@@ -16,7 +16,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-function AddressStep({onNext, isEditing}: SubStepProps) {
+type AddressStepProps = SubStepProps & {
+    /** Whether to persist field values as draft on keystroke */
+    shouldSaveDraft?: boolean;
+};
+
+function AddressStep({onNext, isEditing, shouldSaveDraft = false}: AddressStepProps) {
     const styles = useThemeStyles();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -45,10 +50,10 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         privatePersonalDetails,
     ]);
 
-    // homeAddressFormDraft stores draft values saved by shouldSaveDraft on the form inputs.
-    // These take priority over the address computed above (which comes from PERSONAL_BANK_ACCOUNT_FORM_DRAFT / privatePersonalDetails).
-    const draftCountry = homeAddressFormDraft?.country;
-    const draftState = homeAddressFormDraft?.state;
+    // When shouldSaveDraft is enabled, homeAddressFormDraft stores values saved on keystroke.
+    // These take priority over the address computed above.
+    const draftCountry = shouldSaveDraft ? homeAddressFormDraft?.country : undefined;
+    const draftState = shouldSaveDraft ? homeAddressFormDraft?.state : undefined;
     const {translate} = useLocalize();
 
     // Check if country is valid
@@ -126,7 +131,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
                 street1={street1}
                 street2={street2}
                 zip={zipcode}
-                shouldSaveDraft
+                shouldSaveDraft={shouldSaveDraft}
             />
         </>
     );
