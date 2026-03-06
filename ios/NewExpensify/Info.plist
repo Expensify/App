@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.3.32.2</string>
+	<string>9.3.32.3</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>
@@ -85,6 +85,8 @@
 	<string>Your camera roll is used to store chat attachments.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Your photos are used to create chat attachments.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>INSendMessageIntent</string>
@@ -132,8 +134,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
