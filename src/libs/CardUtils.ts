@@ -392,9 +392,7 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     }
     return Object.values(bankAccountsList).filter(
         (bankAccount) =>
-            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            bankAccount?.accountData?.allowDebit &&
-            !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
     );
 }
 

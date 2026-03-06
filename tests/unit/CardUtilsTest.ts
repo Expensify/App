@@ -34,6 +34,8 @@ import {
     getCustomOrFormattedFeedName,
     getDefaultExpensifyCardLimitType,
     getDisplayableExpensifyCards,
+    getEligibleBankAccountsForCard,
+    getEligibleBankAccountsForUkEuCard,
     getFeedNameForDisplay,
     getFeedType,
     getFilteredCardList,
@@ -48,8 +50,6 @@ import {
     isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
-    getEligibleBankAccountsForCard,
-    getEligibleBankAccountsForUkEuCard,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
@@ -62,7 +62,18 @@ import {
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
