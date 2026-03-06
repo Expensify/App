@@ -394,14 +394,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
 }
 
 function getDistanceUnit(transaction: OnyxEntry<Transaction>, mileageRate: OnyxEntry<MileageRate>): Unit {
-    const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const rateUnit = mileageRate?.unit;
-
-    if (transactionUnit && transactionUnit === rateUnit) {
-        return transactionUnit;
-    }
-
-    return rateUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    return transaction?.comment?.customUnit?.distanceUnit ?? mileageRate?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
 }
 
 /**

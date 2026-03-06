@@ -137,6 +137,7 @@ function MoneyRequestReportPreviewContent({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -692,11 +693,23 @@ function MoneyRequestReportPreviewContent({
                 policy,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, amountOwed, chatReportID, lastDistanceExpenseType],
+        [
+            translate,
+            expensifyIcons,
+            iouReport?.reportID,
+            iouReport?.parentReportID,
+            policy,
+            userBillingGraceEndPeriods,
+            amountOwed,
+            chatReportID,
+            lastDistanceExpenseType,
+            ownerBillingGraceEndPeriod,
+        ],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
