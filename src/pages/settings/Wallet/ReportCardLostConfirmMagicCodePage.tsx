@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
-import useInitialValue from '@hooks/useInitialValue';
+import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
@@ -31,11 +31,11 @@ function ReportCardLostConfirmMagicCodePage({
 
     const primaryLogin = account?.primaryLogin ?? '';
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const initialCardList = useInitialOnyxValue(ONYXKEYS.CARD_LIST);
     const physicalCard = cardList?.[cardID];
-    const initialCardKeys = useInitialValue(() => new Set(Object.keys(cardList ?? {})));
     const validateError = getLatestErrorMessageField(physicalCard);
 
-    const newCardID = Object.keys(cardList ?? {}).find((key) => !initialCardKeys.has(key) && cardList?.[key]?.cardID) ?? '';
+    const newCardID = Object.keys(cardList ?? {}).find((key) => !Object.hasOwn(initialCardList ?? {}, key) && cardList?.[key]?.cardID) ?? '';
 
     useEffect(() => {
         if (formData?.isLoading) {
