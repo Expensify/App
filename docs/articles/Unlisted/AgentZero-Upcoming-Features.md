@@ -25,7 +25,7 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 
 ## Workspace & Policy
 
-- **Policy presets** – Quick-start policy templates (e.g. "Small business", "Enterprise") to reduce initial workspace setup time.
+## Workspace Configuration
 
 ---
 
