@@ -9,7 +9,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableTableHeader from './SortableTableHeader';
-import type {SortableColumnName} from './types';
+import type {SortableColumnName, TransactionColumnMeasurements} from './types';
 
 type SearchColumnConfig = {
     columnName: SearchColumnType;
@@ -422,6 +422,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
 }
 
 type SearchTableHeaderProps = {
+    measurements?: TransactionColumnMeasurements;
     columns: SortableColumnName[];
     type: SearchDataTypes;
     sortBy?: SearchColumnType;
@@ -445,6 +446,7 @@ type SearchTableHeaderProps = {
 function SearchTableHeader({
     columns,
     type,
+    measurements,
     sortBy,
     sortOrder,
     onSortPress,
@@ -517,6 +519,7 @@ function SearchTableHeader({
 
     return (
         <SortableTableHeader
+            measurements={measurements}
             columns={orderedColumnConfig}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
-import type {SortableColumnName, TransactionColumnMeasurements} from './types';
+import type {SortableColumnName, TransactionColumnMeasurements, TransactionTextColumns} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
@@ -72,6 +72,22 @@ function SortableTableHeader({
                     const isActive = sortBy === columnName;
                     const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
 
+                    const shouldUseMeasurement = measurements && columnName in measurements;
+
+                    const containerStyle = shouldUseMeasurement
+                        ? {width: measurements[columnName as TransactionTextColumns]}
+                        : StyleUtils.getReportTableColumnStyles(
+                              columnName,
+                              dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                              shouldRemoveTotalColumnFlex,
+                          );
+
                     return (
                         <SortableHeaderText
                             key={columnName}
@@ -81,19 +97,7 @@ function SortableTableHeader({
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
-                            containerStyle={[
-                                StyleUtils.getReportTableColumnStyles(
-                                    columnName,
-                                    dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
-                                    shouldRemoveTotalColumnFlex,
-                                ),
-                            ]}
+                            containerStyle={containerStyle}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
