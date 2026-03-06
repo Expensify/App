@@ -274,6 +274,9 @@ function formatPiece(piece?: string): string {
  * @returns formatted street
  */
 function getFormattedStreet(street1 = '', street2 = '') {
+    if (!street2) {
+        return street1;
+    }
     return `${street1}\n${street2}`;
 }
 

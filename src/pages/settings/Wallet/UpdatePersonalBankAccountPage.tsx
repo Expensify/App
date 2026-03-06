@@ -1,4 +1,5 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,19 +9,19 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatE164PhoneNumber} from '@libs/LoginUtils';
+import {getCompletedStepsForBankAccount} from '@libs/BankAccountUtils';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
 import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccountList} from '@src/types/onyx';
 import Address from './InternationalDepositAccount/PersonalInfo/substeps/AddressStep';
 import LegalName from './InternationalDepositAccount/PersonalInfo/substeps/LegalNameStep';
 import PhoneNumber from './InternationalDepositAccount/PersonalInfo/substeps/PhoneNumberStep';
-import getSkippedStepsPersonalInfo from './InternationalDepositAccount/PersonalInfo/utils/getSkippedStepsPersonalInfo';
 
 const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
@@ -47,11 +48,11 @@ const formPages = [
 ];
 
 /**
- * Returns the first non-skipped page name for the update flow.
+ * Returns the first non-skipped page name for the update flow based on the bank account's existing data.
  */
-function getFirstPageName(details?: Partial<PrivatePersonalDetails>): string {
-    const skippedSteps = getSkippedStepsPersonalInfo(details);
-    const skipPageNames = new Set(skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
+function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>): string {
+    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
+    const skipPageNames = new Set(completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
     const firstPage = PAGE_NAMES.find((name) => !skipPageNames.has(name));
     return firstPage ?? PAGE_NAME.LEGAL_NAME;
 }
@@ -63,19 +64,21 @@ function UpdatePersonalBankAccountPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
         clearPersonalBankAccount();
         clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM);
     };
 
     const submitPersonalInfo = () => {
         const currentAddress = getCurrentAddress(privatePersonalDetails);
         const [street1, street2] = getStreetLines(currentAddress?.street);
         const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
+        const parsed = parsePhoneNumber(finalPhoneNumber, {regionCode: CONST.COUNTRY.US});
         const accountData = {
             legalFirstName: privatePersonalDetails?.legalFirstName,
             legalLastName: privatePersonalDetails?.legalLastName,
@@ -86,16 +89,16 @@ function UpdatePersonalBankAccountPage() {
             addressZipCode: currentAddress?.zip,
             country: currentAddress?.country,
             ...personalBankAccountDraft,
-            phoneNumber: formatE164PhoneNumber(finalPhoneNumber, countryCode),
+            phoneNumber: parsed.number?.significant ?? '',
         };
         updatePersonalBankAccountInfo(accountData);
     };
 
-    const skippedSteps = getSkippedStepsPersonalInfo(privatePersonalDetails);
-    const skipPageCandidates = skippedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
+    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
+    const skipPageCandidates = completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 
-    const firstPageName = getFirstPageName(privatePersonalDetails);
+    const firstPageName = getFirstPageName(bankAccountList);
     const firstNonSkippedIndex = formPages.findIndex((p) => p.pageName === firstPageName);
 
     const {CurrentPage, currentPageName, prevPage, nextPage} = useSubPage({

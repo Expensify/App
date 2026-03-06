@@ -58,4 +58,38 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
     return !hasName || !hasAddress || !hasPhone;
 }
 
-export {getDefaultCompanyWebsite, getLastFourDigits, hasPartiallySetupBankAccount, isBankAccountPartiallySetup, doesPolicyHavePartiallySetupBankAccount, isPersonalBankAccountMissingInfo};
+/**
+ * Returns step numbers (1=name, 2=address, 3=phone) that already have data on the bank account
+ * and can be skipped in the update flow.
+ */
+function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number[] {
+    const missingAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
+    if (!missingAccount) {
+        return [];
+    }
+
+    const {additionalData} = missingAccount.accountData ?? {};
+    const completedSteps: number[] = [];
+
+    if (!!additionalData?.firstName && !!additionalData?.lastName) {
+        completedSteps.push(1);
+    }
+    if (!!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode) {
+        completedSteps.push(2);
+    }
+    if (!!additionalData?.companyPhone) {
+        completedSteps.push(3);
+    }
+
+    return completedSteps;
+}
+
+export {
+    getDefaultCompanyWebsite,
+    getLastFourDigits,
+    hasPartiallySetupBankAccount,
+    isBankAccountPartiallySetup,
+    doesPolicyHavePartiallySetupBankAccount,
+    isPersonalBankAccountMissingInfo,
+    getCompletedStepsForBankAccount,
+};
