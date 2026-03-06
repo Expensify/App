@@ -254,7 +254,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 ListItem={InviteMemberListItem}
                 onSelectRow={toggleSelection}
                 shouldShowTextInput
-                showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 style={{
                     sectionTitleStyles: onboardingIsMediumOrLargerScreenWidth ? styles.ph3 : undefined,

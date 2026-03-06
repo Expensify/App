@@ -215,6 +215,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     };
 
     await Promise.all([
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),

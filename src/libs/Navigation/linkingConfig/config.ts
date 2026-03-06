@@ -269,6 +269,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -327,10 +335,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
@@ -406,6 +410,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
+                        [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                             path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                             exact: true,
@@ -1323,6 +1328,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH]: {
                             path: ROUTES.DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH.route,
+                        },
+                        [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+                            path: ROUTES.DOMAIN_LOCK_ACCOUNT.route,
                         },
                     },
                 },
