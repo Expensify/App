@@ -545,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
         duplicateReport: 'Duplizierten Bericht',
+        approver: 'Genehmiger',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -906,8 +907,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als Copilot für',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die nicht mit der von dir gewählten Häufigkeit eingereicht werden konnten`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `erstellte diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus dem gelöschten Bericht #${reportID} erstellt`
+                : `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',
@@ -1352,7 +1355,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `nicht genehmigt`,
         automaticallyForwarded: `über Genehmigung durch <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a>`,
         forwarded: `genehmigt`,
-        rejectedThisReport: 'hat diesen Bericht abgelehnt',
+        rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1449,6 +1452,10 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Erkläre, warum du diese Ausgabe zurückhältst.',
             other: 'Erklären Sie, warum Sie diese Ausgaben zurückhalten.',
         }),
+        explainHoldApprover: () => ({
+            one: 'Erkläre, was du vor der Genehmigung dieser Ausgabe benötigst.',
+            other: 'Erkläre, was du vor der Genehmigung dieser Ausgaben benötigst.',
+        }),
         retracted: 'zurückgezogen',
         retract: 'Zurückziehen',
         reopened: 'wiedereröffnet',
@@ -1543,7 +1550,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben werden ausgelassen, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
-            reasonPageDescription: 'Erkläre, warum du diese Ausgabe ablehnst.',
+            reasonPageDescription: 'Erkläre, warum du diese Ausgabe nicht genehmigen wirst.',
             rejectReason: 'Ablehnungsgrund',
             markAsResolved: 'Als gelöst markieren',
             rejectedStatus: 'Diese Ausgabe wurde abgelehnt. Wir warten darauf, dass du die Probleme behebst und als gelöst markierst, um das Einreichen zu ermöglichen.',
@@ -1598,6 +1605,8 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `Der Bericht konnte nicht übermittelt werden. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `Genehmigung über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> fehlgeschlagen. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
+        cannotDuplicateDistanceExpense:
+            'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
     },
     transactionMerge: {
         listPage: {
@@ -2174,12 +2183,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Persönliche Karte hinzufügen',
+        addCompanyCard: 'Firmenkarte hinzufügen',
+        lookingForCompanyCards: 'Müssen Sie Firmenkarten hinzufügen?',
+        lookingForCompanyCardsDescription: 'Verbinden Sie Ihre eigenen Karten von über 10.000 Banken weltweit.',
+        personalCardAdded: 'Persönliche Karte hinzugefügt!',
+        personalCardAddedDescription: 'Herzlichen Glückwunsch! Wir beginnen nun mit dem Import von Transaktionen Ihrer Karte.',
+        isPersonalCard: 'Ist dies eine private Karte?',
+        thisIsPersonalCard: 'Dies ist eine private Karte',
+        thisIsCompanyCard: 'Dies ist eine Firmenkarte',
+        askAdmin: 'Fragen Sie Ihren Administrator',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Wenn ja, super! Aber wenn es eine <strong>Firmen</strong>karte ist, weisen Sie sie bitte ${isAdmin ? 'stattdessen über Ihren Workspace zu.' : 'bitten Sie Ihren Administrator, sie Ihnen stattdessen über den Workspace zuzuweisen.'}`,
+        bankConnectionError: 'Bankverbindungsproblem',
+        bankConnectionDescription: 'Bitte versuchen Sie, Ihre Karten erneut hinzuzufügen. Andernfalls können Sie',
+        connectWithPlaid: 'eine Verbindung über Plaid herstellen.',
         brokenConnection: 'Ihre Kartenverbindung ist unterbrochen.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. <a href="${connectionLink}">Melden Sie sich bei Ihrer Bank an</a>, um die Karte zu reparieren.`
                 : `Die Verbindung Ihrer ${cardName}-Karte ist unterbrochen. Melden Sie sich bei Ihrer Bank an, um die Karte zu reparieren.`,
         fixCard: 'Karte reparieren',
+        addAdditionalCards: 'Weitere Karten hinzufügen',
+        upgradeDescription: 'Müssen Sie weitere Karten hinzufügen? Erstellen Sie einen Workspace, um weitere persönliche Karten hinzuzufügen oder Firmenkarten dem gesamten Team zuzuweisen.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Dies ist im Collect-Tarif verfügbar, der <strong>${formattedPrice}</strong> pro Mitglied und Monat kostet.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Erstellen Sie einen Workspace, um auf diese Funktion zuzugreifen, oder <a href="${subscriptionLink}">erfahren Sie mehr</a> über unsere Tarife und Preise.</muted-text>`,
+        workspaceCreated: 'Workspace erstellt',
+        newWorkspace: 'Sie haben einen Workspace erstellt!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Sie können jetzt weitere Karten hinzufügen. <a href="${subscriptionLink}">Zeigen Sie Ihr Abonnement an</a> für weitere Details.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -2993,8 +3027,6 @@ ${
                 '# Lass uns alles einrichten\n👋 Hallo, ich bin deine Expensify-Einrichtungsspezialist*in. Ich habe bereits einen Workspace erstellt, um dir bei der Verwaltung deiner Belege und Ausgaben zu helfen. Um das Beste aus deiner 30-tägigen kostenlosen Testphase herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freund*innen zu teilen ist so einfach wie das Senden einer Nachricht. So geht’s.',
             onboardingAdminMessage: 'Erfahre, wie du als Admin den Arbeitsbereich deines Teams verwaltest und deine eigenen Ausgaben einreichst.',
-            onboardingLookingAroundMessage:
-                'Expensify ist vor allem für die Verwaltung von Spesen, Reisen und Firmenkarten bekannt, aber wir können noch viel mehr. Sag mir, was dich interessiert, und ich helfe dir beim Einstieg.',
             onboardingTestDriveReceiverMessage: '*Du erhältst 3 Monate gratis! Leg unten los.*',
         },
         workspace: {
@@ -5260,6 +5292,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         body: 'Sie haben noch einen offenen Reisensaldo. Bitte begleichen Sie zuerst Ihren Saldo.',
                         confirm: 'Verstanden',
                     },
+                    enabled: 'Zentrale Rechnungsstellung aktiviert!',
+                    enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
                 },
                 personalDetailsDescription: 'Um eine Reise zu buchen, gib bitte deinen amtlichen Namen genau so ein, wie er auf deinem amtlichen Ausweis steht.',
             },
@@ -8594,7 +8628,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
             },
-
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Bist du sicher? Dadurch wird das Konto von <strong>${email}</strong> gesperrt. <br /><br /> Unser Team wird das Konto anschließend überprüfen und unbefugten Zugriff entfernen. Um den Zugriff wiederherzustellen, muss die Person mit Concierge zusammenarbeiten.`,
             reportSuspiciousActivityConfirmationPrompt: 'Wir überprüfen das Konto, um sicherzustellen, dass es sicher entsperrt werden kann, und melden uns bei Fragen über Concierge.',

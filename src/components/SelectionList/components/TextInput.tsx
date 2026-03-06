@@ -42,7 +42,7 @@ type TextInputProps = {
     shouldShowTextInput?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -62,7 +62,7 @@ function TextInput({
     onSubmit,
     onKeyPress,
     onFocusChange,
-    showLoadingPlaceholder,
+    shouldShowLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
     focusTextInput,
@@ -72,7 +72,7 @@ function TextInput({
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
-    const noData = dataLength === 0 && !showLoadingPlaceholder;
+    const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
     const shouldUsePersistentLiveRegion = getPlatform() === CONST.PLATFORM.WEB;
@@ -123,8 +123,8 @@ function TextInput({
         }
 
         if (!shouldAnnounceNoResults) {
-            setLiveRegionMessage('');
-            return;
+            const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
+            return () => clearTimeout(clearTimeoutId);
         }
 
         // Toggling content forces re-announcement even when the text doesn't change.
@@ -132,10 +132,13 @@ function TextInput({
         liveRegionToggleRef.current = !liveRegionToggleRef.current;
 
         // Clear first so screen readers detect a change, then set the message on next tick.
-        setLiveRegionMessage('');
+        const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
         const timeoutId = setTimeout(() => setLiveRegionMessage(`${headerMessage}${suffix}`), DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
-        return () => clearTimeout(timeoutId);
+        return () => {
+            clearTimeout(clearTimeoutId);
+            clearTimeout(timeoutId);
+        };
     }, [headerMessage, shouldAnnounceNoResults, shouldUsePersistentLiveRegion]);
 
     if (!shouldShowTextInput) {

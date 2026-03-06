@@ -71,7 +71,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     footerContentAbovePagination,
     listEmptyContent,
     showScrollIndicator = true,
-    showLoadingPlaceholder = false,
+    shouldShowLoadingPlaceholder = false,
     LoadingPlaceholderComponent = OptionsListSkeletonView,
     showConfirmButton = false,
     isConfirmButtonDisabled = false,
@@ -452,7 +452,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -669,16 +669,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -687,15 +677,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
-                }}
-            >
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -732,14 +714,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
@@ -1024,7 +1005,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder));
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
     const shouldUsePersistentLiveRegion = getPlatform() === CONST.PLATFORM.WEB;
     const [liveRegionMessage, setLiveRegionMessage] = useState('');
@@ -1038,17 +1019,20 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         }
 
         if (!shouldAnnounceNoResults) {
-            setLiveRegionMessage('');
-            return;
+            const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
+            return () => clearTimeout(clearTimeoutId);
         }
 
         const suffix = liveRegionToggleRef.current ? '\u200B' : '';
         liveRegionToggleRef.current = !liveRegionToggleRef.current;
 
-        setLiveRegionMessage('');
+        const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
         const timeoutId = setTimeout(() => setLiveRegionMessage(`${headerMessage}${suffix}`), DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
-        return () => clearTimeout(timeoutId);
+        return () => {
+            clearTimeout(clearTimeoutId);
+            clearTimeout(timeoutId);
+        };
     }, [headerMessage, shouldAnnounceNoResults, shouldUsePersistentLiveRegion]);
 
     const headerMessageContent = () =>
@@ -1092,7 +1076,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
-            {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {flattenedSections.allOptions.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
