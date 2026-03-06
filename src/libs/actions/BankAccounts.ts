@@ -24,7 +24,6 @@ import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskFo
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
@@ -154,11 +153,6 @@ function clearPersonalBankAccountErrors() {
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Partial<PersonalBankAccountForm>) {
     const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
 
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG updatePersonalBankAccountInfo] accountData:', JSON.stringify(accountData));
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG updatePersonalBankAccountInfo] formattedStreet:', JSON.stringify(formattedStreet));
-
     type AdditionalDataUpdate = Partial<Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>>;
 
     const bankAccountKey = String(bankAccountID);
@@ -284,10 +278,6 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
         ],
     };
 
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG updatePersonalBankAccountInfo] optimistic bankAccountListUpdates:', JSON.stringify(bankAccountListUpdates));
-    // eslint-disable-next-line no-console
-    console.log('[DEBUG updatePersonalBankAccountInfo] parameters:', JSON.stringify(parameters));
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO, parameters, onyxData);
 }
 
