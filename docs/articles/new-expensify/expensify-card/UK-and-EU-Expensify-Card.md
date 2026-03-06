@@ -5,7 +5,6 @@ keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR
 internalScope: Audience is Workspace Admins in the UK and EU. Covers eligibility, supported countries, enabling the Expensify Card, linking a settlement account, issuing virtual cards, spending limits, foreign exchange details. Does not cover US Expensify Card setup, physical card shipping timelines, non-GBP/EUR settlement accounts
 ---
 
-<div id="new-expensify" markdown="1">
 
 # Set up the Expensify Card in the UK and EU
 
