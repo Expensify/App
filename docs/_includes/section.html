@@ -31,7 +31,7 @@
             {% endfor %}
         {% endif %}
         {% if section.articles %}
-            {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
+            {% assign sortedArticles = section.articles | default: empty %}
             {% for article in sortedArticles %}
                 {% assign article_href = section.href | append: '/' | append: article.href %}
                 {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
