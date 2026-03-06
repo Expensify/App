@@ -63,7 +63,7 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {

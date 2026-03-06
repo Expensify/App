@@ -23,7 +23,9 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDependentTags,
     hasDynamicExternalWorkflow,
+    hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
@@ -37,7 +39,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
@@ -324,25 +326,27 @@ describe('PolicyUtils', () => {
         };
 
         it('returns undefined if neither option is selected', () => {
-            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+            expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
         });
 
         it('returns all custom units if both options are selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, true);
+            const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual(policy.customUnits);
         });
         it('returns only non-per-diem units if only custom units option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, false);
+            const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
         });
 
         it('returns only per diem unit if only per diem option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, false, true);
+            const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
         });
 
         it('returns undefined if customUnits is empty', () => {
-            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
+            expect(
+                getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+            ).toBeUndefined();
         });
     });
     describe('getRateDisplayValue', () => {
@@ -2079,6 +2083,150 @@ describe('PolicyUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('hasDependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasDependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags have no parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when a tag has rules.parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when a tag has parentTagsFilter at the top level', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+    });
+
+    describe('hasIndependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasIndependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags are dependent (have parentTagsFilter)', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when all tag lists are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {},
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when tags are independent and at least one tag exists', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when at least one tag list has tags and others are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {
+                        'New York': {name: 'New York', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when policyTagList is undefined', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            expect(hasIndependentTags(policy, undefined)).toBe(false);
         });
     });
 });
