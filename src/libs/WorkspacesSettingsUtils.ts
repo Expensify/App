@@ -4,10 +4,12 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {CompanyAddress, Unit} from '@src/types/onyx/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 
 type BrickRoad = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
+type WorkspaceAddress = Partial<Pick<CompanyAddress, 'addressStreet' | 'addressStreet2' | 'city' | 'state' | 'zipCode'>>;
 
 type WorkspaceAddressStreetLines = {
     streetLineOne: string;
@@ -49,8 +51,8 @@ function getChatTabBrickRoad(orderedReportIDs: string[], reportAttributes: Repor
 /**
  * Resolve workspace street lines while supporting both legacy newline street format and explicit street line 2.
  */
-function getWorkspaceAddressStreetLines(addressStreet = '', addressStreet2?: string): WorkspaceAddressStreetLines {
-    const [legacyStreetLineOne, legacyStreetLineTwo] = addressStreet.split('\n');
+function getWorkspaceAddressStreetLines(addressStreet: WorkspaceAddress['addressStreet'] = '', addressStreet2?: WorkspaceAddress['addressStreet2']): WorkspaceAddressStreetLines {
+    const [legacyStreetLineOne, legacyStreetLineTwo] = (addressStreet ?? '').split('\n');
     return {
         streetLineOne: legacyStreetLineOne?.trim() ?? '',
         streetLineTwo: addressStreet2?.trim() ?? legacyStreetLineTwo?.trim() ?? '',
