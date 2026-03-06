@@ -183,7 +183,7 @@ jobs:
           comment-bot: false
           rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
-          validate-elf-alignment: false
+          validate-elf-alignment: ${{ inputs.variant != 'Release' && 'true' || 'false' }}
 
       - name: Upload Gradle profile report
         if: always()
@@ -282,6 +282,10 @@ jobs:
             --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
             --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Validate ELF alignment for Release APK
+        if: ${{ inputs.variant == 'Release' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
+        run: npx rock validate-elf-alignment "Expensify.apk"
 
       - name: Upload Android APK build artifact
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'

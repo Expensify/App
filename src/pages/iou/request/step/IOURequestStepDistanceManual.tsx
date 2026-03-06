@@ -79,6 +79,7 @@ function IOURequestStepDistanceManual({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -103,17 +104,19 @@ function IOURequestStepDistanceManual({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
+    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
 
     const customUnitRateID = getRateID(transaction);
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
     // then we use transaction data (distanceUnit and quantity) for conversions
-    const unit = DistanceRequestUtils.getRate({
+    const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
         useTransactionDistanceUnit: false,
-    }).unit;
+    });
+    const unit = mileageRate.unit;
+    const rate = mileageRate.rate ?? 0;
     const distanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ? transaction.comment.customUnit.distanceUnit : unit);
     const distance = typeof transaction?.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -235,6 +238,7 @@ function IOURequestStepDistanceManual({
                 recentWaypoints,
                 unit,
                 personalOutputCurrency: personalPolicy?.outputCurrency,
+                amountOwed,
             });
         },
         [
@@ -279,6 +283,7 @@ function IOURequestStepDistanceManual({
             selfDMReport,
             betas,
             personalPolicy?.outputCurrency,
+            amountOwed,
         ],
     );
 
@@ -290,8 +295,14 @@ function IOURequestStepDistanceManual({
             return;
         }
 
+        // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(parseFloat(value), rate)) {
+            setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
+            return;
+        }
+
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam]);
+    }, [navigateToNextPage, translate, rate]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
