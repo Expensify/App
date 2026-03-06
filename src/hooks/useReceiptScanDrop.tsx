@@ -36,8 +36,6 @@ function useReceiptScanDrop() {
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
 
     const newReportID = generateReportID();
-    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -45,9 +43,9 @@ function useReceiptScanDrop() {
             isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
+            report: undefined,
+            parentReport: undefined,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            report: newReport,
-            parentReport: newParentReport,
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
