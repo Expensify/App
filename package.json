@@ -302,7 +302,7 @@
     "dotenv": "^16.0.3",
     "eslint": "^9.36.0",
     "eslint-config-airbnb-typescript": "^18.0.0",
-    "eslint-config-expensify": "git+https://github.com/Expensify/eslint-config-expensify.git#b03d8734e88d9fc5c47a6101a7c7e5a6a12bc1c2",
+    "eslint-config-expensify": "git+https://github.com/Expensify/eslint-config-expensify.git#f39fe29e659d0d6a249f326e5e1da956ed748b61",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-file-progress": "3.0.1",
     "eslint-plugin-jest": "^29.0.1",
