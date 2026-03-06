@@ -827,7 +827,7 @@ function duplicateReport({
                     },
                     policyRecentlyUsedCurrencies,
                     quickAction,
-                    customUnitPolicyID: targetPolicy?.id ?? '',
+                    customUnitPolicyID: targetPolicy?.id,
                     personalDetails,
                     recentWaypoints,
                 };
@@ -843,7 +843,7 @@ function duplicateReport({
                         customUnit: transaction?.comment?.customUnit ?? {},
                     },
                     hasViolations: false,
-                    customUnitPolicyID: targetPolicy?.id ?? '',
+                    customUnitPolicyID: targetPolicy?.id,
                 };
                 submitPerDiemExpense(perDiemParams);
                 break;
