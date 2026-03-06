@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type PublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR>;
