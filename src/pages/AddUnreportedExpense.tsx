@@ -219,6 +219,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         [errorMessage],
     );
 
+    const onSelectAll = () => {
+        setSelectedIds((prevSelectedIDs) => {
+            const availableUnreportedExpenses = unreportedExpenses.filter(({isDisabled}) => !isDisabled);
+            if (availableUnreportedExpenses.some(({transactionID}) => prevSelectedIDs.has(transactionID))) {
+                return new Set();
+            }
+            if (errorMessage) {
+                setErrorMessage('');
+            }
+            return new Set(availableUnreportedExpenses.map(({transactionID}) => transactionID));
+        });
+    };
+
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
 
@@ -300,6 +313,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 data={unreportedExpenses}
                 ref={selectionListRef}
                 onSelectRow={onSelectRow}
+                onSelectAll={onSelectAll}
+                style={{listHeaderWrapperStyle: styles.ph8}}
                 textInputOptions={textInputOptions}
                 shouldShowTextInput={shouldShowTextInput}
                 canSelectMultiple

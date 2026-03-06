@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -30,16 +30,15 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const privateSubscription = usePrivateSubscription();
 
-    const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
-    useEffect(() => {
+    const freeTrialText = useMemo(() => {
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial));
+        return getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
     }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
 
     if (!freeTrialText) {
@@ -57,6 +56,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     ) : (
         <Badge
             success={success}
+            isCondensed
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />

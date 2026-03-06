@@ -1759,18 +1759,35 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
-        it('should return the correct message with a valid report ID and report name', () => {
+        it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
+            const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
+                isReportDeleted,
             });
 
-            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('created this report for any held expenses from deleted report #123456');
+        });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
         });
     });
 
@@ -3782,6 +3799,126 @@ describe('ReportActionsUtils', () => {
             expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
             // Without write permission: join request hidden, so only the normal action remains
             expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
+        });
+    });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+    });
+    describe('isRejectedAction', () => {
+        it('should return true for REJECTED action type', () => {
+            // Given a report action with REJECTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for REJECTED_TO_SUBMITTER action type', () => {
+            // Given a report action with REJECTED_TO_SUBMITTER action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true because REJECTED_TO_SUBMITTER is also a rejected action
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-rejected action type', () => {
+            // Given a report action with SUBMITTED action type (not rejected)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
         });
     });
 });

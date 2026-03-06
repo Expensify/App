@@ -959,7 +959,7 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, introSelected, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, introSelected, backTo, email ?? '', accountID, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -1006,7 +1006,16 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (!firstTransaction?.reportAction?.childReportID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, introSelected, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
+                        createAndOpenSearchTransactionThread(
+                            firstTransaction,
+                            introSelected,
+                            backTo,
+                            email ?? '',
+                            accountID,
+                            firstTransaction?.reportAction?.childReportID,
+                            transactionPreviewData,
+                            false,
+                        );
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
@@ -1050,6 +1059,8 @@ function Search({
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
+            email,
+            accountID,
         ],
     );
 

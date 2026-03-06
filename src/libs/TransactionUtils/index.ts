@@ -762,8 +762,9 @@ function getUpdatedTransaction({
         const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
         lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
 
-        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
-        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit.
+        // Skip conversion for odometer transactions — odometer readings are physical car readings and should be retained as-is.
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             const distance = roundToTwoDecimalPlaces((transaction?.comment?.customUnit?.quantity ?? 0) * conversionFactor);
             lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
@@ -773,11 +774,10 @@ function getUpdatedTransaction({
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
 
-            const oldMileageRate = DistanceRequestUtils.getRate({transaction, policy});
             const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
             const {unit, rate} = updatedMileageRate;
 
-            const distanceInMeters = getDistanceInMeters(transaction, oldMileageRate?.unit);
+            const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
@@ -1181,7 +1181,8 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  * @param currentUserPersonalDetails - personal details of current user
  */
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
-    const attendees = transaction?.comment?.attendees ?? [];
+    const rawAttendees = transaction?.comment?.attendees;
+    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
@@ -1195,7 +1196,8 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
  * @param currentUserPersonalDetails - personal details of current user
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
-    const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    const rawAttendees = transaction?.modifiedAttendees ?? transaction?.comment?.attendees;
+    const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
