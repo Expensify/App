@@ -277,6 +277,7 @@ describe('OptionsListUtils', () => {
             reportID: '11',
             isPinned: false,
             participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             },
             reportName: '',
@@ -818,8 +819,8 @@ describe('OptionsListUtils', () => {
             // Then all personal details (including those that have reports) should be returned
             expect(results.personalDetails.length).toBe(10);
 
-            // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
-            expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+            // Then all of the reports should be shown including the archived rooms (reports with only hidden participants are already excluded from OPTIONS).
+            expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
         });
 
         it('should include current user when includeCurrentUser is true for type:chat from suggestions', () => {
@@ -1502,8 +1503,8 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
             });
 
-            // Then the result should include all reports except the currently logged in user
-            expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length - 1);
+            // Then the result should include all reports (reports with only hidden participants are already excluded from OPTIONS)
+            expect(results.recentReports.length).toBe(OPTIONS_WITH_WORKSPACE_ROOM.reports.length);
             expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
         });
 
@@ -1873,8 +1874,8 @@ describe('OptionsListUtils', () => {
                 },
             );
 
-            // Then all the recent reports should be returned except the archived rooms and the hidden thread
-            expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
+            // Then all the recent reports should be returned except the archived room (the hidden thread is already excluded from OPTIONS)
+            expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
         });
 
         it('should include DMS, group chats, and workspace rooms in share destinations', () => {
@@ -1914,8 +1915,8 @@ describe('OptionsListUtils', () => {
                 },
             );
 
-            // Then all recent reports should be returned except the archived rooms and the hidden thread
-            expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
+            // Then all recent reports should be returned except the archived room (the hidden thread is already excluded from OPTIONS)
+            expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
         });
     });
 
