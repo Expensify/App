@@ -53,7 +53,7 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
         const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
         const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
-        const response = followupResponseElement ? DomUtils.textContent(followupResponseElement) : undefined;
+        const response = followupResponseElement ? DomUtils.getInnerHTML(followupResponseElement) : undefined;
         return {text, response};
     });
 }

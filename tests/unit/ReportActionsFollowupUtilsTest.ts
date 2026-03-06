@@ -62,14 +62,25 @@ describe('ReportActionsFollowupUtils', () => {
             expect(parseFollowupsFromHtml(html)).toEqual([]);
         });
 
-        it('should parse followup with pre-generated response', () => {
+        it('should parse followup with pre-generated response preserving HTML', () => {
             const html = `<followup-list>
   <followup>
     <followup-text>How do I set up QuickBooks?</followup-text>
-    <followup-response>To set up QuickBooks, go to Settings > Integrations...</followup-response>
+    <followup-response>To set up QuickBooks, go to <strong>Settings</strong> &gt; Integrations.</followup-response>
   </followup>
 </followup-list>`;
-            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings > Integrations...'}]);
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to <strong>Settings</strong> &gt; Integrations.'}]);
+        });
+
+        it('should preserve bullet lists in pre-generated responses', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>What are the steps?</followup-text>
+    <followup-response><ul><li>Step one</li><li>Step two</li></ul></followup-response>
+  </followup>
+</followup-list>`;
+            const result = parseFollowupsFromHtml(html);
+            expect(result).toEqual([{text: 'What are the steps?', response: '<ul><li>Step one</li><li>Step two</li></ul>'}]);
         });
 
         it('should parse multiple followups with mixed response availability', () => {
@@ -79,12 +90,12 @@ describe('ReportActionsFollowupUtils', () => {
   </followup>
   <followup>
     <followup-text>Question with response</followup-text>
-    <followup-response>Here is the cached response</followup-response>
+    <followup-response>Here is the <strong>cached</strong> response</followup-response>
   </followup>
 </followup-list>`;
             expect(parseFollowupsFromHtml(html)).toEqual([
                 {text: 'Question without response', response: undefined},
-                {text: 'Question with response', response: 'Here is the cached response'},
+                {text: 'Question with response', response: 'Here is the <strong>cached</strong> response'},
             ]);
         });
 
