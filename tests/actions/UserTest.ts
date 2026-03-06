@@ -206,6 +206,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -233,6 +234,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the successData structure
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
@@ -257,6 +259,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -277,6 +280,7 @@ describe('actions/User', () => {
             const validateCode = '123456';
 
             // Mock API.write to apply optimisticData
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,
@@ -370,6 +374,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -461,6 +466,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -500,6 +506,7 @@ describe('actions/User', () => {
             const contactMethod = 'test@example.com';
 
             // Mock API.write to apply optimisticData
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,

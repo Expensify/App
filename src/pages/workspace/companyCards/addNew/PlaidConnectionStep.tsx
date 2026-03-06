@@ -180,6 +180,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
                         }
                     }}
                     // User prematurely exited the Plaid flow
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
                     onExit={() => {
                         onExit?.();
                         handleBackButtonPress();
