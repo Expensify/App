@@ -6,13 +6,13 @@ import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyLi
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
 import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';

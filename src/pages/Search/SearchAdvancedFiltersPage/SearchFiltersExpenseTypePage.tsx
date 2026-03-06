@@ -7,13 +7,13 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Navigation from '@libs/Navigation/Navigation';
 import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
