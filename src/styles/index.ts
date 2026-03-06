@@ -4212,13 +4212,6 @@ const staticStyles = (theme: ThemeColors) =>
             margin: 'auto',
         },
 
-        splashScreenHider: {
-            backgroundColor: theme.splashBG,
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 20,
-        },
-
         headerEnvBadge: {
             position: 'absolute',
             bottom: -8,

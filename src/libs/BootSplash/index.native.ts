@@ -6,7 +6,7 @@ const BootSplash = NativeModules.BootSplash;
 function hide(): Promise<void> {
     Log.info('[BootSplash] hiding splash screen', false);
 
-    return BootSplash.hide();
+    return BootSplash.hide(true);
 }
 
 export default {
