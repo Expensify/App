@@ -109,7 +109,6 @@ const SCREENS = {
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
-        ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Verify_Account',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'Settings_Add_US_Bank_Account_Entry_Point',
@@ -120,6 +119,7 @@ const SCREENS = {
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
         TROUBLESHOOT: 'Settings_Troubleshoot',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
+        DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
