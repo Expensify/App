@@ -33,9 +33,9 @@ To comply with financial regulations, the following documents are needed:
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, select **EUR €**.
 3. From the Workspace settings menu, select **Workflows** > **Add Bank Account**
-   - **Note** To add a bank account, **Payments** must be enabled. 
-4. Confirm the bank account currency (EUR €) and country. 
-7. Click **Confirm**.
+   - **Note:** To add a bank account, **Payments** must be enabled.
+4. Confirm the bank account currency (EUR €) and country.
+5. Click **Confirm**.
 
 ---
 
