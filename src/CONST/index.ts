@@ -1794,6 +1794,7 @@ const CONST = {
         SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
         SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
+        SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
@@ -2362,7 +2363,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
-    EXPENSIFY_MERCHANT: 'Expensify',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
     FULLSTORY: {
@@ -2640,7 +2641,15 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_LIST: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                NAME: 'name',
+                FIELD_ID: 'field-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
@@ -3320,6 +3329,7 @@ const CONST = {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
+            EXPORT: 'export',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3685,6 +3695,9 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        CARD_PROGRAM: {
+            CURRENT: 'CURRENT',
+        },
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individual',
@@ -4091,9 +4104,11 @@ const CONST = {
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
-        // eslint-disable-next-line no-misleading-character-class
+        // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        // eslint-disable-next-line max-len, no-misleading-character-class, no-empty-character-class
         EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
@@ -7554,6 +7569,7 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+            FIND_ITEM: 'findItem',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -8401,6 +8417,8 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
+            ENLARGE_BUTTON: 'Receipt-EnlargeButton',
+            ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
         },
         RECEIPT_MODAL: {
             REPLACE_RECEIPT: 'ReceiptModal-ReplaceReceipt',
@@ -8790,6 +8808,8 @@ const CONST = {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
                 THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
+                ROW: 'WorkspaceList-Row',
+                ROW_ARROW: 'WorkspaceList-RowArrow',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',

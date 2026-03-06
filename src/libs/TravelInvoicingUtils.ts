@@ -1,11 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
-import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import fileDownload from './fileDownload';
 
 /**
  * Feature flag to enable Travel CVV testing on Dev and Staging environments.
@@ -18,20 +20,6 @@ function isTravelCVVTestingEnabled(): boolean {
 }
 
 /**
- * Gets the Travel Invoicing settings from the nested TRAVEL_US object.
- * Only returns settings if cardSettings.TRAVEL_US exists — root-level cardSettings
- * (e.g. paymentBankAccountID for the Expensify Card) must not be treated as Travel Invoicing data.
- */
-function getTravelSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>): ExpensifyCardSettingsBase | undefined {
-    if (!cardSettings?.TRAVEL_US) {
-        return undefined;
-    }
-    // Merge root settings with TRAVEL_US so partial optimistic updates (e.g. only isEnabled) still
-    // inherit other fields like monthlySettlementDate from the root.
-    return {...cardSettings, ...cardSettings.TRAVEL_US};
-}
-
-/**
  * Checks whether Travel Invoicing is enabled based on the card settings.
  * Returns true if:
  * 1. isEnabled is explicitly true
@@ -41,21 +29,20 @@ function getTravelSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>): Expe
  * 2. isEnabled is explicitly false
  * 3. Only loading state exists (new account opening page)
  */
-function getIsTravelInvoicingEnabled(cardSettings: OnyxEntry<ExpensifyCardSettings>): boolean {
-    const settings = getTravelSettings(cardSettings);
-    if (!settings) {
+function getIsTravelInvoicingEnabled(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    if (!cardSettings) {
         return false;
     }
 
     // If isEnabled is explicitly set, use that value
-    if (settings.isEnabled !== undefined) {
-        return settings.isEnabled;
+    if (cardSettings.isEnabled !== undefined) {
+        return cardSettings.isEnabled;
     }
 
     // For backward compatibility: if isEnabled is undefined but we have a payment account,
     // assume it was enabled before the isEnabled field existed
     // This prevents false positives from just having loading state
-    if (settings.paymentBankAccountID && settings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID) {
+    if (cardSettings.paymentBankAccountID && cardSettings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID) {
         return true;
     }
 
@@ -66,12 +53,11 @@ function getIsTravelInvoicingEnabled(cardSettings: OnyxEntry<ExpensifyCardSettin
 /**
  * Checks if a settlement account is configured for Travel Invoicing.
  */
-function hasTravelInvoicingSettlementAccount(cardSettings: OnyxEntry<ExpensifyCardSettings>): boolean {
-    const settings = getTravelSettings(cardSettings);
-    if (!settings) {
+function hasTravelInvoicingSettlementAccount(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    if (!cardSettings) {
         return false;
     }
-    return !!settings.paymentBankAccountID && settings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID;
+    return !!cardSettings.paymentBankAccountID && cardSettings.paymentBankAccountID !== CONST.DEFAULT_NUMBER_ID;
 }
 
 /**
@@ -79,19 +65,17 @@ function hasTravelInvoicingSettlementAccount(cardSettings: OnyxEntry<ExpensifyCa
  * Backend may return 'limit' or 'remainingLimit' - we check both.
  * Returns 0 if no settings are available.
  */
-function getTravelLimit(cardSettings: OnyxEntry<ExpensifyCardSettings>): number {
-    const settings = getTravelSettings(cardSettings);
+function getTravelLimit(cardSettings: ExpensifyCardSettingsBase | undefined): number {
     // Backend uses 'limit', some flows may use 'remainingLimit' - check both
-    return settings?.limit ?? settings?.remainingLimit ?? 0;
+    return cardSettings?.limit ?? cardSettings?.remainingLimit ?? 0;
 }
 
 /**
  * Checks if the workspace has an outstanding Travel Invoicing balance.
  * Returns true if there is unpaid travel spend, blocking disable.
  */
-function hasOutstandingTravelBalance(cardSettings: OnyxEntry<ExpensifyCardSettings>): boolean {
-    const settings = getTravelSettings(cardSettings);
-    const currentBalance = settings?.currentBalance ?? 0;
+function hasOutstandingTravelBalance(cardSettings: ExpensifyCardSettingsBase | undefined): boolean {
+    const currentBalance = cardSettings?.currentBalance ?? 0;
     return currentBalance > 0;
 }
 
@@ -100,9 +84,8 @@ function hasOutstandingTravelBalance(cardSettings: OnyxEntry<ExpensifyCardSettin
  * This is the sum of all posted Travel Invoicing card transactions.
  * Returns 0 if no settings are available.
  */
-function getTravelSpend(cardSettings: OnyxEntry<ExpensifyCardSettings>): number {
-    const settings = getTravelSettings(cardSettings);
-    return settings?.currentBalance ?? 0;
+function getTravelSpend(cardSettings: ExpensifyCardSettingsBase | undefined): number {
+    return cardSettings?.currentBalance ?? 0;
 }
 
 type TravelSettlementAccountInfo = {
@@ -115,21 +98,20 @@ type TravelSettlementAccountInfo = {
  * Gets the settlement account information for Travel Invoicing.
  * Returns undefined if no settlement account is configured.
  */
-function getTravelSettlementAccount(cardSettings: OnyxEntry<ExpensifyCardSettings>, bankAccountList: OnyxEntry<BankAccountList>): TravelSettlementAccountInfo | undefined {
-    const settings = getTravelSettings(cardSettings);
-    if (!settings?.paymentBankAccountID) {
+function getTravelSettlementAccount(cardSettings: ExpensifyCardSettingsBase | undefined, bankAccountList: OnyxEntry<BankAccountList>): TravelSettlementAccountInfo | undefined {
+    if (!cardSettings?.paymentBankAccountID) {
         return undefined;
     }
 
-    const bankAccountID = settings.paymentBankAccountID;
+    const bankAccountID = cardSettings.paymentBankAccountID;
     const bankAccountIDStr = bankAccountID.toString();
     const bankAccount = bankAccountList?.[bankAccountIDStr];
 
     // Use paymentBankAccountAddressName if available, else fallback to bank account data
-    const displayName = settings.paymentBankAccountAddressName ?? bankAccount?.accountData?.addressName ?? '';
+    const displayName = cardSettings.paymentBankAccountAddressName ?? bankAccount?.accountData?.addressName ?? '';
 
     // Use paymentBankAccountNumber if available, else fallback to bank account data
-    const accountNumber = settings.paymentBankAccountNumber ?? bankAccount?.accountData?.accountNumber ?? '';
+    const accountNumber = cardSettings.paymentBankAccountNumber ?? bankAccount?.accountData?.accountNumber ?? '';
     const last4 = getLastFourDigits(accountNumber);
 
     return {
@@ -145,13 +127,12 @@ function getTravelSettlementAccount(cardSettings: OnyxEntry<ExpensifyCardSetting
  * - If monthlySettlementDate is falsy (null/undefined), frequency is Daily.
  * - If cardSettings is missing, default to Monthly per design doc.
  */
-function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSettings>): string {
-    const settings = getTravelSettings(cardSettings);
+function getTravelSettlementFrequency(cardSettings: ExpensifyCardSettingsBase | undefined): string {
     // Default to monthly per design doc when no settings exist
-    if (!settings) {
+    if (!cardSettings) {
         return CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
     }
-    return settings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    return cardSettings.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
 }
 
 /**
@@ -160,6 +141,24 @@ function getTravelSettlementFrequency(cardSettings: OnyxEntry<ExpensifyCardSetti
  */
 function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${number}` {
     return `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`;
+}
+
+/**
+ * Downloads a cached Travel Invoice Statement PDF.
+ * Constructs a secure URL with encrypted auth token and triggers the download.
+ */
+function downloadTravelInvoiceStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string,
+    startDate: string,
+    endDate: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+): Promise<void> {
+    const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 
 /**
@@ -204,6 +203,7 @@ export {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,
     isTravelCVVTestingEnabled,

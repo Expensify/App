@@ -94,5 +94,6 @@ const shouldValidateFile = (file: ShareTempFile | undefined) => {
     return file?.mimeType === CONST.SHARE_FILE_MIMETYPE.HEIC || file?.mimeType === CONST.SHARE_FILE_MIMETYPE.IMG;
 };
 
+// eslint-disable-next-line import/prefer-default-export
 export {getThumbnailAndImageURIs, shouldValidateFile, constructReceiptSourceFromFilename};
 export type {ThumbnailAndImageURI};
