@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +27,7 @@ function findColumnName(header: string): string {
 
         case 'category':
         case 'categories':
-            attribute = CONST.CSV_IMPORT_COLUMNS.EMAIL;
+            attribute = CONST.CSV_IMPORT_COLUMNS.CATEGORY;
             break;
 
         case 'glcode':
@@ -103,6 +103,19 @@ function findColumnName(header: string): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.CURRENCY;
             break;
 
+        case 'date':
+        case 'transactiondate':
+        case 'transaction_date':
+            attribute = CONST.CSV_IMPORT_COLUMNS.DATE;
+            break;
+
+        case 'merchant':
+        case 'merchants':
+        case 'vendor':
+        case 'vendors':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MERCHANT;
+            break;
+
         case 'rateid':
             attribute = CONST.CSV_IMPORT_COLUMNS.RATE_ID;
             break;
@@ -156,6 +169,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
+    const hasAutoDetected = useRef(false);
 
     const options: Array<DropdownOption<string>> = (columnRoles ?? []).map((item) => ({
         text: item.text,
@@ -166,17 +180,27 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
 
     const columnValuesString = column.slice(containsHeader ? 1 : 0).join(', ');
 
-    const colName = findColumnName(column.at(0) ?? '');
-    const defaultSelectedIndex = columnRoles?.findIndex((item) => item.value === colName);
-    const finalIndex = defaultSelectedIndex !== -1 ? defaultSelectedIndex : 0;
+    const currentColumnValue = spreadsheet?.columns?.[columnIndex];
+    // Treat 'ignore' as unmapped so auto-detection can still run
+    const isMapped = currentColumnValue && currentColumnValue !== CONST.CSV_IMPORT_COLUMNS.IGNORE;
+    const autoDetectedColName = isMapped ? '' : findColumnName(column.at(0) ?? '');
+
+    const foundIndex = columnRoles?.findIndex((item) => item.value === (currentColumnValue ?? autoDetectedColName)) ?? -1;
+    const selectedIndex = foundIndex !== -1 ? foundIndex : 0;
 
     useEffect(() => {
-        if (defaultSelectedIndex === -1) {
+        // Only run auto-detection once on mount
+        if (hasAutoDetected.current) {
             return;
         }
-        setColumnName(columnIndex, colName);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, []);
+
+        if (isMapped || !autoDetectedColName) {
+            return;
+        }
+
+        hasAutoDetected.current = true;
+        setColumnName(columnIndex, autoDetectedColName);
+    }, [isMapped, autoDetectedColName, columnIndex]);
 
     const columnHeader = containsHeader ? column.at(0) : translate('spreadsheet.column', columnName);
 
@@ -208,7 +232,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                             onOptionSelected={(option) => {
                                 setColumnName(columnIndex, option.value);
                             }}
-                            defaultSelectedIndex={finalIndex}
+                            defaultSelectedIndex={selectedIndex}
                             options={options}
                             success={false}
                         />
