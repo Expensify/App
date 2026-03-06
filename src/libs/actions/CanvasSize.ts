@@ -42,4 +42,9 @@ function retrieveMaxCanvasWidth() {
     });
 }
 
-export {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth};
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    retrieveMaxCanvasArea,
+    retrieveMaxCanvasHeight,
+    retrieveMaxCanvasWidth,
+};
