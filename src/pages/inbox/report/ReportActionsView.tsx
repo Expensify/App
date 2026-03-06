@@ -56,6 +56,7 @@ type ReportActionsViewProps = {
     isLoadingInitialReportActions?: boolean;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
+    // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
     /** If the report has newer actions to load */
@@ -268,6 +269,7 @@ function ReportActionsView({
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const allReportActionIDs = useMemo(() => {

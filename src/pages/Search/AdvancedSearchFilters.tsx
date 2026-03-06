@@ -29,7 +29,7 @@ import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     buildCannedSearchQuery,
-    buildQueryStringFromFilterFormValues,
+    buildFilterQueryWithSortDefaults,
     buildSearchQueryJSON,
     getCurrentSearchQueryJSON,
     isCannedSearchQuery,
@@ -597,11 +597,13 @@ function AdvancedSearchFilters() {
 
     const queryString = useMemo(() => {
         const currentQueryJSON = getCurrentSearchQueryJSON();
-        return buildQueryStringFromFilterFormValues(searchAdvancedFilters, {
-            sortBy: currentQueryJSON?.sortBy,
-            sortOrder: currentQueryJSON?.sortOrder,
-            limit: currentQueryJSON?.limit,
-        });
+        return (
+            buildFilterQueryWithSortDefaults(
+                searchAdvancedFilters,
+                {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+            ) ?? ''
+        );
     }, [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
