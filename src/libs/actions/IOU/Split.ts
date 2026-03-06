@@ -364,6 +364,7 @@ function startSplitBill({
     policyRecentlyUsedTags,
     quickAction,
     policyRecentlyUsedCurrencies,
+    participantsPolicyTags,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -547,6 +548,7 @@ function startSplitBill({
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
+        participantsPolicyTags,
     };
 
     if (existingSplitChatReport) {
@@ -640,9 +642,7 @@ function startSplitBill({
         }
         const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            policyTags: getPolicyTagsData(participant.policyID),
+            policyTags: participant.policyID ? participantsPolicyTags[participant.policyID] : {},
             policyRecentlyUsedTags,
             transactionTags: tag,
         });

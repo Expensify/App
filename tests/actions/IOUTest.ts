@@ -85,7 +85,7 @@ import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -206,6 +206,23 @@ describe('actions/IOU', () => {
         email: RORY_EMAIL,
         displayName: RORY_EMAIL,
         avatar: 'https://example.com/avatar.jpg',
+    };
+
+    const getParticipantsPolicyTags = async (participants: IOUParticipant[]) => {
+        let participantsPolicyTags: Record<string, PolicyTagLists> = {};
+        await getOnyxData({
+            waitForCollectionCallback: true,
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+            callback: (tags) => {
+                participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
+            },
+        });
+        return participantsPolicyTags;
     };
 
     beforeAll(() => {
@@ -5515,9 +5532,12 @@ describe('actions/IOU', () => {
                 },
             });
 
+            const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+            const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
             // Start a scan split bill
             const {splitTransactionID} = startSplitBill({
-                participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                participants,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 comment: '# test',
@@ -5531,6 +5551,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
+                participantsPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -5732,9 +5753,12 @@ describe('actions/IOU', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+            const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID}];
+            const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
             // When doing a split bill with a receipt
             startSplitBill({
-                participants: [{isPolicyExpenseChat: true, policyID}],
+                participants,
                 currentUserLogin: currentUserPersonalDetails.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 comment: '',
@@ -5747,6 +5771,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags,
                 quickAction: {},
                 policyRecentlyUsedCurrencies: [],
+                participantsPolicyTags,
             });
 
             waitForBatchedUpdates();
