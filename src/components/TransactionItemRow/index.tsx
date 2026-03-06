@@ -24,7 +24,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import {isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -252,34 +251,34 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.tag}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.TAG]}}
                     >
-                        <TextCell text={formattedValues.tag} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.TAG]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.date}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.DATE]}}
                     >
-                        <TextCell text={formattedValues.date} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.DATE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.submitted}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]}}
                     >
-                        <TextCell text={formattedValues.submitted} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.approved}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.APPROVED]}}
                     >
                         <TextCell text={formattedValues.approved} />
                     </View>
@@ -288,45 +287,45 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.posted}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.POSTED]}}
                     >
-                        <TextCell text={formattedValues.posted} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.POSTED]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.exported}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.EXPORTED]}}
                     >
-                        <TextCell text={formattedValues.exported} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.EXPORTED]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.category}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]}}
                     >
-                        <TextCell text={formattedValues.category} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.reimbursable}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]}}
                     >
-                        <TextCell text={formattedValues.reimbursable} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.billable}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.BILLABLE]}}
                     >
-                        <TextCell text={formattedValues.billable} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.BILLABLE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
@@ -356,18 +355,18 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.merchant}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]}}
                     >
-                        <TextCell text={merchant} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.description}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]}}
                     >
-                        <TextCell text={description} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -378,8 +377,8 @@ function TransactionItemRow({
                     >
                         {!!transactionItem.to && (
                             <UserInfoCell
-                                accountID={transactionItem.to.accountID}
                                 avatar={transactionItem.to.avatar}
+                                accountID={transactionItem.to.accountID}
                                 displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
                             />
                         )}
@@ -393,8 +392,8 @@ function TransactionItemRow({
                     >
                         {!!transactionItem.from && (
                             <UserInfoCell
-                                accountID={transactionItem.from.accountID}
                                 avatar={transactionItem.from.avatar}
+                                accountID={transactionItem.from.accountID}
                                 displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
                             />
                         )}
@@ -404,9 +403,9 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.card}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.CARD]}}
                     >
-                        <TextCell text={formattedValues.card} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.CARD]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
@@ -425,63 +424,63 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.exchangeRate}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]}}
                     >
-                        <TextCell text={formattedValues.exchangeRate} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.amount}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]}}
                     >
-                        <TextCell text={formattedValues.amount} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={{width: measurements.originalAmount}}
+                        style={{width: measurements[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]}}
                     >
-                        <TextCell text={formattedValues.originalAmount} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.reportID}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]}}
                     >
-                        <TextCell text={formattedValues.reportID} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.longReportID}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]}}
                     >
-                        <TextCell text={formattedValues.longReportID} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.taxRate}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]}}
                     >
-                        <TextCell text={formattedValues.taxRate} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.taxAmount}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]}}
                     >
-                        <TextCell text={formattedValues.taxAmount} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
@@ -491,8 +490,8 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME)]}
                     >
                         <WorkspaceCell
-                            policyID={transactionItem.report?.policyID}
                             report={transactionItem.report}
+                            policyID={transactionItem.report?.policyID}
                         />
                     </View>
                 );
@@ -500,9 +499,9 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.title}}
+                        style={{flex: 1, minWidth: measurements[CONST.SEARCH.TABLE_COLUMNS.TITLE]}}
                     >
-                        <TextCell text={getReportName(transactionItem.report)} />
+                        <TextCell text={formattedValues[CONST.SEARCH.TABLE_COLUMNS.TITLE]} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
