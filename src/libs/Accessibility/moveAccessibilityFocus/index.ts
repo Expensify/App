@@ -1,10 +1,15 @@
 import type MoveAccessibilityFocus from './types';
 
 const moveAccessibilityFocus: MoveAccessibilityFocus = (ref) => {
-    if (!ref?.current) {
+    const focusTarget = ref && 'current' in ref ? ref.current : ref;
+
+    if (!focusTarget) {
         return;
     }
-    ref.current.focus();
+
+    if ('focus' in focusTarget && typeof focusTarget.focus === 'function') {
+        focusTarget.focus();
+    }
 };
 
 export default moveAccessibilityFocus;

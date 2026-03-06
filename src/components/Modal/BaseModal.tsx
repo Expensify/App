@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, View} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -90,9 +90,11 @@ function BaseModal({
     const keyboardStateContextValue = useKeyboardState();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const isNativeIOS = getPlatform() === CONST.PLATFORM.IOS;
 
     const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
     const [modalHeight, setModalHeight] = useState(0);
+    const [isBottomDockedDismissAccessible, setIsBottomDockedDismissAccessible] = useState(true);
     const dismissRef = useRef<View>(null);
 
     const insets = useSafeAreaInsets();
@@ -269,6 +271,34 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    const shouldDelayBottomDockedDismissAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton;
+
+    useEffect(() => {
+        if (!shouldDelayBottomDockedDismissAccessibility) {
+            setIsBottomDockedDismissAccessible(true);
+            return;
+        }
+
+        if (!isVisible) {
+            setIsBottomDockedDismissAccessible(false);
+            return;
+        }
+
+        setIsBottomDockedDismissAccessible(false);
+        let animationFrameID = 0;
+        const interactionHandle = InteractionManager.runAfterInteractions(() => {
+            animationFrameID = requestAnimationFrame(() => {
+                setIsBottomDockedDismissAccessible(true);
+            });
+        });
+
+        return () => {
+            if (animationFrameID) {
+                cancelAnimationFrame(animationFrameID);
+            }
+            interactionHandle.cancel();
+        };
+    }, [isVisible, shouldDelayBottomDockedDismissAccessibility]);
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
@@ -402,8 +432,11 @@ function BaseModal({
                             {!isWeb && shouldShowBottomDockedDismissButton && (
                                 <PressableWithoutFeedback
                                     onPress={handleBackdropPress}
+                                    accessible={isBottomDockedDismissAccessible}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.dismiss')}
+                                    accessibilityElementsHidden={!isBottomDockedDismissAccessible}
+                                    importantForAccessibility={isBottomDockedDismissAccessible ? 'auto' : 'no-hide-descendants'}
                                     sentryLabel="Modal-DismissDialog"
                                     style={styles.bottomDockedModalDismissButton}
                                     shouldUseAutoHitSlop

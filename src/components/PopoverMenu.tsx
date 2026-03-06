@@ -2,7 +2,7 @@
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, InteractionManager, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, View as RNView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -312,6 +312,7 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
+    const isIOS = platform === CONST.PLATFORM.IOS;
     const firstMenuItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
@@ -484,46 +485,55 @@ function BasePopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWeb && isVisible, shouldPreventDefault: false});
 
-    const focusFirstMenuItem = useCallback(() => {
+    const focusFirstMenuItemOnWeb = useCallback(() => {
         if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
             return false;
         }
-        const focusTarget = () => {
-            const target = firstMenuItemRef.current;
-            if (!target) {
-                return false;
-            }
+        const target = firstMenuItemRef.current;
+        if (!target || !('focus' in target) || typeof target.focus !== 'function') {
+            return false;
+        }
 
-            if (isWeb) {
-                if ('focus' in target && typeof target.focus === 'function') {
-                    target.focus();
-                }
-                hasFocusedFirstItemOnCurrentOpenRef.current = true;
-                return true;
-            }
+        target.focus();
+        hasFocusedFirstItemOnCurrentOpenRef.current = true;
+        return true;
+    }, []);
 
-            const sendAccessibilityEvent = AccessibilityInfo.sendAccessibilityEvent;
-            if (sendAccessibilityEvent) {
-                if (isAndroid) {
-                    sendAccessibilityEvent(target, 'viewHoverEnter');
-                }
-            }
+    const focusFirstMenuItemOnNative = useCallback(() => {
+        if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+            return false;
+        }
 
-            Accessibility.moveAccessibilityFocus(firstMenuItemRef);
-            hasFocusedFirstItemOnCurrentOpenRef.current = true;
-            return true;
-        };
+        const target = firstMenuItemRef.current;
+        if (!target) {
+            return false;
+        }
 
-        return focusTarget();
-    }, [isAndroid, isWeb]);
+        const sendAccessibilityEvent = AccessibilityInfo.sendAccessibilityEvent;
+        if (sendAccessibilityEvent && isAndroid) {
+            sendAccessibilityEvent(target, 'viewHoverEnter');
+        }
 
-    const scheduleFocusFirstMenuItem = useCallback(() => {
+        Accessibility.moveAccessibilityFocus(firstMenuItemRef);
+        hasFocusedFirstItemOnCurrentOpenRef.current = true;
+        return true;
+    }, [isAndroid]);
+
+    const focusFirstMenuItem = useCallback(() => {
+        if (isWeb) {
+            return focusFirstMenuItemOnWeb();
+        }
+
+        return focusFirstMenuItemOnNative();
+    }, [focusFirstMenuItemOnNative, focusFirstMenuItemOnWeb, isWeb]);
+
+    const scheduleFocusFirstMenuItemOnWeb = useCallback(() => {
         const focusFirstMenuItemWithRetries = (retries = MAX_FIRST_MENU_ITEM_FOCUS_RETRIES) => {
             if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
                 return;
             }
 
-            if (focusFirstMenuItem()) {
+            if (focusFirstMenuItemOnWeb()) {
                 return;
             }
 
@@ -534,15 +544,36 @@ function BasePopoverMenu({
             requestAnimationFrame(() => focusFirstMenuItemWithRetries(retries - 1));
         };
 
-        if (isWeb) {
-            requestAnimationFrame(() => focusFirstMenuItemWithRetries());
+        requestAnimationFrame(() => focusFirstMenuItemWithRetries());
+    }, [focusFirstMenuItemOnWeb]);
+
+    const scheduleFocusFirstMenuItemOnNative = useCallback(() => {
+        const focusTarget = () => {
+            requestAnimationFrame(() => {
+                if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
+                    return;
+                }
+
+                focusFirstMenuItem();
+            });
+        };
+
+        if (isIOS) {
+            InteractionManager.runAfterInteractions(focusTarget);
             return;
         }
 
-        setTimeout(() => {
-            requestAnimationFrame(() => focusFirstMenuItemWithRetries());
-        }, 0);
-    }, [focusFirstMenuItem, isWeb]);
+        setTimeout(focusTarget, 0);
+    }, [focusFirstMenuItem, isIOS]);
+
+    const scheduleFocusFirstMenuItem = useCallback(() => {
+        if (isWeb) {
+            scheduleFocusFirstMenuItemOnWeb();
+            return;
+        }
+
+        scheduleFocusFirstMenuItemOnNative();
+    }, [isWeb, scheduleFocusFirstMenuItemOnNative, scheduleFocusFirstMenuItemOnWeb]);
 
     const handleModalShow = useCallback(() => {
         onModalShow?.();
