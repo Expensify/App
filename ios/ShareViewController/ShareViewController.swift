@@ -165,6 +165,13 @@ class ShareViewController: UIViewController {
         } else if let file = data as? UIImage {
             os_log("Handling image data")
             handleImageData(file, folder: folder, completion: completion)
+        } else if let rawData = data as? Data {
+            os_log("Handling raw Data")
+            if let image = UIImage(data: rawData) {
+                handleImageData(image, folder: folder, completion: completion)
+            } else {
+                processAndSave(data: rawData, filename: "shared_file", folder: folder, completion: completion)
+            }
         } else {
             os_log("Received data of unhandled type", type: .error)
             completion(.URLError)
