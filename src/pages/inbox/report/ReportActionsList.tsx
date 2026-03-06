@@ -11,7 +11,6 @@ import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatLis
 import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
@@ -75,6 +74,7 @@ import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
+import StaticReportActionsPreview from './StaticReportActionsPreview';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
@@ -823,17 +823,15 @@ function ReportActionsList({
 
     const renderTopReportActions = useCallback(() => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
+
         return (
-            <>
-                {!shouldShowReportRecipientLocalTime && !hideComposer ? <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} /> : undefined}
-                <ScrollView style={[styles.pt4, styles.maxHeight100Percentage, styles.overscrollBehaviorNone, styles.flex1]}>
-                    {previewItems.map((action) => (
-                        <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
-                    ))}
-                </ScrollView>
-            </>
+            <StaticReportActionsPreview showSpacer={!shouldShowReportRecipientLocalTime && !hideComposer}>
+                {previewItems.map((action) => (
+                    <View key={action.reportActionID}>{renderItem({item: action, index: sortedVisibleReportActions.indexOf(action)} as ListRenderItemInfo<OnyxTypes.ReportAction>)}</View>
+                ))}
+            </StaticReportActionsPreview>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
+    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
