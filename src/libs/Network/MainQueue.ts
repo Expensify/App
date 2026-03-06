@@ -24,6 +24,7 @@ function push<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
 function replay<TKey extends OnyxKey>(request: OnyxRequest<TKey>) {
     push(request);
 
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     process();
 }
 

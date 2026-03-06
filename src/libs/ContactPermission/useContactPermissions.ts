@@ -29,6 +29,7 @@ function useContactPermissions({importAndSaveContacts, setContacts, contactPermi
                 }
             })
             .catch((error) => {
+                // eslint-disable-next-line no-console
                 console.error('Failed to check contact permission:', error);
             });
     }, [contactPermissionState, importAndSaveContacts, setContacts, setContactPermissionState]);
