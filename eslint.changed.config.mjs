@@ -106,6 +106,19 @@ const config = defineConfig([
             ],
         },
     },
+
+    {
+        files: ['src/libs/ReportNameUtils.ts'],
+        rules: {
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector: 'FunctionDeclaration[id.name="getReportName"] CallExpression',
+                    message: 'getReportName must be a pure read-only function. Move any computation to computeReportName instead.',
+                },
+            ],
+        },
+    },
 ]);
 
 export default config;
