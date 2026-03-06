@@ -91,7 +91,7 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
-async function stopGpsTrip(isOffline: boolean) {
+async function stopGpsTrip(isOffline: boolean, skipLastPointAddressFetching = false) {
     const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
     if (isBackgroundTaskRunning) {
@@ -99,6 +99,10 @@ async function stopGpsTrip(isOffline: boolean) {
     }
 
     setIsTracking(false);
+
+    if (skipLastPointAddressFetching) {
+        return;
+    }
 
     const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 

@@ -1,6 +1,5 @@
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import {stopLocationUpdatesAsync} from 'expo-location';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -16,10 +15,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,7 +98,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             return;
         }
 
-        stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((stopError) => console.error('[GPS distance request] Failed to stop location tracking', stopError));
+        stopGpsTrip(false, true);
 
         switchAccount();
     };
