@@ -10,6 +10,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -19,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -49,6 +51,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const {translate} = useLocalize();
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -57,6 +60,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
+
+    console.log(companyCardFeeds);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
@@ -92,6 +98,51 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         };
     });
 
+    const getOtherFeeds = () => {
+        const otherPolicyFeeds: CardFeedListItem[] = [];
+        for (const [feedPolicyID, cardFeeds] of Object.entries(cardFeedsByPolicy ?? {}) as Array<[CompanyCardFeedWithDomainID, CardFeedForDisplay[]]>) {
+            if (feedPolicyID === policyID) {
+                // continue;
+            }
+            for (const feed of cardFeeds) {
+                const feedName = feed.feed;
+                const plaidUrl = getPlaidInstitutionIconUrl(feed.feed);
+                const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
+                const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedPolicyID}`];
+                const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+
+                const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
+
+                otherPolicyFeeds.push({
+                    value: feed.id,
+                    feed: feed.feed as CompanyCardFeedWithNumber,
+                    alternateText: domainName ?? feedPolicy?.name,
+                    text: getCustomOrFormattedFeedName(translate, feed.feed, feed.name),
+                    keyForList: feed.id,
+                    isSelected: feed.id === selectedFeedName,
+                    brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                    canShowSeveralIndicators: shouldShowRBR,
+                    leftElement: plaidUrl ? (
+                        <PlaidCardFeedIcon
+                            plaidUrl={plaidUrl}
+                            style={styles.mr3}
+                        />
+                    ) : (
+                        <Icon
+                            src={getCardFeedIcon(feed.feed, illustrations, companyCardFeedIcons)}
+                            height={variables.cardIconHeight}
+                            width={variables.cardIconWidth}
+                            additionalStyles={[styles.mr3, styles.cardIcon]}
+                        />
+                    ),
+                });
+            }
+        }
+        return otherPolicyFeeds;
+    };
+
+    const otherFeeds = getOtherFeeds();
+
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
         if (isBlockedToAddNewFeeds) {
@@ -109,6 +160,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         updateSelectedFeed(feed.value, policyID);
         goBack();
     };
+
+    console.log('otherFeeds');
+    console.log(otherFeeds);
 
     return (
         <AccessOrNotFoundWrapper
@@ -133,12 +187,22 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     initiallyFocusedItemKey={selectedFeedName}
                     addBottomSafeAreaPadding
                     listFooterContent={
-                        <MenuItem
-                            title={translate('workspace.companyCards.addCards')}
-                            icon={icons.Plus}
-                            onPress={onAddCardsPress}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
-                        />
+                        <>
+                            <MenuItem
+                                title={translate('workspace.companyCards.addCards')}
+                                icon={icons.Plus}
+                                onPress={onAddCardsPress}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
+                            />
+                            {otherFeeds.length > 0 &&
+                                otherFeeds.map((feed) => (
+                                    <RadioListItem
+                                        key={feed.value}
+                                        item={feed}
+                                        onPress={onAddCardsPress}
+                                    />
+                                ))}
+                        </>
                     }
                 />
             </ScreenWrapper>
