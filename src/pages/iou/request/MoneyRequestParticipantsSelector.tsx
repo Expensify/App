@@ -430,7 +430,7 @@ function MoneyRequestParticipantsSelector({
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
     );
 
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -443,9 +443,9 @@ function MoneyRequestParticipantsSelector({
         return length;
     }, [areOptionsInitialized, sections]);
 
-    const showListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
+    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !shouldShowLoadingPlaceholder, [optionLength, shouldShowLoadingPlaceholder]);
 
-    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !showListEmptyContent;
+    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
@@ -613,11 +613,11 @@ function MoneyRequestParticipantsSelector({
                 }
                 footerContent={footerContent}
                 listEmptyContent={EmptySelectionListContentWithPermission}
-                showLoadingPlaceholder={showLoadingPlaceholder}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
-                showListEmptyContent={showListEmptyContent}
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
                 ref={selectionListRef}
                 onEndReached={onListEndReached}
                 onEndReachedThreshold={0.75}

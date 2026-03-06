@@ -157,7 +157,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                     confirmButtonOptions={{
                         onConfirm: inviteUser,
                     }}
-                    showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}

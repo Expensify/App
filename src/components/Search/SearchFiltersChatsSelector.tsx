@@ -73,7 +73,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, chatReport, privateIsArchived, reportAttributesDerived),
         );
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, undefined, undefined, reportAttributesDerived);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, {}, undefined, undefined, reportAttributesDerived);
         return {...report, alternateText};
     });
 
@@ -166,11 +166,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
+    const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
     const textInputOptions = {
         value: searchTerm,
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
     };
@@ -185,7 +185,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
         />
     );
