@@ -80,7 +80,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
         GB?: ExpensifyCardSettingsBase;
         /** Nested Travel Invoicing settings from backend */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        TRAVEL_US?: ExpensifyCardSettingsBase;
+        TRAVEL_US?: OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>;
 
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;
