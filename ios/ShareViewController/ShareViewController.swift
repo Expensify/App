@@ -111,8 +111,17 @@ class ShareViewController: UIViewController {
     private func loadData(for attachment: NSItemProvider, in folder: URL, group: DispatchGroup, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Loading data for attachment")
         let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("public.file-url")
-        let typeIdentifier = isURL ? (kUTTypeURL as String) : (kUTTypeData as String)
-        
+        let isImage = attachment.hasItemConformingToTypeIdentifier(kUTTypeImage as String)
+
+        let typeIdentifier: String
+        if isURL {
+            typeIdentifier = kUTTypeURL as String
+        } else if isImage {
+            typeIdentifier = kUTTypeImage as String
+        } else {
+            typeIdentifier = kUTTypeData as String
+        }
+
         attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { (data, error) in
             DispatchQueue.main.async {
                 if let error = error {
@@ -120,10 +129,13 @@ class ShareViewController: UIViewController {
                     completion(.CouldNotLoad)
                     return
                 }
-                
+
                 if isURL, let url = data as? URL {
                     os_log("Handling URL: %@", url.absoluteString)
                     self.handleURL(url, folder: folder, completion: completion)
+                } else if isImage {
+                    os_log("Handling image attachment")
+                    self.handleImageAttachment(data, folder: folder, completion: completion)
                 } else {
                     os_log("Handling data for attachment")
                     self.handleData(data, folder: folder, completion: completion)
@@ -190,6 +202,29 @@ class ShareViewController: UIViewController {
         processAndSave(data: fileData, filename: filename, folder: folder, completion: completion)
     }
     
+    private func handleImageAttachment(_ data: Any?, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        os_log("Handling image attachment data")
+        guard let data = data else {
+            os_log("Image data is nil", type: .error)
+            completion(.CouldNotLoad)
+            return
+        }
+
+        if let image = data as? UIImage {
+            os_log("Image attachment returned UIImage")
+            handleImageData(image, folder: folder, completion: completion)
+        } else if let url = data as? NSURL {
+            os_log("Image attachment returned NSURL")
+            handleURLData(url, folder: folder, completion: completion)
+        } else if let rawData = data as? Data, let image = UIImage(data: rawData) {
+            os_log("Image attachment returned raw Data, decoded as UIImage")
+            handleImageData(image, folder: folder, completion: completion)
+        } else {
+            os_log("Image attachment returned unhandled type", type: .error)
+            completion(.CouldNotLoad)
+        }
+    }
+
     private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling image data")
         let filename = "shared_image.png"
