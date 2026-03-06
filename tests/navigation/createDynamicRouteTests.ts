@@ -1,4 +1,3 @@
-import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
@@ -24,7 +23,6 @@ jest.mock('@src/ROUTES', () => ({
 
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
-    const mockLogWarn = jest.spyOn(Log, 'warn');
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -110,15 +108,12 @@ describe('createDynamicRoute', () => {
         expect(result).toBe(expectedPath);
     });
 
-    it('should log warning when suffix query param collides with base path query param', () => {
+    it('should throw an error when suffix query param collides with base path query param', () => {
         const activeRoute = 'settings/profile/address?country=GB';
         const suffixWithQuery = 'country?country=US';
 
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
-        const result = createDynamicRoute(suffixWithQuery);
-
-        expect(result).toBe('settings/profile/address/country?country=US');
-        expect(mockLogWarn).toHaveBeenCalledWith(expect.stringContaining('Query param "country" exists in both base path and dynamic suffix'));
+        expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
     });
 });
