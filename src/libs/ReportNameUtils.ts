@@ -11,6 +11,7 @@ import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -26,7 +27,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getForReportActionTemp, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -143,6 +144,7 @@ import {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
+// eslint-disable-next-line rulesdir/no-onyx-connect -- allPersonalDetails is used by the deprecated getReportName function; will be removed as part of the Onyx.connect migration
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -672,6 +674,8 @@ function computeChatThreadReportName(
     report: Report,
     reports: OnyxCollection<Report>,
     parentReportAction?: ReportAction,
+    policyTags?: OnyxEntry<PolicyTagLists>,
+    policy?: OnyxEntry<Policy>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -733,12 +737,25 @@ function computeChatThreadReportName(
 
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessageWithHTML = getForReportAction({
-            reportAction: parentReportAction,
-            policyID,
-            movedFromReport,
-            movedToReport,
-        });
+        const modifiedMessageWithHTML = policyTags
+            ? getForReportActionTemp({
+                  translate,
+                  reportAction: parentReportAction,
+                  movedFromReport,
+                  movedToReport,
+                  policyTags,
+                  policy,
+                  // currentUserLogin is not threaded through this call chain yet; the empty string
+                  // causes policy-admin checks to fall back to the non-admin message path.
+                  // This will be addressed as part of the broader Onyx.connect migration.
+                  currentUserLogin: '',
+              })
+            : getForReportAction({
+                  reportAction: parentReportAction,
+                  policyID,
+                  movedFromReport,
+                  movedToReport,
+              });
         // Strip HTML tags for plain text display in report previews
         const modifiedMessage = Parser.htmlToText(modifiedMessageWithHTML);
         return formatReportLastMessageText(modifiedMessage);
@@ -766,6 +783,7 @@ function computeReportName(
     reportActions?: OnyxCollection<ReportActions>,
     currentUserAccountID?: number,
     privateIsArchived?: string,
+    allPolicyTags?: OnyxCollection<PolicyTagLists>,
 ): string {
     if (!report || !report.reportID) {
         return '';
@@ -803,7 +821,9 @@ function computeReportName(
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; computeReportName is non-React code that cannot use the translate hook
+    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction, policyTags, reportPolicy);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
