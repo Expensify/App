@@ -2609,7 +2609,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
-            sameAsSignupEmail: 'Por favor, introduce un correo electrónico diferente al que usaste para registrarte',
+            sameAsSignupEmail: 'Por favor, introduce un correo electrónico diferente al que utilizaste para registrarte',
             offline: 'No pudimos añadir tu correo electrónico laboral porque parece que estás sin conexión.',
         },
         mergeBlockScreen: {
