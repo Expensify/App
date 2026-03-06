@@ -126,14 +126,11 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
-                if (!isPerDiemRequest) {
-                    return true;
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+                if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                    return false;
                 }
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                return canSubmitPerDiemExpenseFromWorkspace(policy);
-            })
-            .filter((report) => {
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
