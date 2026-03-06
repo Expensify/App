@@ -6,6 +6,7 @@ import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyLi
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
@@ -28,7 +29,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     const {translate} = useLocalize();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
     const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
@@ -75,7 +76,7 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
                 }}
             />
             <View style={[styles.flex1]}>
-                {multiselect && (
+                {multiselect && !isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
                     <SearchMultipleSelectionPicker
                         items={currencyItems}
                         initiallySelectedItems={selectedCurrenciesItems}

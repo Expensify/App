@@ -10,6 +10,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSearchValueForConnection} from '@libs/AccountingUtils';
@@ -35,7 +36,7 @@ function SearchFiltersExportedToPage() {
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
@@ -179,12 +180,14 @@ function SearchFiltersExportedToPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={exportedToPickerOptions}
-                    initiallySelectedItems={initiallySelectedPickerItems}
-                    onSaveSelection={onSaveSelection}
-                    shouldShowTextInput={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={exportedToPickerOptions}
+                        initiallySelectedItems={initiallySelectedPickerItems}
+                        onSaveSelection={onSaveSelection}
+                        shouldShowTextInput={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

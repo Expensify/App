@@ -7,6 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Navigation from '@libs/Navigation/Navigation';
 import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -18,7 +19,7 @@ function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedItems = useMemo(
         () =>
             searchAdvancedFiltersForm?.expenseType
@@ -55,12 +56,14 @@ function SearchFiltersExpenseTypePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={expenseTypesItems}
-                    initiallySelectedItems={initiallySelectedItems}
-                    onSaveSelection={updateExpenseTypeFilter}
-                    shouldShowTextInput={false}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={expenseTypesItems}
+                        initiallySelectedItems={initiallySelectedItems}
+                        onSaveSelection={updateExpenseTypeFilter}
+                        shouldShowTextInput={false}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

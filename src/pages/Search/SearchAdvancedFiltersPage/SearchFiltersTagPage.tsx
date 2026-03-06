@@ -7,6 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
@@ -20,7 +21,7 @@ function SearchFiltersTagPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
         if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
@@ -69,12 +70,14 @@ function SearchFiltersTagPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={tagItems}
-                    initiallySelectedItems={selectedTagsItems}
-                    onSaveSelection={updateTagFilter}
-                    shouldShowTextInput={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={tagItems}
+                        initiallySelectedItems={selectedTagsItems}
+                        onSaveSelection={updateTagFilter}
+                        shouldShowTextInput={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

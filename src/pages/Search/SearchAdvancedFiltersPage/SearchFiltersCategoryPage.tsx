@@ -7,6 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -20,7 +21,7 @@ function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
         if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
@@ -97,12 +98,14 @@ function SearchFiltersCategoryPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={categoryItems}
-                    initiallySelectedItems={selectedCategoriesItems}
-                    onSaveSelection={onSaveSelection}
-                    shouldShowTextInput={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={categoryItems}
+                        initiallySelectedItems={selectedCategoriesItems}
+                        onSaveSelection={onSaveSelection}
+                        shouldShowTextInput={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

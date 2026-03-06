@@ -7,6 +7,7 @@ import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchM
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -19,7 +20,7 @@ function SearchFiltersTaxRatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
@@ -75,12 +76,14 @@ function SearchFiltersTaxRatePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={taxItems}
-                    initiallySelectedItems={selectedTaxesItems}
-                    onSaveSelection={updateTaxRateFilters}
-                    shouldShowTextInput={taxItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={taxItems}
+                        initiallySelectedItems={selectedTaxesItems}
+                        onSaveSelection={updateTaxRateFilters}
+                        shouldShowTextInput={taxItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
