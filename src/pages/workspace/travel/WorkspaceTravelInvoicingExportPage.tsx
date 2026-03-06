@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
@@ -197,7 +198,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         exportTravelInvoiceStatementCSV(policyID, startDate, endDate, translate);
     };
 
-    const goBack = () => Navigation.goBack();
+    const goBack = () => dateFilterBaseRef.current?.goBack() ?? Navigation.goBack();
 
     // Handled by the generic component automatically calling its internal exposed methods.
     // It updates its own internal refs/states so the parent just needs to call save without doing anything else.
@@ -214,17 +215,20 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
+            <HeaderWithBackButton
+                title={translate('common.export')}
+                onBackButtonPress={goBack}
+            />
             <FullPageOfflineBlockingView>
                 <DateFilterBase
                     ref={dateFilterBaseRef}
-                    title={translate('common.export')}
                     defaultDateValues={defaultDateValues}
                     presets={presets}
-                    onBackButtonPress={goBack}
                     onSubmit={onSubmit}
                     onDateValuesChange={handleDateValuesChange}
                     onDateModifierChange={setIsDateModifierOpen}
                     shouldShowButtonsOnlyWithDateModifier
+                    shouldShowHeader={false}
                 />
                 {!isDateModifierOpen && (
                     <>

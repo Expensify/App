@@ -14,19 +14,21 @@ import DatePresetFilterBase from './DatePresetFilterBase';
 type DateFilterBaseHandle = {
     /** Gets the current date values from the filter */
     getDateValues: () => SearchDateValues;
+    /** Handles back navigation — closes date modifier if open, otherwise calls onBackButtonPress */
+    goBack: () => void;
 };
 
 type DateFilterBaseProps = {
-    /** The title displayed in the header */
-    title: string;
+    /** The title displayed in the header. Required when shouldShowHeader is true. */
+    title?: string;
     /** Default date values to initialize the filter with */
     defaultDateValues: SearchDateValues;
     /** The date presets to display (e.g. "This month", "Last month") */
     presets: SearchDatePreset[];
     /** Whether the search advanced filters form Onyx data is loading or not */
     isSearchAdvancedFiltersFormLoading?: boolean;
-    /** Callback when the back button is pressed */
-    onBackButtonPress: () => void;
+    /** Callback when the back button is pressed. Required when shouldShowHeader is true. */
+    onBackButtonPress?: () => void;
     /** Callback when the filter is submitted with the selected date values */
     onSubmit: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
@@ -35,6 +37,8 @@ type DateFilterBaseProps = {
     onDateModifierChange?: (isOpen: boolean) => void;
     /** If true, the Reset/Save buttons are only shown when a date modifier (On/After/Before) is selected. Defaults to false (always show buttons). */
     shouldShowButtonsOnlyWithDateModifier?: boolean;
+    /** Whether to render the built-in HeaderWithBackButton. Defaults to true. Set to false when the parent provides its own header. */
+    shouldShowHeader?: boolean;
     /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
 };
@@ -50,6 +54,7 @@ function DateFilterBase({
     onDateValuesChange,
     onDateModifierChange,
     shouldShowButtonsOnlyWithDateModifier = false,
+    shouldShowHeader = true,
     ref,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
@@ -71,6 +76,16 @@ function DateFilterBase({
         }
     };
 
+    const goBack = () => {
+        if (selectedDateModifier) {
+            setSelectedDateModifier(null);
+            onDateModifierChange?.(false);
+            return;
+        }
+
+        onBackButtonPress?.();
+    };
+
     useImperativeHandle(ref, () => ({
         getDateValues: () =>
             searchDatePresetFilterBaseRef.current?.getDateValues() ?? {
@@ -78,6 +93,7 @@ function DateFilterBase({
                 [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
             },
+        goBack,
     }));
 
     function getComputedTitle() {
@@ -119,24 +135,16 @@ function DateFilterBase({
         onSubmit(dateValues);
     };
 
-    const goBack = () => {
-        if (selectedDateModifier) {
-            setSelectedDateModifier(null);
-            onDateModifierChange?.(false);
-            return;
-        }
-
-        onBackButtonPress();
-    };
-
     const computedTitle = getComputedTitle();
 
     const content = (
         <>
-            <HeaderWithBackButton
-                title={computedTitle}
-                onBackButtonPress={goBack}
-            />
+            {shouldShowHeader && (
+                <HeaderWithBackButton
+                    title={computedTitle}
+                    onBackButtonPress={goBack}
+                />
+            )}
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
