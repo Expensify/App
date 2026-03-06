@@ -16,6 +16,7 @@ import {getEnvironmentURL} from './Environment/Environment';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {formatList, translateLocal} from './Localize';
 import Log from './Log';
+import Parser from './Parser';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getCommaSeparatedTagNameWithSanitizedColons, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
