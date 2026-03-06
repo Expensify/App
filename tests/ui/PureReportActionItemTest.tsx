@@ -50,6 +50,7 @@ const createReportAction = (actionName: ReportActionName, originalMessageExtras:
         avatar: '',
         person: [{type: 'TEXT', style: 'strong', text: 'Concierge'}],
         message: [{type: 'COMMENT', html: 'some message', text: 'some message'}],
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         originalMessage: {
             ...originalMessageExtras,
         },

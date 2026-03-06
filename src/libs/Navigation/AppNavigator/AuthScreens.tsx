@@ -257,6 +257,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountID]);
 
     useAutoUpdateTimezone();
@@ -324,7 +325,7 @@ function AuthScreens() {
             } else {
                 const reportID = getReportIDFromLink(initialURL ?? null);
                 if (reportID && !isAuthenticatedAtStartup) {
-                    Report.openReport(reportID, introSelected);
+                    Report.openReport({reportID, introSelected});
                     // Don't want to call `openReport` again when logging out and then logging in
                     setIsAuthenticatedAtStartup(true);
                 }

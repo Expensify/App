@@ -39,6 +39,7 @@ type WithReportAndReportActionOrNotFoundProps = PlatformStackScreenProps<
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps>(WrappedComponent: ComponentType<TProps>): ComponentType<TProps> {
     function WithReportOrNotFound(props: TProps) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
         const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
@@ -66,7 +67,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport(props.route.params.reportID, introSelected);
+            openReport({reportID: props.route.params.reportID, introSelected});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
@@ -76,6 +77,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const isReportArchived = useReportIsArchived(report?.reportID);
         const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas, isReportArchived));
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
         }
