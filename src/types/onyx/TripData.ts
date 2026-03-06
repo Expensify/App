@@ -231,6 +231,9 @@ type PnrData = {
     /** Reason for suspending the booking. */
     suspendReason: string;
 
+    /** Overall booking status of the PNR. */
+    bookingStatus?: string;
+
     /**
      * Fare Amount details for the PNR.
      */

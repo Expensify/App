@@ -5,6 +5,7 @@ import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoney
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
+import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,6 +92,7 @@ describe('MoneyRequest', () => {
             files: [fakeReceiptFile],
             participant: {accountID: 222, login: 'test@test.com'},
             quickAction: fakeQuickAction,
+            allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
             betas: [CONST.BETAS.ALL],
@@ -254,6 +256,39 @@ describe('MoneyRequest', () => {
             );
         });
 
+        it('should pass existingTransactionDraft and draftTransactionIDs to requestMoney when allTransactionDrafts is provided', () => {
+            const draftTransaction = createRandomTransaction(99);
+            const linkedAction = {
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '',
+                originalMessage: {
+                    IOUTransactionID: draftTransaction.transactionID,
+                    IOUReportID: 'report456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const transactionWithLinkedAction = {
+                ...fakeTransaction,
+                linkedTrackedExpenseReportAction: linkedAction,
+            };
+
+            createTransaction({
+                ...baseParams,
+                transactions: [transactionWithLinkedAction],
+                allTransactionDrafts: {
+                    [draftTransaction.transactionID]: draftTransaction,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: draftTransaction,
+                    draftTransactionIDs: [draftTransaction.transactionID],
+                }),
+            );
+        });
+
         it('should pass billable and reimbursable flags to trackExpense', () => {
             createTransaction({
                 ...baseParams,
@@ -268,6 +303,39 @@ describe('MoneyRequest', () => {
                         billable: true,
                         reimbursable: false,
                     }),
+                }),
+            );
+        });
+
+        it('should pass undefined existingTransactionDraft when no matching draft exists', () => {
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {},
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                }),
+            );
+        });
+
+        it('should compute draftTransactionIDs from allTransactionDrafts', () => {
+            const draft1 = createRandomTransaction(101);
+            const draft2 = createRandomTransaction(102);
+
+            createTransaction({
+                ...baseParams,
+                allTransactionDrafts: {
+                    [draft1.transactionID]: draft1,
+                    [draft2.transactionID]: draft2,
+                },
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    draftTransactionIDs: expect.arrayContaining([draft1.transactionID, draft2.transactionID]),
                 }),
             );
         });
@@ -344,6 +412,8 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             betas: [],
             recentWaypoints: [] as RecentWaypoint[],
+            allTransactionDrafts: {},
+            amountOwed: 0,
         };
 
         beforeEach(async () => {
@@ -736,6 +806,18 @@ describe('MoneyRequest', () => {
                 ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(baseParams.iouType, baseParams.initialTransaction.transactionID, baseParams.reportID),
             );
         });
+
+        it('should pass amountOwed through to shouldUseDefaultExpensePolicy and navigate to participants page when no default policy', () => {
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                defaultExpensePolicy: undefined,
+                amountOwed: 8010,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(baseParams.iouType, baseParams.initialTransaction.transactionID, baseParams.reportID),
+            );
+        });
     });
 
     describe('handleMoneyRequestStepDistanceNavigation', () => {
@@ -780,6 +862,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            amountOwed: 0,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1117,6 +1200,82 @@ describe('MoneyRequest', () => {
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+        });
+
+        it('should pass amountOwed through to shouldUseDefaultExpensePolicy and navigate to participants page when no default policy', () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy: undefined,
+                iouType: CONST.IOU.TYPE.CREATE,
+                amountOwed: 8010,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+        });
+    });
+
+    describe('shouldUseDefaultExpensePolicy', () => {
+        const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+        it('should return true when iouType is CREATE with a paid group policy that has expense chat enabled and no billing restrictions', () => {
+            const policy = {
+                ...fakePolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0)).toBe(true);
+        });
+
+        it('should return false when iouType is not CREATE', () => {
+            const policy = {
+                ...fakePolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0)).toBe(false);
+        });
+
+        it('should return false when policy is not a paid group policy', () => {
+            const policy = {
+                ...fakePolicy,
+                type: CONST.POLICY.TYPE.PERSONAL,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0)).toBe(false);
+        });
+
+        it('should return false when isPolicyExpenseChatEnabled is false', () => {
+            const policy = {
+                ...fakePolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: false,
+            };
+
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0)).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0)).toBe(false);
+        });
+
+        it('should return false when policy is null', () => {
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0)).toBe(false);
+        });
+
+        it('should handle amountOwed being undefined', () => {
+            const policy = {
+                ...fakePolicy,
+                type: CONST.POLICY.TYPE.TEAM,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined)).toBe(true);
         });
     });
 });

@@ -71,6 +71,7 @@ function ProcessMoneyReportHoldMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
@@ -104,6 +105,7 @@ function ProcessMoneyReportHoldMenu({
                 isASAPSubmitBetaEnabled,
                 moneyRequestReportNextStep,
                 betas,
+                userBillingGraceEndPeriods,
                 full,
             );
         } else if (chatReport && paymentType) {
@@ -121,6 +123,7 @@ function ProcessMoneyReportHoldMenu({
                 activePolicy,
                 policy,
                 betas,
+                userBillingGraceEndPeriods,
             });
         }
         onClose();
