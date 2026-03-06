@@ -15,7 +15,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, isCursorInSkewedLabel, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -183,7 +183,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         (args: HitTestArgs, activeIndex: number) => {
             'worklet';
 
-            if (!labelHitGeometry) {
+            if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
                 return false;
             }
             const {labelYOffset, iconSin, halfLabelSins, labelSins, halfWidths} = labelHitGeometry;
@@ -198,6 +198,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
                 );
             }
+            // 45°
             if (angleRad < 1) {
                 const halfLabelSin = halfLabelSins.at(activeIndex) ?? 0;
                 const labelSin = labelSins.at(activeIndex) ?? 0;
@@ -217,29 +218,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                     x: rightLowerCorner.x - labelSin,
                     y: rightLowerCorner.y + labelSin,
                 };
-                // Point-in-convex-polygon test using cross products
-                // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
-                const corners = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
-                const px = args.cursorX;
-                const py = args.cursorY;
-                let sign = 0;
-                for (let i = 0; i < corners.length; i++) {
-                    const a = corners.at(i);
-                    const b = corners.at((i + 1) % corners.length);
-                    if (a == null || b == null) {
-                        continue;
-                    }
-                    const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
-                    if (cross !== 0) {
-                        const crossSign = cross > 0 ? 1 : -1;
-                        if (sign === 0) {
-                            sign = crossSign;
-                        } else if (crossSign !== sign) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+                return isCursorInSkewedLabel(args.cursorX, args.cursorY, [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner]);
             }
             // 90°
             return (
@@ -249,7 +228,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 args.cursorY <= labelY + halfLabelWidth
             );
         },
-        [angleRad, labelHitGeometry],
+        [angleRad, labelHitGeometry, labelSkipInterval],
     );
 
     /**

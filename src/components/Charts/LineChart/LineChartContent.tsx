@@ -17,7 +17,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, isCursorInSkewedLabel, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -191,7 +191,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         (args: HitTestArgs, activeIndex: number) => {
             'worklet';
 
-            if (!labelHitGeometry) {
+            if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
                 return false;
             }
             const {labelYOffset, iconThirdSin, iconSin, labelSins, widths} = labelHitGeometry;
@@ -206,7 +206,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     args.cursorX <= args.targetX + labelWidth / 2
                 );
             }
-            // When labels are rotated 45° we need to check it the other way
+            // 45°
             if (angleRad < 1) {
                 const labelSin = labelSins.at(activeIndex) ?? 0;
                 const rightUpperCorner = {
@@ -225,32 +225,9 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                     x: rightLowerCorner.x - labelSin,
                     y: rightLowerCorner.y + labelSin,
                 };
-
-                // Point-in-convex-polygon test using cross products
-                // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
-                const corners = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
-                const px = args.cursorX;
-                const py = args.cursorY;
-                let sign = 0;
-                for (let i = 0; i < corners.length; i++) {
-                    const a = corners.at(i);
-                    const b = corners.at((i + 1) % corners.length);
-                    if (a == null || b == null) {
-                        continue;
-                    }
-                    const cross = (b.x - a.x) * (py - a.y) - (b.y - a.y) * (px - a.x);
-                    if (cross !== 0) {
-                        const crossSign = cross > 0 ? 1 : -1;
-                        if (sign === 0) {
-                            sign = crossSign;
-                        } else if (crossSign !== sign) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
+                return isCursorInSkewedLabel(args.cursorX, args.cursorY, [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner]);
             }
-            // the last case when labels are rotated 90°
+            // 90°
             return (
                 args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
                 args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
@@ -258,7 +235,7 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
                 args.cursorY <= labelY + labelWidth + variables.iconSizeExtraSmall / 2
             );
         },
-        [angleRad, labelHitGeometry],
+        [angleRad, labelHitGeometry, labelSkipInterval],
     );
 
     /**
