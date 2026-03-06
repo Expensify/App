@@ -8,7 +8,7 @@ import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/par
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -20,11 +20,11 @@ import {
     buildTransactionThread,
     getTransactionDetails,
 } from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
 import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit, isFromCreditCardImport, isPartialTransaction, isScanning} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -725,7 +725,7 @@ function duplicateReport({
     recentWaypoints,
 }: DuplicateReportParams) {
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const newReport = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
 
     const eligibleTransactions = sourceReportTransactions.filter((transaction) => {
         if (isFromCreditCardImport(transaction)) {
@@ -743,6 +743,11 @@ function duplicateReport({
     const userAccountID = getUserAccountID();
     const currentUserEmailValue = getCurrentUserEmail();
     const parentChatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${newReport.chatReportID}`];
+
+    if (!parentChatReport) {
+        return;
+    }
+
     const participants = getMoneyRequestParticipantsFromReport(parentChatReport, userAccountID);
 
     const policyParams = targetPolicy
@@ -752,6 +757,8 @@ function duplicateReport({
               policyCategories: targetPolicyCategories ?? {},
           }
         : undefined;
+
+    let currentIOUReport = newReport as OnyxEntry<OnyxTypes.Report>;
 
     for (const transaction of eligibleTransactions) {
         const transactionDetails = getTransactionDetails(transaction);
@@ -763,7 +770,8 @@ function duplicateReport({
 
         const params: RequestMoneyInformation = {
             report: parentChatReport,
-            existingIOUReport: newReport as OnyxEntry<OnyxTypes.Report>,
+            existingIOUReport: currentIOUReport,
+            optimisticReportPreviewActionID: reportPreviewReportActionID,
             participantParams: {
                 payeeAccountID: userAccountID,
                 payeeEmail: currentUserEmailValue,
@@ -791,6 +799,7 @@ function duplicateReport({
                 unit: transaction.comment?.units?.unit,
             },
             shouldHandleNavigation: false,
+            shouldPlaySound: false,
             shouldGenerateTransactionThreadReport: true,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: userAccountID,
@@ -852,9 +861,11 @@ function duplicateReport({
                 requestMoney(params);
                 break;
         }
+
+        currentIOUReport = updateIOUOwnerAndTotal(currentIOUReport, userAccountID, transactionDetails.amount ?? 0, transactionDetails.currency ?? '');
     }
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReport.reportID));
+    playSound(SOUNDS.DONE);
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, duplicateReport};

@@ -1777,7 +1777,7 @@ describe('actions/Duplicate', () => {
             ...overrides,
         });
 
-        const getDefaultParams = (sourceTransactions: Transaction[]): DuplicateReportParams => ({
+        const getDefaultParams = (sourceTransactions: Transaction[], overrides: Partial<DuplicateReportParams> = {}): DuplicateReportParams => ({
             sourceReportTransactions: sourceTransactions,
             sourceReportName: 'Original Report',
             targetPolicy: mockPolicy,
@@ -1794,11 +1794,14 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
+            ...overrides,
         });
 
         const countWriteCommandCalls = (command: string) => writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === command).length;
 
-        beforeEach(() => {
+        const POLICY_EXPENSE_CHAT_REPORT_ID = 'policyExpenseChatReport';
+
+        beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -1814,7 +1817,15 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {
+                reportID: POLICY_EXPENSE_CHAT_REPORT_ID,
+                policyID: mockPolicy.id,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            await waitForBatchedUpdates();
         });
 
         afterEach(() => {
@@ -1834,7 +1845,7 @@ describe('actions/Duplicate', () => {
             const createReportCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_APP_REPORT) as unknown[] | undefined;
             expect(createReportCall?.at(1)).toEqual(expect.objectContaining({reportName: 'Copy of Original Report'}));
 
-            expect(Navigation.navigate).toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         it('should filter out credit card import transactions', async () => {
@@ -1926,6 +1937,19 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
         });
 
+        it('should not duplicate expenses when no parent chat report exists', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2], {targetPolicy: undefined}));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
+
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        });
+
         it('should still create the report when all transactions are ineligible', async () => {
             const cardTx = createCashTransaction('card1', {
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
@@ -1940,7 +1964,7 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(0);
 
-            expect(Navigation.navigate).toHaveBeenCalled();
+            expect(Navigation.navigate).not.toHaveBeenCalled();
         });
     });
 });
