@@ -6722,15 +6722,10 @@ const translations = {
                 : `changed the "${categoryName}" category description hint to “${newValue}” (previously “${oldValue}”)`;
         },
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
-<<<<<<< independent-multi-level-tags-required-changelog-message
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
-        updateTagListRequired: ({tagListsName, isRequired}: {tagListsName: string; isRequired: boolean}) =>
-            `updated the tag list "${tagListsName}" to be "${isRequired ? 'required' : 'not required'}"`,
-=======
         updateTagListName: (oldName: string, newName: string) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
->>>>>>> main
+        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
+            `updated the tag list "${tagListsName}" to be "${isRequired ? 'required' : 'not required'}"`,
         updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated tags on the list "${tagListName}"`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `changed tag list "${tagListsName}" to ${isRequired ? 'required' : 'not required'}`,
         importTags: 'imported tags from a spreadsheet',
         deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,

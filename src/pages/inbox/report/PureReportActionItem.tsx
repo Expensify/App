@@ -125,7 +125,6 @@ import {
     getTagListNameUpdatedMessage,
     getTagListRequiredUpdatedMessage,
     getTagListUpdatedMessage,
-    getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
     getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
@@ -1529,8 +1528,6 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListRequiredUpdatedMessage(translate, action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedMessage(translate, action))} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
-            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedRequiredMessage(translate, action))} />;
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {

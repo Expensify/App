@@ -3029,17 +3029,6 @@ function getTagListNameUpdatedMessage(translate: LocalizedTranslate, action: Rep
     return getReportActionText(action);
 }
 
-function getTagListRequiredUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {tagListsName, isRequired} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED>) ?? {};
-    if (tagListsName !== undefined && isRequired !== undefined) {
-        return translate('workspaceActions.updateTagListRequired', {
-            tagListsName,
-            isRequired,
-        });
-    }
-    return getReportActionText(action);
-}
-
 function getTagListUpdatedMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {tagListName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST>) ?? {};
     if (tagListName) {
@@ -4600,7 +4589,6 @@ export {
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
-    getTagListRequiredUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
     getWorkspaceCustomUnitUpdatedMessage,

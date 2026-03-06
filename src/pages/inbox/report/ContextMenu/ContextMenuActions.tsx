@@ -76,7 +76,6 @@ import {
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
-    getTagListRequiredUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
@@ -832,8 +831,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getForeignCurrencyDefaultTaxUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
                     Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(translate, reportAction)));
-                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
-                    Clipboard.setString(getCleanedTagName(getTagListRequiredUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
                     Clipboard.setString(getCleanedTagName(getTagListUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
