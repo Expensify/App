@@ -59,13 +59,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseModalPaddingStyle = true,
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
-        headerTextStyles,
         shouldStayNormalOnDisable = false,
+        brickRoadIndicator,
         sentryLabel,
-        shouldPutHeaderTextAfterBackButton = false,
     } = props;
 
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+    const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -185,11 +185,14 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={icons.DownArrow}
                         shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
-                        isSplitButton={isSplitButton}
                         testID={testID}
                         textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
                         secondLineText={secondLineText}
-                        icon={icon}
+                        icon={hasError ? icons.DotIndicator : icon}
+                        iconFill={hasError ? theme.danger : undefined}
+                        iconHoverFill={hasError ? theme.danger : undefined}
+                        iconRightFill={hasError ? theme.icon : undefined}
+                        iconRightHoverFill={hasError ? theme.icon : undefined}
                         sentryLabel={sentryLabel}
                     />
 
@@ -275,7 +278,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             setIsMenuVisible(false);
                         }
                     }}
-                    headerStyles={headerTextStyles}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     anchorRef={nullCheckRef(dropdownAnchor)}
@@ -305,7 +307,6 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         shouldCallAfterModalHide: true,
                         subMenuItems: item.subMenuItems?.map((subItem) => ({...subItem, shouldCallAfterModalHide: true})),
                     }))}
-                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </View>
