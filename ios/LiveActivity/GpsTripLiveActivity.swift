@@ -46,7 +46,7 @@ struct GpsTripLiveActivity: Widget {
                 LinearGradient(
                     stops: [
                         .init(color: Color(.sRGB, red: 0, green: 46 / 255, blue: 34 / 255), location: 0),
-                        .init(color: Color(.sRGB, red: 6 / 255, green: 27 / 255, blue: 9 / 255), location: 1),
+                        .init(color: Color(.sRGB, red: 6 / 255, green: 27 / 255, blue: 9 / 255), location: 1)
                     ],
                     startPoint: UnitPoint(x: 0, y: 0.41),
                     endPoint: UnitPoint(x: 1, y: 0.59)
