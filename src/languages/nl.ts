@@ -2750,7 +2750,7 @@ ${amount} voor ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Voer een geldig zakelijk e-mailadres in van een privédomein, bijv. mitch@company.com',
-            sameAsSignupEmail: 'Voer een ander e-mailadres in dan het adres waarmee je je hebt aangemeld',
+            sameAsSignupEmail: 'Voer een ander e-mailadres in dan het e-mailadres waarmee je je hebt aangemeld',
             offline: 'We konden je werk-e-mailadres niet toevoegen omdat je offline lijkt te zijn',
         },
         mergeBlockScreen: {

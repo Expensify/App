@@ -2690,7 +2690,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         },
         workEmailValidationError: {
             publicEmail: '请输入来自私有域的有效工作邮箱，例如：mitch@company.com',
-            sameAsSignupEmail: '请输入与注册时不同的邮箱地址',
+            sameAsSignupEmail: '请输入与注册时不同的邮箱',
             offline: '由于您似乎处于离线状态，我们无法添加您的工作邮箱',
         },
         mergeBlockScreen: {

@@ -2742,7 +2742,7 @@ ${amount} dla ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Wpisz poprawny służbowy adres e‑mail z prywatnej domeny, np. mitch@company.com',
-            sameAsSignupEmail: 'Podaj inny adres e‑mail niż ten, którego użyłeś do rejestracji',
+            sameAsSignupEmail: 'Podaj inny adres e-mail niż ten, którego użyłeś przy rejestracji',
             offline: 'Nie mogliśmy dodać Twojego służbowego adresu e‑mail, ponieważ wydajesz się być offline',
         },
         mergeBlockScreen: {
