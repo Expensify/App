@@ -3287,8 +3287,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
 }
 
 type CompanyAddressOriginalMessage = {
-    newAddress: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string};
-    oldAddress?: {addressStreet?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
+    newAddress: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string};
+    oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
 /**
@@ -3301,7 +3301,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
 
     const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
     const street1 = street1Raw?.trim() ?? '';
-    const street2 = street2Raw?.trim() ?? '';
+    const street2 = address.addressStreet2?.trim() ?? street2Raw?.trim() ?? '';
 
     const parts: string[] = [];
 

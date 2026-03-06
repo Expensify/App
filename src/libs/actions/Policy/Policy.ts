@@ -2093,19 +2093,14 @@ function hideWorkspaceAlertMessage(policyID: string) {
 }
 
 function updateAddress(policyID: string, newAddress: CompanyAddress) {
-    // TODO: Change API endpoint parameters format to make it possible to follow naming-convention
     const parameters: UpdatePolicyAddressParams = {
         policyID,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[addressStreet]': newAddress.addressStreet,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[city]': newAddress.city,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[country]': newAddress.country,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[state]': newAddress.state,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[zipCode]': newAddress.zipCode,
+        addressStreet: newAddress.addressStreet,
+        addressStreet2: newAddress.addressStreet2 ?? '',
+        city: newAddress.city,
+        country: newAddress.country,
+        state: newAddress.state,
+        zipCode: newAddress.zipCode,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [

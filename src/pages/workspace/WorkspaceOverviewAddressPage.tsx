@@ -21,8 +21,10 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
+        const streetLineOne = tempAddress?.addressStreet ?? '';
+        const streetLineTwo = tempAddress?.addressStreet2 ?? '';
         const result = {
-            street: tempAddress?.addressStreet ?? '',
+            street: streetLineTwo ? `${streetLineOne}\n${streetLineTwo}` : streetLineOne,
             city: tempAddress?.city?.trim() ?? '',
             state: tempAddress?.state?.trim() ?? '',
             zip: tempAddress?.zipCode?.trim().toUpperCase() ?? '',
@@ -36,7 +38,8 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
             return;
         }
         updateAddress(policy?.id, {
-            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
+            addressStreet: values.addressLine1?.trim() ?? '',
+            addressStreet2: values.addressLine2?.trim() ?? '',
             city: values.city.trim(),
             state: values.state.trim(),
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
