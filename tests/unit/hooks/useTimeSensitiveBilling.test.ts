@@ -43,7 +43,7 @@ describe('useTimeSensitiveBilling', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {hasPurchases: true});
             await waitForBatchedUpdates();
 
-            mockedHasInsufficientFundsError.mockReturnValue(false);
+            mockedHasInsufficientFundsError.mockReturnValue(true);
 
             const {result} = renderHook(() => useTimeSensitiveBilling());
 
@@ -54,8 +54,6 @@ describe('useTimeSensitiveBilling', () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {hasPurchases: true});
             await waitForBatchedUpdates();
-
-            mockedHasInsufficientFundsError.mockReturnValue(false);
 
             const {result} = renderHook(() => useTimeSensitiveBilling());
 
@@ -85,16 +83,12 @@ describe('useTimeSensitiveBilling', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {hasPurchases: true});
             await waitForBatchedUpdates();
 
-            mockedHasInsufficientFundsError.mockReturnValue(false);
-
             const {result} = renderHook(() => useTimeSensitiveBilling());
 
             expect(result.current.shouldShowFixFailedBilling).toBe(false);
         });
 
         it('returns false when all Onyx values are undefined/empty', () => {
-            mockedHasInsufficientFundsError.mockReturnValue(false);
-
             const {result} = renderHook(() => useTimeSensitiveBilling());
 
             expect(result.current.shouldShowFixFailedBilling).toBe(false);
@@ -144,8 +138,6 @@ describe('useTimeSensitiveBilling', () => {
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {hasPurchases: true});
             await waitForBatchedUpdates();
-
-            mockedHasInsufficientFundsError.mockReturnValue(false);
 
             const {result, rerender} = renderHook(() => useTimeSensitiveBilling());
             expect(result.current.shouldShowFixFailedBilling).toBe(false);

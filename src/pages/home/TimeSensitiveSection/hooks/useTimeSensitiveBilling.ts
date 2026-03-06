@@ -5,8 +5,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function useTimeSensitiveBilling() {
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
-    const hasBillingError = hasCardExpiredError(billingStatus) || hasInsufficientFundsError(billingStatus);
+    const hasBillingError = !!amountOwed && (hasCardExpiredError(billingStatus) || hasInsufficientFundsError(billingStatus));
     const shouldShowFixFailedBilling = hasBillingError && account?.hasPurchases === true;
 
     return {
