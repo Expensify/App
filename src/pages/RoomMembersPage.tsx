@@ -462,7 +462,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         onCheckboxPress={toggleUser}
                         textInputOptions={textInputOptions}
                         shouldShowTextInput={shouldShowTextInput}
-                        showLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
+                        shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(data)}
