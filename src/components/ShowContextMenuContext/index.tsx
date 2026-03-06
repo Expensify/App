@@ -36,7 +36,6 @@ function showContextMenuForReport(
     reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
-    isArchivedRoom = false,
 ) {
     if (!canUseTouchScreen()) {
         return;
@@ -50,7 +49,6 @@ function showContextMenuForReport(
         report: {
             reportID,
             originalReportID: reportID ? getOriginalReportID(reportID, action, undefined) : undefined,
-            isArchivedRoom,
         },
         reportAction: {
             reportActionID: action?.reportActionID,

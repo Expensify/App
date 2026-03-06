@@ -32,7 +32,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const htmlAttribAccountID = tnode.attributes.accountid;
     const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     let accountID: number;
@@ -81,9 +81,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                return onShowContextMenu(() =>
-                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
-                );
+                return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive));
             }}
             onPress={(event) => {
                 event.preventDefault();
