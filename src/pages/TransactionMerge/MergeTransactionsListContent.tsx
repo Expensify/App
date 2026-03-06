@@ -120,6 +120,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
+            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
