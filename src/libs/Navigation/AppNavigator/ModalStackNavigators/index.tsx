@@ -91,6 +91,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.MISSING_PERSONAL_DETAILS]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
+        animationTypeForReplace: 'push',
+    },
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         animationTypeForReplace: 'push',
     },
