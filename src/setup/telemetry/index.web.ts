@@ -16,6 +16,7 @@ export default function (): void {
         // In dev mode, keys are relative file paths; in production they are numeric IDs.
         // Use typeof guard — bare identifier throws ReferenceError if ModuleInitTimingPlugin didn't run (e.g. Storybook, stale cache)
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
-        reportModuleInitTimes(initTimes, undefined, 1);
+        const moduleNames = typeof __moduleNames !== 'undefined' ? (__moduleNames as Record<string, string>) : undefined;
+        reportModuleInitTimes(initTimes, moduleNames, 1);
     });
 }
