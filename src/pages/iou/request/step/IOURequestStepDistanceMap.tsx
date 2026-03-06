@@ -92,6 +92,7 @@ function IOURequestStepDistanceMap({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -187,7 +188,8 @@ function IOURequestStepDistanceMap({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);
@@ -275,7 +277,7 @@ function IOURequestStepDistanceMap({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID, introSelected);
+            openReport({reportID: transaction?.reportID, introSelected});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -331,6 +333,7 @@ function IOURequestStepDistanceMap({
             policyForMovingExpenses,
             betas,
             recentWaypoints,
+            amountOwed,
         });
     }, [
         iouType,
@@ -365,6 +368,7 @@ function IOURequestStepDistanceMap({
         selfDMReport,
         betas,
         recentWaypoints,
+        amountOwed,
     ]);
 
     const getError = () => {
