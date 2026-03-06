@@ -1,7 +1,7 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {buildOptimisticSelfDMReport, isSelfDM, isThread} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxCollection} from 'react-native-onyx';
 import type {Report} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
