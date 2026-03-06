@@ -255,6 +255,7 @@ function Search({
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const searchResultsData = searchResults?.data;
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
@@ -322,7 +323,7 @@ function Search({
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
     const prevValidGroupBy = usePrevious(validGroupBy);
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+    const isSearchResultsEmpty = !searchResultsData || isSearchResultsEmptyUtil(searchResults, validGroupBy);
 
     // When grouping by card, we need cardFeeds to display feed names
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
@@ -435,7 +436,7 @@ function Search({
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
+        if (!searchResultsData || !isDataLoaded) {
             return [[], 0, 0];
         }
 
@@ -448,7 +449,7 @@ function Search({
 
         const [filteredData1, allLength] = getSections({
             type,
-            data: searchResults.data,
+            data: searchResultsData,
             policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
@@ -475,7 +476,7 @@ function Search({
         exportReportActions,
         validGroupBy,
         isDataLoaded,
-        searchResults,
+        searchResultsData,
         type,
         archivedReportsIdSet,
         translate,
@@ -492,6 +493,12 @@ function Search({
         allReportMetadata,
         cardList,
     ]);
+
+    const groupedTransactionsCacheRef = useRef(new Map<string, {snapshotData: SearchResults['data']; transactions: TransactionListItemType[]}>());
+
+    useEffect(() => {
+        groupedTransactionsCacheRef.current.clear();
+    }, [accountID, email, translate, formatPhoneNumber, isActionLoadingSet, cardFeeds, bankAccountList, allReportMetadata, cardList]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
     // containing its individual transactions. We collect these hashes and fetch their snapshots to enrich the grouped items.
@@ -511,10 +518,31 @@ function Search({
             return baseFilteredData;
         }
 
+        const groupedTransactionsCache = groupedTransactionsCacheRef.current;
+        const activeSnapshotHashes = new Set<string>();
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
-            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            const snapshotHash = item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined;
+            if (!snapshotHash) {
+                return item;
+            }
+
+            activeSnapshotHashes.add(snapshotHash);
+
+            const snapshot = groupByTransactionSnapshots[snapshotHash];
             if (!snapshot?.data) {
                 return item;
+            }
+
+            const cachedTransactions = groupedTransactionsCache.get(snapshotHash);
+            if (cachedTransactions?.snapshotData === snapshot.data) {
+                if (item.transactions === cachedTransactions.transactions) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    transactions: cachedTransactions.transactions,
+                };
             }
 
             const [transactions1] = getSections({
@@ -530,11 +558,26 @@ function Search({
                 allReportMetadata,
                 cardList,
             });
+
+            const groupedTransactions = transactions1 as TransactionListItemType[];
+            groupedTransactionsCache.set(snapshotHash, {
+                snapshotData: snapshot.data,
+                transactions: groupedTransactions,
+            });
+
             return {
                 ...item,
-                transactions: transactions1 as TransactionListItemType[],
+                transactions: groupedTransactions,
             };
         });
+
+        for (const cachedSnapshotHash of groupedTransactionsCache.keys()) {
+            if (activeSnapshotHashes.has(cachedSnapshotHash)) {
+                continue;
+            }
+
+            groupedTransactionsCache.delete(cachedSnapshotHash);
+        }
 
         return enriched;
     }, [
@@ -1117,9 +1160,14 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
+    const sortedSections = useMemo(
+        () => getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy),
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy],
+    );
+
     const sortedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
+            sortedSections.map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -1141,7 +1189,7 @@ function Search({
 
                 return {...item, shouldAnimateInHighlight, hash};
             }),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
+        [sortedSections, isChat, newSearchResultKeys, hash],
     );
 
     useEffect(() => {
