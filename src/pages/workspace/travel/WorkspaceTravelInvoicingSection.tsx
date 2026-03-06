@@ -250,14 +250,12 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     )}
                 </View>
                 {shouldShowPayButton && (
-                    <View style={[styles.wFitContent]}>
-                        <Button
-                            text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
-                            onPress={handlePayBalance}
-                            isDisabled={isOffline}
-                            success
-                        />
-                    </View>
+                    <Button
+                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                        onPress={handlePayBalance}
+                        isDisabled={isOffline}
+                        success
+                    />
                 )}
             </View>
             <MenuItemWithTopDescription
