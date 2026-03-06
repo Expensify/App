@@ -7,10 +7,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
+import {confirmReadyToOpenApp} from '@userActions/App';
+import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 
 /*
@@ -24,13 +24,13 @@ function SubmitExpensePage() {
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            App.confirmReadyToOpenApp();
+            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current) {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, ReportUtils.generateReportID());
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, generateReportID());
             });
         });
     });
