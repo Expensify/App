@@ -13914,7 +13914,7 @@ function updateMultipleMoneyRequests(
             continue;
         }
 
-        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? null;
+        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] ?? undefined;
         const baseIouReport = iouReport?.reportID ? (optimisticReportsByID[iouReport.reportID] ?? iouReport) : iouReport;
         const isFromExpenseReport = isExpenseReport(baseIouReport);
 
