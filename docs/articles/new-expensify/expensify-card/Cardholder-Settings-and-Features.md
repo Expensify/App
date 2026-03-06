@@ -2,6 +2,7 @@
 title: Update Your Expensify Card Details
 description: Learn how to activate, use, and manage your physical and virtual Expensify Card, including updating your name and phone number, Smart Limits, notifications, and troubleshooting.
 keywords: [New Expensify, Expensify Card, Smart Limit, activate card, virtual card, card notifications, card declined, eReceipts, update name, update phone number, legal name, 3D Secure]
+internalScope: Audience is Expensify Cardholders. Covers activating, using, and managing physical and virtual Expensify Cards, updating cardholder name and phone number, Smart Limits, notifications, digital wallets, and troubleshooting. Does not cover admin-side card provisioning or policy-level card settings.
 ---
 
 Once you receive your Expensify Visa® Commercial Card, you can activate it and start using it immediately. When you use your Expensify Card, expenses are automatically created, and SmartScanned receipts are matched to the corresponding transactions. For most purchases, excluding lodging, Expensify also generates IRS-compliant eReceipts. If your organization doesn't require itemized receipts, you can rely on eReceipts to meet documentation requirements.
