@@ -26,7 +26,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getDateRangeDisplayValueFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, getDateRangeDisplayValueFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
