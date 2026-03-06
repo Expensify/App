@@ -12,6 +12,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -193,7 +194,7 @@ function SettlementButton({
         if (isBankAccountLocked) {
             showConfirmModal({
                 title: translate('bankAccount.lockedBankAccount'),
-                prompt: translate('bankAccount.youCantPayThis'),
+                prompt: <RenderHTML html={translate('bankAccount.youCantPayThis')} />,
                 confirmText: translate('bankAccount.unlockBankAccount'),
                 cancelText: translate('common.cancel'),
             }).then(({action}) => {
