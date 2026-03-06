@@ -319,28 +319,50 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
-    const handleCaptureImage = (imageType: OdometerImageType) => {
-        Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport));
-    };
+    const handleCaptureImage = useCallback(
+        (imageType: OdometerImageType) => {
+            Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(action, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport));
+        },
+        [action, iouType, transactionID, reportID, isEditingConfirmation, backToReport],
+    );
 
-    const handleViewOdometerImage = (imageType: OdometerImageType) => {
-        if (!reportID || !transactionID) {
-            return;
-        }
-        if (isEditingConfirmation) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
-        } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
-        }
-    };
+    const handleViewOdometerImage = useCallback(
+        (imageType: OdometerImageType) => {
+            if (!reportID || !transactionID) {
+                return;
+            }
+            if (isEditingConfirmation) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
+            } else {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
+            }
+        },
+        [reportID, transactionID, isEditingConfirmation, action, iouType],
+    );
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         if (isEditingConfirmation) {
             Navigation.goBack(confirmationRoute);
             return;
         }
         Navigation.goBack();
-    };
+    }, [isEditingConfirmation, confirmationRoute]);
+
+    const handlePressStartImage = useCallback(() => {
+        if (odometerStartImage) {
+            handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+        } else {
+            handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
+        }
+    }, [odometerStartImage, handleViewOdometerImage, handleCaptureImage]);
+
+    const handlePressEndImage = useCallback(() => {
+        if (odometerEndImage) {
+            handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+        } else {
+            handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
+        }
+    }, [odometerEndImage, handleViewOdometerImage, handleCaptureImage]);
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -522,13 +544,7 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.startTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
-                                onPress={() => {
-                                    if (odometerStartImage) {
-                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                    } else {
-                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.START);
-                                    }
-                                }}
+                                onPress={handlePressStartImage}
                                 style={[
                                     StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                     StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
@@ -570,13 +586,7 @@ function IOURequestStepDistanceOdometer({
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.endTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
-                                onPress={() => {
-                                    if (odometerEndImage) {
-                                        handleViewOdometerImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                    } else {
-                                        handleCaptureImage(CONST.IOU.ODOMETER_IMAGE_TYPE.END);
-                                    }
-                                }}
+                                onPress={handlePressEndImage}
                                 style={[
                                     StyleUtils.getWidthAndHeightStyle(variables.inputHeight, variables.inputHeight),
                                     StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
