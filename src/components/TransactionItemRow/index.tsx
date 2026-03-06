@@ -15,6 +15,7 @@ import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
+import {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -106,7 +107,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
-    transactionItem: TransactionWithOptionalSearchFields;
+    transactionItem: TransactionListItemType;
     report?: Report;
     policy?: Policy;
     shouldUseNarrowLayout: boolean;
@@ -201,6 +202,9 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+
+    const measurements = transactionItem.measurements;
+    const formattedValues = transactionItem.formattedValues;
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -297,13 +301,9 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}
+                        style={{flex: 1}}
                     >
-                        <TagCell
-                            transactionItem={transactionItem}
-                            shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.tag} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:

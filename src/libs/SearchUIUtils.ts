@@ -1668,7 +1668,7 @@ function getColumnWidth(currentMaxWidth: number, columnValue: string | null | un
     const averageCharacterPxWithPadding = 8.45;
     const columnValueCharLength = columnValue?.length ?? 0;
 
-    return Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding));
+    return Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding)));
 }
 
 /**
