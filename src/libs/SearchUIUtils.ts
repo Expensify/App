@@ -4113,6 +4113,7 @@ function getColumnsToShow(
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
+    reportCurrency?: string,
 ): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -4335,26 +4336,24 @@ function getColumnsToShow(
         }
 
         if (isExpenseReportView) {
-            if (customResult) {
-                if (transaction.cardID) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
-                }
+            if (transaction.cardID) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
+            }
 
-                if (transaction.taxCode) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
-                }
+            if (transaction.taxCode) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
+            }
 
-                if (transaction.taxAmount) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
-                }
+            if (transaction.taxAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
+            }
 
-                if (transaction.originalAmount) {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
-                }
+            if (transaction.originalAmount) {
+                columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
+            }
 
-                if (getExchangeRate(transaction) !== '') {
-                    columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
-                }
+            if (getExchangeRate(transaction, reportCurrency) !== '') {
+                columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
             return;
         }

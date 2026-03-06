@@ -1307,7 +1307,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     const transactionCurrency = fromCurrency;
     const convertedCurrency = reportCurrency ?? '';
     const convertedAmount = Math.abs(transaction.convertedAmount ?? 0);
-    const amount = Math.abs(getAmount(transaction, false));
+    const amount = Math.abs(getAmount(transaction, false)) || Math.abs(transaction.amount ?? 0);
 
     if (!convertedCurrency || !convertedAmount || !amount || convertedCurrency === transactionCurrency) {
         return '';
@@ -1318,7 +1318,7 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
         return '';
     }
 
-    return `${computedRate.toFixed(4)} ${convertedCurrency}/${transactionCurrency}`;
+    return `${computedRate.toFixed(4)} ${transactionCurrency}/${convertedCurrency}`;
 }
 
 /**
