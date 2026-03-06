@@ -18,6 +18,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -159,6 +160,22 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
 
     const canEditReceipt =
         isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+
+    const onAttachmentFilesValidated = (files: FileObject[]) => {
+        if (!report?.reportID) {
+            return;
+        }
+        addAttachmentWithComment({
+            report,
+            notifyReportID: moneyRequestReport?.reportID ?? report.reportID,
+            ancestors,
+            attachments: files,
+            currentUserAccountID,
+            timezone: currentUserTimezone,
+        });
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -462,23 +479,13 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                             />
                             {canShowReceiptActions && (
                                 <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isTouchScreen && styles.opacity0]}>
-                                    <AttachmentPicker>
+                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     openPicker({
                                                         onPicked: (files) => {
-                                                            if (!report?.reportID) {
-                                                                return;
-                                                            }
-                                                            addAttachmentWithComment({
-                                                                report,
-                                                                notifyReportID: moneyRequestReport?.reportID ?? report.reportID,
-                                                                ancestors,
-                                                                attachments: files,
-                                                                currentUserAccountID,
-                                                                timezone: currentUserTimezone,
-                                                            });
+                                                            validateFiles(files);
                                                         },
                                                     });
                                                 }}
@@ -529,6 +536,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
+            {AttachmentErrorModal}
+            {PDFValidationComponent}
         </View>
     );
 }
