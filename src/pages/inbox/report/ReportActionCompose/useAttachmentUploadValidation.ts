@@ -78,6 +78,10 @@ function useAttachmentUploadValidation({
 
     const attachmentUploadType = useRef<'receipt' | 'attachment'>(undefined);
     const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
+        if (files.length === 0) {
+            return;
+        }
+
         if (attachmentUploadType.current === 'attachment') {
             showAttachmentModalScreen(files, dataTransferItems);
             return;
