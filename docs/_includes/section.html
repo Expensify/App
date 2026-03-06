@@ -7,7 +7,7 @@
 
 {% comment %} Build section path from URL (e.g. netsuite or netsuite/Troubleshooting) {% endcomment %}
 {% assign hubPrefix = "/" | append: activePlatform | append: "/hubs/" | append: activeHub | append: "/" %}
-{% assign activeSectionPath = page.url | replace: ".html", "" | replace: hubPrefix, "" | replace_first: "/", "" %}
+{% assign activeSectionPath = page.url | replace: ".html", "" | replace: hubPrefix, "" %}
 {% assign sectionParts = activeSectionPath | split: "/" %}
 
 {% assign topSectionHref = sectionParts[0] %}
