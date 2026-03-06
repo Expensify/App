@@ -69,7 +69,7 @@ describe('ReportActionsFollowupUtils', () => {
     <followup-response>To set up QuickBooks, go to <strong>Settings</strong> &gt; Integrations.</followup-response>
   </followup>
 </followup-list>`;
-            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to <strong>Settings</strong> &gt; Integrations.'}]);
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to <strong>Settings</strong> > Integrations.'}]);
         });
 
         it('should preserve bullet lists in pre-generated responses', () => {
