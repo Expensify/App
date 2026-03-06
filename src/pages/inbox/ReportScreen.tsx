@@ -83,7 +83,7 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import {getPendingExpenseCreateDestination, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -179,7 +179,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const hasEndedSubmitToDestinationRef = useRef(false);
+    const hasEndedSubmitFollowUpActionRef = useRef(false);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -973,27 +973,22 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
-    // End submit-to-destination-visible span when this report screen gains focus (covers REPORT_CHAT and RHP_POP; reset ref on blur for next submit).
+    // End submit follow-up action span when this report screen gains focus (dismiss-and-open-report or pop-rhp; reset ref on blur for next submit).
     useFocusEffect(
         useCallback(() => {
-            const pending = getPendingExpenseCreateDestination();
-            // Already ended this span, or no pending destination, or we're not a report-chat/rhp-pop target.
-            if (
-                hasEndedSubmitToDestinationRef.current ||
-                !pending ||
-                !reportIDFromRoute ||
-                (pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT && pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
-            ) {
+            const pending = getPendingSubmitFollowUpAction();
+            // Already ended this span, or no pending action, or destination is Search (not this screen).
+            if (hasEndedSubmitFollowUpActionRef.current || !pending || !reportIDFromRoute || pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
                 return;
             }
-            // Pending destination targets a different report.
+            // Pending action targets a different report.
             if (pending.reportID && pending.reportID !== reportIDFromRoute) {
                 return;
             }
-            hasEndedSubmitToDestinationRef.current = true;
-            markSubmitToDestinationVisibleEnd(pending.destinationType, reportIDFromRoute);
+            hasEndedSubmitFollowUpActionRef.current = true;
+            endSubmitFollowUpActionSpan(pending.followUpAction, reportIDFromRoute);
             return () => {
-                hasEndedSubmitToDestinationRef.current = false;
+                hasEndedSubmitFollowUpActionRef.current = false;
             };
         }, [reportIDFromRoute]),
     );

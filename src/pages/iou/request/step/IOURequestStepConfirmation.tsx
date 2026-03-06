@@ -1072,6 +1072,7 @@ function IOURequestStepConfirmation({
             });
 
             // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
+            // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
             // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
             // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {

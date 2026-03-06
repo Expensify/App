@@ -37,7 +37,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import {getPendingExpenseCreateDestination, markSubmitToDestinationVisibleEnd} from '@libs/telemetry/submitToDestinationVisible';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
@@ -75,14 +75,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    const hasEndedSubmitToDestinationRef = useRef(false);
+    const hasEndedSubmitFollowUpActionRef = useRef(false);
 
     // Reset the layout guard on blur so the next time this page gains focus we can end the span again if targeted.
     useFocusEffect(
         useCallback(() => {
             // Cleanup runs on blur.
             return () => {
-                hasEndedSubmitToDestinationRef.current = false;
+                hasEndedSubmitFollowUpActionRef.current = false;
             };
         }, []),
     );
@@ -406,19 +406,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     ]);
 
     const handleMoneyRequestReportLayout = useCallback(() => {
-        const pending = getPendingExpenseCreateDestination();
-        if (
-            hasEndedSubmitToDestinationRef.current ||
-            !pending ||
-            (pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP && pending.destinationType !== CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP)
-        ) {
+        const pending = getPendingSubmitFollowUpAction();
+        if (hasEndedSubmitFollowUpActionRef.current || !pending || pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
             return;
         }
         if (pending.reportID && pending.reportID !== reportIDFromRoute) {
             return;
         }
-        hasEndedSubmitToDestinationRef.current = true;
-        markSubmitToDestinationVisibleEnd(pending.destinationType, reportIDFromRoute);
+        hasEndedSubmitFollowUpActionRef.current = true;
+        endSubmitFollowUpActionSpan(pending.followUpAction, reportIDFromRoute);
     }, [reportIDFromRoute]);
 
     return (

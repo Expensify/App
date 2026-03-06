@@ -196,8 +196,8 @@ import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, ge
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {markSubmitToDestinationVisibleEnd, setPendingExpenseCreateDestination} from '@libs/telemetry/submitToDestinationVisible';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -1072,49 +1072,69 @@ function getPolicyTagsData(policyID: string | undefined) {
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
     const rootState = navigationRef.getRootState();
+    const hasSubmitToDestinationVisibleSpan = !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+
     if (!isInvoice && isReportOpenInRHP(rootState)) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
-            // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
-            if (isReportOpenInSuperWideRHP(rootState)) {
-                setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP, reportID);
+            const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
+
+            // submit_follow_up_action: only set when the span was started.
+            if (hasSubmitToDestinationVisibleSpan) {
+                if (isSuperWideRHP) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                } else if (hasMultipleTransactions && reportID) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
+                } else {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                }
+            }
+            if (isSuperWideRHP) {
                 Navigation.dismissToPreviousRHP();
                 return;
             }
-            // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
-                setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.MONEY_REQUEST_RHP, reportID);
-                // On small screens, dismiss all modals and then navigate to the right report.
-                // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
                 const isNarrowLayout = getIsNarrowLayout();
                 if (isNarrowLayout) {
                     Navigation.dismissModal();
                 } else {
                     Navigation.dismissToPreviousRHP();
                 }
-
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
                 });
                 return;
             }
-            setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.RHP_POP, reportID);
             Navigation.pop(rhpKey);
             return;
         }
     }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
-        setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.MODAL_DISMISS);
+        if (hasSubmitToDestinationVisibleSpan) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+        }
         Navigation.dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
-        InteractionManager.runAfterInteractions(() => {
-            markSubmitToDestinationVisibleEnd(CONST.TELEMETRY.DESTINATION_TYPE.MODAL_DISMISS);
-        });
+        if (hasSubmitToDestinationVisibleSpan) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
+            InteractionManager.runAfterInteractions(() => {
+                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+            });
+        }
         return;
     }
-    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.REPORT_CHAT, reportID);
-    Navigation.dismissModalWithReport({reportID});
+    if (hasSubmitToDestinationVisibleSpan) {
+        Navigation.dismissModalWithReport({reportID}, undefined, {
+            onBeforeNavigate: (willOpenReport) => {
+                setPendingSubmitFollowUpAction(
+                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                    reportID,
+                );
+            },
+        });
+    } else {
+        Navigation.dismissModalWithReport({reportID});
+    }
 }
 
 /**
@@ -1158,7 +1178,12 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
-    setPendingExpenseCreateDestination(CONST.TELEMETRY.DESTINATION_TYPE.SEARCH);
+    // When already on Search ROOT (Expenses), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only. When on another Search sub-tab (e.g. Chats), we navigate to ROOT so record as navigate_to_search.
+    const rootState = navigationRef.getRootState();
+    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+    setPendingSubmitFollowUpAction(alreadyOnSearchRoot ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
