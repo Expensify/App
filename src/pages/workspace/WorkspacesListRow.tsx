@@ -227,7 +227,7 @@ function WorkspacesListRow({
 
     const ThreeDotsSection = !isJoinRequestPending ? (
         <View style={[styles.flexRow, styles.gap1, !isNarrow && styles.ml2, isNarrow && styles.alignItemsCenter]}>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
             </View>
             <ThreeDotsMenu
