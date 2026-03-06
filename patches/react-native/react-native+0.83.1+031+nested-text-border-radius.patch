@@ -120,7 +120,7 @@ new file mode 100644
 index 0000000..b9d2591
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/DrawCommandSpan.kt
-@@ -0,0 +1,28 @@
+@@ -0,0 +1,27 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -404,3 +404,163 @@ index f20cd3c..35f21d1 100644
  }
 
  #endif
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+index 902912e..26c04e9 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.h
+@@ -19,6 +19,9 @@ NSString *const RCTAttributedStringEventEmitterKey = @"EventEmitter";
+ // String representation of either `role` or `accessibilityRole`
+ NSString *const RCTTextAttributesAccessibilityRoleAttributeName = @"AccessibilityRole";
+ 
++// Custom attribute for border radius on inline text backgrounds
++NSString *const RCTTextBorderRadiusAttributeName = @"RCTTextBorderRadius";
++
+ /*
+  * Creates `NSTextAttributes` from given `facebook::react::TextAttributes`
+  */
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index f96a049..0e2c71d 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -187,6 +187,10 @@ NSMutableDictionary<NSAttributedStringKey, id> *RCTNSTextAttributesFromTextAttri
+     attributes[NSBackgroundColorAttributeName] = RCTEffectiveBackgroundColorFromTextAttributes(textAttributes);
+   }
+ 
++  if (textAttributes.borderRadius.has_value()) {
++    attributes[RCTTextBorderRadiusAttributeName] = @(*textAttributes.borderRadius);
++  }
++
+   // Kerning
+   if (!isnan(textAttributes.letterSpacing)) {
+     attributes[NSKernAttributeName] = @(textAttributes.letterSpacing);
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+index 5fed44e..f4b7d39 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm
+@@ -8,6 +8,7 @@
+ #import "RCTTextLayoutManager.h"
+ 
+ #import "RCTAttributedTextUtils.h"
++#import "RCTTextLayoutManagerWithBorderRadius.h"
+ 
+ #import <React/NSTextStorage+FontScaling.h>
+ #import <React/RCTUtils.h>
+@@ -232,7 +233,7 @@ static NSLineBreakMode RCTNSLineBreakModeFromEllipsizeMode(EllipsizeMode ellipsi
+       : NSLineBreakByClipping;
+   textContainer.maximumNumberOfLines = paragraphAttributes.maximumNumberOfLines;
+ 
+-  NSLayoutManager *layoutManager = [NSLayoutManager new];
++  NSLayoutManager *layoutManager = [RCTTextLayoutManagerWithBorderRadius new];
+   layoutManager.usesFontLeading = NO;
+   [layoutManager addTextContainer:textContainer];
+ 
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
+new file mode 100644
+index 0000000..3ca52ac
+--- /dev/null
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.h
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import <UIKit/UIKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++/**
++ * Custom NSLayoutManager subclass that draws rounded-rectangle backgrounds
++ * for inline text spans that have the RCTTextBorderRadius attribute set.
++ *
++ * For multiline spans, only the outer corners are rounded: left corners on the
++ * first line rect, right corners on the last line rect (flipped for RTL).
++ */
++@interface RCTTextLayoutManagerWithBorderRadius : NSLayoutManager
++
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+new file mode 100644
+index 0000000..402cd30
+--- /dev/null
++++ b/node_modules/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManagerWithBorderRadius.mm
+@@ -0,0 +1,75 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import "RCTTextLayoutManagerWithBorderRadius.h"
++
++#import "RCTAttributedTextUtils.h"
++
++@implementation RCTTextLayoutManagerWithBorderRadius
++
++- (void)fillBackgroundRectArray:(const CGRect *)rectArray
++                          count:(NSUInteger)rectCount
++              forCharacterRange:(NSRange)charRange
++                          color:(UIColor *)color
++{
++  NSNumber *borderRadiusValue = [self.textStorage attribute:RCTTextBorderRadiusAttributeName
++                                                    atIndex:charRange.location
++                                             effectiveRange:nil];
++
++  if (borderRadiusValue == nil || borderRadiusValue.floatValue == 0) {
++    [super fillBackgroundRectArray:rectArray count:rectCount forCharacterRange:charRange color:color];
++    return;
++  }
++
++  CGFloat borderRadius = borderRadiusValue.floatValue;
++
++  CGContextRef context = UIGraphicsGetCurrentContext();
++  if (context == nil) {
++    return;
++  }
++
++  CGContextSaveGState(context);
++  CGContextSetFillColorWithColor(context, color.CGColor);
++
++  for (NSUInteger i = 0; i < rectCount; i++) {
++    CGRect rect = rectArray[i];
++
++    BOOL isFirstRect = (i == 0);
++    BOOL isLastRect = (i == rectCount - 1);
++    BOOL isSingleRect = (rectCount == 1);
++
++    UIBezierPath *path;
++
++    if (isSingleRect) {
++      path = [UIBezierPath bezierPathWithRoundedRect:rect cornerRadius:borderRadius];
++    } else {
++      UIRectCorner corners = 0;
++
++      // For multiline: round left corners on first rect, right corners on last rect.
++      // NSLayoutManager provides rects in visual (LTR) order, so this handles
++      // both LTR and RTL correctly - the first rect is always the start of
++      // the span and the last rect is always the end.
++      if (isFirstRect) {
++        corners |= UIRectCornerTopLeft | UIRectCornerBottomLeft;
++      }
++      if (isLastRect) {
++        corners |= UIRectCornerTopRight | UIRectCornerBottomRight;
++      }
++
++      path = [UIBezierPath bezierPathWithRoundedRect:rect
++                                   byRoundingCorners:corners
++                                         cornerRadii:CGSizeMake(borderRadius, borderRadius)];
++    }
++
++    CGContextAddPath(context, path.CGPath);
++    CGContextFillPath(context);
++  }
++
++  CGContextRestoreGState(context);
++}
++
++@end
