@@ -366,7 +366,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
+        message: '',
         tasks: [],
     };
 

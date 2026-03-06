@@ -57,7 +57,6 @@ import {
     isPolicyExpenseChat,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -367,11 +366,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            // Scan shortcut span: green receipt button (web sidebar) and camera FAB (narrow/mobile)
-            startSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT, {
-                name: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
-                op: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
-            });
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
