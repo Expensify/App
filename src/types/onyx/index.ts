@@ -159,6 +159,7 @@ import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelInvoiceStatement from './TravelInvoiceStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -306,6 +307,7 @@ export type {
     WalletAdditionalDetails,
     WalletAdditionalQuestionDetails,
     WalletOnfido,
+    TravelInvoiceStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,
