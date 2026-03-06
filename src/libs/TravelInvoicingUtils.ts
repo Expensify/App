@@ -1,10 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import {isDevelopment, isInternalTestBuild, isStaging} from './Environment/Environment';
+import fileDownload from './fileDownload';
 
 /**
  * Feature flag to enable Travel CVV testing on Dev and Staging environments.
@@ -141,6 +144,24 @@ function getTravelInvoicingCardSettingsKey(workspaceAccountID: number): `${typeo
 }
 
 /**
+ * Downloads a cached Travel Invoice Statement PDF.
+ * Constructs a secure URL with encrypted auth token and triggers the download.
+ */
+function downloadTravelInvoiceStatementPDF(
+    translate: LocalizedTranslate,
+    baseURL: string,
+    fileName: string,
+    startDate: string,
+    endDate: string,
+    currentUserEmail: string,
+    encryptedAuthToken: string,
+): Promise<void> {
+    const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
+}
+
+/**
  * Gets the user's Travel Invoicing card from the card list.
  * Returns the first card with feedCountry set to PROGRAM_TRAVEL_US.
  */
@@ -182,6 +203,7 @@ export {
     getTravelSettlementAccount,
     getTravelSettlementFrequency,
     getTravelInvoicingCardSettingsKey,
+    downloadTravelInvoiceStatementPDF,
     getTravelInvoicingCard,
     isTravelCVVEligible,
     isTravelCVVTestingEnabled,

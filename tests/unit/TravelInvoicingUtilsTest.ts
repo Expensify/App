@@ -15,7 +15,13 @@ import {
 import type {BankAccountList, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSettings';
 
-jest.mock('@src/libs/Environment/Environment');
+jest.mock('@src/libs/Environment/Environment', () => ({
+    getEnvironmentURL: jest.fn(() => Promise.resolve('https://new.expensify.com')),
+    getOldDotEnvironmentURL: jest.fn(() => Promise.resolve('https://www.expensify.com')),
+    isDevelopment: jest.fn(() => false),
+    isInternalTestBuild: jest.fn(() => false),
+    isStaging: jest.fn(() => false),
+}));
 
 describe('TravelInvoicingUtils', () => {
     let isDevelopmentSpy: jest.SpyInstance;

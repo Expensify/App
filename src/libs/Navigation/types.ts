@@ -1288,6 +1288,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TRAVEL_EXPORT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: {
         policyID: string;
     };
