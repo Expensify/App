@@ -1,3 +1,4 @@
+/* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -189,6 +190,7 @@ function TaskAssigneeSelectorModal() {
                 undefined, // passing null as report is null in this condition
                 isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList, currentUserEmail),
             );
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
             });

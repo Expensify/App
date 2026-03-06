@@ -326,25 +326,27 @@ describe('PolicyUtils', () => {
         };
 
         it('returns undefined if neither option is selected', () => {
-            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+            expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
         });
 
         it('returns all custom units if both options are selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, true);
+            const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual(policy.customUnits);
         });
         it('returns only non-per-diem units if only custom units option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, false);
+            const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
         });
 
         it('returns only per diem unit if only per diem option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, false, true);
+            const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
         });
 
         it('returns undefined if customUnits is empty', () => {
-            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
+            expect(
+                getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+            ).toBeUndefined();
         });
     });
     describe('getRateDisplayValue', () => {
@@ -1588,6 +1590,7 @@ describe('PolicyUtils', () => {
             const bankAccountID = '1';
             const currentUserLogin = adminEmail;
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 1: {
                     methodID: 12345,
                     accountData: {

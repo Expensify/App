@@ -2381,7 +2381,27 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected this report');
+                    expect(reportName).toBe('rejected');
+                });
+
+                test('should return rejected action name for REJECTED_TO_SUBMITTER', () => {
+                    const rejectedToSubmitterAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: rejectedToSubmitterAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {[rejectedToSubmitterAction.reportActionID]: rejectedToSubmitterAction},
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe('rejected');
                 });
 
                 test('should handle integration sync failed action', () => {
@@ -5254,6 +5274,7 @@ describe('ReportUtils', () => {
         it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS when the report has addWorkspaceRoom errors', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 errorFields: {addWorkspaceRoom: {1708946640843000: 'error creating room'}},
             };
 
@@ -5597,8 +5618,10 @@ describe('ReportUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
             const originalMessage = getOriginalMessage(reportAction);
             expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
@@ -13262,26 +13285,26 @@ describe('ReportUtils', () => {
         const mockIouReportID = '12345';
 
         it('should return exactly 3 dropdown options', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
             expect(result).toHaveLength(3);
         });
 
         it('should return options with correct values', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, undefined, undefined);
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
             expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
         });
 
         it('should return options with correct translated text', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
             expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
         });
 
         it('should return options with correct sentry labels', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
             expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
@@ -13291,7 +13314,7 @@ describe('ReportUtils', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
             const amountOwed = 100;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed, undefined);
 
             // Trigger each onSelected - the function should not throw
             for (const option of result) {
@@ -13302,7 +13325,7 @@ describe('ReportUtils', () => {
         it('should return options with zero amountOwed without triggering billing restrictions', () => {
             const mockPolicy = createRandomPolicy(0);
             mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0, undefined);
 
             expect(result).toHaveLength(3);
             // Each onSelected should work without issues when amountOwed is 0
@@ -13312,7 +13335,7 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0, undefined);
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
             expect(() => result.at(0)?.onSelected?.()).not.toThrow();
@@ -13322,7 +13345,7 @@ describe('ReportUtils', () => {
         });
 
         it('should handle undefined policy gracefully', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
 
             expect(result).toHaveLength(3);
             for (const option of result) {
@@ -13332,13 +13355,13 @@ describe('ReportUtils', () => {
 
         it('should accept amountOwed as a number parameter', () => {
             const amountOwed = 500;
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed, undefined);
 
             expect(result).toHaveLength(3);
         });
 
         it('should use the provided icons for Location and ReceiptPlus', () => {
-            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0);
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
         });
@@ -13478,6 +13501,99 @@ describe('ReportUtils', () => {
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             await Onyx.clear();
+        });
+    });
+    describe('getAddExpenseDropdownOptions', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;
+        const policyID = '5001';
+        const iouReportID = 'reportABC';
+        const ownerAccountID = 999;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should return 3 dropdown options with correct values', () => {
+            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined, undefined);
+
+            expect(options).toHaveLength(3);
+            expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
+            expect(options.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
+            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+        });
+
+        describe('CREATE_NEW_EXPENSE', () => {
+            it('should return early when iouReportID is undefined', () => {
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
+
+            it('should navigate to restricted action when non-personal policy owner is past due', async () => {
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
+        });
+
+        describe('ADD_UNREPORTED_EXPENSE', () => {
+            it('should navigate to restricted action when policy owner is past due', async () => {
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
+
+            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+                const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID: currentUserAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+                await waitForBatchedUpdates();
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined, gracePeriodEnd);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
         });
     });
 });
