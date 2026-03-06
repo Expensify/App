@@ -275,6 +275,16 @@ function AuthScreens() {
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const markAllMessagesAsReadShortcutConfig = CONST.KEYBOARD_SHORTCUTS.MARK_ALL_MESSAGES_AS_READ;
+        // Start auth screens mount span for HybridApp transition tracking
+        if (CONFIG.IS_HYBRID_APP) {
+            const parentTransitionSpan = getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION) ?? getSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
+            startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.AUTH_SCREENS_MOUNT, {
+                name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.AUTH_SCREENS_MOUNT,
+                op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.AUTH_SCREENS_MOUNT,
+                parentSpan: parentTransitionSpan,
+            });
+        }
+
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -334,6 +344,11 @@ function AuthScreens() {
         } else {
             Log.info('[AuthScreens] Sending ReconnectApp');
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
+        }
+
+        // End auth screens mount span after openApp/reconnectApp is called
+        if (CONFIG.IS_HYBRID_APP) {
+            endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_STAGES.AUTH_SCREENS_MOUNT);
         }
 
         App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
