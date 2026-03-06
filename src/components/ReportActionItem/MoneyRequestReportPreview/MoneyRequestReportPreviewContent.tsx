@@ -52,6 +52,7 @@ import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canSubmitAndIsAwaitingForCurrentUser,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -65,18 +66,14 @@ import {
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
-    hasReportBeenReopened as hasReportBeenReopenedUtils,
-    hasReportBeenRetracted as hasReportBeenRetractedUtils,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isReportApproved,
-    isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -253,14 +250,12 @@ function MoneyRequestReportPreviewContent({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
 
-    const hasReportBeenRetracted = hasReportBeenReopenedUtils(iouReport, reportActions) || hasReportBeenRetractedUtils(iouReport, reportActions);
-
     // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     // Or if the report has been reopened or retracted
-    const isWaitingForSubmissionFromCurrentUser = useMemo(() => {
-        const isOwnAndReportHasBeenRetracted = isReportOwner(iouReport) && hasReportBeenRetracted;
-        return isOwnAndReportHasBeenRetracted || isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy);
-    }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => canSubmitAndIsAwaitingForCurrentUser(iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions),
+        [iouReport, chatReport, policy, transactions, transactionViolations, currentUserEmail, currentUserAccountID, reportActions],
+    );
 
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -890,7 +885,6 @@ function MoneyRequestReportPreviewContent({
                                                         >
                                                             {/* This will be fixed as follow up https://github.com/Expensify/App/pull/75357 */}
                                                             {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                                                            {}
                                                             {getReportName({report: iouReport, reportAttributes}) || action.childReportName}
                                                         </Text>
                                                     </Animated.View>

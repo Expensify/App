@@ -14,6 +14,7 @@ function getCircularReplacer() {
             return value;
         }
         // `this` is the object that value is contained in, i.e the direct parent
+        // eslint-disable-next-line no-invalid-this
         while (ancestors.length > 0 && ancestors.at(-1) !== this) {
             ancestors.pop();
         }
