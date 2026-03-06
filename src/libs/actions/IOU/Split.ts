@@ -81,7 +81,6 @@ import {
     getMoneyRequestInformation,
     getMoneyRequestParticipantsFromReport,
     getOrCreateOptimisticSplitChatReport,
-    getPolicyTags,
     getReceiptError,
     getReportPreviewAction,
     getUpdateMoneyRequestParams,
