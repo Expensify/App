@@ -3,6 +3,7 @@ import path from 'path';
 
 function mockImages(imagePath: string) {
     const imageFilenames = fs.readdirSync(path.resolve(__dirname, `../assets/${imagePath}/`));
+    // eslint-disable-next-line rulesdir/prefer-early-return
     for (const fileName of imageFilenames) {
         if (/\.svg/.test(fileName)) {
             jest.mock(`../assets/${imagePath}/${fileName}`, () => () => '');
