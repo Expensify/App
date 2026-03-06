@@ -7,11 +7,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {useSearchRouterActions} from './SearchRouterContext';
+import startSearchPageVisibleSpan from './startSearchPageVisibleSpan';
 
 type SearchButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -38,15 +38,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 },
             });
 
-            const platform = getPlatform();
-            const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-
-            if (isNative) {
-                startSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE, {
-                    name: CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE,
-                    op: CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE,
-                });
-            }
+            startSearchPageVisibleSpan();
 
             openSearchRouter();
         })();
