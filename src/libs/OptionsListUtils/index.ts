@@ -1512,9 +1512,7 @@ function createFilteredOptionList(
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first)
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching
-        ? reportsArray
-        : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
+    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
 
     // Step 3: Limit to top N reports
     // In search mode, we will return all reports so downstream getSearchOptions will handle the actual term matching
