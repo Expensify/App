@@ -3,7 +3,6 @@ import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -40,6 +39,7 @@ import type {
     CompanyFeeds,
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {filterObject} from './ObjectUtils';
@@ -1090,7 +1090,10 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
             // program-specific fields once the backend sends the full nested format (Phase 2).
-            return {...cardSettings, ...(programSettings as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>)} as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>;
+            return {
+                ...cardSettings,
+                ...(programSettings as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>),
+            } as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>;
         }
         return undefined;
     };
