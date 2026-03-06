@@ -185,6 +185,38 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [changedReportActions, personalDetails, currentUserAccountID, reports, reportAttributes?.reports, privateIsArchivedMap]);
 
     /**
+     * This effect is responsible for updating option display names when reportAttributes
+     * provides a name that differs from what's currently stored. This handles the timing
+     * gap where options may be initialized before derived report names are computed.
+     */
+    useEffect(() => {
+        if (!areOptionsInitialized.current || !reportAttributes?.reports) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            let hasChanges = false;
+            const updatedReports = prevOptions.reports.map((option) => {
+                const derivedName = reportAttributes.reports[option.reportID]?.reportName;
+                if (derivedName && derivedName !== option.text) {
+                    hasChanges = true;
+                    return {...option, text: derivedName};
+                }
+                return option;
+            });
+
+            if (!hasChanges) {
+                return prevOptions;
+            }
+
+            return {
+                ...prevOptions,
+                reports: updatedReports,
+            };
+        });
+    }, [reportAttributes?.reports]);
+
+    /**
      * This effect is used to update the options list when personal details change.
      */
     useEffect(() => {
