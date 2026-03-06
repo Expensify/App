@@ -88,7 +88,7 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
             payload: {
-                params: {q: searchData.query, name: searchData.name},
+                params: {q: searchData.query, name: searchData.name, rawQuery: undefined},
             },
         });
     };
