@@ -1175,19 +1175,35 @@ const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
+    callback: (value, _collectionKey, sourceValue) => {
         allReportMetadata = value;
+        const metadataUpdates = sourceValue ?? value;
 
-        for (const [reportID, reportMetadata] of Object.entries(value)) {
+        // If sourceValue is not provided this callback is receiving a full collection snapshot.
+        // Rebuild the cache from scratch to keep it in sync with the current collection state.
+        if (!sourceValue) {
+            for (const reportID of Object.keys(allReportMetadataKeyValue)) {
+                delete allReportMetadataKeyValue[reportID];
+            }
+        }
+
+        for (const [reportMetadataKey, reportMetadata] of Object.entries(metadataUpdates ?? {})) {
             if (!reportMetadata) {
+                const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
+                if (!reportID) {
+                    continue;
+                }
+
+                delete allReportMetadataKeyValue[reportID];
                 continue;
             }
 
-            const [, id] = reportID.split('_');
-            allReportMetadataKeyValue[id] = reportMetadata;
+            const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
+            if (!reportID) {
+                continue;
+            }
+
+            allReportMetadataKeyValue[reportID] = reportMetadata;
         }
     },
 });
@@ -11380,7 +11396,7 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boole
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
     const reportMetadata = getReportMetadata(iouReport?.reportID);
 
-    if (!iouReport || !policy || !reportMetadata || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
+    if (!iouReport || !policy || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
         return false;
     }
 
