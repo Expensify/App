@@ -512,7 +512,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
-                                    ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, routeName === SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW)
+                                    ? ROUTES.ODOMETER_IMAGE.getRoute(
+                                          action ?? CONST.IOU.ACTION.CREATE,
+                                          iouType,
+                                          transactionID,
+                                          reportID,
+                                          imageType,
+                                          routeName === SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW,
+                                      )
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
                                           iouType,
