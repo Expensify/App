@@ -44,7 +44,13 @@ import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAd
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {clearPersonalBankAccount, deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {
+    clearPersonalBankAccount,
+    deletePaymentBankAccount,
+    openPersonalBankAccountSetupView,
+    setPersonalBankAccountContinueKYCOnSuccess,
+    setPersonalBankAccountID,
+} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {clearDraftValues} from '@userActions/FormActions';
 import {close as closeModal} from '@userActions/Modal';
@@ -173,11 +179,12 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
-        if (isPersonalBankAccountMissingInfo(accountData)) {
+        if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             clearPersonalBankAccount();
+            setPersonalBankAccountID(accountData.bankAccountID);
             clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM);
-            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList)));
+            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
             return;
         }
 

@@ -50,8 +50,6 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false}: AddressStepPr
         privatePersonalDetails,
     ]);
 
-    // When shouldSaveDraft is enabled, homeAddressFormDraft stores values saved on keystroke.
-    // These take priority over the address computed above.
     const draftCountry = shouldSaveDraft ? homeAddressFormDraft?.country : undefined;
     const draftState = shouldSaveDraft ? homeAddressFormDraft?.state : undefined;
     const {translate} = useLocalize();

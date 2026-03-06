@@ -151,7 +151,7 @@ function clearPersonalBankAccountErrors() {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
 }
 
-function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountForm>) {
+function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Partial<PersonalBankAccountForm>) {
     const formattedStreet = getFormattedStreet(accountData?.addressStreet, accountData?.addressStreet2);
 
     // eslint-disable-next-line no-console
@@ -160,32 +160,30 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
     console.log('[DEBUG updatePersonalBankAccountInfo] formattedStreet:', JSON.stringify(formattedStreet));
 
     type AdditionalDataUpdate = Partial<Pick<BankAccountAdditionalData, 'firstName' | 'lastName' | 'addressStreet' | 'addressCity' | 'addressState' | 'addressZipCode' | 'companyPhone'>>;
-    const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
-    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {};
-    let bankAccountID: number | undefined;
-    for (const [key, bankAccount] of Object.entries(bankAccountList ?? {})) {
-        if (!isPersonalBankAccountMissingInfo(bankAccount?.accountData)) {
-            continue;
-        }
-        if (!bankAccountID) {
-            bankAccountID = bankAccount?.accountData?.bankAccountID;
-        }
-        const prevData = bankAccount?.accountData?.additionalData;
-        const additionalDataUpdate: AdditionalDataUpdate = {
-            ...(accountData?.legalFirstName && {firstName: accountData.legalFirstName}),
-            ...(accountData?.legalLastName && {lastName: accountData.legalLastName}),
-            ...(formattedStreet && {addressStreet: formattedStreet}),
-            ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
-            ...(accountData?.addressState && {addressState: accountData.addressState}),
-            ...(accountData?.addressZipCode && {addressZipCode: accountData.addressZipCode}),
-            ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
-        };
-        bankAccountListUpdates[key] = {
+
+    const bankAccountKey = String(bankAccountID);
+    const prevData = bankAccountList?.[bankAccountKey]?.accountData?.additionalData;
+
+    const additionalDataUpdate: AdditionalDataUpdate = {
+        ...(accountData?.legalFirstName && {firstName: accountData.legalFirstName}),
+        ...(accountData?.legalLastName && {lastName: accountData.legalLastName}),
+        ...(formattedStreet && {addressStreet: formattedStreet}),
+        ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
+        ...(accountData?.addressState && {addressState: accountData.addressState}),
+        ...(accountData?.addressZipCode && {addressZipCode: accountData.addressZipCode}),
+        ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
+    };
+
+    const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {
+        [bankAccountKey]: {
             accountData: {
                 additionalData: additionalDataUpdate,
             },
-        };
-        bankAccountListRollback[key] = {
+        },
+    };
+
+    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {
+        [bankAccountKey]: {
             accountData: {
                 additionalData: {
                     firstName: prevData?.firstName,
@@ -197,8 +195,8 @@ function updatePersonalBankAccountInfo(accountData: Partial<PersonalBankAccountF
                     companyPhone: prevData?.companyPhone,
                 },
             },
-        };
-    }
+        },
+    };
 
     const parameters: UpdatePersonalBankAccountInfoParams = {
         bankAccountID,
@@ -305,6 +303,10 @@ function clearPersonalBankAccount() {
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, null);
     Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
     clearPersonalBankAccountSetupType();
+}
+
+function setPersonalBankAccountID(bankAccountID: number) {
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
 }
 
 function clearOnfidoToken() {
@@ -1643,6 +1645,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    setPersonalBankAccountID,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,

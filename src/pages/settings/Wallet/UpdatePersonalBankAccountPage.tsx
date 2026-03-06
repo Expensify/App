@@ -65,8 +65,8 @@ const formPages = [
 /**
  * Returns the first non-skipped page name for the update flow based on the bank account's existing data.
  */
-function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>): string {
-    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
+function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>, bankAccountID?: number): string {
+    const completedSteps = getCompletedStepsForBankAccount(bankAccountList, bankAccountID);
     const skipPageNames = new Set(completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
     const firstPage = PAGE_NAMES.find((name) => !skipPageNames.has(name));
     return firstPage ?? PAGE_NAME.LEGAL_NAME;
@@ -82,7 +82,7 @@ function UpdatePersonalBankAccountPage() {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const completedSteps = getCompletedStepsForBankAccount(bankAccountList);
+    const completedSteps = getCompletedStepsForBankAccount(bankAccountList, personalBankAccount?.bankAccountID);
 
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
@@ -94,7 +94,6 @@ function UpdatePersonalBankAccountPage() {
     const submitPersonalInfo = () => {
         const accountData: Partial<PersonalBankAccountForm> = {};
 
-        // Only include data for steps that weren't skipped
         if (!completedSteps.includes(PERSONAL_INFO_STEP.NAME)) {
             accountData.legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName;
             accountData.legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName;
@@ -115,12 +114,14 @@ function UpdatePersonalBankAccountPage() {
             accountData.phoneNumber = parsed.number?.significant ?? '';
         }
 
-        updatePersonalBankAccountInfo(accountData);
+        if (personalBankAccount?.bankAccountID) {
+            updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
+        }
     };
     const skipPageCandidates = completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 
-    const firstPageName = getFirstPageName(bankAccountList);
+    const firstPageName = getFirstPageName(bankAccountList, personalBankAccount?.bankAccountID);
     const firstNonSkippedIndex = formPages.findIndex((p) => p.pageName === firstPageName);
 
     const {CurrentPage, currentPageName, prevPage, nextPage} = useSubPage({

@@ -80,13 +80,13 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined):
 /**
  * Returns step numbers that already have data on the bank account and can be skipped in the update flow.
  */
-function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number[] {
-    const missingAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
-    if (!missingAccount) {
+function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, bankAccountID?: number): number[] {
+    const bankAccount = bankAccountID ? bankAccountList?.[String(bankAccountID)] : Object.values(bankAccountList ?? {}).find((ba) => isPersonalBankAccountMissingInfo(ba?.accountData));
+    if (!bankAccount) {
         return [];
     }
 
-    const {additionalData} = missingAccount.accountData ?? {};
+    const {additionalData} = bankAccount.accountData ?? {};
     const completedSteps: number[] = [];
 
     if (hasOwnerName(additionalData)) {

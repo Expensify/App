@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -131,21 +131,25 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
-    let badgeText;
-    if (isNeedingAction) {
-        badgeText = translate('common.actionRequired');
-    } else if (item.isCardFrozen) {
-        badgeText = translate('cardPage.frozen');
-    } else if (shouldShowDefaultBadge) {
-        badgeText = translate('paymentMethodList.defaultPaymentMethod');
-    }
+    const badgeText = useMemo(() => {
+        if (isNeedingAction) {
+            return translate('common.actionRequired');
+        }
+        if (item.isCardFrozen) {
+            return translate('cardPage.frozen');
+        }
+        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
+    }, [isNeedingAction, item.isCardFrozen, shouldShowDefaultBadge, translate]);
 
-    let badgeIcon;
-    if (isNeedingAction) {
-        badgeIcon = icons.DotIndicator;
-    } else if (item.isCardFrozen) {
-        badgeIcon = icons.FreezeCard;
-    }
+    const badgeIcon = useMemo(() => {
+        if (isNeedingAction) {
+            return icons.DotIndicator;
+        }
+        if (item.isCardFrozen) {
+            return icons.FreezeCard;
+        }
+        return undefined;
+    }, [icons.DotIndicator, icons.FreezeCard, isNeedingAction, item.isCardFrozen]);
 
     return (
         <OfflineWithFeedback
