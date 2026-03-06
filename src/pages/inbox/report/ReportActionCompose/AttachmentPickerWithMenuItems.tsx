@@ -177,7 +177,12 @@ function AttachmentPickerWithMenuItems({
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
+            if (
+                shouldRestrictAction &&
+                policy &&
+                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }

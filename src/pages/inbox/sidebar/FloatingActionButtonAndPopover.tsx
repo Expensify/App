@@ -619,7 +619,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
                               const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
-                              if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) && groupPoliciesWithChatEnabled.length > 1)) {
+                              if (
+                                  !workspaceIDForReportCreation ||
+                                  (shouldRestrictUserBillableActions(workspaceIDForReportCreation, undefined, undefined, ownerBillingGraceEndPeriod) &&
+                                      groupPoliciesWithChatEnabled.length > 1)
+                              ) {
                                   // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
                                   Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                                   return;
