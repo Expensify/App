@@ -186,6 +186,7 @@ import Trophy1 from '@assets/images/simple-illustrations/simple-illustration__tr
 import Trophy from '@assets/images/simple-illustrations/simple-illustration__trophy.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import UserShield from '@assets/images/simple-illustrations/simple-illustration__user-shield.svg';
+import VerticalCreditCards from '@assets/images/simple-illustrations/simple-illustration__vertical-credit-cards.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
@@ -261,9 +262,11 @@ const Illustrations = {
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
+    VerticalCreditCards,
     Safe,
     SaveTheWorldScale,
     SewerDino,
+    QuestionMark,
     SmartScan,
     TeleScope,
     QuestionMark,
