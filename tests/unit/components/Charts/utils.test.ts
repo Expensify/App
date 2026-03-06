@@ -8,6 +8,7 @@ import {
     findSliceAtPosition,
     isAngleInSlice,
     isCursorInSkewedLabel,
+    isCursorOverChartLabel,
     labelOverhang,
     maxVisibleCount,
     normalizeAngle,
@@ -432,5 +433,114 @@ describe('isCursorInSkewedLabel', () => {
 
     it('returns true for empty corners (no edges to cross)', () => {
         expect(isCursorInSkewedLabel(0, 0, [])).toBe(true);
+    });
+});
+
+describe('isCursorOverChartLabel', () => {
+    const baseParams = {
+        targetX: 10,
+        labelY: 20,
+        halfWidth: 5,
+        padding: 2,
+        yMin90: 15,
+        yMax90: 25,
+    };
+
+    describe('0° (horizontal label)', () => {
+        const params = () => ({...baseParams, angleRad: 0, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the horizontal label box', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 12, cursorY: 21})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 2})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 18})).toBe(false);
+        });
+
+        it('returns false when cursor is above the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is below the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(false);
+        });
+
+        it('returns true when cursor is on the horizontal boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5, cursorY: 20})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 15, cursorY: 20})).toBe(true);
+        });
+
+        it('returns true when cursor is on the vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 18})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorX: 10, cursorY: 22})).toBe(true);
+        });
+    });
+
+    describe('45° (skewed label)', () => {
+        const unitSquare = [
+            {x: 1, y: 0},
+            {x: 1, y: 1},
+            {x: 0, y: 1},
+            {x: 0, y: 0},
+        ];
+
+        it('returns true when cursor is inside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: 0.5,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when cursor is outside the skewed quadrilateral', () => {
+            expect(
+                isCursorOverChartLabel({
+                    ...baseParams,
+                    angleRad: Math.PI / 4,
+                    cursorX: -1,
+                    cursorY: 0.5,
+                    corners45: unitSquare,
+                }),
+            ).toBe(false);
+        });
+    });
+
+    describe('90° (vertical label)', () => {
+        const params = () => ({...baseParams, angleRad: Math.PI / 2, cursorX: 10, cursorY: 20});
+
+        it('returns true when cursor is inside the vertical label band', () => {
+            expect(isCursorOverChartLabel({...params()})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 18})).toBe(true);
+        });
+
+        it('returns false when cursor is to the left of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 5})).toBe(false);
+        });
+
+        it('returns false when cursor is to the right of the label', () => {
+            expect(isCursorOverChartLabel({...params(), cursorX: 15})).toBe(false);
+        });
+
+        it('returns false when cursor is above the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 10})).toBe(false);
+        });
+
+        it('returns false when cursor is below the vertical bounds', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 30})).toBe(false);
+        });
+
+        it('returns true when cursor is on vertical boundary', () => {
+            expect(isCursorOverChartLabel({...params(), cursorY: 15})).toBe(true);
+            expect(isCursorOverChartLabel({...params(), cursorY: 25})).toBe(true);
+        });
     });
 });
