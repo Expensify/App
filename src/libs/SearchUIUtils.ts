@@ -1864,13 +1864,25 @@ function getTransactionsSections({
         measurements.exportedDate = Math.max(measurements.exportedDate, exportedDatePixelWidth);
 
         // Handle submitted date
-        measurements.submittedDate = Math.max(measurements.submittedDate);
+        const submittedDate = report.submitted ?? '';
+        const isSubmittedLastYear = DateUtils.doesDateBelongToAPastYear(submittedDate);
+        const formattedSubmittedDate = DateUtils.formatWithUTCTimeZone(submittedDate, isSubmittedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const submittedDatePixelWidth = formattedSubmittedDate.length * averageCharacterLengthWithPadding;
+        measurements.submittedDate = Math.max(measurements.submittedDate, submittedDatePixelWidth);
 
         // Handle approved date
-        measurements.approvedDate = Math.max(measurements.approvedDate);
+        const approvedDate = report.approved ?? '';
+        const isApprovedLastYear = DateUtils.doesDateBelongToAPastYear(approvedDate);
+        const formattedApprovedDate = DateUtils.formatWithUTCTimeZone(approvedDate, isApprovedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const approvedDatePixelWidth = formattedApprovedDate.length * averageCharacterLengthWithPadding;
+        measurements.approvedDate = Math.max(measurements.approvedDate, approvedDatePixelWidth);
 
         // Handle posted date
-        measurements.postedDate = Math.max(measurements.postedDate);
+        const postedDate = posted ?? '';
+        const isPostedLastYear = DateUtils.doesDateBelongToAPastYear(postedDate);
+        const formattedPostedDate = DateUtils.formatWithUTCTimeZone(postedDate, isPostedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const postedDatePixelWidth = formattedPostedDate.length * averageCharacterLengthWithPadding;
+        measurements.postedDate = Math.max(measurements.postedDate, postedDatePixelWidth);
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
