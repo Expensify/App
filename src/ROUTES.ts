@@ -100,8 +100,15 @@ const DYNAMIC_ROUTES = {
     },
     ADDRESS_COUNTRY: {
         path: 'country',
-        entryScreens: [SCREENS.SETTINGS.PROFILE.ADDRESS],
-        getRoute: (country: string) => `country?country=${country}`,
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.WORKSPACE.ADDRESS,
+            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
+            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
+        ],
+        getRoute: (country: string) => `country${country ? `?country=${country}` : ''}`,
     },
 } as const satisfies DynamicRoutes;
 
