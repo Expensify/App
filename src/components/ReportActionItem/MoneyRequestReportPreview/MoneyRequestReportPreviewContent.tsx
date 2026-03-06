@@ -24,6 +24,7 @@ import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropd
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -136,8 +137,10 @@ function MoneyRequestReportPreviewContent({
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const activePolicy = usePolicy(activePolicyID);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
@@ -689,11 +692,24 @@ function MoneyRequestReportPreviewContent({
                 iouReport?.reportID,
                 policy,
                 userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
                 chatReportID,
                 iouReport?.parentReportID,
                 lastDistanceExpenseType,
             ),
-        [translate, expensifyIcons, iouReport?.reportID, iouReport?.parentReportID, policy, userBillingGraceEndPeriods, chatReportID, lastDistanceExpenseType],
+        [
+            translate,
+            expensifyIcons,
+            iouReport?.reportID,
+            iouReport?.parentReportID,
+            policy,
+            userBillingGraceEndPeriods,
+            amountOwed,
+            chatReportID,
+            lastDistanceExpenseType,
+            ownerBillingGraceEndPeriod,
+        ],
     );
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -885,26 +901,12 @@ function MoneyRequestReportPreviewContent({
                                                     (shouldShowReportStatus || !shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
                                                             {shouldShowReportStatus && (
-                                                                <View
-                                                                    style={[
-                                                                        styles.reportStatusContainer,
-                                                                        styles.mr1,
-                                                                        {
-                                                                            backgroundColor: reportStatusColorStyle?.backgroundColor,
-                                                                        },
-                                                                    ]}
-                                                                >
-                                                                    <Text
-                                                                        style={[
-                                                                            styles.reportStatusText,
-                                                                            {
-                                                                                color: reportStatusColorStyle?.textColor,
-                                                                            },
-                                                                        ]}
-                                                                    >
-                                                                        {reportStatus}
-                                                                    </Text>
-                                                                </View>
+                                                                <StatusBadge
+                                                                    text={reportStatus}
+                                                                    backgroundColor={reportStatusColorStyle?.backgroundColor}
+                                                                    textColor={reportStatusColorStyle?.textColor}
+                                                                    badgeStyles={styles.mr1}
+                                                                />
                                                             )}
                                                             {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                                                         </View>

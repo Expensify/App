@@ -16,7 +16,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
+import type {OriginalMessageIOU, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -969,6 +969,7 @@ describe('actions/Duplicate', () => {
     describe('duplicateExpenseTransaction', () => {
         let writeSpy: jest.SpyInstance;
         let recentWaypoints: RecentWaypoint[] = [];
+        let targetPolicyTags: OnyxEntry<PolicyTagLists>;
 
         const mockOptimisticChatReportID = '789';
         const mockOptimisticIOUReportID = '987';
@@ -1004,6 +1005,13 @@ describe('actions/Duplicate', () => {
                 return Promise.resolve();
             });
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
+                },
+            });
             return Onyx.clear();
         });
 
@@ -1042,6 +1050,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1104,6 +1113,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1159,6 +1169,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1210,6 +1221,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1270,6 +1282,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1316,6 +1329,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1355,6 +1369,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1396,6 +1411,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1446,6 +1462,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1509,6 +1526,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1557,6 +1575,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1616,6 +1635,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
