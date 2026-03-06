@@ -61,16 +61,14 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file (path used for href)
+ * @param filename - The name of the file
  * @param order - Optional order from front matter
- * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
+function getArticleObj(filename: string, order?: number): Article {
     const href = filename.replace('.md', '');
-    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
-        title,
+        title: toTitleCase(href.replaceAll('-', ' ')),
         order,
     };
 }
@@ -124,7 +122,7 @@ function buildSection(platformName: string, hub: string, sectionPath: string, pa
         const entryPath = `${fullPath}/${entry}`;
         if (entry.endsWith('.md')) {
             const order = getOrderFromArticleFrontMatter(entryPath);
-            articles.push(getArticleObj(entry, order, entryPath));
+            articles.push(getArticleObj(entry, order));
         } else if (fs.statSync(entryPath).isDirectory()) {
             childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
         }
@@ -165,7 +163,7 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
 
         for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder, undefined, `${basePath}/${fileOrFolder}`);
+                const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
