@@ -61,34 +61,13 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * Get title from article frontmatter if present, otherwise from filename
+ * @param filename - The name of the file (path used for href)
+ * @param order - Optional order from front matter
+ * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getTitleFromFrontMatter(filePath: string): string | undefined {
-    try {
-        const content = fs.readFileSync(filePath, 'utf8');
-        const parts = content.split('---');
-        if (parts.length < 2) return undefined;
-        const frontmatter = yaml.load(parts[1]) as Record<string, unknown>;
-        const title = frontmatter?.title;
-        return typeof title === 'string' ? title : undefined;
-    } catch {
-        return undefined;
-    }
-}
-
-/**
- * @param filename - The name of the file
- * @param fullPath - Optional full path to read frontmatter title
- * Card title: use filename for error codes (e.g. NS0521 Sync Error), else frontmatter or toTitleCase
- */
-function getArticleObj(filename: string, order?: number, fullPath?: string): Article {
+function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
     const href = filename.replace('.md', '');
-    const fallbackTitle = toTitleCase(href.replaceAll('-', ' '));
-    // Error-code filenames (e.g. NS0521-Sync-Error): display as "NS0521 Sync Error" from filename
-    const isErrorCode = href.match(/^[A-Z]{2,}\d+/);
-    const title = isErrorCode
-        ? href.replaceAll('-', ' ')
-        : (fullPath && getTitleFromFrontMatter(fullPath)) || fallbackTitle;
+    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
         title,

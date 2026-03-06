@@ -162,6 +162,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
+            conciergeReportID={conciergeReportID}
         />
     );
 }
