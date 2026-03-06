@@ -144,14 +144,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
 const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
 
-function isTransactionGroupListItemArray(data: SearchListItem[]): data is TransactionGroupListItemType[] {
-    if (data.length <= 0) {
-        return false;
-    }
-    const firstElement = data.at(0);
-    return typeof firstElement === 'object' && 'transactions' in firstElement;
-}
-
 function isTransactionMatchWithGroupItem(transaction: Transaction, groupItem: SearchListItem, groupBy: SearchGroupBy | undefined) {
     if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
         return transaction.cardID === (groupItem as TransactionCardGroupListItemType).cardID;
@@ -230,62 +222,66 @@ function SearchList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     const {hash, groupBy, type} = queryJSON;
-    const flattenedItems = useMemo(() => {
-        if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            if (!isTransactionGroupListItemArray(data)) {
-                return data;
-            }
-            return data.flatMap((item) => item.transactions);
-        }
-        return data;
-    }, [data, groupBy, type]);
-    const emptyReports = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            return data.filter((item) => item.transactions.length === 0);
-        }
-        return [];
-    }, [data, type]);
+    const {itemsWithSelection, flattenedItemsLength, selectedItemsLength, totalItems} = useMemo(() => {
+        const nextState = {
+            itemsWithSelection: [] as Array<{originalItem: SearchListItem; itemWithSelection: SearchListItem; isSelected: boolean}>,
+            flattenedItemsLength: 0,
+            selectedItemsLength: 0,
+            totalItems: 0,
+        };
 
-    const selectedItemsLength = useMemo(() => {
-        const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
-            const isTransactionSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-            return acc + (isTransactionSelected ? 1 : 0);
-        }, 0);
+        for (const item of data) {
+            const itemWithSelection = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
+            nextState.itemsWithSelection.push(itemWithSelection);
 
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            const selectedEmptyReports = emptyReports.reduce((acc, item) => {
-                const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-                return acc + (isEmptyReportSelected ? 1 : 0);
-            }, 0);
+            if ('transactions' in itemWithSelection.itemWithSelection && itemWithSelection.itemWithSelection.transactions) {
+                const groupItem = itemWithSelection.itemWithSelection;
+                nextState.flattenedItemsLength += groupItem.transactions.length;
 
-            return selectedEmptyReports + selectedTransactionsCount;
-        }
-
-        return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
-
-    const totalItems = useMemo(() => {
-        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
-            const selectableEmptyReports = emptyReports.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const selectableTransactions = flattenedItems.filter((item) => {
-                if ('pendingAction' in item) {
-                    return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && groupItem.transactions.length === 0) {
+                    nextState.selectedItemsLength += Number(itemWithSelection.isSelected);
+                    nextState.totalItems += Number(groupItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                    continue;
                 }
-                return true;
-            });
-            return selectableEmptyReports.length + selectableTransactions.length;
+
+                nextState.selectedItemsLength += groupItem.transactions.filter((transaction) => transaction.isSelected).length;
+                nextState.totalItems += groupItem.transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+                continue;
+            }
+
+            nextState.flattenedItemsLength += 1;
+            nextState.selectedItemsLength += Number(itemWithSelection.isSelected);
+            nextState.totalItems += Number(
+                !('pendingAction' in itemWithSelection.itemWithSelection) || itemWithSelection.itemWithSelection.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
         }
 
-        const selectableTransactions = flattenedItems.filter((item) => {
-            if ('pendingAction' in item) {
-                return item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            }
-            return true;
-        });
-        return selectableTransactions.length;
-    }, [data, type, flattenedItems, emptyReports]);
+        return nextState;
+    }, [data, canSelectMultiple, selectedTransactions, type]);
 
-    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
+    const newTransactionIDByItemKey = useMemo(() => {
+        const nextNewTransactionIDByItemKey = new Map<string, string>();
+
+        if (newTransactions.length === 0) {
+            return nextNewTransactionIDByItemKey;
+        }
+
+        for (const item of data) {
+            if (!item.keyForList) {
+                continue;
+            }
+
+            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+
+            if (!newTransactionID) {
+                continue;
+            }
+
+            nextNewTransactionIDByItemKey.set(item.keyForList, newTransactionID);
+        }
+
+        return nextNewTransactionIDByItemKey;
+    }, [data, newTransactions, groupBy]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -406,7 +402,7 @@ function SearchList({
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
-            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
 
             const itemData = itemsWithSelection.at(index);
             const itemWithSelection = itemData?.itemWithSelection ?? item;
@@ -453,10 +449,10 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactions,
             shouldAnimate,
             data.length,
             itemsWithSelection,
+            newTransactionIDByItemKey,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -528,18 +524,14 @@ function SearchList({
                 onScroll={onScroll}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
-                columns={columns}
                 scrollToIndex={scrollToIndex}
-                flattenedItemsLength={flattenedItems.length}
+                flattenedItemsLength={flattenedItemsLength}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
-                newTransactions={newTransactions}
-                selectedTransactions={selectedTransactions}
-                customCardNames={customCardNames}
             />
             <Modal
                 isVisible={isModalVisible}

@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
@@ -15,7 +15,6 @@ const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<Se
 
 function BaseSearchList({
     data,
-    columns,
     renderItem,
     onSelectRow,
     keyExtractor,
@@ -29,11 +28,9 @@ function BaseSearchList({
     onLayout,
     contentContainerStyle,
     flattenedItemsLength,
-    newTransactions,
-    selectedTransactions,
-    customCardNames,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
+    const [shouldTrackKeyPress, setShouldTrackKeyPress] = useState(true);
     const isFocused = useIsFocused();
 
     const setHasKeyBeenPressed = useCallback(() => {
@@ -43,6 +40,7 @@ function BaseSearchList({
         // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
         // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
         hasKeyBeenPressed.current = true;
+        setShouldTrackKeyPress(false);
     }, []);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
@@ -52,7 +50,7 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        ...(shouldTrackKeyPress && {setHasKeyBeenPressed}),
         isFocused,
         captureOnInputs: false,
     });
@@ -104,10 +102,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
-        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
-    );
+    const extraData = useMemo(() => ({focusedIndex, renderItem}), [focusedIndex, renderItem]);
 
     return (
         <AnimatedFlashListComponent
