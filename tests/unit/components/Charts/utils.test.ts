@@ -7,6 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     isAngleInSlice,
+    isCursorInSkewedLabel,
     labelOverhang,
     maxVisibleCount,
     normalizeAngle,
@@ -365,5 +366,71 @@ describe('processDataIntoSlices', () => {
         const uniqueColors = new Set(colors);
 
         expect(uniqueColors.size).toBe(4);
+    });
+});
+
+describe('isCursorInSkewedLabel', () => {
+    // Axis-aligned unit square: clockwise rightUpper -> rightLower -> leftLower -> leftUpper
+    const unitSquare = [
+        {x: 1, y: 0},
+        {x: 1, y: 1},
+        {x: 0, y: 1},
+        {x: 0, y: 0},
+    ];
+
+    it('returns true when cursor is inside the quadrilateral', () => {
+        expect(isCursorInSkewedLabel(0.5, 0.5, unitSquare)).toBe(true);
+    });
+
+    it('returns false when cursor is to the left of the polygon', () => {
+        expect(isCursorInSkewedLabel(-0.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is to the right of the polygon', () => {
+        expect(isCursorInSkewedLabel(1.5, 0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is above the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, -0.5, unitSquare)).toBe(false);
+    });
+
+    it('returns false when cursor is below the polygon', () => {
+        expect(isCursorInSkewedLabel(0.5, 1.5, unitSquare)).toBe(false);
+    });
+
+    it('returns true when cursor is on an edge (boundary)', () => {
+        expect(isCursorInSkewedLabel(1, 0.5, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(0.5, 0, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is at a vertex', () => {
+        expect(isCursorInSkewedLabel(0, 0, unitSquare)).toBe(true);
+        expect(isCursorInSkewedLabel(1, 1, unitSquare)).toBe(true);
+    });
+
+    it('returns true when cursor is inside a skewed (45°) parallelogram', () => {
+        // Parallelogram: rightUpper (5,0), rightLower (6,1), leftLower (1,1), leftUpper (0,0)
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(3, 0.5, skewed)).toBe(true);
+    });
+
+    it('returns false when cursor is outside a skewed parallelogram', () => {
+        const skewed = [
+            {x: 5, y: 0},
+            {x: 6, y: 1},
+            {x: 1, y: 1},
+            {x: 0, y: 0},
+        ];
+        expect(isCursorInSkewedLabel(10, 10, skewed)).toBe(false);
+        expect(isCursorInSkewedLabel(-1, 0.5, skewed)).toBe(false);
+    });
+
+    it('returns true for empty corners (no edges to cross)', () => {
+        expect(isCursorInSkewedLabel(0, 0, [])).toBe(true);
     });
 });

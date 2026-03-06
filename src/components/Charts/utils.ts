@@ -288,7 +288,28 @@ function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: Labe
     }
     return Infinity;
 }
-
+// Point-in-convex-polygon test using cross products
+// Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<{x: number; y: number}>): boolean {
+    let sign = 0;
+    for (let i = 0; i < corners.length; i++) {
+        const a = corners.at(i);
+        const b = corners.at((i + 1) % corners.length);
+        if (a == null || b == null) {
+            continue;
+        }
+        const cross = (b.x - a.x) * (cursorY - a.y) - (b.y - a.y) * (cursorX - a.x);
+        if (cross !== 0) {
+            const crossSign = cross > 0 ? 1 : -1;
+            if (sign === 0) {
+                sign = crossSign;
+            } else if (crossSign !== sign) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
@@ -307,4 +328,5 @@ export {
     labelOverhang,
     edgeLabelsFit,
     edgeMaxLabelWidth,
+    isCursorInSkewedLabel,
 };
