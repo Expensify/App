@@ -130,6 +130,23 @@ const currentUserPersonalDetails: CurrentUserPersonalDetails = {
     avatar: 'https://example.com/avatar.jpg',
 };
 
+const getPolicyTags = async (reportID: string) => {
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
+    await getOnyxData({
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+        waitForCollectionCallback: true,
+        callback: (value) => {
+            allPolicyTags = value;
+        },
+    });
+
+    const splitTransactionReport = getReportOrDraftReport(reportID);
+    const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
+    const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+    return policyTags;
+};
+
 let mockFetch: MockFetch;
 
 beforeAll(() => {
@@ -2756,17 +2773,7 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const transactionReport = getReportOrDraftReport(reportID);
-        const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-        const updateExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
-        let policyTags: PolicyTagLists = {};
-        await getOnyxData({
-            waitForCollectionCallback: true,
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            callback: (tags) => {
-                policyTags = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${updateExpenseReport?.policyID}`] ?? {};
-            },
-        });
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -2887,17 +2894,7 @@ describe('updateSplitTransactions', () => {
         await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, waitForCollectionCallback: true, callback: (v) => (allReportNameValuePairs = v)});
 
         const reportID = originalTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
-        const transactionReport = getReportOrDraftReport(reportID);
-        const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
-        const updateExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
-        let policyTags: PolicyTagLists = {};
-        await getOnyxData({
-            waitForCollectionCallback: true,
-            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
-            callback: (tags) => {
-                policyTags = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${updateExpenseReport?.policyID}`] ?? {};
-            },
-        });
+        const policyTags = await getPolicyTags(reportID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
