@@ -310,6 +310,39 @@ function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<
     }
     return true;
 }
+
+/** Params for axis-aligned and 45° label hit-test; 90° uses yMin90/yMax90. */
+type ChartLabelHitTestParams = {
+    cursorX: number;
+    cursorY: number;
+    targetX: number;
+    labelY: number;
+    angleRad: number;
+    halfWidth: number;
+    padding: number;
+    /** For 45°: corners [rightUpper, rightLower, leftLower, leftUpper]. */
+    corners45?: Array<{x: number; y: number}>;
+    /** For 90° vertical label: vertical bounds. */
+    yMin90: number;
+    yMax90: number;
+};
+
+/**
+ * Shared hit-test for chart x-axis labels at 0°, 45°, or 90°.
+ * Used by BarChart and LineChart to detect cursor over rotated labels.
+ */
+function isCursorOverChartLabel(params: ChartLabelHitTestParams): boolean {
+    const {cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90} = params;
+    if (angleRad === 0) {
+        return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
+    }
+    if (angleRad < 1 && corners45?.length === 4) {
+        return isCursorInSkewedLabel(cursorX, cursorY, corners45);
+    }
+    // 90°
+    return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
+}
+
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
@@ -329,4 +362,7 @@ export {
     edgeLabelsFit,
     edgeMaxLabelWidth,
     isCursorInSkewedLabel,
+    isCursorOverChartLabel,
 };
+
+export type {ChartLabelHitTestParams};

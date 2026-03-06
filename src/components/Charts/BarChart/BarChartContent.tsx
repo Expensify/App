@@ -15,7 +15,7 @@ import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, isCursorInSkewedLabel, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor, isCursorOverChartLabel, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -176,53 +176,44 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
+
     const checkIsOverLabel = (args: HitTestArgs, activeIndex: number) => {
         'worklet';
 
         if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
             return false;
         }
+
+        const padding = variables.iconSizeExtraSmall / 2;
+
         const {labelYOffset, iconSin, halfLabelSins, labelSins, halfWidths} = labelHitGeometry;
         const halfLabelWidth = halfWidths.at(activeIndex) ?? 0;
         const labelY = args.chartBottom + labelYOffset;
 
-        if (angleRad === 0) {
-            return (
-                args.cursorX >= args.targetX - halfLabelWidth &&
-                args.cursorX <= args.targetX + halfLabelWidth &&
-                args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
-                args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
-            );
-        }
-        // 45°
-        if (angleRad < 1) {
+        let corners45: Array<{x: number; y: number}> | undefined;
+        if (angleRad > 0 && angleRad < 1) {
             const halfLabelSin = halfLabelSins.at(activeIndex) ?? 0;
             const labelSin = labelSins.at(activeIndex) ?? 0;
-            const rightUpperCorner = {
-                x: args.targetX + halfLabelSin,
-                y: labelY - halfLabelSin,
-            };
-            const rightLowerCorner = {
-                x: rightUpperCorner.x + iconSin,
-                y: rightUpperCorner.y + iconSin,
-            };
-            const leftUpperCorner = {
-                x: rightUpperCorner.x - labelSin,
-                y: rightUpperCorner.y + labelSin,
-            };
-            const leftLowerCorner = {
-                x: rightLowerCorner.x - labelSin,
-                y: rightLowerCorner.y + labelSin,
-            };
-            return isCursorInSkewedLabel(args.cursorX, args.cursorY, [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner]);
+            const rightUpperCorner = {x: args.targetX + halfLabelSin, y: labelY - halfLabelSin};
+            const rightLowerCorner = {x: rightUpperCorner.x + iconSin, y: rightUpperCorner.y + iconSin};
+            const leftUpperCorner = {x: rightUpperCorner.x - labelSin, y: rightUpperCorner.y + labelSin};
+            const leftLowerCorner = {x: rightLowerCorner.x - labelSin, y: rightLowerCorner.y + labelSin};
+            corners45 = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
         }
-        // 90°
-        return (
-            args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
-            args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
-            args.cursorY >= labelY - halfLabelWidth &&
-            args.cursorY <= labelY + halfLabelWidth
-        );
+
+        // Shared hit-test from utils; run in worklet via closure (boolean return)
+        return isCursorOverChartLabel({
+            cursorX: args.cursorX,
+            cursorY: args.cursorY,
+            targetX: args.targetX,
+            labelY,
+            angleRad,
+            halfWidth: halfLabelWidth,
+            padding,
+            corners45,
+            yMin90: labelY - halfLabelWidth + padding,
+            yMax90: labelY + halfLabelWidth + padding,
+        });
     };
 
     /**
