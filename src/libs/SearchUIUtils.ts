@@ -1661,12 +1661,14 @@ function getToFieldValueForTransaction(
 }
 
 function getColumnWidth(currentMaxWidth: number, columnValue: string | null | undefined): number {
-    const maxColumnWidth = 400;
+    const maxColumnWidthPx = 400;
+    // The actual average length, but lets add padding so we're more accurate, we'd
+    // rather go over the actual length, than under and have the text be cut off
     // const averageCharacterLength = 7.68;
-    const averageCharacterLengthWithPadding = 8.45;
-    const columnValueLength = columnValue?.length ?? 0;
+    const averageCharacterPxWithPadding = 8.45;
+    const columnValueCharLength = columnValue?.length ?? 0;
 
-    return Math.min(maxColumnWidth, Math.max(currentMaxWidth, columnValueLength * averageCharacterLengthWithPadding));
+    return Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding));
 }
 
 /**
