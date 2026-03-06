@@ -208,7 +208,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if (isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
         if (bankAccountIDParam) {
