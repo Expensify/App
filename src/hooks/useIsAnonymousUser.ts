@@ -11,7 +11,7 @@ const authTokenTypeSelector = (session: OnyxEntry<Session>) => session?.authToke
  * Returns true if the user's auth token type is ANONYMOUS, false otherwise
  */
 function useIsAnonymousUser() {
-    const [authTokenType = CONST.AUTH_TOKEN_TYPES.ANONYMOUS] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const [authTokenType] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
