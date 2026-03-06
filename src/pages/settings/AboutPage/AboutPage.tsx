@@ -188,6 +188,9 @@ function AboutPage() {
                 <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
                     <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy')} />
                 </View>
+                <View style={[styles.renderHTML, styles.pl5, styles.mb5]}>
+                    <RenderHTML html={translate('termsOfUse.license')} />
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );
