@@ -47,7 +47,6 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
-    customCardNames,
     onDEWModalOpen,
     isDEWBetaEnabled,
     lastPaymentMethod,
@@ -109,14 +108,6 @@ function TransactionListItem<TItem extends ListItem>({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
-
-    const amountColumnSize = transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const taxAmountColumnSize = transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const dateColumnSize = transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const submittedColumnSize = transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const approvedColumnSize = transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const postedColumnSize = transactionItem.shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
-    const exportedColumnSize = transactionItem.shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     // Prefer live Onyx policy data over snapshot to ensure fresh policy settings
     // like isAttendeeTrackingEnabled is not missing
@@ -217,20 +208,12 @@ function TransactionListItem<TItem extends ListItem>({
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={!!transactionItem.isSelected}
                             isDisabled={!!isDisabled}
-                            dateColumnSize={dateColumnSize}
-                            submittedColumnSize={submittedColumnSize}
-                            approvedColumnSize={approvedColumnSize}
-                            postedColumnSize={postedColumnSize}
-                            exportedColumnSize={exportedColumnSize}
-                            amountColumnSize={amountColumnSize}
-                            taxAmountColumnSize={taxAmountColumnSize}
                             shouldShowCheckbox={!!canSelectMultiple}
                             checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
                             style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
                             violations={transactionViolations}
                             onArrowRightPress={() => onSelectRow(item, transactionPreviewData)}
                             isHover={hovered}
-                            customCardNames={customCardNames}
                             reportActions={exportedReportActions}
                         />
                     </>

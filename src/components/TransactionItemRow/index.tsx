@@ -6,16 +6,15 @@ import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
-import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
+import type {SearchColumnType} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import ExportedIconCell from '@components/SelectionListWithSections/Search/ExportedIconCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
-import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
-import {TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,25 +23,18 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
-    getExchangeRate,
     getMerchant,
-    getOriginalAmountForDisplay,
-    getOriginalCurrencyForDisplay,
-    getReimbursable,
-    getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
     isScanning,
-    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -54,7 +46,6 @@ import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
-import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
 import TransactionItemRowRBR from './TransactionItemRowRBR';
@@ -113,13 +104,6 @@ type TransactionItemRowProps = {
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
-    dateColumnSize: TableColumnSize;
-    submittedColumnSize?: TableColumnSize;
-    approvedColumnSize?: TableColumnSize;
-    postedColumnSize?: TableColumnSize;
-    exportedColumnSize?: TableColumnSize;
-    amountColumnSize: TableColumnSize;
-    taxAmountColumnSize: TableColumnSize;
     onCheckboxPress?: (transactionID: string) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
@@ -138,7 +122,6 @@ type TransactionItemRowProps = {
     onArrowRightPress?: () => void;
     isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
-    customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
 };
@@ -165,13 +148,6 @@ function TransactionItemRow({
     shouldUseNarrowLayout,
     isSelected,
     shouldShowTooltip,
-    dateColumnSize,
-    submittedColumnSize,
-    approvedColumnSize,
-    postedColumnSize,
-    exportedColumnSize,
-    amountColumnSize,
-    taxAmountColumnSize,
     onCheckboxPress = () => {},
     shouldShowCheckbox = false,
     columns,
@@ -190,7 +166,6 @@ function TransactionItemRow({
     onArrowRightPress,
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
-    customCardNames,
     reportActions,
     checkboxSentryLabel,
 }: TransactionItemRowProps) {
