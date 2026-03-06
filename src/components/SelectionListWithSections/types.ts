@@ -122,9 +122,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
 
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
-
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
 } & TRightHandSideComponent<TItem>;
@@ -491,6 +488,18 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Pre-computed total display spend amount */
+        totalDisplaySpend?: number;
+
+        /** Pre-computed non-reimbursable spend amount */
+        nonReimbursableSpend?: number;
+
+        /** Pre-computed reimbursable spend amount */
+        reimbursableSpend?: number;
+
+        /** Pre-computed flag indicating whether all transactions are scanning */
+        isAllScanning?: boolean;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
@@ -917,7 +926,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     showScrollIndicator?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** The component to show when the list is loading */
     LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;

@@ -34,6 +34,10 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): R
     const [pathWithoutQuery, query] = splitPathAndQuery(fullPath);
     const pathWithoutDynamicSuffix = pathWithoutQuery?.slice(0, -(dynamicSuffix.length + 1)) ?? '';
 
+    if (!pathWithoutDynamicSuffix || pathWithoutDynamicSuffix === '/') {
+        return '';
+    }
+
     const paramsToStrip = getQueryParamsToStrip(dynamicSuffix);
     let filteredQuery = query;
     if (paramsToStrip?.length && query) {
