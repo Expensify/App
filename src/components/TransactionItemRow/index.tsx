@@ -207,14 +207,6 @@ function TransactionItemRow({
     const formattedValues = transactionItem.formattedValues;
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
 
-    const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-    const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
             return EMPTY_ACTIVE_STYLE;
@@ -253,22 +245,6 @@ function TransactionItemRow({
             return error;
         }
     }, [transactionItem, translate, report, policy]);
-
-    const exchangeRateMessage = getExchangeRate(transactionItem);
-
-    const cardName = useMemo(() => {
-        if (transactionItem.isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedFeed');
-        }
-        if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-            return '';
-        }
-        const cardID = transactionItem.cardID;
-        if (cardID && customCardNames?.[cardID]) {
-            return customCardNames[cardID];
-        }
-        return transactionItem.cardName;
-    }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -328,7 +304,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, ...measurements.approved}}
+                        style={{flex: 1, minWidth: measurements.approved}}
                     >
                         <TextCell text={formattedValues.approved} />
                     </View>
@@ -405,31 +381,18 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
+                        style={{flex: 1, minWidth: measurements.merchant}}
                     >
-                        {!!merchant && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={merchant}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                            />
-                        )}
+                        <TextCell text={merchant} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
+                        style={{flex: 1, minWidth: measurements.description}}
                     >
-                        {!!description && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={description}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                                isDescription
-                            />
-                        )}
+                        <TextCell text={description} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -466,9 +429,9 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
+                        style={{flex: 1, minWidth: measurements.card}}
                     >
-                        <TextCell text={cardName} />
+                        <TextCell text={formattedValues.card} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
@@ -487,75 +450,63 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE)]}
+                        style={{flex: 1, minWidth: measurements.exchangeRate}}
                     >
-                        <TextCell text={exchangeRateMessage} />
+                        <TextCell text={formattedValues.exchangeRate} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.amount}}
                     >
-                        <TotalCell
-                            transactionItem={transactionItem}
-                            shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.amount} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.originalAmount}}
                     >
-                        <AmountCell
-                            total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
-                            currency={getOriginalCurrencyForDisplay(transactionItem)}
-                        />
+                        <TextCell text={formattedValues.originalAmount} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}
+                        style={{flex: 1, minWidth: measurements.reportID}}
                     >
-                        <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : transactionItem.reportID} />
+                        <TextCell text={formattedValues.reportID} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
+                        style={{flex: 1, minWidth: measurements.longReportID}}
                     >
-                        <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                        <TextCell text={formattedValues.longReportID} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
+                        style={{flex: 1, minWidth: measurements.taxRate}}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={formattedValues.taxRate} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.taxAmount}}
                     >
-                        {isTimeRequest(transactionItem) ? null : (
-                            <TaxCell
-                                transactionItem={transactionItem}
-                                shouldShowTooltip={shouldShowTooltip}
-                            />
-                        )}
+                        <TextCell text={formattedValues.taxAmount} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
@@ -574,12 +525,9 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}
+                        style={{flex: 1, minWidth: measurements.title}}
                     >
-                        <TextCell
-                            text={getReportName(transactionItem.report) || (transactionItem.report?.reportName ?? '')}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
+                        <TextCell text={getReportName(transactionItem.report)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.STATUS:
