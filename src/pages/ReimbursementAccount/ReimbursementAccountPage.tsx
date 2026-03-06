@@ -238,7 +238,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
             return;
         }
 
-        if (policyIDParam) {
+        // Skip clearing the draft when coming from BankAccountPurposePage, since country/currency
+        // was just set in the draft and needs to be preserved for the non-USD setup flow.
+        const isFromBankAccountPurposePage = backTo === ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE;
+        if (policyIDParam && !isFromBankAccountPurposePage) {
             setReimbursementAccountLoading(true);
             clearReimbursementAccountDraft();
         }

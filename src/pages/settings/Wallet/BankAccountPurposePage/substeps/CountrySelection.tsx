@@ -63,7 +63,7 @@ function CountrySelection() {
         }
         clearReimbursementAccountDraft();
         updateReimbursementAccountDraft({country: selectedCountry as Country, currency: CONST.BBA_COUNTRY_CURRENCY_MAP[selectedCountry]});
-        navigateToBankAccountRoute({backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
+        navigateToBankAccountRoute({policyID: personalPolicy?.id, backTo: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE});
     };
 
     return (
