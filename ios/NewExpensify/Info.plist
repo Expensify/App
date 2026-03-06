@@ -132,6 +132,8 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>
