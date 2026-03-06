@@ -57,6 +57,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
+    const reportActionsRef = useRef(reportActions);
+    reportActionsRef.current = reportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -374,7 +376,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(
+                    report,
+                    reportAction,
+                    ancestorsRef.current,
+                    isReportArchived,
+                    isOriginalReportArchived,
+                    email ?? '',
+                    visibleReportActionsData ?? undefined,
+                    reportActionsRef.current ?? undefined,
+                );
             });
         }
 
