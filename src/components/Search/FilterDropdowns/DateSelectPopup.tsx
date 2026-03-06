@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -60,17 +60,12 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         [value],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
-    const selectedDateModifierTitle = useMemo(() => {
-        if (!selectedDateModifier) {
-            return '';
-        }
-
-        if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            return `${translate('statusPage.timePeriods.custom')} ${translate('common.range')}`;
-        }
-
-        return `${translate('statusPage.timePeriods.custom')} ${translate('common.date')}`;
-    }, [selectedDateModifier, translate]);
+    let selectedDateModifierTitle = '';
+    if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+        selectedDateModifierTitle = translate('search.filters.date.customRange');
+    } else if (selectedDateModifier) {
+        selectedDateModifierTitle = translate('search.filters.date.customDate');
+    }
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
@@ -84,6 +79,14 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             setPopoverWidth?.(undefined);
         }
     }, [selectedDateModifier, setPopoverWidth]);
+
+    useLayoutEffect(() => {
+        if (!shouldShowRangeError || selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return;
+        }
+
+        scrollViewRef.current?.scrollToEnd({animated: true});
+    }, [selectedDateModifier, shouldShowRangeError]);
 
     const clearSelection = useCallback(() => {
         setSelectedDateModifier(null);
@@ -105,9 +108,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
         if (selectedDateModifier) {
             if (!searchDatePresetFilterBaseRef.current.validate()) {
-                setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({animated: true});
-                }, 100);
                 return;
             }
 
@@ -134,25 +134,69 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
             return;
         }
 
-        const emptyDateValues: SearchDateValues = {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-        };
         searchDatePresetFilterBaseRef.current.clearDateValues();
         setRangeText('');
         setShouldShowRangeError(false);
-        onChange(emptyDateValues);
+        onChange(searchDatePresetFilterBaseRef.current.getDateValues());
         closeOverlay();
     }, [closeOverlay, onChange, selectedDateModifier, updateRangeText]);
-
-    const isInRangeMode = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 
     // For non-Range modes, use original simple styles. For Range, use custom layout
-    const useRangeLayout = isInRangeMode;
+    const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
+    const resetText = translate('common.reset');
+    const applyText = translate('common.apply');
+    const rangeLabel = `${translate('common.range')}: `;
+    const renderSelectedDateModifierHeader = (useCompactLayout = false) => {
+        if (useCompactLayout) {
+            return (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
+                    <PressableWithoutFeedback
+                        onPress={handleBackPress}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.back')}
+                        sentryLabel="DateSelectPopup-Back"
+                    >
+                        <Icon
+                            src={backArrowIcon.BackArrow}
+                            fill={theme.icon}
+                        />
+                    </PressableWithoutFeedback>
+                    <Text style={[styles.textLabelSupporting]}>{selectedDateModifierTitle}</Text>
+                </View>
+            );
+        }
+
+        return (
+            <HeaderWithBackButton
+                shouldDisplayHelpButton={false}
+                style={[styles.h10, styles.pb3]}
+                subtitle={selectedDateModifierTitle}
+                onBackButtonPress={handleBackPress}
+            />
+        );
+    };
+    const selectedDateModifierHeader = selectedDateModifier ? renderSelectedDateModifierHeader(isSmallScreenWidth && useRangeLayout) : undefined;
+    const renderActionButtons = (containerStyle: React.ComponentProps<typeof View>['style'], resetSentryLabel?: string, applySentryLabel?: string) => (
+        <View style={containerStyle}>
+            <Button
+                medium
+                style={[styles.flex1]}
+                text={resetText}
+                onPress={resetChanges}
+                sentryLabel={resetSentryLabel}
+            />
+            <Button
+                success
+                medium
+                style={[styles.flex1]}
+                text={applyText}
+                onPress={applyChanges}
+                sentryLabel={applySentryLabel}
+            />
+        </View>
+    );
     const datePresetFilterBase = (
         <DatePresetFilterBase
             ref={searchDatePresetFilterBaseRef}
@@ -170,14 +214,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         return (
             <View style={[styles.pv4, styles.gap2]}>
                 <View>
-                    {!!selectedDateModifier && (
-                        <HeaderWithBackButton
-                            shouldDisplayHelpButton={false}
-                            style={[styles.h10, styles.pb3]}
-                            subtitle={selectedDateModifierTitle}
-                            onBackButtonPress={handleBackPress}
-                        />
-                    )}
+                    {selectedDateModifierHeader}
                     {datePresetFilterBase}
                 </View>
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
@@ -185,29 +222,13 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         <View style={[styles.flex1, styles.mr2]}>
                             {!!displayedRangeText && (
                                 <Text style={[styles.textLabelSupporting]}>
-                                    {`${translate('common.range')}: `}
+                                    {rangeLabel}
                                     <Text style={[styles.textLabel]}>{displayedRangeText}</Text>
                                 </Text>
                             )}
                         </View>
                     )}
-                    <View style={[styles.flex1, useRangeLayout && styles.ml2]}>
-                        <View style={[styles.flexRow, styles.gap2]}>
-                            <Button
-                                medium
-                                style={[styles.flex1]}
-                                text={translate('common.reset')}
-                                onPress={resetChanges}
-                            />
-                            <Button
-                                success
-                                medium
-                                style={[styles.flex1]}
-                                text={translate('common.apply')}
-                                onPress={applyChanges}
-                            />
-                        </View>
-                    </View>
+                    <View style={[styles.flex1, useRangeLayout && styles.ml2]}>{renderActionButtons([styles.flexRow, styles.gap2])}</View>
                 </View>
             </View>
         );
@@ -227,55 +248,16 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                 style={useRangeLayout ? [styles.flexGrow1] : undefined}
                 contentContainerStyle={useRangeLayout ? [!selectedDateModifier && styles.pt4, selectedDateModifier && styles.pt0] : undefined}
             >
-                {!!selectedDateModifier &&
-                    (useRangeLayout ? (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
-                            <PressableWithoutFeedback
-                                onPress={handleBackPress}
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('common.back')}
-                                sentryLabel="DateSelectPopup-Back"
-                            >
-                                <Icon
-                                    src={backArrowIcon.BackArrow}
-                                    fill={theme.icon}
-                                />
-                            </PressableWithoutFeedback>
-                            <Text style={[styles.textLabelSupporting]}>{selectedDateModifierTitle}</Text>
-                        </View>
-                    ) : (
-                        <HeaderWithBackButton
-                            shouldDisplayHelpButton={false}
-                            style={[styles.h10, styles.pb3]}
-                            subtitle={selectedDateModifierTitle}
-                            onBackButtonPress={handleBackPress}
-                        />
-                    ))}
+                {selectedDateModifierHeader}
                 {datePresetFilterBase}
             </ScrollView>
             {!!displayedRangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
                 <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignLeft]}>
-                    {`${translate('common.range')}: `}
+                    {rangeLabel}
                     <Text style={[styles.textLabel]}>{displayedRangeText}</Text>
                 </Text>
             )}
-            <View style={mobileButtonRowStyle}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_DATE}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE}
-                />
-            </View>
+            {renderActionButtons(mobileButtonRowStyle, CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_DATE, CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_DATE)}
         </View>
     );
 }

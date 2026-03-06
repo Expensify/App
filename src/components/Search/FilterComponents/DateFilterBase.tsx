@@ -95,10 +95,10 @@ function DateFilterBase({title, dateKey, back, onSubmit}: DateFilterBaseProps) {
     const computedTitle = useMemo(() => {
         if (selectedDateModifier) {
             if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-                return `${translate('statusPage.timePeriods.custom')} ${translate('common.range')}`;
+                return translate('search.filters.date.customRange');
             }
 
-            return `${translate('statusPage.timePeriods.custom')} ${translate('common.date')}`;
+            return translate('search.filters.date.customDate');
         }
 
         return title;

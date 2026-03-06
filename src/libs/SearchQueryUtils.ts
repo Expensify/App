@@ -1,3 +1,4 @@
+import {addDays, format, parse} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -143,41 +144,46 @@ function getRangeQueryValue(from?: string, to?: string) {
     return '';
 }
 
-function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackFrom?: string, fallbackTo?: string) {
-    if (!rangeValue) {
+function getInclusiveRangeBoundary(date?: string, dayOffset = 0) {
+    const validDate = date ?? '';
+    if (!isValidDate(validDate)) {
+        return undefined;
+    }
+
+    return format(addDays(parse(validDate, 'yyyy-MM-dd', new Date()), dayOffset), 'yyyy-MM-dd');
+}
+
+function getRangeBoundariesFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string) {
+    const parsedRange = parseRangeQueryValue(rangeValue);
+    if (rangeValue && (parsedRange.from || parsedRange.to)) {
+        return parsedRange;
+    }
+
+    const from = getInclusiveRangeBoundary(fallbackAfter, 1);
+    const to = getInclusiveRangeBoundary(fallbackBefore, -1);
+
+    if (from && to && from > to) {
         return {
             from: undefined,
             to: undefined,
         };
     }
 
-    const parsedRange = parseRangeQueryValue(rangeValue);
-    if (parsedRange.from || parsedRange.to) {
-        return parsedRange;
-    }
-
     return {
-        from: isValidDate(fallbackFrom ?? '') ? fallbackFrom : undefined,
-        to: isValidDate(fallbackTo ?? '') ? fallbackTo : undefined,
+        from,
+        to,
     };
 }
 
-function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackFrom?: string, fallbackTo?: string, shouldHideCurrentYearForRange = false) {
-    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackFrom, fallbackTo);
+function getDateRangeDisplayValueFromFormValue(rangeValue?: string, fallbackAfter?: string, fallbackBefore?: string, shouldOmitCurrentYear = false) {
+    if (!rangeValue) {
+        return '';
+    }
+
+    const rangeBoundaries = getRangeBoundariesFromFormValue(rangeValue, fallbackAfter, fallbackBefore);
     if (rangeBoundaries.from && rangeBoundaries.to) {
-        if (!shouldHideCurrentYearForRange) {
-            return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, true);
-        }
-
-        const shouldShowFullYear = DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
-        const formattedRange = DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear);
-
-        if (shouldShowFullYear) {
-            return formattedRange;
-        }
-
-        const currentYearSuffix = `, ${new Date().getFullYear()}`;
-        return formattedRange.endsWith(currentYearSuffix) ? formattedRange.slice(0, -currentYearSuffix.length) : formattedRange;
+        const shouldShowFullYear = !shouldOmitCurrentYear || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.from) || DateUtils.doesDateBelongToAPastYear(rangeBoundaries.to);
+        return DateUtils.getFormattedDateRangeForSearch(rangeBoundaries.from, rangeBoundaries.to, shouldShowFullYear, shouldOmitCurrentYear);
     }
 
     const singleBoundary = rangeBoundaries.from ?? rangeBoundaries.to;
@@ -195,10 +201,9 @@ function parseRangeQueryValue(rangeValue?: string) {
     const [rawFrom = '', rawTo = ''] = rangeValue.split(',', 2);
     const from = isValidDate(rawFrom) ? rawFrom : undefined;
     const to = isValidDate(rawTo) ? rawTo : undefined;
-    const singleBoundary = !rangeValue.includes(',') && isValidDate(rangeValue) ? rangeValue : undefined;
 
     return {
-        from: from ?? singleBoundary,
+        from,
         to,
     };
 }

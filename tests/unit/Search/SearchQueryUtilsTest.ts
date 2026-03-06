@@ -15,6 +15,7 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
+    getRangeBoundariesFromFormValue,
     shouldHighlight,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
@@ -69,16 +70,25 @@ describe('SearchQueryUtils', () => {
             expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
         });
 
-        test('falls back to after and before values when range value is invalid', () => {
+        test('falls back to inclusive boundaries when range value is invalid', () => {
             const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
 
-            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
         });
 
         test('returns empty string when no valid range boundaries exist', () => {
             const result = getDateRangeDisplayValueFromFormValue('invalid');
 
             expect(result).toBe('');
+        });
+    });
+
+    describe('getRangeBoundariesFromFormValue', () => {
+        test('falls back to inclusive boundaries when range value is missing', () => {
+            expect(getRangeBoundariesFromFormValue(undefined, '2025-03-01', '2025-03-10')).toEqual({
+                from: '2025-03-02',
+                to: '2025-03-09',
+            });
         });
     });
 
@@ -319,36 +329,6 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)?.filters).toEqual([
                 {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2025-03-10'},
             ]);
-        });
-
-        test('range mode keeps after and before filters independent for date filters even when boundaries match', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                dateAfter: '2025-03-01',
-                dateBefore: '2025-03-10',
-                dateRange: '2025-03-01,2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('date>=2025-03-01');
-            expect(result).toContain('date<=2025-03-10');
-            expect(result).toContain('date>2025-03-01');
-            expect(result).toContain('date<2025-03-10');
-        });
-
-        test('range mode keeps after and before filters independent for report field date filters even when boundaries match', () => {
-            const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                type: 'expense',
-                'reportFieldAfter-start-date': '2025-03-01',
-                'reportFieldBefore-start-date': '2025-03-10',
-                'reportFieldRange-start-date': '2025-03-01,2025-03-10',
-            };
-
-            const result = buildQueryStringFromFilterFormValues(filterValues);
-            expect(result).toContain('reportField-start-date>=2025-03-01');
-            expect(result).toContain('reportField-start-date<=2025-03-10');
-            expect(result).toContain('reportField-start-date>2025-03-01');
-            expect(result).toContain('reportField-start-date<2025-03-10');
         });
 
         test('invalid range value keeps after and before filters exclusive', () => {
