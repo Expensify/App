@@ -11,6 +11,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -73,9 +74,17 @@ type SearchFiltersParticipantsSelectorProps = {
 
     /** Whether to allow name-only options (for attendee filter only) */
     shouldAllowNameOnlyOptions?: boolean;
+
+    /** Whether to scope personal details to workspace members only and allow free text email input */
+    shouldScopeToWorkspaceMembers?: boolean;
 };
 
-function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, shouldAllowNameOnlyOptions = false}: SearchFiltersParticipantsSelectorProps) {
+function SearchFiltersParticipantsSelector({
+    initialAccountIDs,
+    onFiltersUpdate,
+    shouldAllowNameOnlyOptions = false,
+    shouldScopeToWorkspaceMembers = false,
+}: SearchFiltersParticipantsSelectorProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -103,6 +112,27 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
+    // Collect all workspace member accountIDs across the user's policies to scope the filter suggestions
+    const workspaceMemberAccountIDs = useMemo(() => {
+        if (!shouldScopeToWorkspaceMembers || !allPolicies) {
+            return undefined;
+        }
+        const memberIDs = new Set<number>();
+        for (const policy of Object.values(allPolicies)) {
+            if (!policy?.employeeList) {
+                continue;
+            }
+            const members = getMemberAccountIDsForWorkspace(policy.employeeList);
+            for (const accountID of Object.values(members)) {
+                memberIDs.add(accountID);
+            }
+        }
+        memberIDs.add(currentUserAccountID);
+        return memberIDs;
+    }, [shouldScopeToWorkspaceMembers, allPolicies, currentUserAccountID]);
+
+    const allowFreeTextInput = shouldAllowNameOnlyOptions || shouldScopeToWorkspaceMembers;
+
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -122,10 +152,10 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
-                shouldAcceptName: shouldAllowNameOnlyOptions,
-                includeUserToInvite: shouldAllowNameOnlyOptions,
+                shouldAcceptName: allowFreeTextInput,
+                includeUserToInvite: allowFreeTextInput,
                 recentAttendees: recentAttendeeLists,
-                includeRecentReports: !shouldAllowNameOnlyOptions,
+                includeRecentReports: !allowFreeTextInput,
                 personalDetails,
                 countryCode,
             },
@@ -140,18 +170,29 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         loginList,
         countryCode,
         recentAttendeeLists,
-        shouldAllowNameOnlyOptions,
+        allowFreeTextInput,
         personalDetails,
         currentUserAccountID,
         currentUserEmail,
     ]);
 
+    // When shouldScopeToWorkspaceMembers is true, filter personalDetails to only workspace members
+    const scopedDefaultOptions = useMemo(() => {
+        if (!workspaceMemberAccountIDs) {
+            return defaultOptions;
+        }
+        return {
+            ...defaultOptions,
+            personalDetails: defaultOptions.personalDetails.filter((pd) => pd.accountID && workspaceMemberAccountIDs.has(pd.accountID)),
+        };
+    }, [defaultOptions, workspaceMemberAccountIDs]);
+
     const unselectedOptions = useMemo(() => {
-        if (!shouldAllowNameOnlyOptions) {
-            return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
+        if (!allowFreeTextInput) {
+            return filterSelectedOptions(scopedDefaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
         }
 
-        // For name-only options, filter by both accountID (for regular users) AND login (for name-only attendees)
+        // For free text input, filter by both accountID (for regular users) AND login (for name-only entries)
         const selectedAccountIDs = new Set(selectedOptions.map((option) => option.accountID).filter((id): id is number => !!id && id !== CONST.DEFAULT_NUMBER_ID));
         const selectedLogins = new Set(selectedOptions.map((option) => option.login).filter((login): login is string => !!login));
 
@@ -166,19 +207,19 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         };
 
         return {
-            ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.filter((option) => !isSelected(option)),
-            recentReports: defaultOptions.recentReports.filter((option) => !isSelected(option)),
+            ...scopedDefaultOptions,
+            personalDetails: scopedDefaultOptions.personalDetails.filter((option) => !isSelected(option)),
+            recentReports: scopedDefaultOptions.recentReports.filter((option) => !isSelected(option)),
         };
-    }, [defaultOptions, selectedOptions, shouldAllowNameOnlyOptions]);
+    }, [scopedDefaultOptions, selectedOptions, allowFreeTextInput]);
 
     const chatOptions = useMemo(() => {
         const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: shouldAllowNameOnlyOptions,
-            shouldAcceptName: shouldAllowNameOnlyOptions,
+            canInviteUser: allowFreeTextInput,
+            shouldAcceptName: allowFreeTextInput,
             searchInputValue: searchTerm,
         });
 
@@ -190,7 +231,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, shouldAllowNameOnlyOptions, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, allowFreeTextInput, searchTerm, currentUserEmail, currentUserAccountID, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: SelectionListSections = [];
@@ -269,7 +310,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const applyChanges = useCallback(() => {
         let selectedIdentifiers: string[];
 
-        if (shouldAllowNameOnlyOptions) {
+        if (allowFreeTextInput) {
             selectedIdentifiers = selectedOptions
                 .map((option) => {
                     // For real users (with valid accountID in personalDetails), use accountID
@@ -277,7 +318,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         return option.accountID.toString();
                     }
 
-                    // For name-only attendees, use displayName or login as identifier
+                    // For free text entries, use displayName or login as identifier
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- need || to handle empty string
                     return option.displayName || option.login;
                 })
@@ -288,9 +329,9 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         onFiltersUpdate(selectedIdentifiers);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [onFiltersUpdate, selectedOptions, personalDetails, shouldAllowNameOnlyOptions]);
+    }, [onFiltersUpdate, selectedOptions, personalDetails, allowFreeTextInput]);
 
-    // This effect handles setting initial selectedOptions based on accountIDs (or displayNames for attendee filter)
+    // This effect handles setting initial selectedOptions based on accountIDs (or displayNames/emails for free text filters)
     useEffect(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
             return;
@@ -298,7 +339,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         let preSelectedOptions: OptionData[];
 
-        if (shouldAllowNameOnlyOptions) {
+        if (allowFreeTextInput) {
             preSelectedOptions = initialAccountIDs
                 .map((identifier) => {
                     // First, try to look up as accountID in personalDetails
@@ -315,7 +356,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                     }
 
                     // Fallback: construct a minimal option from the identifier string to preserve
-                    // name-only filters across sessions (e.g., after cache clear or on another device)
+                    // free text filters across sessions (e.g., after cache clear or on another device)
                     return {
                         text: identifier,
                         alternateText: identifier,
@@ -344,23 +385,23 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
         setSelectedOptions(preSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this should react only to changes in form data
-    }, [initialAccountIDs, personalDetails, recentAttendees, shouldAllowNameOnlyOptions]);
+    }, [initialAccountIDs, personalDetails, recentAttendees, allowFreeTextInput]);
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {
             const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                if (shouldAllowNameOnlyOptions) {
+                if (allowFreeTextInput) {
                     // Match by accountID for real users (excluding DEFAULT_NUMBER_ID which is 0)
                     if (selectedOption.accountID && selectedOption.accountID !== CONST.DEFAULT_NUMBER_ID && selectedOption.accountID === option?.accountID) {
                         return true;
                     }
 
-                    // Skip reportID match for default '-1' value (used by name-only attendees)
+                    // Skip reportID match for default '-1' value (used by free text entries)
                     if (selectedOption.reportID && selectedOption.reportID !== '-1' && selectedOption.reportID === option?.reportID) {
                         return true;
                     }
 
-                    // Match by login for name-only attendees
+                    // Match by login for free text entries
                     if (selectedOption.login && selectedOption.login === option?.login) {
                         return true;
                     }
@@ -368,7 +409,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                     return false;
                 }
 
-                // For non-name-only filters, use simple accountID and reportID matching
+                // For non-free-text filters, use simple accountID and reportID matching
                 if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
                     return true;
                 }
@@ -387,7 +428,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 setSelectedOptions(newSelectedOptions);
             }
         },
-        [selectedOptions, shouldAllowNameOnlyOptions],
+        [selectedOptions, allowFreeTextInput],
     );
 
     const footerContent = useMemo(

@@ -1372,7 +1372,7 @@ function processReport(
     }
 
     const isOneOnOneChat = reportUtilsIsOneOnOneChat(report);
-    const accountIDs = getParticipantsAccountIDsForDisplay(report);
+    const accountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const isChatRoom = reportUtilsIsChatRoom(report);
 
     if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
