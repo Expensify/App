@@ -2,7 +2,7 @@
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, findNodeHandle, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, View as RNView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -505,28 +506,12 @@ function BasePopoverMenu({
             if (sendAccessibilityEvent) {
                 if (isAndroid) {
                     sendAccessibilityEvent(target, 'viewHoverEnter');
-                    sendAccessibilityEvent(target, 'focus');
-                    hasFocusedFirstItemOnCurrentOpenRef.current = true;
-                    return true;
                 }
-                sendAccessibilityEvent(target, 'focus');
             }
 
-            const nodeHandle = findNodeHandle(target);
-            const setAccessibilityFocus = typeof AccessibilityInfo.setAccessibilityFocus === 'function' ? AccessibilityInfo.setAccessibilityFocus : undefined;
-            if (nodeHandle && setAccessibilityFocus) {
-                setTimeout(() => setAccessibilityFocus(nodeHandle), 100);
-                hasFocusedFirstItemOnCurrentOpenRef.current = true;
-                return true;
-            }
-
-            if ('focus' in target && typeof target.focus === 'function') {
-                target.focus();
-                hasFocusedFirstItemOnCurrentOpenRef.current = true;
-                return true;
-            }
-
-            return false;
+            Accessibility.moveAccessibilityFocus(firstMenuItemRef);
+            hasFocusedFirstItemOnCurrentOpenRef.current = true;
+            return true;
         };
 
         return focusTarget();

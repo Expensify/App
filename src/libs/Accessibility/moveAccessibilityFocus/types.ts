@@ -1,6 +1,10 @@
-import type {ElementRef, RefObject} from 'react';
-import type {HostComponent} from 'react-native';
+import type {RefObject} from 'react';
+import type {NativeMethods} from 'react-native';
 
-type MoveAccessibilityFocus = (ref?: ElementRef<HostComponent<unknown>> & RefObject<HTMLOrSVGElement>) => void;
+type AccessibilityFocusable = NativeMethods | HTMLOrSVGElement;
+
+type AccessibilityFocusableRef = RefObject<AccessibilityFocusable | null>;
+
+type MoveAccessibilityFocus = (ref?: AccessibilityFocusable | AccessibilityFocusableRef) => void;
 
 export default MoveAccessibilityFocus;

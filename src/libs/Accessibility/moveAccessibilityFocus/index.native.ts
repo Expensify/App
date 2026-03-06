@@ -1,23 +1,19 @@
 import {AccessibilityInfo} from 'react-native';
-import findNodeHandle from '@src/utils/findNodeHandle';
+import type {NativeMethods} from 'react-native';
 import type MoveAccessibilityFocus from './types';
 
 const moveAccessibilityFocus: MoveAccessibilityFocus = (ref) => {
-    if (!ref) {
+    const focusTarget = ref && 'current' in ref ? ref.current : ref;
+
+    if (!focusTarget) {
         return;
     }
 
-    // iOS uses setAccessibilityFocus with a native node handle.
-    const nodeHandle = typeof ref === 'number' ? ref : findNodeHandle(ref);
-    if (nodeHandle) {
-        if (typeof AccessibilityInfo.setAccessibilityFocus === 'function') {
-            AccessibilityInfo.setAccessibilityFocus(nodeHandle);
-            return;
-        }
-    }
+    AccessibilityInfo.sendAccessibilityEvent(focusTarget as NativeMethods, 'focus');
 
-    // Android uses sendAccessibilityEvent.
-    AccessibilityInfo.sendAccessibilityEvent(ref, 'focus');
+    if ('focus' in focusTarget && typeof focusTarget.focus === 'function') {
+        focusTarget.focus();
+    }
 };
 
 export default moveAccessibilityFocus;
