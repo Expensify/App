@@ -25,6 +25,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
+import {close as closeModal} from '@libs/actions/Modal';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
@@ -559,6 +560,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 temporarilyDisableDuplicateAction();
 
                 duplicateTransaction([transaction]);
+
+                setTimeout(() => {
+                    closeModal();
+                }, 1500);
             },
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },

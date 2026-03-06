@@ -43,6 +43,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {close as closeModal} from '@libs/actions/Modal';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
@@ -1834,6 +1835,10 @@ function MoneyReportHeader({
                 temporarilyDisableDuplicateAction();
 
                 duplicateExpenseTransaction([transaction]);
+
+                setTimeout(() => {
+                    closeModal();
+                }, 1500);
             },
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
