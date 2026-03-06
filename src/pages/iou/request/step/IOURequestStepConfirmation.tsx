@@ -1214,19 +1214,27 @@ function IOURequestStepConfirmation({
                             return;
                         }
 
+                        const trackExpenseParentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+                        markSubmitExpenseEnd();
+
+                        startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
+                            name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+                            op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+                            parentSpan: trackExpenseParentSpan,
+                        });
+
                         getCurrentPosition(
                             (successData) => {
                                 trackExpense(selectedParticipants, {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 });
-                                markSubmitExpenseEnd();
+                                endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                                 trackExpense(selectedParticipants);
-                                markSubmitExpenseEnd();
+                                endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
                             },
                         );
                         return;
@@ -1266,19 +1274,27 @@ function IOURequestStepConfirmation({
                         return;
                     }
 
+                    const requestMoneyParentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+                    markSubmitExpenseEnd();
+
+                    startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
+                        name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+                        op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+                        parentSpan: requestMoneyParentSpan,
+                    });
+
                     getCurrentPosition(
                         (successData) => {
                             requestMoney(selectedParticipants, {
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
-                            markSubmitExpenseEnd();
+                            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
                         },
                         (errorData) => {
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             requestMoney(selectedParticipants);
-                            markSubmitExpenseEnd();
+                            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
                         },
                     );
                     return;
