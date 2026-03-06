@@ -144,11 +144,12 @@ jobs:
             op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
             op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
             op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Live_Activity_Extension/OldApp_AppStore_LiveActivityExtension.mobileprovision" --force --out-file ./OldApp_AppStore_LiveActivityExtension.mobileprovision
           else
             op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
             op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
             op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-            op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_LiveActivityExtension/OldApp_AdHoc_LiveActivityExtension.mobileprovision" --force --out-file ./OldApp_AdHoc_LiveActivityExtension.mobileprovision
+            op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Live_Activity_Extension/OldApp_AdHoc_LiveActivityExtension.mobileprovision" --force --out-file ./OldApp_AdHoc_LiveActivityExtension.mobileprovision
           fi
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
