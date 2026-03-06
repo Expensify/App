@@ -208,7 +208,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
      * Retrieve verified business bank account currently being set up.
      */
     function fetchData(preserveCurrentStep = false) {
-        if ((!policyIDParam && !bankAccountIDParam && backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
+        if ((!policyIDParam && !bankAccountIDParam) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
         if (bankAccountIDParam) {
@@ -240,7 +240,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         if (policyIDParam) {
             setReimbursementAccountLoading(true);
-            clearReimbursementAccountDraft();
+            // Don't clear the draft when navigating from BankAccountPurposePage, since it stores the
+            // selected country and currency that the bank account setup flow depends on.
+            if (backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
+                clearReimbursementAccountDraft();
+            }
         }
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
