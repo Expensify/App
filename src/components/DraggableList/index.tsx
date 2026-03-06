@@ -21,6 +21,7 @@ function DraggableList<T>({
     renderItem,
     keyExtractor,
     onDragEnd: onDragEndCallback,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     ListFooterComponent,
     disableScroll,
     ref,

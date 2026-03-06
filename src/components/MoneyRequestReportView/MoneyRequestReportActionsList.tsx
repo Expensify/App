@@ -726,7 +726,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID, introSelected);
+            openReport({reportID: report.reportID, introSelected});
             reportScrollManager.scrollToEnd();
             return;
         }
