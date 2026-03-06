@@ -16,12 +16,12 @@ import ValuePicker from '@components/ValuePicker';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU';
+import {addSubrate, getIOURequestPolicyID, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +68,15 @@ function IOURequestStepSubrate({
     report,
 }: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
-    const policy = usePolicy(report?.policyID);
+    const iouPolicyID = getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: iouPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest: true,
+    });
+
     const customUnit = getPerDiemCustomUnit(policy);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();

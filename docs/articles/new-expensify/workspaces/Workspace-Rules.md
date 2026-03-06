@@ -1,8 +1,11 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over]
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, auto-categorize by merchant]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, or troubleshooting specific rule outcomes.
 ---
+
+# Workspace Rules 
 
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
@@ -10,7 +13,7 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 ---
 
-# How to enable Workspace Rules
+## How to enable Workspace Rules
 
 To activate Rules for your workspace:
 
@@ -31,18 +34,20 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
 - **Max expense amount** – Set a per-expense spending cap (supports decimals).
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
-- **Cash expense default** - Choose whether cash expenses are reimbursable by default. 
-- **Billable default** – Choose whether expenses are billable by default.
+- **Cash expense default** - Choose whether cash expenses are reimbursable by default.
+- **Billable default** – Choose whether expenses are billable by default. 
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
- 
-![Rules page showing all available workspace-level expense rules]({{site.url}}/assets/images/new-expensify-rules.png){:width="100%"}
 
 ---
 
 # What happens if Expense Rules are broken 
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
+
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
+
+---
 
 # How to configure the Prohibited Expenses Rule
 
@@ -87,14 +92,14 @@ To manage them:
 
 Available options:
 
-- **Enable category** – Make it visible to members.
-- **Require description** – Force members to enter a reason when using the category.
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage.
-- **Max amount** – Set a spending cap for this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
-
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
 
 ---
 
@@ -119,6 +124,8 @@ You can set workspace-wide defaults to automate categorization and tagging.
 
 - **Default categories** – Auto-assign a category based on the merchant’s MCC. Set this under **Categories > Settings**.
 - **Billable expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
+
+**Note:** Default category and billable settings use general automation logic. If you need consistent, merchant-specific outcomes that apply across all members, use **Workspace Merchant Rules** instead.
 
 ---
 
@@ -158,7 +165,6 @@ No. Disabling a rule only affects expenses that are in draft or awaiting submiss
 
 ## What happens if a Category or Tag Rule conflicts with a Workspace Rule?
 
-Category and Tag Rules take priority over Workspace Rules. When both apply to the same expense, the category-specific setting is used.
-
+Category and Tag Rules take priority over Workspace Rules. When both apply to the same expense, the category-specific setting is used
 
 

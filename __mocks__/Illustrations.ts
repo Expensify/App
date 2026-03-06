@@ -2,7 +2,6 @@ const Abracadabra = 'Abracadabra';
 const BrokenMagnifyingGlass = 'BrokenMagnifyingGlass';
 const ChatBubbles = 'ChatBubbles';
 const EmailAddress = 'EmailAddress';
-const EmptyCardState = 'EmptyCardState';
 const EmptyStateExpenses = 'EmptyStateExpenses';
 const EnvelopeReceipt = 'EnvelopeReceipt';
 const FolderOpen = 'FolderOpen';
@@ -56,6 +55,7 @@ const TeachersUnite = 'TeachersUnite';
 const Abacus = 'Abacus';
 const Binoculars = 'Binoculars';
 const CompanyCard = 'CompanyCard';
+const ReceiptStack = 'ReceiptStack';
 const ReceiptUpload = 'ReceiptUpload';
 const ExpensifyCardIllustration = 'ExpensifyCardIllustration';
 const ExpensifyCardImage = 'ExpensifyCardImage';
@@ -87,11 +87,14 @@ const Tire = 'Tire';
 const Filters = 'Filters';
 const MagnifyingGlassMoney = 'MagnifyingGlassMoney';
 const Rules = 'Rules';
-const CompanyCardsEmptyState = 'CompanyCardsEmptyState';
 const CompanyCardsPendingState = 'CompanyCardsPendingState';
+const LaptopAssignCard = 'LaptopAssignCard';
+const LaptopReviewCard = 'LaptopReviewCard';
+const ExpensifyCardCoins = 'ExpensifyCardCoins';
 const VisaCompanyCardDetail = 'VisaCompanyCardDetail';
 const MasterCardCompanyCardDetail = 'MasterCardCompanyCardDetail';
 const AmexCardCompanyCardDetail = 'AmexCardCompanyCardDetail';
+const TravelCVV = 'TravelCVV';
 const TurtleInShell = 'TurtleInShell';
 const BankOfAmericaCompanyCardDetail = 'BankOfAmericaCompanyCardDetail';
 const BrexCompanyCardDetail = 'BrexCompanyCardDetail';
@@ -120,7 +123,6 @@ export {
     BrokenMagnifyingGlass,
     ChatBubbles,
     EmailAddress,
-    EmptyCardState,
     EmptyStateExpenses,
     EnvelopeReceipt,
     FolderOpen,
@@ -174,6 +176,7 @@ export {
     Abacus,
     Binoculars,
     CompanyCard,
+    ReceiptStack,
     ReceiptUpload,
     ExpensifyCardIllustration,
     ExpensifyCardImage,
@@ -205,11 +208,14 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
-    CompanyCardsEmptyState,
     CompanyCardsPendingState,
+    LaptopAssignCard,
+    LaptopReviewCard,
+    ExpensifyCardCoins,
     VisaCompanyCardDetail,
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
+    TravelCVV,
     TurtleInShell,
     BankOfAmericaCompanyCardDetail,
     BrexCompanyCardDetail,

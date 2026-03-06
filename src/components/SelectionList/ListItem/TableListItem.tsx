@@ -73,7 +73,7 @@ function TableListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
-            errorRowStyles={errorRowStyles}
+            errorRowStyles={[styles.mb2, errorRowStyles]}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -92,7 +92,7 @@ function TableListItem<TItem extends ListItem>({
                             isChecked={!!item.isSelected}
                             onPress={handleCheckboxPress}
                             shouldStopMouseDownPropagation
-                            style={[item.cursorStyle, styles.p5, styles.mln4, styles.mhv5, styles.mrn1]}
+                            style={[item.cursorStyle, styles.p5, styles.mln5, styles.mhv5, styles.mrn2]}
                             containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
                             testID={`TableListItemCheckbox-${item.text}`}
                         />

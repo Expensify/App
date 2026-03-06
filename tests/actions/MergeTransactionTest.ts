@@ -169,6 +169,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -312,6 +313,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'user@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -472,6 +474,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await waitForBatchedUpdates();
@@ -573,6 +576,7 @@ describe('mergeTransactionRequest', () => {
             currentUserAccountIDParam: 123,
             currentUserEmailParam: 'existing@example.com',
             isASAPSubmitBetaEnabled: false,
+            selfDMReport: undefined,
         });
 
         await mockFetch?.resume?.();
@@ -682,6 +686,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport: undefined,
             });
 
             await mockFetch?.resume?.();
@@ -849,6 +854,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -982,6 +988,7 @@ describe('mergeTransactionRequest', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                selfDMReport,
             });
 
             await waitForBatchedUpdates();

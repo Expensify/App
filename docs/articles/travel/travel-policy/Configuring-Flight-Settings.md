@@ -7,14 +7,13 @@ keywords: [flight policy, cabin class, travel approval, air booking rules, lowes
 
 Set clear, customizable flight rules to control how travelers book airfare in Expensify travel. These settings help your team stay compliant while giving flexibility where needed.
 
-## How to access Expensify travel
+---
 
-- **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
-- **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
+## Where to find Expensify Travel
 
-Note: Only Travel Admins can create or manage travel policies in Expensify Travel.
+Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
-**Need to enable travel still?** Reach out to your Account Manager or Concierge to schedule a travel demo and get it enabled for your account.
+If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 ---
 
@@ -41,6 +40,23 @@ Use this section to block specific fares and cabin classes:
 - Cabin class not allowed - International - Select the fare types to restrict for international air travel: Economy, Premium Economy, Business, and First.
 
 _Note: These rules override all other policy settings._
+
+---
+
+## Restrict by fare name
+
+Define specific keywords by airline to block flight fares containing those keywords in their fare names.
+
+Click **+ Add Restriction**, select the airlines the restriction applies to, then enter comma-separated keywords that should be restricted in the fare name.
+
+**Note:** Keywords are matched against fare names using complete word matching. Matching is:
+- Case-insensitive
+- Airline-specific
+- Evaluated independently
+
+For example:
+- The keyword **Basic** will match **Basic Economy** and **Basic Plus**
+- The keyword **Bas** will not match **Basic Economy**
 
 ---
 
@@ -107,19 +123,31 @@ Let travelers book higher cabin classes when conditions are met:
   - Premium Economy
   - Business
   - First
+ 
+---
+
+## Add Block fares with airport transfers
+
+Block travelers from booking flights that require changing airports during layovers.
+
+To enable this restriction, customers can click the toggle.
    
 ---
 
 ## Budgets
 
-Create dynamic flight budgets for domestic and international flights. 
-- **Amount or % over** a selected baseline option which includes:
+Create dynamic flight budgets for domestic and international flights.
+
+Set budgets in two ways:
+- **Maximum price per booking** for all flights booked under the policy
+  - Further customization is possible, setting a maximum price based on the flight duration, allowing higher budgets for longer flights.
+- Dynamic **Amount or % over** the maximum price per booking, which includes the following options:
   - None
   - More than lowest fare
   - More than median fare
   - Less than median fare
   - More than lowest logical fare
-- Or set a **Maximum price per booking** for all flights under the policy.
+
 
 ---
 
