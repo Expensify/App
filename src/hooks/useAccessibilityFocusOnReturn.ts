@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 const FOCUS_RESTORE_MAX_RETRIES = 10;
 const FOCUS_RESTORE_RETRY_INTERVAL = 100;
 const WEB_FOCUS_RESTORE_DELAY = CONST.ANIMATED_TRANSITION + 50;
+const IOS_FOCUS_RESTORE_DELAY = 100;
 
 type FocusTargetRef = {
     current: unknown;
@@ -39,6 +40,7 @@ function useAccessibilityFocusOnReturn() {
     const retryCountRef = useRef(0);
     const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const deferredRestoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const deferredIOSRestoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const clearPendingFocusRestore = useCallback(() => {
         if (retryTimeoutRef.current) {
@@ -46,11 +48,17 @@ function useAccessibilityFocusOnReturn() {
             retryTimeoutRef.current = null;
         }
 
-        if (!deferredRestoreTimeoutRef.current) {
+        if (deferredRestoreTimeoutRef.current) {
+            clearTimeout(deferredRestoreTimeoutRef.current);
+            deferredRestoreTimeoutRef.current = null;
+        }
+
+        if (!deferredIOSRestoreTimeoutRef.current) {
             return;
         }
-        clearTimeout(deferredRestoreTimeoutRef.current);
-        deferredRestoreTimeoutRef.current = null;
+
+        clearTimeout(deferredIOSRestoreTimeoutRef.current);
+        deferredIOSRestoreTimeoutRef.current = null;
     }, []);
 
     const setFocusTarget = useCallback((focusTarget?: FocusTarget | FocusTargetEvent | null) => {
@@ -88,8 +96,15 @@ function useAccessibilityFocusOnReturn() {
             retryTimeoutRef.current = setTimeout(tryRestoreFocus, FOCUS_RESTORE_RETRY_INTERVAL);
         };
 
-        if (Platform.OS !== 'web') {
+        if (Platform.OS === 'android') {
             tryRestoreFocus();
+            return;
+        }
+
+        if (Platform.OS === 'ios') {
+            deferredIOSRestoreTimeoutRef.current = setTimeout(() => {
+                tryRestoreFocus();
+            }, IOS_FOCUS_RESTORE_DELAY);
             return;
         }
 
