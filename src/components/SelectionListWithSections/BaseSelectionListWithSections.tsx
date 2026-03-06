@@ -68,7 +68,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     footerContentAbovePagination,
     listEmptyContent,
     showScrollIndicator = true,
-    showLoadingPlaceholder = false,
+    shouldShowLoadingPlaceholder = false,
     LoadingPlaceholderComponent = OptionsListSkeletonView,
     showConfirmButton = false,
     isConfirmButtonDisabled = false,
@@ -449,7 +449,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     }, [setShouldDisableHoverStyle]);
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -666,16 +666,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
-    const setCurrentHoverIndex = useCallback(
-        (hoverIndex: number | null) => {
-            if (shouldDisableHoverStyle) {
-                return;
-            }
-            currentHoverIndexRef.current = hoverIndex;
-        },
-        [currentHoverIndexRef, shouldDisableHoverStyle],
-    );
-
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -684,15 +674,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View
-                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
-                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
-                onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    setCurrentHoverIndex(null);
-                }}
-            >
+            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -729,14 +711,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
                     shouldDisableHoverStyle={shouldDisableHoverStyle}
-                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
     };
 
     const renderListEmptyContent = () => {
-        if (showLoadingPlaceholder) {
+        if (shouldShowLoadingPlaceholder) {
             return (
                 <LoadingPlaceholderComponent
                     fixedNumItems={fixedNumItemsForLoader}
@@ -1021,7 +1002,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const noResultsFoundMessage = translate('common.noResultsFound');
     const shouldShowHeaderMessageContent =
-        (!isLoadingNewOptions || headerMessage !== noResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) && !!headerMessage;
+        (!isLoadingNewOptions || headerMessage !== noResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder)) && !!headerMessage;
     const shouldAnnounceNoResults = shouldShowHeaderMessageContent && headerMessage === noResultsFoundMessage;
     useStatusAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, textInputValue);
 
@@ -1059,7 +1040,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
             {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
-            {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
+            {flattenedSections.allOptions.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
