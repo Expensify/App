@@ -515,8 +515,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Let op!',
         submitTo: 'Indienen bij',
         forwardTo: 'Doorsturen naar',
-        approvalLimit: 'Goedkeuringslimiet',
-        overLimitForwardTo: 'Doorsturen bij overschrijding limiet',
         merge: 'Samenvoegen',
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
@@ -546,6 +544,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
         duplicateReport: 'Dubbel rapport',
+        approver: 'Fiatteur',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1353,7 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `niet-goedgekeurd`,
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: `goedgekeurd`,
-        rejectedThisReport: 'heeft dit rapport afgekeurd',
+        rejectedThisReport: 'afgekeurd',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -2178,12 +2177,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Persoonlijke kaart toevoegen',
+        addCompanyCard: 'Bedrijfskaart toevoegen',
+        lookingForCompanyCards: 'Bedrijfskaarten toevoegen?',
+        lookingForCompanyCardsDescription: 'Koppel je eigen kaarten van meer dan 10.000 banken wereldwijd.',
+        personalCardAdded: 'Persoonlijke kaart toegevoegd!',
+        personalCardAddedDescription: 'Gefeliciteerd, we beginnen met het importeren van transacties van uw kaart.',
+        isPersonalCard: 'Is dit een persoonlijke kaart?',
+        thisIsPersonalCard: 'Dit is een persoonlijke kaart',
+        thisIsCompanyCard: 'Dit is een bedrijfskaart',
+        askAdmin: 'Vraag uw beheerder',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Zo ja, prima! Maar als het een <strong>bedrijfs</strong>kaart is, ${isAdmin ? 'wijs deze dan toe vanuit je werkruimte.' : 'vraag je beheerder om deze vanuit de werkruimte aan je toe te wijzen.'}`,
+        bankConnectionError: 'Probleem met bankverbinding',
+        bankConnectionDescription: 'Probeer je kaarten opnieuw toe te voegen. Anders kun je',
+        connectWithPlaid: 'verbinden via Plaid.',
         fixCard: 'Kaart herstellen',
         brokenConnection: 'Je kaartkoppeling is verbroken.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `Je verbinding met de kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij je bank</a> om de kaart te herstellen.`
                 : `Je verbinding met de kaart ${cardName} is verbroken. Log in bij je bank om de kaart te herstellen.`,
+        addAdditionalCards: 'Extra kaarten toevoegen',
+        upgradeDescription: 'Meer kaarten toevoegen? Maak een werkruimte om extra persoonlijke kaarten toe te voegen of bedrijfskaarten aan het hele team toe te wijzen.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Beschikbaar in het Collect-abonnement, <strong>${formattedPrice}</strong> per lid per maand.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Maak een werkruimte om deze functie te gebruiken, of <a href="${subscriptionLink}">meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+        workspaceCreated: 'Werkruimte aangemaakt',
+        newWorkspace: 'Je hebt een werkruimte aangemaakt!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Je kunt nu extra kaarten toevoegen. <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -2994,8 +3018,6 @@ ${
                 '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-instellingsspecialist. Ik heb alvast een workspace aangemaakt om je bonnetjes en uitgaven te beheren. Volg de laatste onderstaande instellingsstappen om het meeste uit je gratis proefperiode van 30 dagen te halen!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo makkelijk als het sturen van een bericht. Zo werkt het.',
             onboardingAdminMessage: 'Leer hoe je als beheerder de werkruimte van je team beheert en je eigen onkosten indient.',
-            onboardingLookingAroundMessage:
-                'Expensify staat vooral bekend om het beheer van uitgaven, reizen en zakelijke kaarten, maar we doen veel meer dan dat. Laat me weten waarin je geïnteresseerd bent, dan help ik je op weg.',
             onboardingTestDriveReceiverMessage: '*Je krijgt 3 maanden gratis! Ga hieronder aan de slag.*',
         },
         workspace: {
@@ -5241,6 +5263,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         confirm: 'Uitschakelen',
                     },
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
+                    enabled: 'Centraal factureren ingeschakeld!',
+                    enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },

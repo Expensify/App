@@ -150,6 +150,7 @@ function OptionRowLHNData({
         if (!optionItem || !isIOUReport || reportPreviewSenderID === undefined || !optionItem.icons || optionItem.icons.length <= 1) {
             return optionItem;
         }
+        // eslint-disable-next-line rulesdir/prefer-at -- .find() is needed to search by predicate (matching icon.id to senderID), not by index
         const senderIcon = optionItem.icons.find((icon) => Number(icon.id) === reportPreviewSenderID);
         return {...optionItem, icons: [senderIcon ?? optionItem.icons.at(0)].filter((icon): icon is Icon => !!icon)};
     }, [optionItem, isIOUReport, reportPreviewSenderID]);
@@ -161,6 +162,7 @@ function OptionRowLHNData({
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
             report={fullReport}
+            conciergeReportID={conciergeReportID}
         />
     );
 }
