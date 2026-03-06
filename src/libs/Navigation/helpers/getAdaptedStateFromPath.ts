@@ -11,12 +11,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getLastSuffixFromPath from './getLastSuffixFromPath';
+import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
-import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -27,6 +27,35 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
+
+const SCREENS_WITH_ONYX_TAB_NAVIGATOR = [
+    SCREENS.MONEY_REQUEST.SPLIT_EXPENSE,
+    SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.MONEY_REQUEST.DISTANCE_CREATE,
+    SCREENS.NEW_CHAT.ROOT,
+    SCREENS.SHARE.ROOT,
+    SCREENS.WORKSPACE.RECEIPT_PARTNERS_INVITE_EDIT,
+] as const;
+
+/**
+ * Works like React Navigation's {@link findFocusedRoute} but stops recursing when it reaches
+ * a screen that hosts an OnyxTabNavigator. Without this guard the lookup would drill into the
+ * tab navigator's internal state and return the individual tab name (e.g. "amount", "scan")
+ * instead of the parent screen (e.g. "Money_Request_Split_Expense").
+ */
+function findFocusedRouteWithOnyxTabGuard(state: PartialState<NavigationState>): ReturnType<typeof findFocusedRoute> {
+    const route = state.routes[state.index ?? state.routes.length - 1];
+    if (route === undefined) {
+        return undefined;
+    }
+    if ((SCREENS_WITH_ONYX_TAB_NAVIGATOR as readonly string[]).includes(route.name)) {
+        return route as ReturnType<typeof findFocusedRoute>;
+    }
+    if (route.state) {
+        return findFocusedRouteWithOnyxTabGuard(route.state);
+    }
+    return route as ReturnType<typeof findFocusedRoute>;
+}
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
     return route.params !== undefined && 'backTo' in route.params && typeof route.params.backTo === 'string';
@@ -71,7 +100,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             return lastRoute;
         }
 
-        const focusedStateForBackToRoute = findFocusedRoute(stateForBackTo);
+        const focusedStateForBackToRoute = findFocusedRouteWithOnyxTabGuard(stateForBackTo);
 
         if (!focusedStateForBackToRoute) {
             return undefined;
@@ -170,13 +199,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-            // Remove dynamic suffix to get the base path
-            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
+        if (dynamicRouteSuffix) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+
+            if (!pathWithoutDynamicSuffix) {
+                return undefined;
+            }
 
             // Get navigation state for the base path without dynamic suffix
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {
@@ -257,7 +289,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
     // If there is no full screen route in the root, we want to add it.
     if (!fullScreenRoute) {
-        const focusedRoute = findFocusedRoute(state);
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
         if (focusedRoute) {
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);

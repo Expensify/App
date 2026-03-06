@@ -24,7 +24,8 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin ?? '';
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const primaryLogin = account?.primaryLogin ?? session?.email ?? '';
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const validateError = getLatestErrorMessageField(issueNewCard);
     const data = issueNewCard?.data;

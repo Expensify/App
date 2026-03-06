@@ -89,8 +89,10 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         });
     }, [transformedOptions, currentUserEmail, cleanSearchTerm, formatPhoneNumber, countryCode, loginList]);
 
+    const currentUserSearchTerms = useMemo(() => [translate('common.you'), translate('common.me')], [translate]);
+
     const filteredCurrentUserOption = useMemo(() => {
-        const newOption = filterOption(currentOption, cleanSearchTerm);
+        const newOption = filterOption(currentOption, cleanSearchTerm, currentUserSearchTerms);
         if (newOption) {
             return {
                 ...newOption,
@@ -98,7 +100,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             };
         }
         return newOption;
-    }, [currentOption, cleanSearchTerm, selectedAccountIDs]);
+    }, [currentOption, cleanSearchTerm, selectedAccountIDs, currentUserSearchTerms]);
 
     const listData = useMemo(() => {
         if (!filteredCurrentUserOption) {
@@ -145,7 +147,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             shouldShowSearchInput
                 ? {
                       value: searchTerm,
-                      label: translate('selectionList.searchForSomeone'),
+                      label: translate('common.search'),
                       onChangeText: setSearchTerm,
                       headerMessage,
                       disableAutoFocus: !shouldFocusInputOnScreenFocus,

@@ -215,6 +215,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     };
 
     await Promise.all([
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -672,7 +673,7 @@ describe('Unread Indicators', () => {
         // Given a read report
         await signInAndGetAppWithUnreadChat();
 
-        readNewestAction(REPORT_ID, true);
+        readNewestAction(REPORT_ID, true, true);
 
         await waitForBatchedUpdates();
 

@@ -1,13 +1,13 @@
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import TaskView from '@components/ReportActionItem/TaskView';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import type {ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -28,11 +28,11 @@ import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemContentCreatedProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
+    /** The state context value containing the report and action data */
+    contextMenuStateValue: ShowContextMenuStateContextType;
 
-    /**  The context value containing the report and action data, along with the show context menu props */
-    contextValue: ShowContextMenuContextProps;
+    /** The actions context value containing the show context menu callbacks */
+    contextMenuActionsValue: ShowContextMenuActionsContextType;
 
     /** The parent report */
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -51,8 +51,8 @@ type ReportActionItemContentCreatedProps = {
 };
 
 function ReportActionItemContentCreated({
-    contextValue,
-    allReports,
+    contextMenuStateValue,
+    contextMenuActionsValue,
     parentReport,
     parentReportAction,
     transactionID,
@@ -61,7 +61,7 @@ function ReportActionItemContentCreated({
 }: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {report, action, transactionThreadReport} = contextValue;
+    const {report, action, transactionThreadReport} = contextMenuStateValue;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
@@ -83,7 +83,7 @@ function ReportActionItemContentCreated({
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
+    const disabledStateValue = useMemo(() => ({...contextMenuStateValue, isDisabled: true}), [contextMenuStateValue]);
 
     if (isTransactionThread(parentReportAction)) {
         const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
@@ -116,18 +116,19 @@ function ReportActionItemContentCreated({
 
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
-                <ShowContextMenuContext.Provider value={contextMenuValue}>
-                    <View>
-                        <MoneyRequestView
-                            allReports={allReports}
-                            transactionThreadReport={report}
-                            parentReportID={report?.parentReportID}
-                            expensePolicy={policy}
-                            shouldShowAnimatedBackground
-                        />
-                        {renderThreadDivider}
-                    </View>
-                </ShowContextMenuContext.Provider>
+                <ShowContextMenuStateContext.Provider value={disabledStateValue}>
+                    <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                        <View>
+                            <MoneyRequestView
+                                transactionThreadReport={report}
+                                parentReportID={report?.parentReportID}
+                                expensePolicy={policy}
+                                shouldShowAnimatedBackground
+                            />
+                            {renderThreadDivider}
+                        </View>
+                    </ShowContextMenuActionsContext.Provider>
+                </ShowContextMenuStateContext.Provider>
             </OfflineWithFeedback>
         );
     }
@@ -170,7 +171,8 @@ function ReportActionItemContentCreated({
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 {!isEmptyObject(transactionThreadReport?.reportID) ? (
-                    <>
+                    <View style={[styles.pRelative, styles.moneyRequestView]}>
+                        <AnimatedEmptyStateBackground />
                         <MoneyReportView
                             report={report}
                             policy={policy}
@@ -178,20 +180,22 @@ function ReportActionItemContentCreated({
                             pendingAction={action?.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
                             shouldHideThreadDividerLine={false}
+                            shouldShowAnimatedBackground={false}
                         />
-                        <ShowContextMenuContext.Provider value={contextMenuValue}>
-                            <View>
-                                <MoneyRequestView
-                                    allReports={allReports}
-                                    transactionThreadReport={transactionThreadReport}
-                                    parentReportID={transactionThreadReport?.parentReportID}
-                                    expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
-                                />
-                                {renderThreadDivider}
-                            </View>
-                        </ShowContextMenuContext.Provider>
-                    </>
+                        <ShowContextMenuStateContext.Provider value={disabledStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                                <View>
+                                    <MoneyRequestView
+                                        transactionThreadReport={transactionThreadReport}
+                                        parentReportID={transactionThreadReport?.parentReportID}
+                                        expensePolicy={policy}
+                                        shouldShowAnimatedBackground={false}
+                                    />
+                                    {renderThreadDivider}
+                                </View>
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
+                    </View>
                 ) : (
                     <MoneyReportView
                         report={report}
@@ -215,7 +219,8 @@ function ReportActionItemContentCreated({
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        prevProps.contextValue === nextProps.contextValue &&
+        prevProps.contextMenuStateValue === nextProps.contextMenuStateValue &&
+        prevProps.contextMenuActionsValue === nextProps.contextMenuActionsValue &&
         prevProps.parentReportAction === nextProps.parentReportAction &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&

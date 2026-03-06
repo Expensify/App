@@ -5,7 +5,6 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo, useSt
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -153,6 +152,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION &&
                 isModalVisible
             ) {
                 return false;
@@ -232,7 +232,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');
@@ -299,7 +299,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             {...createPressHandler(() => hideTooltip(true))}
                         >
                             <Icon
-                                src={Expensicons.Close}
+                                src={expensifyIcons.Close}
                                 fill={theme.icon}
                                 width={variables.iconSizeSemiSmall}
                                 height={variables.iconSizeSemiSmall}
@@ -348,6 +348,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         config.onConfirm,
         config.onDismiss,
         hideTooltip,
+        expensifyIcons.Close,
         expensifyIcons.Lightbulb,
     ]);
 
