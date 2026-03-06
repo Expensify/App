@@ -24,7 +24,6 @@ import type {
     AddedOrDeletedPolicyReportFieldParams,
     AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
-    ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
     CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
@@ -36,16 +35,10 @@ import type {
     ExportIntegrationSelectedParams,
     ImportPolicyCustomUnitRatesParams,
     IntacctMappingTitleParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     MarkReimbursedFromIntegrationParams,
-    MissingPropertyParams,
-    MovedFromPersonalSpaceParams,
     MultifactorAuthenticationTranslationParams,
     NextStepParams,
-    NotAllowedExtensionParams,
     OptionalParam,
-    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
     RemovedPolicyCustomUnitSubRateParams,
@@ -129,7 +122,6 @@ import type {
     WorkspacesListRouteParams,
     WorkspaceUpgradeNoteParams,
     WorkspaceYouMayJoin,
-    YourPlanPriceParams,
     YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
 } from './params';
@@ -1357,7 +1349,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
-        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}contrassegnato come pagato${comment ? `, dicendo «${comment}»` : ''}`,
+        paidElsewhere: (payer?: string, comment?: string) => `${payer ? `${payer} ` : ''}contrassegnato come pagato${comment ? `, dicendo «${comment}»` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}pagato con portafoglio`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}pagato con Expensify tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
@@ -1376,7 +1368,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadExpenseReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Report fattura n. ${linkedReportID}`,
         threadPaySomeoneReportName: (formattedAmount: string, comment?: string) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
-        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
+        movedFromPersonalSpace: (workspaceName?: string, reportName?: string) => `ha spostato la spesa dallo spazio personale a ${workspaceName ?? `chatta con ${reportName}`}`,
         movedToPersonalSpace: 'ha spostato la spesa nello spazio personale',
         error: {
             invalidCategoryLength: 'Il nome della categoria supera i 255 caratteri. Accorcialo oppure scegli un’altra categoria.',
@@ -1653,7 +1645,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sizeExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `L'immagine selezionata supera la dimensione massima di caricamento di ${maxUploadSizeInMB} MB.`,
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Carica un'immagine più grande di ${minHeightInPx}x${minWidthInPx} pixel e più piccola di ${maxHeightInPx}x${maxWidthInPx} pixel.`,
-        notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `L’immagine del profilo deve essere di uno dei seguenti tipi: ${allowedExtensions.join(', ')}.`,
+        notAllowedExtension: (allowedExtensions: string[]) => `L’immagine del profilo deve essere di uno dei seguenti tipi: ${allowedExtensions.join(', ')}.`,
     },
     avatarPage: {
         title: 'Modifica immagine del profilo',
@@ -2174,7 +2166,7 @@ const translations: TranslationDeepObject<typeof en> = {
     personalCard: {
         fixCard: 'Correggi carta',
         brokenConnection: 'La connessione della tua carta è interrotta.',
-        conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
+        conciergeBrokenConnection: (cardName: string, connectionLink?: string) =>
             connectionLink
                 ? `La connessione della tua carta ${cardName} non funziona. <a href="${connectionLink}">Accedi alla tua banca</a> per sistemare la carta.`
                 : `La connessione della tua carta ${cardName} non funziona. Accedi alla tua banca per sistemare la carta.`,
@@ -8089,8 +8081,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             collect: {
                 title: 'Riscuoti',
                 description: 'Il piano per piccole imprese che ti offre note spese, viaggi e chat.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                priceAnnual: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                pricePayPerUse: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
                 benefit1: 'Scansione ricevute',
                 benefit2: 'Rimborsi',
                 benefit3: 'Gestione carte aziendali',
@@ -8103,8 +8095,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             control: {
                 title: 'Controllo',
                 description: 'Spese, viaggi e chat per le aziende più grandi.',
-                priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
-                pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                priceAnnual: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
+                pricePayPerUse: (lower: string, upper: string) => `Da ${lower} membro/attivo con la Carta Expensify, ${upper} membro/attivo senza la Carta Expensify.`,
                 benefit1: 'Tutto ciò che è incluso nel piano Collect',
                 benefit2: 'Flussi di approvazione multilivello',
                 benefit3: 'Regole personalizzate per le spese',
@@ -8282,9 +8274,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         nothingToPreview: 'Niente da visualizzare',
         editJson: 'Modifica JSON:',
         preview: 'Anteprima:',
-        missingProperty: ({propertyName}: MissingPropertyParams) => `${propertyName} mancante`,
-        invalidProperty: ({propertyName, expectedType}: InvalidPropertyParams) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
-        invalidValue: ({expectedValues}: InvalidValueParams) => `Valore non valido - previsto: ${expectedValues}`,
+        missingProperty: (propertyName: string) => `${propertyName} mancante`,
+        invalidProperty: (propertyName: string, expectedType: string) => `Proprietà non valida: ${propertyName} - Previsto: ${expectedType}`,
+        invalidValue: (expectedValues: string) => `Valore non valido - previsto: ${expectedValues}`,
         missingValue: 'Valore mancante',
         createReportAction: 'Azione Crea Report',
         reportAction: 'Azione report',

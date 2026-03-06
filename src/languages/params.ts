@@ -76,17 +76,17 @@ type WorkspaceRouteParams = {
 
 type UserSplitParams = {amount: string};
 
-type PaidElsewhereParams = {payer?: string; comment?: string};
+// type PaidElsewhereParams = {payer?: string; comment?: string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
-type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+// type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
 
-type NotAllowedExtensionParams = {allowedExtensions: string[]};
+// type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type WeSentYouMagicSignInLinkParams = {login: string; loginType: string};
 
@@ -146,7 +146,7 @@ type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type OptionalParam<T> = Partial<T>;
 
-type LogSizeAndDateParams = {size: number; date: string};
+// type LogSizeAndDateParams = {size: number; date: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
@@ -290,7 +290,7 @@ type DisconnectTitleParams = {integration?: ConnectionName} | undefined;
 
 type AmountWithCurrencyParams = {amountWithCurrency: string};
 
-type LowerUpperParams = {lower: string; upper: string};
+// type LowerUpperParams = {lower: string; upper: string};
 
 type UpdatedPolicyCategoriesParams = {count: number};
 
@@ -298,7 +298,7 @@ type WorkspaceMembersCountParams = {count: number};
 
 type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
 
-type YourPlanPriceParams = {lower: string; upper: string};
+// type YourPlanPriceParams = {lower: string; upper: string};
 
 type YourPlanPriceValueParams = {price: string};
 
@@ -316,18 +316,18 @@ type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
 
-type MissingPropertyParams = {
-    propertyName: string;
-};
+// type MissingPropertyParams = {
+//     propertyName: string;
+// };
 
-type InvalidPropertyParams = {
-    propertyName: string;
-    expectedType: string;
-};
+// type InvalidPropertyParams = {
+//     propertyName: string;
+//     expectedType: string;
+// };
 
-type InvalidValueParams = {
-    expectedValues: string;
-};
+// type InvalidValueParams = {
+//     expectedValues: string;
+// };
 
 type WorkspaceYouMayJoin = {
     domain: string;
@@ -382,36 +382,26 @@ type NextStepParams = {
     etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
 };
 
-type ConciergeBrokenCardConnectionParams = {
-    cardName: string;
-    connectionLink?: string;
-};
+// type ConciergeBrokenCardConnectionParams = {
+//     cardName: string;
+//     connectionLink?: string;
+// };
 
 export type {
-    MissingPropertyParams,
-    InvalidPropertyParams,
-    InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
     VacationDelegateParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,
-    YourPlanPriceParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     UpdatedPolicyCategoriesParams,
     AmountWithCurrencyParams,
-    LowerUpperParams,
-    LogSizeAndDateParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     DeleteActionParams,
     DeleteConfirmationParams,
     EditActionParams,
-    MovedFromPersonalSpaceParams,
-    NotAllowedExtensionParams,
     ParentNavigationSummaryParams,
-    PaidElsewhereParams,
-    ConciergeBrokenCardConnectionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,

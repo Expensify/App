@@ -5382,7 +5382,7 @@ function getReportPreviewMessage(
         }
         if (translatePhraseKey === 'iou.paidElsewhere') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
+            return translateLocal(translatePhraseKey, payerDisplayName ?? undefined);
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
