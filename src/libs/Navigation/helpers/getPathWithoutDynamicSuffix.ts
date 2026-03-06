@@ -8,7 +8,7 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @param dynamicSuffix - The dynamic suffix to strip (e.g., 'verify-account')
  * @returns The path without the suffix and with query params re-appended
  */
-function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): Route | '' {
+function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): Route {
     const [pathWithoutQuery, query] = splitPathAndQuery(fullPath);
     const pathWithoutDynamicSuffix = pathWithoutQuery?.slice(0, -(dynamicSuffix.length + 1)) ?? '';
 
