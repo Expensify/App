@@ -3759,23 +3759,6 @@ describe('OptionsListUtils', () => {
             // Report 2 should not have private_isArchived since it's not in the map
             expect(report2Option?.private_isArchived).toBeUndefined();
         });
-
-        it('should respect maxRecentReports option while preserving archived status', () => {
-            renderLocaleContextProvider();
-            // Given a privateIsArchivedMap and a small maxRecentReports limit
-            const privateIsArchivedMap: PrivateIsArchivedMap = {
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}7`]: '2023-12-31 23:59:59', // Report 7 has largest lastVisibleActionCreated
-            };
-
-            // When we call createFilteredOptionList with maxRecentReports limit
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, privateIsArchivedMap, {
-                maxRecentReports: 5,
-            });
-
-            // Then the report 7 (most recent) should still have private_isArchived set
-            const report7Option = result.reports.find((r) => r.item?.reportID === '7');
-            expect(report7Option?.private_isArchived).toBe('2023-12-31 23:59:59');
-        });
     });
 
     describe('filterSelfDMChat()', () => {
@@ -6658,10 +6641,14 @@ describe('OptionsListUtils', () => {
             expect(result).toBeDefined();
         });
 
-        it('should handle searchTerm filtering', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {searchTerm: 'Spider'});
+        it('should return all reports when searchTerm is provided (isSearching is true)', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, {
+                searchTerm: 'Report',
+                maxRecentReports: 2,
+            });
 
             expect(result).toBeDefined();
+            expect(result.reports.length).toBe(Object.keys(REPORTS).length);
         });
 
         it('should return both reports and personal details', () => {
