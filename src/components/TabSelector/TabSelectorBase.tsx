@@ -11,8 +11,6 @@ import {TabSelectorContext} from './TabSelectorContext';
 import TabSelectorItem from './TabSelectorItem';
 import type {TabSelectorBaseProps} from './types';
 
-const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
-
 /**
  * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
  *
@@ -55,7 +53,7 @@ function TabSelectorBase({
 
     return (
         <ScrollView
-            scrollEventThrottle={MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onLayout={onContainerLayout}
             onScroll={(e) => {
                 onContainerScroll(e);
