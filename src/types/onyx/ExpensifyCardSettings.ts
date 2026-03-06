@@ -70,14 +70,16 @@ type ExpensifyCardSettingsBase = {
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
     ExpensifyCardSettingsBase & {
         /** Nested Expensify Card settings keyed by feed country from backend */
-        /**
-         *
-         */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         US?: ExpensifyCardSettingsBase;
+        /** Nested settings for pre-2024 US card program from backend */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        CURRENT?: ExpensifyCardSettingsBase;
+        /** Nested settings for UK/EU card program from backend */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        GB?: ExpensifyCardSettingsBase;
         /** Nested Travel Invoicing settings from backend */
-        /**
-         *
-         */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
         /** Whether the card settings has been loaded before */

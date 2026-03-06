@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
-import useDefaultSearchQuery from '@hooks/useDefaultSearchQuery';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,12 +30,8 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
-    const defaultSearchQuery = useDefaultSearchQuery();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
-    const lastQueryJSON = lastSearchParams?.queryJSON;
 
     const navigateToSearch = () => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -67,9 +62,10 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 }
             }
 
-            const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
+            const lastQueryJSON = lastSearchParams?.queryJSON;
             const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
         });
     };
 

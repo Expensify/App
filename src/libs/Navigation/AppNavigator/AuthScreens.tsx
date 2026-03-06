@@ -257,6 +257,7 @@ function AuthScreens() {
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
         initializePusher(session?.accountID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [session?.accountID]);
 
     useAutoUpdateTimezone();
