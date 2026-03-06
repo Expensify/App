@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.3.27-4",
+  "version": "9.3.32-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -45,7 +45,7 @@
     "perf-test": "NODE_OPTIONS=--experimental-vm-modules npx reassure",
     "typecheck": "NODE_OPTIONS=--max_old_space_size=8192 tsc",
     "typecheck-tsgo": "tsgo --project tsconfig.tsgo.json",
-    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=383 --cache --cache-location=node_modules/.cache/eslint --cache-strategy content --concurrency=auto",
+    "lint": "NODE_OPTIONS=--max_old_space_size=8192 eslint . --max-warnings=381 --cache --cache-location=node_modules/.cache/eslint --cache-strategy content --concurrency=auto",
     "lint-changed": "NODE_OPTIONS=--max_old_space_size=8192 ./scripts/lintChanged.sh",
     "check-lazy-loading": "ts-node scripts/checkLazyLoading.ts",
     "lint-watch": "npx eslint-watch --watch --changed",
@@ -125,14 +125,14 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.171",
-    "expo": "54.0.10",
+    "expo": "54.0.22",
     "expo-asset": "12.0.8",
     "expo-audio": "1.1.1",
     "expo-font": "14.0.8",
     "expo-image": "3.0.8",
     "expo-image-manipulator": "^13.1.5",
     "expo-location": "^19.0.7",
-    "expo-modules-core": "3.0.18",
+    "expo-modules-core": "3.0.24",
     "expo-secure-store": "~14.2.4",
     "expo-store-review": "~9.0.8",
     "expo-task-manager": "~14.0.9",
@@ -181,7 +181,7 @@
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.29.4",
     "react-native-nitro-sqlite": "9.2.0",
-    "react-native-onyx": "3.0.41",
+    "react-native-onyx": "3.0.42",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -293,7 +293,7 @@
     "babel-plugin-transform-remove-console": "^6.9.4",
     "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^8.2.2",
-    "copy-webpack-plugin": "^10.1.0",
+    "copy-webpack-plugin": "^14.0.0",
     "cspell": "9.4.0",
     "css-loader": "^6.7.2",
     "csv-parse": "^5.5.5",
@@ -391,7 +391,8 @@
     "eslint-plugin-react-native-a11y": {
       "eslint": "^9.36.0"
     },
-    "node-abi": "^3.78.0"
+    "node-abi": "^3.78.0",
+    "lightningcss": "1.30.1"
   },
   "expo": {
     "autolinking": {
