@@ -9,9 +9,6 @@ export default function useGetNewPersonalCard() {
     const [newCard, setNewCard] = useState<Card | null>(null);
     const prevCardListRef = useRef<Record<string, Card>>({});
 
-    console.log('cardList');
-    console.log(cardList);
-
     useEffect(() => {
         if (!cardList) {
             return;
@@ -32,9 +29,6 @@ export default function useGetNewPersonalCard() {
 
         prevCardListRef.current = cardList;
     }, [cardList]);
-
-    console.log('newCard');
-    console.log(newCard);
 
     return newCard;
 }
