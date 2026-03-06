@@ -17,6 +17,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Footer from './components/Footer';
@@ -366,7 +367,19 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (shouldShowLoadingPlaceholder) {
-            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'BaseSelectionList',
+                shouldShowLoadingPlaceholder,
+                shouldUseUserSkeletonView,
+            };
+            return (
+                customLoadingPlaceholder ?? (
+                    <OptionsListSkeletonView
+                        shouldStyleAsTable={shouldUseUserSkeletonView}
+                        reasonAttributes={reasonAttributes}
+                    />
+                )
+            );
         }
         if (shouldShowListEmptyContent) {
             return listEmptyContent;

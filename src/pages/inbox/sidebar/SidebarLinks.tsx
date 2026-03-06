@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -76,6 +77,11 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
+    const sidebarSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SidebarLinks',
+        isLoading: !!isLoading,
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
@@ -93,7 +99,10 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                 />
                 {!!isLoading && optionListItems?.length === 0 && (
                     <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView
+                            shouldAnimate
+                            reasonAttributes={sidebarSkeletonReasonAttributes}
+                        />
                     </View>
                 )}
             </View>

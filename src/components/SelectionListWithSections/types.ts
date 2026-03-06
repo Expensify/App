@@ -20,6 +20,7 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
@@ -801,6 +802,7 @@ type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
     speed?: number;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {

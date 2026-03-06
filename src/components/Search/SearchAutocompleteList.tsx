@@ -31,6 +31,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -449,12 +450,19 @@ function SearchAutocompleteList({
 
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
+
     if (isLoading) {
         return (
             <OptionsListSkeletonView
                 fixedNumItems={4}
                 shouldStyleAsTable
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                reasonAttributes={reasonAttributes}
             />
         );
     }
