@@ -1716,9 +1716,8 @@ function getTransactionsSections({
         taxRate: 0,
         taxAmount: 0,
         reportID: 0,
-        base62ReportID: 0,
-        originalAmount: 0,
         longReportID: 0,
+        originalAmount: 0,
         exportedDate: 0,
         submittedDate: 0,
         approvedDate: 0,
@@ -1848,16 +1847,21 @@ function getTransactionsSections({
         // Handle the base62 report ID
         const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
         const base62ReportIDPixelWidth = formattedBase62ReportID.length * averageCharacterLength;
-        measurements.base62ReportID = Math.max(measurements.base62ReportID, base62ReportIDPixelWidth);
+        measurements.longReportID = Math.max(measurements.longReportID, base62ReportIDPixelWidth);
 
         // Handle the original amount
-        measurements.originalAmount = Math.max(measurements.originalAmount);
-
-        // Handle long report ID
-        measurements.longReportID = Math.max(measurements.longReportID);
+        const originalAmountTotal = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+        const originalAmountCurrency = getOriginalCurrencyForDisplay(transaction);
+        const formattedOriginalAmount = convertToDisplayString(originalAmountTotal, originalAmountCurrency);
+        const originalAmountPixelWidth = formattedOriginalAmount.length * averageCharacterLengthWithPadding;
+        measurements.originalAmount = Math.max(measurements.originalAmount, originalAmountPixelWidth);
 
         // Handle exported date
-        measurements.exportedDate = Math.max(measurements.exportedDate);
+        const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
+        const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
+        const formattedExportDate = DateUtils.formatWithUTCTimeZone(exportDate, isExportedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const exportedDatePixelWidth = formattedExportDate.length * averageCharacterLengthWithPadding;
+        measurements.exportedDate = Math.max(measurements.exportedDate, exportedDatePixelWidth);
 
         // Handle submitted date
         measurements.submittedDate = Math.max(measurements.submittedDate);
