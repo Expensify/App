@@ -203,7 +203,7 @@ function WorkspacesListRow({
             <Badge
                 text={translate('workspace.common.requested')}
                 textStyles={styles.textStrong}
-                badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                badgeStyles={styles.alignSelfCenter}
                 icon={icons.Hourglass}
             />
         </View>
@@ -219,7 +219,7 @@ function WorkspacesListRow({
                 <Badge
                     text={translate('common.default')}
                     textStyles={styles.textStrong}
-                    badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                    badgeStyles={styles.alignSelfCenter}
                 />
             </View>
         </Tooltip>
@@ -351,10 +351,7 @@ function WorkspacesListRow({
                     </View>
                 </PressableWithoutFeedback>
 
-                <View
-                    role={isWide ? CONST.ROLE.CELL : undefined}
-                    style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}
-                >
+                <View style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}>
                     {isNarrow && ThreeDotsSection}
                     {!isNarrow && ThreeDotMenuOrPendingIcon}
                     {!isNarrow && (
