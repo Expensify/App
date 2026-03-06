@@ -46,7 +46,7 @@ function createEditAction({reportID, reportAction, moneyRequestAction, draftMess
                 if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                     hideAndRun(() => {
                         const childReportID = reportAction?.childReportID;
-                        openReport(childReportID, introSelected);
+                        openReport({reportID: childReportID, introSelected});
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                     });
                     return;

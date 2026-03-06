@@ -114,8 +114,10 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRejectedAction,
     isRenamedAction,
     isReportActionAttachment,
     isReportPreviewAction as isReportPreviewActionReportActionsUtils,
@@ -397,7 +399,7 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
             } else {
                 Clipboard.setString(translate('iou.forwarded'));
             }
-        } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+        } else if (isRejectedAction(reportAction)) {
             Clipboard.setString(translate('iou.rejectedThisReport'));
         } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             const displayMessage = translate('workspaceActions.upgradedWorkspace');
@@ -514,8 +516,14 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
             setClipboardMessage(displayMessage);
         } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
             const {originalID} = getOriginalMessage(reportAction) ?? {};
-            const reportName = getReportName(getReportOrDraftReport(originalID));
-            const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
+            const originalReportOfUnapprovedTransaction = getReportOrDraftReport(originalID);
+            const reportName = getReportName(originalReportOfUnapprovedTransaction);
+            const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
+                originalID,
+                reportName,
+                isOriginalReportDeleted(reportAction, originalReportOfUnapprovedTransaction),
+                translate,
+            );
             setClipboardMessage(displayMessage);
         } else if (content) {
             setClipboardMessage(
