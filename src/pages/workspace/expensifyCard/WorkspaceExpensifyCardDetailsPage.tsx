@@ -199,7 +199,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 </View>
                             }
                             canUnfreezeCard={canManageCardFreeze}
-                            onAskToUnfreezeCard={() => {}}
+                            onAskToUnfreezePress={() => {}}
                         />
                     ) : (
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
