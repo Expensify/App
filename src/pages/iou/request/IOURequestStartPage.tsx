@@ -39,7 +39,6 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
-import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -222,7 +221,6 @@ function IOURequestStartPage({
 
     const onTabSelected = useCallback(
         (newIouType: IOURequestType) => {
-            Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, newIouType);
             resetIOUTypeIfChanged(newIouType);
         },
         [resetIOUTypeIfChanged],
