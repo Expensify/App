@@ -15,6 +15,7 @@ describe('AttributesSelector', () => {
 
         const attributes: OnyxEntry<ReportAttributesDerivedValue> = {
             reports: {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ReportAttributes contains reportErrors
                 [reportID]: reportAttributes,
             },
             locale: 'en',
