@@ -35,7 +35,13 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {
+    isManagedCardTransaction as isCardTransactionUtils,
+    isDistanceRequest as isDistanceRequestUtils,
+    isGPSDistanceRequest,
+    isMapDistanceRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -163,7 +169,12 @@ function TransactionPreviewContent({
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
 
     const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const hasCustomUnitOutOfPolicy = violations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    // For distance expenses with an out-of-policy rate (e.g. the rate was deleted), strip the rate portion
+    // from the merchant to avoid showing a rate that may have been auto-updated by the server.
+    const merchantToDisplay =
+        hasCustomUnitOutOfPolicy && isDistanceRequestUtils(transaction) && merchant ? (merchant.split(CONST.DISTANCE_MERCHANT_SEPARATOR).at(0)?.trim() ?? merchant) : merchant;
+    const requestMerchant = truncate(merchantToDisplay, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const isApproved = isReportApproved({report});
     const pendingAction = action?.pendingAction;
     const isIOUSettled = !pendingAction && isSettled(report);

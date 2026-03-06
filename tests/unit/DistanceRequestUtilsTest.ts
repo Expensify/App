@@ -1,5 +1,6 @@
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
+import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {translateLocal} from '../utils/TestHelper';
@@ -202,6 +203,51 @@ describe('DistanceRequestUtils', () => {
         it('should return out-of-policy message for workspace expenses with invalid rate', () => {
             const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
             expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
+        });
+    });
+
+    describe('getRate', () => {
+        const makeTransaction = (customUnitRateID: string): Transaction =>
+            ({
+                transactionID: 'tx1',
+                reportID: '1',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-01-01',
+                comment: {
+                    customUnit: {
+                        customUnitRateID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            }) as unknown as Transaction;
+
+        it('should return the matching rate when the rate exists in the policy', () => {
+            const transaction = makeTransaction('222AAF6B93BCB');
+            const result = DistanceRequestUtils.getRate({transaction, policy: FAKE_POLICY});
+            expect(result.rate).toBe(67);
+            expect(result.currency).toBe('USD');
+        });
+
+        it('should return undefined rate when the stored rate was deleted from the policy', () => {
+            const transaction = makeTransaction('DELETED_RATE_ID');
+            const result = DistanceRequestUtils.getRate({transaction, policy: FAKE_POLICY});
+            expect(result.rate).toBeUndefined();
+            expect(result.name).toBeUndefined();
+        });
+
+        it('should not fall back to default rate when the stored rate is deleted', () => {
+            const transaction = makeTransaction('DELETED_RATE_ID');
+            const result = DistanceRequestUtils.getRate({transaction, policy: FAKE_POLICY});
+            // Should NOT return the default rate (67 for rate 222AAF6B93BCB)
+            expect(result.rate).not.toBe(67);
+        });
+
+        it('should use P2P rate for transactions with FAKE_P2P_ID', () => {
+            const transaction = makeTransaction(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+            const result = DistanceRequestUtils.getRate({transaction, policy: FAKE_POLICY});
+            // P2P rate path is used, should have some rate value
+            expect(result.unit).toBeDefined();
         });
     });
 });
