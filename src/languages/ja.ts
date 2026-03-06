@@ -1081,21 +1081,22 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-    if (!added && !updated) {
-        return 'カテゴリーは追加も更新もされていません。';
-    }
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'カテゴリーは追加も更新もされていません。';
+            }
 
-    if (added && updated) {
-        return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
-    }
+            if (added && updated) {
+                return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
+            }
 
-    if (added) {
-        return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
-    }
+            if (added) {
+                return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
+            }
 
-    return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
-},        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
+        },
+        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加も更新もされていません。';
             }
