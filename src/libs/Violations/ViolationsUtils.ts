@@ -18,7 +18,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
@@ -41,6 +41,10 @@ function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
     return typeof maxAmount === 'number' && maxAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
+function hasEnabledTags(tags?: PolicyTags): boolean {
+    return !!tags && Object.values(tags).some((tag) => !!tag.enabled);
+}
+
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -56,27 +60,28 @@ function getTagViolationsForSingleLevelTags(
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
     const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
+    const hasEnabledTagsInList = hasEnabledTags(policyTags);
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is in policy
-    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
-    // Remove 'missingTag' violation if tag is valid according to policy
-    if (hasMissingTagViolation && isTagInPolicy) {
+    // Remove 'missingTag' violation if tag is valid according to policy or there are no enabled tags
+    if (hasMissingTagViolation && (isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
     }
 
-    // Add 'missingTag violation' if tag is required and not set
-    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+    // Add 'missingTag violation' if tag is required, not set, and there are enabled tags
+    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {tagName: tagNameToShow}});
@@ -128,6 +133,11 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
+        const tags = policyTagList[policyTagKeys[i]].tags;
+        const listHasEnabledTags = hasEnabledTags(tags);
+        if (!listHasEnabledTags) {
+            continue;
+        }
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
         const isTagSelected = !!selectedTags.at(i);
         if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags.at(0) === ''))) {
@@ -148,7 +158,11 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
+            const listHasEnabledTags = hasEnabledTags(tags);
+            if (!listHasEnabledTags) {
+                continue;
+            }
+            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy && selectedTag) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -255,16 +269,18 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             return !!(category && policyCategories?.[category]?.enabled);
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAG_OUT_OF_POLICY}`]: () => {
-            // Tag is fixed if it's empty or matches a valid tag in policy
             if (!tag) {
                 return true;
             }
             if (!policyTagLists) {
                 return false;
             }
-            const hasEnabledTags = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.enabled));
-            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.name === tag && t.enabled));
-            return hasEnabledTags && hasMatchingTag;
+            const hasAnyEnabledTags = Object.values(policyTagLists).some((tagList) => hasEnabledTags(tagList.tags));
+            if (!hasAnyEnabledTags) {
+                return true;
+            }
+            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => !!tagList.tags?.[tag]?.enabled);
+            return hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
             if (!taxCode || !policyTaxRates) {
@@ -478,7 +494,8 @@ const ViolationsUtils = {
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
-        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
+        const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
+        const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
         const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;

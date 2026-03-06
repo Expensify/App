@@ -489,7 +489,7 @@ describe('useUpcomingTravelReservations', () => {
 
     it('should exclude reservation that departed yesterday', async () => {
         const pastFlight = makeAirPnr('PNR_JUST_PASSED', daysFromNow(-1, 22), daysFromNow(-1, 23));
-        const upcomingFlight = makeAirPnr('PNR_LATER_TODAY', daysFromNow(0, 23), daysFromNow(1, 2));
+        const upcomingFlight = makeAirPnr('PNR_LATER_TODAY', daysFromNow(1), daysFromNow(1, 15));
         const tripRoom = makeTripRoomReport('105', [pastFlight, upcomingFlight]);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}105`, tripRoom);
