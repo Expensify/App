@@ -2,9 +2,9 @@ import type {FormOnyxKeys} from '@components/Form/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useStepFormSubmit from './useStepFormSubmit';
-import type {SubStepProps} from './useSubStep/types';
+import type {SubPageProps} from './useSubPage/types';
 
-type UseNetSuiteImportAddCustomListFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
+type UseNetSuiteImportAddCustomListFormSubmitParams = Pick<SubPageProps, 'onNext'> & {
     formId?: OnyxFormKey;
     fieldIds: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>>;
     shouldSaveDraft: boolean;

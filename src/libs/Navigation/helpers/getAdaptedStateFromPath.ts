@@ -11,12 +11,12 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getLastSuffixFromPath from './getLastSuffixFromPath';
+import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
+import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import getRedirectedPath from './getRedirectedPath';
 import getStateFromPath from './getStateFromPath';
-import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import {isFullScreenName} from './isNavigatorName';
 import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
@@ -199,13 +199,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = getLastSuffixFromPath(route.path);
-        if (isDynamicRouteSuffix(dynamicRouteSuffix)) {
-            // Remove dynamic suffix to get the base path
-            const pathWithoutDynamicSuffix = route.path?.replace(`/${dynamicRouteSuffix}`, '');
+        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
+        if (dynamicRouteSuffix) {
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+
+            if (!pathWithoutDynamicSuffix) {
+                return undefined;
+            }
 
             // Get navigation state for the base path without dynamic suffix
-            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix as RoutePath);
+            const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
             if (!stateUnderDynamicRoute || !lastRoute || lastRoute.name === SCREENS.NOT_FOUND) {

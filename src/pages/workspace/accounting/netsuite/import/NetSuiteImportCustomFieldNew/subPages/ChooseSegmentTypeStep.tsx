@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -6,27 +7,27 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import NetSuiteCustomSegmentMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomSegmentMappingPicker';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
-import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-const STEP_FIELDS = [INPUT_IDS.MAPPING];
+const STEP_FIELDS = [INPUT_IDS.SEGMENT_TYPE];
 
-function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
+function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuiteCustomFieldFormValues}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // reminder to change the validation logic at the last phase of PR
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.MAPPING])) {
-                errors[INPUT_IDS.MAPPING] = translate('common.error.pleaseSelectOne');
+
+            if (!isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
+                errors[INPUT_IDS.SEGMENT_TYPE] = translate('common.error.pleaseSelectOne');
             }
+
             return errors;
         },
         [translate],
@@ -34,17 +35,12 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
         fieldIds: STEP_FIELDS,
-        onNext,
+        onNext: () => {
+            setCustomSegmentType?.(netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE] as ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>);
+            onNext();
+        },
         shouldSaveDraft: true,
     });
-
-    let titleKey;
-    if (importCustomField === CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS) {
-        titleKey = 'workspace.netsuite.import.importCustomFields.customLists.addForm.mappingTitle';
-    } else {
-        const customSegmentRecordType = customSegmentType ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
-        titleKey = `workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}MappingTitle`;
-    }
 
     return (
         <FormProvider
@@ -55,20 +51,23 @@ function CustomSegmentMappingStep({importCustomField, customSegmentType, onNext,
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
             enabledWhenOffline
-            shouldUseScrollView={false}
+            shouldUseScrollView
             shouldHideFixErrorsAlert
             submitFlexEnabled={false}
             addBottomSafeAreaPadding
         >
-            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
+            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
+                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}
+            </Text>
             <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
             <InputWrapper
-                InputComponent={NetSuiteCustomFieldMappingPicker}
-                inputID={INPUT_IDS.MAPPING}
-                defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
+                InputComponent={NetSuiteCustomSegmentMappingPicker}
+                inputID={INPUT_IDS.SEGMENT_TYPE}
+                defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE]}
+                shouldSaveDraft
             />
         </FormProvider>
     );
 }
 
-export default CustomSegmentMappingStep;
+export default ChooseSegmentTypeStep;

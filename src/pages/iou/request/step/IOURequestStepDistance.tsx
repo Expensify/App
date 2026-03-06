@@ -94,6 +94,7 @@ function IOURequestStepDistance({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -280,7 +281,7 @@ function IOURequestStepDistance({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID, introSelected);
+            openReport({reportID: transaction?.reportID, introSelected});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -339,6 +340,7 @@ function IOURequestStepDistance({
             policyForMovingExpenses,
             betas,
             recentWaypoints,
+            amountOwed,
         });
     }, [
         iouType,
@@ -372,6 +374,7 @@ function IOURequestStepDistance({
         selfDMReport,
         betas,
         recentWaypoints,
+        amountOwed,
     ]);
 
     const getError = () => {
