@@ -515,8 +515,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Let op!',
         submitTo: 'Indienen bij',
         forwardTo: 'Doorsturen naar',
-        approvalLimit: 'Goedkeuringslimiet',
-        overLimitForwardTo: 'Doorsturen bij overschrijding limiet',
         merge: 'Samenvoegen',
         none: 'Geen',
         unstableInternetConnection: 'Onstabiele internetverbinding. Controleer je netwerk en probeer het opnieuw.',
@@ -546,6 +544,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Vertegenwoordiger tijdens vakantie',
         expensifyLogo: 'Expensify-logo',
         duplicateReport: 'Dubbel rapport',
+        approver: 'Fiatteur',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -906,8 +905,10 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als copiloot voor',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `heeft dit rapport gemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> te bewaren die niet konden worden ingediend op de door jou gekozen frequentie`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
-            `heeft dit rapport gemaakt voor uitgestelde uitgaven van <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+            isReportDeleted
+                ? `heeft dit rapport gemaakt voor alle vastgehouden uitgaven uit verwijderd rapport nr. ${reportID}`
+                : `heeft dit rapport gemaakt voor alle vastgehouden uitgaven van <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Laat iedereen in dit gesprek een melding krijgen',
@@ -1351,7 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `niet-goedgekeurd`,
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: `goedgekeurd`,
-        rejectedThisReport: 'heeft dit rapport afgekeurd',
+        rejectedThisReport: 'afgekeurd',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is een betaling gestart, maar wacht tot ${submitterDisplayName} een bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1445,6 +1446,10 @@ const translations: TranslationDeepObject<typeof en> = {
         explainHold: () => ({
             one: 'Leg uit waarom je deze uitgave aanhoudt.',
             other: 'Leg uit waarom je deze uitgaven vasthoudt.',
+        }),
+        explainHoldApprover: () => ({
+            one: 'Leg uit wat je nodig hebt voordat je deze uitgave goedkeurt.',
+            other: 'Leg uit wat je nodig hebt voordat je deze uitgaven goedkeurt.',
         }),
         retracted: 'ingetrokken',
         retract: 'Intrekken',
@@ -1540,7 +1545,7 @@ const translations: TranslationDeepObject<typeof en> = {
             heldExpenseLeftBehindTitle: 'Vaste uitgaven blijven achter wanneer je een volledig rapport goedkeurt.',
             rejectExpenseTitle: 'Wijs een uitgave af die je niet van plan bent goed te keuren of te betalen.',
             reasonPageTitle: 'Uitgave afwijzen',
-            reasonPageDescription: 'Leg uit waarom je deze declaratie afwijst.',
+            reasonPageDescription: 'Leg uit waarom je deze uitgave niet zult goedkeuren.',
             rejectReason: 'Reden van afwijzing',
             markAsResolved: 'Markeren als opgelost',
             rejectedStatus: 'Deze uitgave is afgewezen. We wachten tot jij de problemen oplost en als opgelost markeert, zodat je deze opnieuw kunt indienen.',
@@ -1594,6 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToSubmitViaDEW: (reason: string) => `het is niet gelukt om het rapport in te dienen. ${reason}`,
         failedToAutoApproveViaDEW: (reason: string) => `goedkeuren via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a> is mislukt. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `goedkeuren mislukt. ${reason}`,
+        cannotDuplicateDistanceExpense: 'Je kunt afstandsvergoedingen niet dupliceren tussen werkruimtes, omdat de tarieven per werkruimte kunnen verschillen.',
     },
     transactionMerge: {
         listPage: {
@@ -2171,12 +2177,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Persoonlijke kaart toevoegen',
+        addCompanyCard: 'Bedrijfskaart toevoegen',
+        lookingForCompanyCards: 'Bedrijfskaarten toevoegen?',
+        lookingForCompanyCardsDescription: 'Koppel je eigen kaarten van meer dan 10.000 banken wereldwijd.',
+        personalCardAdded: 'Persoonlijke kaart toegevoegd!',
+        personalCardAddedDescription: 'Gefeliciteerd, we beginnen met het importeren van transacties van uw kaart.',
+        isPersonalCard: 'Is dit een persoonlijke kaart?',
+        thisIsPersonalCard: 'Dit is een persoonlijke kaart',
+        thisIsCompanyCard: 'Dit is een bedrijfskaart',
+        askAdmin: 'Vraag uw beheerder',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Zo ja, prima! Maar als het een <strong>bedrijfs</strong>kaart is, ${isAdmin ? 'wijs deze dan toe vanuit je werkruimte.' : 'vraag je beheerder om deze vanuit de werkruimte aan je toe te wijzen.'}`,
+        bankConnectionError: 'Probleem met bankverbinding',
+        bankConnectionDescription: 'Probeer je kaarten opnieuw toe te voegen. Anders kun je',
+        connectWithPlaid: 'verbinden via Plaid.',
         fixCard: 'Kaart herstellen',
         brokenConnection: 'Je kaartkoppeling is verbroken.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `Je verbinding met de kaart ${cardName} is verbroken. <a href="${connectionLink}">Log in bij je bank</a> om de kaart te herstellen.`
                 : `Je verbinding met de kaart ${cardName} is verbroken. Log in bij je bank om de kaart te herstellen.`,
+        addAdditionalCards: 'Extra kaarten toevoegen',
+        upgradeDescription: 'Meer kaarten toevoegen? Maak een werkruimte om extra persoonlijke kaarten toe te voegen of bedrijfskaarten aan het hele team toe te wijzen.',
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Beschikbaar in het Collect-abonnement, <strong>${formattedPrice}</strong> per lid per maand.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Maak een werkruimte om deze functie te gebruiken, of <a href="${subscriptionLink}">meer informatie</a> over onze abonnementen en prijzen.</muted-text>`,
+        workspaceCreated: 'Werkruimte aangemaakt',
+        newWorkspace: 'Je hebt een werkruimte aangemaakt!',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Je kunt nu extra kaarten toevoegen. <a href="${subscriptionLink}">Bekijk je abonnement</a> voor meer details.</centered-text>`,
     },
     walletPage: {
         balance: 'Saldo',
@@ -5234,6 +5265,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         confirm: 'Uitschakelen',
                     },
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
+                    enabled: 'Centraal factureren ingeschakeld!',
+                    enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },
