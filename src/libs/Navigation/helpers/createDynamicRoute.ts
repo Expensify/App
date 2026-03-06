@@ -8,15 +8,16 @@ import splitPathAndQuery from './splitPathAndQuery';
  * Merges two query strings into one. If both contain the same key,
  * the suffix value wins and a warning is logged.
  */
-const mergeQueryStrings = (baseQuery?: string, suffixQuery?: string): string => {
+const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
         return '';
     }
-    const params = new URLSearchParams(baseQuery ?? '');
-    const suffixParams = new URLSearchParams(suffixQuery ?? '');
-    for (const [key, value] of suffixParams.entries()) {
+    const params = new URLSearchParams(baseQuery);
+    const suffixParams = new URLSearchParams(suffixQuery);
+    const suffixParamsEntries = suffixParams.entries();
+    for (const [key, value] of suffixParamsEntries) {
         if (params.has(key)) {
-            Log.warn(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. Suffix value will override.`);
+            throw new Error(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. This is not allowed.`);
         }
         params.set(key, value);
     }

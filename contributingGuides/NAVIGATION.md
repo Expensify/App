@@ -700,7 +700,6 @@ A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to 
 Do not use dynamic routes when:
 - Your use case falls under the [current limitations](#current-limitations-work-in-progress):
   - You need to stack multiple dynamic route suffixes (e.g. `/a/verify-account/another-flow`).
-  - Your suffix includes path or query parameters (e.g. `verify-account/:id` or `verify-account?tab=details`).
 - The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
 
 ### Dynamic routes configuration

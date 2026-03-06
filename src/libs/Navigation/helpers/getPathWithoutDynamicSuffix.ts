@@ -12,7 +12,7 @@ function getQueryParamsToStrip(dynamicSuffix: string): string[] | undefined {
     if (!('getRoute' in config) || !config.getRoute) {
         return undefined;
     }
-    const getRouteFn = config.getRoute as unknown as (...args: string[]) => string;
+    const getRouteFn = config.getRoute as (...args: string[]) => string;
     const placeholderArgs: string[] = Array(getRouteFn.length).fill('') as string[];
     const routeOutput = getRouteFn(...placeholderArgs);
     const [, query] = splitPathAndQuery(routeOutput);
