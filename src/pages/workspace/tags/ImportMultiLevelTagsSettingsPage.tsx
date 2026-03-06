@@ -41,6 +41,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
