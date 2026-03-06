@@ -7381,7 +7381,13 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -7474,7 +7480,13 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -7590,7 +7602,13 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -7720,7 +7738,13 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
 
             await waitForBatchedUpdates();
 
@@ -8019,7 +8043,13 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, undefined, userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
@@ -8184,7 +8214,13 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -8445,7 +8481,13 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -8538,7 +8580,13 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, TEST_INTRO_SELECTED, '', userLogins, thread, createIOUAction?.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: createIOUAction?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             Onyx.connect({
