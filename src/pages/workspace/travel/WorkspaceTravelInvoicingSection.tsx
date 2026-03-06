@@ -93,22 +93,22 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Differentiate toggle errors from settlement account errors based on pendingAction
     // Toggle actions use root pendingAction (UPDATE), settlement account uses pendingFields
     const isTogglePendingAction =
-        cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE ||
-        cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        cardSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isSettlementAccountPendingAction = cardSettings?.pendingFields?.paymentBankAccountID === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        travelSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE ||
+        travelSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        travelSettings?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isSettlementAccountPendingAction = travelSettings?.pendingFields?.paymentBankAccountID === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
 
     // Only show errors/pending under the toggle if it's a toggle action
-    const toggleErrors = cardSettings?.errors;
-    const togglePendingAction = isTogglePendingAction ? cardSettings?.pendingAction : undefined;
+    const toggleErrors = travelSettings?.errors;
+    const togglePendingAction = isTogglePendingAction ? travelSettings?.pendingAction : undefined;
 
     // Only show errors/pending under the settlement account if it's a settlement account action
-    const settlementAccountErrors = isSettlementAccountPendingAction ? cardSettings?.errorFields?.paymentBankAccountID : undefined;
-    const settlementAccountPendingAction = isSettlementAccountPendingAction ? cardSettings?.pendingFields?.paymentBankAccountID : undefined;
+    const settlementAccountErrors = isSettlementAccountPendingAction ? travelSettings?.errorFields?.paymentBankAccountID : undefined;
+    const settlementAccountPendingAction = isSettlementAccountPendingAction ? travelSettings?.pendingFields?.paymentBankAccountID : undefined;
     // Only show error indicator if we have settlement account errors
     const hasSettlementAccountError = !!settlementAccountErrors;
-    const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE];
-    const settlementFrequencyErrors = hasSettlementFrequencyError ? cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE] : null;
+    const hasSettlementFrequencyError = !!travelSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE];
+    const settlementFrequencyErrors = hasSettlementFrequencyError ? travelSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE] : null;
 
     // Bank account eligibility for toggle handler
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
@@ -117,7 +117,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Determine if Travel Invoicing is enabled based on isEnabled field
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
     const isOnWaitlist = !!cardOnWaitlist;
-    const isLoading = !!cardSettings?.isLoading;
+    const isLoading = !!travelSettings?.isLoading;
 
     /**
      * Handle toggle change for Central Invoicing.

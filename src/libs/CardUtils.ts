@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
@@ -1079,17 +1080,17 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase> | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
+    const getMergedProgramSettings = (programKey: string): OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase> | undefined => {
         const programSettings = cardSettings[programKey as keyof typeof cardSettings];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
             // program-specific fields once the backend sends the full nested format (Phase 2).
-            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
+            return {...cardSettings, ...(programSettings as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>)} as OnyxCommon.OnyxValueWithOfflineFeedback<ExpensifyCardSettingsBase>;
         }
         return undefined;
     };
