@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,30 +32,26 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedCurrencyData = searchAdvancedFiltersForm?.[filterKey];
 
-    const {selectedCurrenciesItems, currencyItems} = useMemo(() => {
-        const currencies: SearchSingleSelectionPickerItem[] = [];
-        const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
+    const currencies: SearchSingleSelectionPickerItem[] = [];
+    const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
 
-        for (const currencyCode of Object.keys(currencyList)) {
-            if (currencyList[currencyCode]?.retired) {
-                continue;
-            }
-
-            if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
-                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
-
-            if (!Array.isArray(selectedCurrencyData) && selectedCurrencyData === currencyCode) {
-                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
-
-            if (!currencies.some((item) => item.value === currencyCode)) {
-                currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
-            }
+    for (const currencyCode of Object.keys(currencyList)) {
+        if (currencyList[currencyCode]?.retired) {
+            continue;
         }
 
-        return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
-    }, [currencyList, selectedCurrencyData, getCurrencySymbol]);
+        if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
+            selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+        }
+
+        if (!Array.isArray(selectedCurrencyData) && selectedCurrencyData === currencyCode) {
+            selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+        }
+
+        if (!currencies.some((item) => item.value === currencyCode)) {
+            currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
+        }
+    }
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
         updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
@@ -78,15 +74,15 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
             <View style={[styles.flex1]}>
                 {multiselect && !isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
                     <SearchMultipleSelectionPicker
-                        items={currencyItems}
-                        initiallySelectedItems={selectedCurrenciesItems}
+                        items={currencies}
+                        initiallySelectedItems={selectedCurrencies}
                         onSaveSelection={handleOnSubmit}
                     />
                 )}
                 {!multiselect && (
                     <SearchSingleSelectionPicker
-                        items={currencyItems}
-                        initiallySelectedItem={selectedCurrenciesItems.at(0)}
+                        items={currencies}
+                        initiallySelectedItem={selectedCurrencies.at(0)}
                         onSaveSelection={handleOnSubmit}
                     />
                 )}
