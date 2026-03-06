@@ -88,7 +88,7 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-        const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
+        const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
         if (policyID && policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);

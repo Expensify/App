@@ -56,7 +56,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
 
-    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value]);
+    const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
 
     const listEmptyContent = (
         <BlockingView
