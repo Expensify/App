@@ -99,7 +99,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         setReportsLimit((prev) => prev + batchSize);
     };
 
-
     return {
         options,
         isLoading: !options,
