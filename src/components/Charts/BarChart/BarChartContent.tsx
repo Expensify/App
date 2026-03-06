@@ -1,5 +1,5 @@
 import {useFont} from '@shopify/react-native-skia';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -114,13 +114,10 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         setBoundsRight(bounds.right);
     };
 
-    const handleScaleChange = useCallback(
-        (xScale: Scale, yScale: Scale) => {
-            yZero.set(yScale(0));
-            tickXPositions.set(data.map((_, i) => xScale(i)));
-        },
-        [yZero, data, tickXPositions],
-    );
+    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        yZero.set(yScale(0));
+        tickXPositions.set(data.map((_, i) => xScale(i)));
+    };
 
     // Measure label widths for custom positioning in `renderOutside`
     const labelWidths = useMemo(() => {
@@ -179,57 +176,54 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-    const checkIsOverLabel = useCallback(
-        (args: HitTestArgs, activeIndex: number) => {
-            'worklet';
+    const checkIsOverLabel = (args: HitTestArgs, activeIndex: number) => {
+        'worklet';
 
-            if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
-                return false;
-            }
-            const {labelYOffset, iconSin, halfLabelSins, labelSins, halfWidths} = labelHitGeometry;
-            const halfLabelWidth = halfWidths.at(activeIndex) ?? 0;
-            const labelY = args.chartBottom + labelYOffset;
+        if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
+            return false;
+        }
+        const {labelYOffset, iconSin, halfLabelSins, labelSins, halfWidths} = labelHitGeometry;
+        const halfLabelWidth = halfWidths.at(activeIndex) ?? 0;
+        const labelY = args.chartBottom + labelYOffset;
 
-            if (angleRad === 0) {
-                return (
-                    args.cursorX >= args.targetX - halfLabelWidth &&
-                    args.cursorX <= args.targetX + halfLabelWidth &&
-                    args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
-                    args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
-                );
-            }
-            // 45°
-            if (angleRad < 1) {
-                const halfLabelSin = halfLabelSins.at(activeIndex) ?? 0;
-                const labelSin = labelSins.at(activeIndex) ?? 0;
-                const rightUpperCorner = {
-                    x: args.targetX + halfLabelSin,
-                    y: labelY - halfLabelSin,
-                };
-                const rightLowerCorner = {
-                    x: rightUpperCorner.x + iconSin,
-                    y: rightUpperCorner.y + iconSin,
-                };
-                const leftUpperCorner = {
-                    x: rightUpperCorner.x - labelSin,
-                    y: rightUpperCorner.y + labelSin,
-                };
-                const leftLowerCorner = {
-                    x: rightLowerCorner.x - labelSin,
-                    y: rightLowerCorner.y + labelSin,
-                };
-                return isCursorInSkewedLabel(args.cursorX, args.cursorY, [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner]);
-            }
-            // 90°
+        if (angleRad === 0) {
             return (
-                args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
-                args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
-                args.cursorY >= labelY - halfLabelWidth &&
-                args.cursorY <= labelY + halfLabelWidth
+                args.cursorX >= args.targetX - halfLabelWidth &&
+                args.cursorX <= args.targetX + halfLabelWidth &&
+                args.cursorY >= labelY - variables.iconSizeExtraSmall / 2 &&
+                args.cursorY <= labelY + variables.iconSizeExtraSmall / 2
             );
-        },
-        [angleRad, labelHitGeometry, labelSkipInterval],
-    );
+        }
+        // 45°
+        if (angleRad < 1) {
+            const halfLabelSin = halfLabelSins.at(activeIndex) ?? 0;
+            const labelSin = labelSins.at(activeIndex) ?? 0;
+            const rightUpperCorner = {
+                x: args.targetX + halfLabelSin,
+                y: labelY - halfLabelSin,
+            };
+            const rightLowerCorner = {
+                x: rightUpperCorner.x + iconSin,
+                y: rightUpperCorner.y + iconSin,
+            };
+            const leftUpperCorner = {
+                x: rightUpperCorner.x - labelSin,
+                y: rightUpperCorner.y + labelSin,
+            };
+            const leftLowerCorner = {
+                x: rightLowerCorner.x - labelSin,
+                y: rightLowerCorner.y + labelSin,
+            };
+            return isCursorInSkewedLabel(args.cursorX, args.cursorY, [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner]);
+        }
+        // 90°
+        return (
+            args.cursorX >= args.targetX - variables.iconSizeExtraSmall / 2 &&
+            args.cursorX <= args.targetX + variables.iconSizeExtraSmall / 2 &&
+            args.cursorY >= labelY - halfLabelWidth &&
+            args.cursorY <= labelY + halfLabelWidth
+        );
+    };
 
     /**
      * Scans every visible label's bounding box using its own tick X as the anchor.
@@ -238,28 +232,25 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
      * Used to correct Victory's nearest-point-by-X algorithm for rotated labels whose
      * bounding boxes can extend past the midpoint to the adjacent tick.
      */
-    const findLabelCursorX = useCallback(
-        (cursorX: number, cursorY: number): number => {
-            'worklet';
+    const findLabelCursorX = (cursorX: number, cursorY: number): number => {
+        'worklet';
 
-            const positions = tickXPositions.get();
-            const currentChartBottom = chartBottom.get();
-            for (let i = 0; i < positions.length; i++) {
-                if (i % labelSkipInterval !== 0) {
-                    continue;
-                }
-                const tickX = positions.at(i);
-                if (tickX === undefined) {
-                    continue;
-                }
-                if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
-                    return tickX;
-                }
+        const positions = tickXPositions.get();
+        const currentChartBottom = chartBottom.get();
+        for (let i = 0; i < positions.length; i++) {
+            if (i % labelSkipInterval !== 0) {
+                continue;
             }
-            return cursorX;
-        },
-        [tickXPositions, chartBottom, labelSkipInterval, checkIsOverLabel],
-    );
+            const tickX = positions.at(i);
+            if (tickX === undefined) {
+                continue;
+            }
+            if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
+                return tickX;
+            }
+        }
+        return cursorX;
+    };
 
     const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
