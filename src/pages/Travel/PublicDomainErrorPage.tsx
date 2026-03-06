@@ -22,7 +22,7 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     const policyID = route.params.policyID;
 
     return (
-        <AccessOrNotFoundWrapper policyID={activePolicyID}>
+        <AccessOrNotFoundWrapper policyID={policyID}>
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="PublicDomainErrorPage"
