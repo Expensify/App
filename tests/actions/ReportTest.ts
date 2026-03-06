@@ -2539,7 +2539,12 @@ describe('actions/Report', () => {
                     enabled: false,
                 },
             };
-            const chatReport: OnyxTypes.Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), policyID: fakePolicy.id, hasOutstandingChildRequest: true};
+            const chatReport: OnyxTypes.Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: fakePolicy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
 
             const expenseReport1: OnyxTypes.Report = {
                 ...createRandomReport(5, undefined),
