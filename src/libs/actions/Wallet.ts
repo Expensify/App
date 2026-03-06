@@ -271,7 +271,7 @@ function resetWalletAdditionalDetailsDraft() {
 }
 
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[], cardID: number): Promise<IOSEncryptPayload> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'ios',
         appVersion: pkg.version,
