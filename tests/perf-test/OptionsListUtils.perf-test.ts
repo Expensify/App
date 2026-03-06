@@ -3,7 +3,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions, createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
-const SEARCH_VALUE = 'TestingValue';
+const SEARCH_VALUE = 'Report';
 const COUNTRY_CODE = 1;
 
 const PERSONAL_DETAILS_COUNT = 1000;
@@ -284,5 +284,60 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+    });
+
+    test('[OptionsListUtils] createFilteredOptionList', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(
+                personalDetails,
+                mockedReportsMap,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                {maxRecentReports: 500, searchTerm: ''},
+            ),
+        );
+    });
+
+    test("[OptionsListUtils] createFilteredOptionList with searchTerm", async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(
+                personalDetails,
+                mockedReportsMap,
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                {maxRecentReports: 500,searchTerm: SEARCH_VALUE}
+            ),
+        );
+    });
+
+    test('[OptionsListUtils] getSearchOptions with searchTerm', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createFilteredOptionList(
+            personalDetails,
+            mockedReportsMap,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            undefined,
+            EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+            {maxRecentReports: 500,searchTerm: SEARCH_VALUE}
+        );
+
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
     });
 });

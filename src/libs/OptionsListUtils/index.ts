@@ -1492,6 +1492,7 @@ function createFilteredOptionList(
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ) {
     const {maxRecentReports = 500, includeP2P = true, searchTerm = ''} = options;
+    const isSearching = !!searchTerm?.trim();
     const reportMapForAccountIDs: Record<number, Report> = {};
 
     // Step 1: Pre-filter reports to avoid processing thousands
@@ -1501,19 +1502,24 @@ function createFilteredOptionList(
     });
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first)
-    const sortedReports = reportsArray.sort((a, b) => {
-        const aTime = new Date(a.lastVisibleActionCreated ?? 0).getTime();
-        const bTime = new Date(b.lastVisibleActionCreated ?? 0).getTime();
-        return bTime - aTime;
-    });
+    // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
+    const sortedReports = isSearching
+        ? reportsArray
+        : reportsArray.sort((a, b) => {
+              const aTime = new Date(a.lastVisibleActionCreated ?? 0).getTime();
+              const bTime = new Date(b.lastVisibleActionCreated ?? 0).getTime();
+              return bTime - aTime;
+          });
 
     // Step 3: Limit to top N reports
-    const limitedReports = sortedReports.slice(0, maxRecentReports);
+    // In search mode, we will return all reports so downstream getSearchOptions will handle the actual term matching
+    const effectiveLimit = isSearching ? reportsArray.length : maxRecentReports;
+    const limitedReports = sortedReports.slice(0, effectiveLimit);
 
     // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
     // Users without 1:1 DMs will have no report mapped, causing getIcons to fall back to personal avatar
-    if (searchTerm?.trim()) {
+    if (isSearching) {
         const allReportsArray = Object.values(reports ?? {});
 
         // Add ONLY 1:1 DM reports (never add group/policy chats to maintain personal avatars)
