@@ -15,7 +15,7 @@ type ParentReportActionDeletionStatusParams = {
 
 function hasLoadedReportActions(reportMetadata: OnyxInputOrEntry<ReportMetadata>, isOffline = false): boolean {
     if (!reportMetadata) {
-        return isOffline;
+        return false;
     }
     return reportMetadata?.hasOnceLoadedReportActions === true || reportMetadata?.isLoadingInitialReportActions === false || isOffline;
 }
