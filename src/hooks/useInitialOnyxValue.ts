@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import type {OnyxKey, OnyxValue} from 'react-native-onyx';
-import useOnyx from '@hooks/useOnyx';
+import useOnyx from './useOnyx';
 
 /**
  * Returns the Onyx value captured at the moment Onyx first reports 'loaded',
