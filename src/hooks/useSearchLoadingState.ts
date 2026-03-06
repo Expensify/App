@@ -24,7 +24,9 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined): boolean 
     const validGroupBy = getValidGroupBy(queryJSON.groupBy);
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
-    return !isDataLoaded || isLoadingWithNoData || isCardFeedsLoading;
+    const hasNoData = currentSearchResults?.data === undefined;
+
+    return (!isDataLoaded && hasNoData) || isLoadingWithNoData || isCardFeedsLoading;
 }
 
 export default useSearchLoadingState;

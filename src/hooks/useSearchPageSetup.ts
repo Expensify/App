@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -8,8 +8,6 @@ import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
-
-let didOpenSearch = false;
 
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
@@ -31,14 +29,16 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
     const recentSearchHash = queryJSON?.recentSearchHash;
     const searchKey = recentSearchHash !== undefined ? Object.values(suggestedSearches).find((s) => s.recentSearchHash === recentSearchHash)?.key : undefined;
 
-    const syncContextWithRoute = () => {
+    // useCallback is required here because useFocusEffect (React Navigation external API) compares callback references.
+    // React Compiler cannot optimize this — it doesn't know useFocusEffect's internal semantics.
+    const syncContextWithRoute = useCallback(() => {
         if (hash === undefined || recentSearchHash === undefined || !queryJSON) {
             return;
         }
         clearSelectedTransactions(hash);
         setCurrentSearchHashAndKey(hash, recentSearchHash, searchKey);
         setCurrentSearchQueryJSON(queryJSON);
-    };
+    }, [hash, recentSearchHash, searchKey, queryJSON, clearSelectedTransactions, setCurrentSearchHashAndKey, setCurrentSearchQueryJSON]);
 
     useFocusEffect(syncContextWithRoute);
 
@@ -55,10 +55,6 @@ function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
     }, [hash, searchKey, isOffline, shouldUseLiveData, currentSearchResults, queryJSON]);
 
     useEffect(() => {
-        if (didOpenSearch) {
-            return;
-        }
-        didOpenSearch = true;
         openSearch({includePartiallySetupBankAccounts: true});
     }, []);
 
