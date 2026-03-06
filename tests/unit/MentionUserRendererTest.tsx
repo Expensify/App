@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {TText} from 'react-native-render-html';
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -95,20 +95,25 @@ jest.mock('@libs/Log', () => ({
 function withProvider(children: ReactNode) {
     return (
         <OnyxListItemProvider>
-            <ShowContextMenuContext.Provider
+            <ShowContextMenuStateContext.Provider
                 value={{
-                    onShowContextMenu: (fn: () => void) => fn(),
                     anchor: null,
                     report: undefined,
                     isReportArchived: false,
                     action: undefined,
-                    checkIfContextMenuActive: () => false,
                     isDisabled: true,
                     shouldDisplayContextMenu: false,
                 }}
             >
-                {children}
-            </ShowContextMenuContext.Provider>
+                <ShowContextMenuActionsContext.Provider
+                    value={{
+                        onShowContextMenu: (fn: () => void) => fn(),
+                        checkIfContextMenuActive: () => false,
+                    }}
+                >
+                    {children}
+                </ShowContextMenuActionsContext.Provider>
+            </ShowContextMenuStateContext.Provider>
         </OnyxListItemProvider>
     );
 }
