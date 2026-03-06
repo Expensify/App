@@ -28,6 +28,18 @@ type MergeTransactionParams = {
 
     /** The receiptID we want to keep */
     receiptID: number | undefined;
+
+    /** The amount of the transaction */
+    amount: number;
+
+    /** The currency of the transaction */
+    currency: string;
+
+    /** The report ID of the transaction */
+    reportID: string;
+
+    /** The created IOU report action ID of the transaction */
+    createdIOUReportActionID?: string;
 };
 
 export default MergeTransactionParams;

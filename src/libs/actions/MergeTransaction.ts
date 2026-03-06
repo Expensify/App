@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
-import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
+import type {GetTransactionsForMergingParams, MergeTransactionParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {
@@ -333,22 +333,7 @@ function mergeTransactionRequest({
     const finalAmount = -mergeTransaction.amount;
 
     // Call the merge transaction action
-    const params: {
-        transactionID: string;
-        transactionIDList: string[];
-        created: string;
-        merchant: string;
-        amount: number;
-        currency: string;
-        category: string;
-        comment: string;
-        billable: boolean;
-        reimbursable: boolean;
-        tag: string;
-        receiptID: number | undefined;
-        reportID: string;
-        createdIOUReportActionID?: string;
-    } = {
+    const params: MergeTransactionParams = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
         created: mergeTransaction.created,
@@ -654,6 +639,36 @@ function mergeTransactionRequest({
                 [newIOUAction.reportActionID]: null,
             },
         });
+
+        // Remove the target transaction's action from its original report so the moved expense
+        // does not appear in both reports during offline/optimistic state.
+        const targetIOUAction = getIOUActionForReportID(targetTransaction.reportID, targetTransaction.transactionID);
+        if (targetIOUAction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
+                value: {
+                    [targetIOUAction.reportActionID]: null,
+                },
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
+                value: {
+                    [targetIOUAction.reportActionID]: {pendingAction: null},
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
+                value: {
+                    [targetIOUAction.reportActionID]: targetIOUAction,
+                },
+            });
+        }
+
         params.createdIOUReportActionID = newIOUAction.reportActionID;
     }
 
