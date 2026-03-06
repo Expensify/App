@@ -100,7 +100,9 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
     try {
         const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
-        if (!frontmatter) return undefined;
+        if (!frontmatter) {
+            return undefined;
+        }
         const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
         return frontmatterObject.order as number | undefined;
     } catch {
@@ -111,12 +113,7 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
 /**
  * Build a section from a directory path, with optional parent path for nested href
  */
-function buildSection(
-    platformName: string,
-    hub: string,
-    sectionPath: string,
-    parentHref: string,
-): Section {
+function buildSection(platformName: string, hub: string, sectionPath: string, parentHref: string): Section {
     const sectionName = sectionPath.split('/').pop() ?? sectionPath;
     const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
     const articles: Article[] = [];
