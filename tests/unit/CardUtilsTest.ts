@@ -45,6 +45,7 @@ import {
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     hasOnlyOneCardToAssign,
+    isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
@@ -2569,7 +2570,7 @@ describe('CardUtils', () => {
         it('should return true when card is CSV imported personal card (bank is PERSONAL_CARD.BANK_NAME.CSV)', () => {
             const csvPersonalCard: Card = {
                 accountID: 1,
-                bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+                bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
                 cardID: 2,
                 cardName: 'My Imported Card',
                 domainName: '',
@@ -3236,6 +3237,142 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('isCardAlreadyAssigned', () => {
+        it('should detect Plaid card assigned in the same workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should detect Plaid card assigned in a different workspace with the same feed', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Workspace 100 checking, card is assigned in workspace 200 — should be detected
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(true);
+        });
+
+        it('should not match Plaid card from a different institution', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_plaid.ins_99`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different institution feed (plaid.ins_19 vs plaid.ins_99)
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect commercial card assigned in the same domain', () => {
+            const workspaceCardFeeds = {
+                cards_100_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100, 'vcf')).toBe(true);
+        });
+
+        it('should not match commercial card with same display name in a different domain', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_DOMAIN_200',
+                        state: 3,
+                        domainName: 'other-company.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Different domain, different encrypted number — should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_DOMAIN_100', workspaceCardFeeds, 100, 'vcf')).toBe(false);
+        });
+
+        it('should not match card pending deletion', () => {
+            const workspaceCardFeeds = {
+                [`cards_100_plaid.ins_19`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'Plaid Credit Card 3333',
+                        encryptedCardNumber: 'Plaid Credit Card 3333',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        state: 3,
+                        domainName: 'workspace1.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('Plaid Credit Card 3333', workspaceCardFeeds, 100, 'plaid.ins_19')).toBe(false);
+        });
+
+        it('should detect OAuth card assigned in a different workspace', () => {
+            const workspaceCardFeeds = {
+                [`cards_200_oauth.chase.com`]: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'CREDIT CARD...6607',
+                        encryptedCardNumber: 'CREDIT CARD...6607',
+                        state: 3,
+                        domainName: 'workspace2.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            expect(isCardAlreadyAssigned('CREDIT CARD...6607', workspaceCardFeeds, 100, 'oauth.chase.com')).toBe(true);
+        });
+
+        it('should fall back to domain-scoped check when feedName is not provided', () => {
+            const workspaceCardFeeds = {
+                cards_200_vcf: {
+                    '12345': {
+                        cardID: 12345,
+                        cardName: 'VISA - 1234',
+                        encryptedCardNumber: 'ENCRYPTED_ABC',
+                        state: 3,
+                        domainName: 'other.exfy',
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            // Without feedName, falls back to domain-scoped — domain 100 vs 200, should not match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 100)).toBe(false);
+            // Same domain should match
+            expect(isCardAlreadyAssigned('ENCRYPTED_ABC', workspaceCardFeeds, 200)).toBe(true);
+        });
+    });
     describe('getCardSettings', () => {
         const flatSettings = {
             paymentBankAccountID: 12345,
@@ -3245,6 +3382,8 @@ describe('CardUtils', () => {
         } as ExpensifyCardSettings;
 
         const nestedSettings = {
+            domainName: 'example.com',
+            preferredPolicy: 'policyID',
             paymentBankAccountID: 12345,
             limit: 50000,
             US: {
@@ -3268,41 +3407,73 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided', () => {
+        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
             const result = getCardSettings(flatSettings);
             expect(result).toBe(flatSettings);
         });
 
-        it('should return flat root when feedCountry is undefined', () => {
+        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
             const result = getCardSettings(flatSettings, undefined);
             expect(result).toBe(flatSettings);
         });
 
-        it('should return nested object when feedCountry matches a nested key', () => {
+        it('should return merged root + nested when feedCountry matches a nested key', () => {
             const result = getCardSettings(nestedSettings, 'US');
-            expect(result).toEqual({
-                paymentBankAccountID: 67890,
-                limit: 30000,
-                currentBalance: 500,
-            });
+            expect(result?.paymentBankAccountID).toBe(67890);
+            expect(result?.limit).toBe(30000);
+            expect(result?.currentBalance).toBe(500);
+            expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to flat root when feedCountry key does not exist', () => {
+        it('should fall back to root when feedCountry key does not exist', () => {
             const result = getCardSettings(nestedSettings, 'CA');
             expect(result).toBe(nestedSettings);
         });
 
-        it('should return TRAVEL_US nested settings when feedCountry is TRAVEL_US', () => {
+        it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
             const result = getCardSettings(nestedSettings, 'TRAVEL_US');
-            expect(result).toEqual({
-                paymentBankAccountID: 11111,
-                isEnabled: true,
-            });
+            expect(result?.paymentBankAccountID).toBe(11111);
+            expect(result?.isEnabled).toBe(true);
+            expect(result?.domainName).toBe('example.com');
         });
 
         it('should not return primitive values as nested settings', () => {
             const result = getCardSettings(nestedSettings, 'limit');
             expect(result).toBe(nestedSettings);
+        });
+
+        it('should auto-detect US program when no feedCountry is provided', () => {
+            const result = getCardSettings(nestedSettings);
+            expect(result?.paymentBankAccountID).toBe(67890);
+            expect(result?.limit).toBe(30000);
+            expect(result?.currentBalance).toBe(500);
+            expect(result?.domainName).toBe('example.com');
+        });
+
+        it('should auto-detect GB program when only GB nested key exists', () => {
+            const gbOnlySettings = {
+                domainName: 'uk-example.com',
+                GB: {
+                    paymentBankAccountID: 99999,
+                    limit: 20000,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(gbOnlySettings);
+            expect(result?.paymentBankAccountID).toBe(99999);
+            expect(result?.domainName).toBe('uk-example.com');
+        });
+
+        it('should auto-detect CURRENT program for legacy pre-2024 nested format', () => {
+            const currentSettings = {
+                domainName: 'legacy.com',
+                CURRENT: {
+                    paymentBankAccountID: 55555,
+                    limit: 10000,
+                },
+            } as ExpensifyCardSettings;
+            const result = getCardSettings(currentSettings);
+            expect(result?.paymentBankAccountID).toBe(55555);
+            expect(result?.domainName).toBe('legacy.com');
         });
     });
 });

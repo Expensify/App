@@ -151,6 +151,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
         /** cardID of selected card */
@@ -216,17 +217,14 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: undefined;
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: undefined;
+    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: undefined;
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         subPage?: string;
         action?: 'edit';
-    };
-    [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
-        // TODO will be removed once dynamic routes are implemented https://github.com/Expensify/App/issues/73825
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: undefined;
@@ -970,6 +968,8 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_LIST_ADD]: {
         policyID: string;
+        subPage?: string;
+        action?: 'edit';
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD]: {
         policyID: string;

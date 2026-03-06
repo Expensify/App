@@ -1174,7 +1174,7 @@ function updateSplitTransactions({
                 category: splitExpense.category,
                 tag: splitExpense.tags?.[0],
                 originalTransactionID,
-                attendees: originalTransactionDetails?.attendees,
+                attendees: splitTransaction?.comment?.attendees ?? originalTransactionDetails?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
                 pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

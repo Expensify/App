@@ -184,7 +184,6 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -566,6 +565,10 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
 
 function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RETRACTED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
+}
+
+function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
 }
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
@@ -4109,9 +4112,20 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
 }
 
-function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+/**
+ * Check if the original report referenced by a report action is deleted.
+ */
+function isOriginalReportDeleted(action: OnyxEntry<ReportAction>, originalReport: OnyxEntry<Report>): boolean {
+    // isOriginalReportDeleted is set to true when the original report is deleted from the backend. We can fall back to check if the report is optimistically deleted on the frontend side.
+    return !!action?.isOriginalReportDeleted || originalReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, isReportDeleted: boolean, translate: LocalizedTranslate): string {
+    if (reportID === undefined) {
+        return '';
+    }
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName, reportID, isReportDeleted});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
@@ -4581,6 +4595,7 @@ export {
     getRoomChangeLogMessage,
     getActionableCard3DSTransactionApprovalMessage,
     shouldShowActivateCard,
+    isRejectedAction,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
@@ -4605,6 +4620,7 @@ export {
     getWorkspaceCategoriesUpdatedMessage,
     getHarvestCreatedExpenseReportMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    isOriginalReportDeleted,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,

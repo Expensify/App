@@ -275,7 +275,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                                 ListItem={UserListItem}
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
-                                showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                                shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             />
                         </>
                     )}
