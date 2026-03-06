@@ -255,9 +255,11 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(travelInvoicingKey, {
-                    paymentBankAccountID: 12345,
-                    remainingLimit: 50000,
-                    currentBalance: 10000,
+                    TRAVEL_US: {
+                        paymentBankAccountID: 12345,
+                        remainingLimit: 50000,
+                        currentBalance: 10000,
+                    },
                 });
                 await Onyx.merge(bankAccountKey, {
                     12345: {
@@ -344,14 +346,15 @@ describe('WorkspaceTravelInvoicingSection', () => {
     describe('Pay Balance Button', () => {
         const cardSettingsKey = getTravelInvoicingCardSettingsKey(WORKSPACE_ACCOUNT_ID);
 
-        it('should show Pay Balance button when user is admin, invoicing is enabled, and there is a balance', async () => {
+        it('should show Pay Balance button when user is admin, invoicing is enabled, there is a balance, and monthly settlement is enabled', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
                     TRAVEL_US: {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
-                        currentBalance: 5000, // Positive balance
+                        currentBalance: 5000,
+                        monthlySettlementDate: new Date(),
                     },
                 });
                 await waitForBatchedUpdatesWithAct();
@@ -395,6 +398,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
                         isEnabled: true,
                         paymentBankAccountID: 12345,
                         currentBalance: 5000,
+                        monthlySettlementDate: new Date(),
                     },
                 });
                 await waitForBatchedUpdatesWithAct();
