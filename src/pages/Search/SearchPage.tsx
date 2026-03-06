@@ -1,22 +1,17 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
+import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useFilterFormValues from '@hooks/useFilterFormValues';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
-import useReceiptScanDrop from '@hooks/useReceiptScanDrop';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {search} from '@libs/actions/Search';
@@ -33,10 +28,8 @@ import SearchPageWide from './SearchPageWide';
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
-    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {selectedTransactions, lastSearchType, areAllMatchingItemsSelected, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions, setLastSearchType} = useSearchActionsContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
@@ -44,9 +37,9 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(filterFormValues);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['SmartScan'] as const);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+    const receiptDropTargetRef = useRef<View>(null);
 
     useConfirmReadyToOpenApp();
 
@@ -63,7 +56,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
     const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
@@ -143,9 +135,11 @@ function SearchPage({route}: SearchPageProps) {
 
     return (
         <Animated.View style={[styles.flex1]}>
-            {shouldUseNarrowLayout ? (
-                <DragAndDropProvider isDisabled={isDragDisabled}>
-                    {PDFValidationComponent}
+            <View
+                ref={receiptDropTargetRef}
+                style={styles.flex1}
+            >
+                {shouldUseNarrowLayout ? (
                     <SearchPageNarrow
                         queryJSON={queryJSON}
                         metadata={metadata}
@@ -154,33 +148,24 @@ function SearchPage({route}: SearchPageProps) {
                         footerData={footerData}
                         shouldShowFooter={shouldShowFooter}
                     />
-                    <DragAndDropConsumer onDrop={initScanRequest}>
-                        <DropZoneUI
-                            icon={expensifyIcons.SmartScan}
-                            dropTitle={translate('dropzone.scanReceipts')}
-                            dropStyles={styles.receiptDropOverlay(true)}
-                            dropTextStyles={styles.receiptDropText}
-                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
-                            dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
-                        />
-                    </DragAndDropConsumer>
-                    {ErrorModal}
-                </DragAndDropProvider>
-            ) : (
-                <SearchPageWide
-                    queryJSON={queryJSON}
-                    searchResults={searchResults}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    footerData={footerData}
-                    handleSearchAction={handleSearchAction}
-                    onSortPressedCallback={onSortPressedCallback}
-                    route={route}
-                    initScanRequest={initScanRequest}
-                    isDragDisabled={isDragDisabled}
-                    PDFValidationComponent={PDFValidationComponent}
-                    ErrorModal={ErrorModal}
-                    shouldShowFooter={shouldShowFooter}
+                ) : (
+                    <SearchPageWide
+                        queryJSON={queryJSON}
+                        searchResults={searchResults}
+                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                        footerData={footerData}
+                        handleSearchAction={handleSearchAction}
+                        onSortPressedCallback={onSortPressedCallback}
+                        route={route}
+                        shouldShowFooter={shouldShowFooter}
+                    />
+                )}
+            </View>
+            {!!queryJSON && (
+                <ReceiptScanDropZone
+                    targetRef={receiptDropTargetRef}
+                    dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
                 />
             )}
         </Animated.View>
