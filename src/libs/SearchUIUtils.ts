@@ -1690,7 +1690,7 @@ function getTransactionsSections({
     reportActions = {},
     queryJSON,
     cardFeeds,
-}: GetTransactionSectionsParams): [TransactionListItemType[], number, TransactionColumnMeasurements] {
+}: GetTransactionSectionsParams): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -1711,8 +1711,6 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
     // New Measurement Data
-    const averageCharacterLength = 7.68;
-    const averageCharacterLengthWithPadding = 8.45;
     const measurements = {
         date: 0,
         merchant: 0,
@@ -1886,6 +1884,7 @@ function getTransactionsSections({
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
+            measurements,
             formattedValues: {
                 date: formattedDate,
                 merchant: formattedMerchant,
@@ -1942,7 +1941,7 @@ function getTransactionsSections({
         transactionsSections.push(transactionSection);
     }
 
-    return [transactionsSections, transactionsSections.length, measurements];
+    return [transactionsSections, transactionsSections.length];
 }
 
 /**

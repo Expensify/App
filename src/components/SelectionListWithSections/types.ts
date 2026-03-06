@@ -279,6 +279,7 @@ type TransactionColumnMeasurements = {
 
 type TransactionListItemType = ListItem &
     Transaction & {
+        measurements: TransactionColumnMeasurements;
         formattedValues: {
             date: string;
             merchant: string;
