@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getWorkspaceAddressStreetLines} from '@libs/WorkspacesSettingsUtils';
 import AddressPage from '@pages/AddressPage';
 import {updateAddress} from '@userActions/Policy/Policy';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -21,9 +22,7 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
         const tempAddress = policy?.address;
-        const [legacyStreetLineOne, legacyStreetLineTwo] = (tempAddress?.addressStreet ?? '').split('\n');
-        const streetLineOne = legacyStreetLineOne?.trim() ?? '';
-        const streetLineTwo = tempAddress?.addressStreet2?.trim() ?? legacyStreetLineTwo?.trim() ?? '';
+        const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(tempAddress?.addressStreet, tempAddress?.addressStreet2);
         const result = {
             street: streetLineTwo ? `${streetLineOne}\n${streetLineTwo}` : streetLineOne,
             city: tempAddress?.city?.trim() ?? '',

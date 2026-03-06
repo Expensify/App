@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {formatWorkspaceAddress} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -3291,47 +3292,6 @@ type CompanyAddressOriginalMessage = {
     oldAddress?: {addressStreet?: string; addressStreet2?: string; city?: string; state?: string; zipCode?: string; country?: string} | null;
 };
 
-/**
- * Format address as "street1, street2 (if exists), city, state zipCode"
- */
-function formatAddressToString(address: CompanyAddressOriginalMessage['newAddress'] | null | undefined): string {
-    if (!address) {
-        return '';
-    }
-
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    const street2 = address.addressStreet2?.trim() ?? street2Raw?.trim() ?? '';
-
-    const parts: string[] = [];
-
-    if (street1) {
-        parts.push(street1);
-    }
-    if (street2) {
-        parts.push(street2);
-    }
-    if (address.city) {
-        parts.push(address.city);
-    }
-
-    let stateZip = '';
-    if (address.state) {
-        stateZip = address.state;
-        if (address.zipCode) {
-            stateZip += ` ${address.zipCode}`;
-        }
-    } else if (address.zipCode) {
-        stateZip = address.zipCode;
-    }
-
-    if (stateZip) {
-        parts.push(stateZip);
-    }
-
-    return parts.join(', ');
-}
-
 function getCompanyAddressUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>) as CompanyAddressOriginalMessage | undefined;
 
@@ -3339,8 +3299,8 @@ function getCompanyAddressUpdateMessage(translate: LocalizedTranslate, action: R
         return getReportActionText(action);
     }
 
-    const newAddressStr = formatAddressToString(originalMessage.newAddress);
-    const oldAddressStr = formatAddressToString(originalMessage.oldAddress);
+    const newAddressStr = formatWorkspaceAddress(originalMessage.newAddress);
+    const oldAddressStr = formatWorkspaceAddress(originalMessage.oldAddress);
 
     return translate('workspaceActions.changedCompanyAddress', {
         newAddress: newAddressStr,
