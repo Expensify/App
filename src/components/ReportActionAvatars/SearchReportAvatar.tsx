@@ -8,7 +8,7 @@ import ReportActionAvatar from './ReportActionAvatar';
 type SearchReportAvatarProps = {
     primaryAvatar?: Icon;
     secondaryAvatar?: Icon;
-    avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
+    avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
     shouldShowTooltip: boolean;
     subscriptAvatarBorderColor: ColorValue;
     reportID: string;
@@ -16,7 +16,7 @@ type SearchReportAvatarProps = {
 
 function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldShowTooltip, subscriptAvatarBorderColor, reportID}: SearchReportAvatarProps) {
     if (!primaryAvatar) {
-        return;
+        return null;
     }
 
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT && secondaryAvatar) {
