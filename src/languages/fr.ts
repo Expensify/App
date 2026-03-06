@@ -5310,6 +5310,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
                     },
+                    exportToPDF: 'Exporter en PDF',
+                    exportToCSV: 'Exporter en CSV',
+                    selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
+                    invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
                     enabled: 'Facturation centralisée activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
@@ -7798,6 +7802,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'relevé de notes perdu ou endommagé',
