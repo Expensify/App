@@ -226,8 +226,8 @@ type MoneyRequestConfirmationListProps = {
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
 
 const mileageRateSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => DistanceRequestUtils.getDefaultMileageRate(policy);
-const transactionReportSelector = (report: OnyxEntry<OnyxTypes.Report>) => report && {type: report.type};
-const policyDraftSelector = (draft: OnyxEntry<OnyxTypes.Policy>) => draft && {customUnits: draft.customUnits};
+const transactionReportSelector = (report: OnyxEntry<OnyxTypes.Report>) => report && ({type: report.type} as OnyxEntry<OnyxTypes.Report>);
+const policyDraftSelector = (draft: OnyxEntry<OnyxTypes.Policy>) => draft && ({customUnits: draft.customUnits} as OnyxEntry<OnyxTypes.Policy>);
 
 function MoneyRequestConfirmationList({
     transaction,
