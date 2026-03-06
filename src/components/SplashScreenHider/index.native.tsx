@@ -36,7 +36,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         BootSplash.hide().then(() => {
             scale.set(
                 withTiming(0, {
-                    duration: 200,
+                    duration: 100,
                     easing: Easing.back(2),
                 }),
             );
@@ -45,7 +45,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
                 withTiming(
                     0,
                     {
-                        duration: 250,
+                        duration: 100,
                         easing: Easing.out(Easing.ease),
                     },
                     () => scheduleOnRN(onHide),
