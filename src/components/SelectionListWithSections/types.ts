@@ -256,49 +256,27 @@ type ListItem<K extends string | number = string> = {
 
 type TransactionListItemType = ListItem &
     Transaction & {
-        measurements: {
-            date: number;
-            merchant: number;
-            category: number;
-            tag: number;
-            amount: number;
-            exchangeRate: number;
-            description: number;
-            card: number;
-            billable: number;
-            reimbursable: number;
-            title: number;
-            taxRate: number;
-            taxAmount: number;
-            reportID: number;
-            longReportID: number;
-            originalAmount: number;
-            exportedDate: number;
-            submittedDate: number;
-            approvedDate: number;
-            postedDate: number;
-        };
         formattedValues: {
-            date: number;
-            merchant: number;
-            category: number;
-            tag: number;
-            amount: number;
-            exchangeRate: number;
-            description: number;
-            card: number;
-            billable: number;
-            reimbursable: number;
-            title: number;
-            taxRate: number;
-            taxAmount: number;
-            reportID: number;
-            longReportID: number;
-            originalAmount: number;
-            exportedDate: number;
-            submittedDate: number;
-            approvedDate: number;
-            postedDate: number;
+            date: string;
+            merchant: string;
+            category: string;
+            tag: string;
+            amount: string;
+            exchangeRate: string;
+            description: string;
+            card: string;
+            billable: string;
+            reimbursable: string;
+            title: string;
+            taxRate: string;
+            taxAmount: string;
+            reportID: string;
+            longReportID: string;
+            originalAmount: string;
+            exportedDate: string;
+            submittedDate: string;
+            approvedDate: string;
+            postedDate: string;
         };
 
         /** Report to which the transaction belongs */

@@ -1774,10 +1774,6 @@ function getTransactionsSections({
         );
 
         // Compute the maximum size of all of the text fields to determine how much space we need to delegate
-        // Handle the date
-        const datePixelWidth = (date?.length ?? 0) * averageCharacterLengthWithPadding;
-        measurements.date = Math.max(measurements.date, datePixelWidth);
-
         // Handle the merchant
         const merchantPixelWidth = (formattedMerchant?.length ?? 0) * averageCharacterLengthWithPadding;
         measurements.merchant = Math.max(measurements.merchant, merchantPixelWidth);
@@ -1856,6 +1852,13 @@ function getTransactionsSections({
         const originalAmountPixelWidth = formattedOriginalAmount.length * averageCharacterLengthWithPadding;
         measurements.originalAmount = Math.max(measurements.originalAmount, originalAmountPixelWidth);
 
+        // Handle the date
+        const createdDate = date ?? '';
+        const isCreatedLastYear = DateUtils.doesDateBelongToAPastYear(createdDate);
+        const formattedDate = DateUtils.formatWithUTCTimeZone(createdDate, isCreatedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const datePixelWidth = (formattedDate?.length ?? 0) * averageCharacterLengthWithPadding;
+        measurements.date = Math.max(measurements.date, datePixelWidth);
+
         // Handle exported date
         const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
         const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
@@ -1886,6 +1889,28 @@ function getTransactionsSections({
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
+            formattedValues: {
+                date: formattedDate,
+                merchant: formattedMerchant,
+                category: formattedCategory,
+                tag: formattedTag,
+                amount: formattedAmount,
+                exchangeRate: formattedExchangeRate,
+                description: formattedDescription,
+                card: 'xxx',
+                billable: formattedBillable,
+                reimbursable: formattedReimbursable,
+                title: formattedTitle,
+                taxRate: formattedTaxRate,
+                taxAmount: formattedTaxAmount,
+                reportID: formattedReportID,
+                longReportID: formattedBase62ReportID,
+                originalAmount: formattedOriginalAmount,
+                exportedDate: formattedExportDate,
+                submittedDate: formattedSubmittedDate,
+                approvedDate: formattedApprovedDate,
+                postedDate: formattedPostedDate,
+            },
             keyForList: transaction.transactionID,
             action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
             allActions,
