@@ -91,6 +91,8 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
+    isRejectedAction,
     isRenamedAction,
     isReportActionAttachment,
     isTagModificationAction,
@@ -412,7 +414,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
@@ -787,7 +789,7 @@ function computeReportName(
         const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         const reportName = computeReportName(originalReport, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserAccountID);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
 
     if (isTaskReport(report)) {

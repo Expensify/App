@@ -2903,6 +2903,36 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
+function canSubmitAndIsAwaitingForCurrentUser(
+    iouReport: OnyxEntry<Report>,
+    chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    transactions: Transaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolations>,
+    currentUserEmailParam: string,
+    currentUserAccountIDParam: number,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
+): boolean {
+    const hasAutoRejectedTransactionsForManager =
+        !!iouReport &&
+        iouReport.managerID === currentUserAccountIDParam &&
+        transactions.length > 0 &&
+        transactions.every((transaction) => {
+            const transactionID = transaction?.transactionID;
+            if (!transactionID) {
+                return false;
+            }
+            const transactionViolationList = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            return transactionViolationList.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+    const shouldWaitForSubmission = shouldCurrentUserSubmitReport(iouReport, chatReport, policy, reportActions);
+    return !!(
+        !hasAutoRejectedTransactionsForManager &&
+        canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam) &&
+        shouldWaitForSubmission
+    );
+}
+
 function hasOutstandingChildRequest(
     chatReport: Report,
     iouReportOrID: OnyxEntry<Report> | string,
@@ -2928,21 +2958,7 @@ function hasOutstandingChildRequest(
 
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
-
-        const hasAutoRejectedTransactionsForManager =
-            !!iouReport &&
-            iouReport.managerID === currentUserAccountIDParam &&
-            transactions.length > 0 &&
-            transactions.every((transaction) => {
-                const transactionID = transaction?.transactionID;
-                if (!transactionID) {
-                    return false;
-                }
-                const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-                return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-            });
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
-        const canSubmit = !hasAutoRejectedTransactionsForManager && canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam, currentUserAccountIDParam);
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2950,9 +2966,27 @@ function hasOutstandingChildRequest(
         return (
             canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, undefined, undefined, invoiceReceiverPolicy) ||
             canApproveIOU(iouReport, policy, reportMetadata, transactions) ||
-            canSubmit
+            canSubmitAndIsAwaitingForCurrentUser(
+                iouReport,
+                chatReport,
+                policy,
+                transactions,
+                allTransactionViolations,
+                currentUserEmailParam,
+                currentUserAccountIDParam,
+                getAllReportActions(iouReportID),
+            )
         );
     });
+}
+
+/**
+ * Determines if the current user should submit the report
+ */
+function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportActions?: OnyxEntry<ReportActions> | ReportAction[]) {
+    const hasBeenReopenedOrRetracted = hasReportBeenReopened(iouReport, reportActions) || hasReportBeenRetracted(iouReport, reportActions);
+    const isOwnReportAndRetracted = isReportOwner(iouReport) && hasBeenReopenedOrRetracted;
+    return isOwnReportAndRetracted || isWaitingForSubmissionFromCurrentUser(chatReport, policy);
 }
 
 /**
@@ -2968,6 +3002,8 @@ function getAddExpenseDropdownOptions(
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
     userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
+    amountOwed: OnyxEntry<number>,
+    ownerBillingGraceEndPeriod: OnyxEntry<number>,
     iouRequestBackToReport?: string,
     unreportedExpenseBackToReport?: string,
     lastDistanceExpenseType?: IOURequestType,
@@ -2982,7 +3018,11 @@ function getAddExpenseDropdownOptions(
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (
+                    policy &&
+                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)
+                ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -2998,7 +3038,7 @@ function getAddExpenseDropdownOptions(
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3011,7 +3051,7 @@ function getAddExpenseDropdownOptions(
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, amountOwed, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -5759,7 +5799,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
         const reportName = getReportName({report: originalReport});
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!parentReportAction.isOriginalReportDeleted, translateLocal);
     }
 
     if (isTaskReport(report)) {
@@ -12198,7 +12238,9 @@ function isChatUsedForOnboarding(
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport, conciergeReportID);
     }
 
-    return isPostingTasksInAdminsRoom(onboardingPurposeSelected) ? isAdminRoom(optionOrReport) : ((optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport));
+    return isPostingTasksInAdminsRoom(onboardingPurposeSelected)
+        ? isAdminRoom(optionOrReport) && !isChatThread(optionOrReport)
+        : ((optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport));
 }
 
 /**
@@ -13141,6 +13183,8 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    shouldCurrentUserSubmitReport,
+    canSubmitAndIsAwaitingForCurrentUser,
     getParentReport,
     getReportOrDraftReport,
     getRoom,

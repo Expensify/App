@@ -1375,7 +1375,10 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+            isFromFloatingActionButton,
+            ...(requestType && {iouRequestType: requestType}),
+        });
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -1805,7 +1808,7 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     let newDistance;
-    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit) {
+    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit && !isOdometerDistanceRequestTransactionUtils(transaction)) {
         newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), newDistanceUnit);
     }
 
@@ -4428,7 +4431,7 @@ function calculateDiffAmount(
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReportLocal = isExpenseReport(iouReport);
+    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedCurrency = getCurrency(updatedTransaction);
     const currentCurrency = getCurrency(transaction);
 
@@ -4543,7 +4546,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     const isTransactionOnHold = isOnHold(transaction);
-    const isFromExpenseReport = isExpenseReport(iouReport);
+    const isFromExpenseReport = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
               transaction,
@@ -7714,7 +7717,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 customUnitRateID,
                 description: parsedComment,
                 gpsCoordinates,
-                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
+                isDistance:
+                    isGPSDistanceRequest ||
+                    isMapDistanceRequest(transaction) ||
+                    isManualDistanceRequestTransactionUtils(transaction) ||
+                    isOdometerDistanceRequestTransactionUtils(transaction),
+                odometerStart,
+                odometerEnd,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -9660,6 +9669,7 @@ function getDuplicateActionsForPartialReport(
         CONST.REPORT.ACTIONS.TYPE.APPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
         CONST.REPORT.ACTIONS.TYPE.RETRACTED,
         CONST.REPORT.ACTIONS.TYPE.CLOSED,
         CONST.REPORT.ACTIONS.TYPE.REOPENED,
