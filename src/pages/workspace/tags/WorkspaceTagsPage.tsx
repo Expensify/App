@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -48,14 +49,17 @@ import {
     setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getConnectedIntegration,
     getCurrentConnectionName,
+    getTagApproverRule,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -110,6 +114,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && !isMultiLevelTags && !!policy?.areRulesEnabled;
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -268,66 +273,95 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => ({
-            value: tag.name,
-            text: getCleanedTagName(tag.name),
-            keyForList: tag.name,
-            pendingAction: tag.pendingAction,
-            errors: tag.errors ?? undefined,
-            enabled: tag.enabled,
-            isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            rightElement: isControlPolicyWithWideLayout ? (
-                <>
-                    <View style={glCodeContainerStyle}>
-                        <Text
-                            numberOfLines={1}
-                            style={glCodeTextStyle}
-                        >
-                            {tag['GL Code']}
-                        </Text>
-                    </View>
-                    <View style={switchContainerStyle}>
-                        <Switch
-                            isOn={tag.enabled}
-                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                            accessibilityLabel={translate('workspace.tags.enableTag')}
-                            onToggle={(newValue: boolean) => {
-                                if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                                    showConfirmModal({
-                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-                                        confirmText: translate('common.buttonConfirm'),
-                                        shouldShowCancelButton: false,
-                                    });
-                                    return;
-                                }
-                                updateWorkspaceTagEnabled(newValue, tag.name);
-                            }}
-                            showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
-                        />
-                    </View>
-                </>
-            ) : (
-                <Switch
-                    isOn={tag.enabled}
-                    disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    accessibilityLabel={translate('workspace.tags.enableTag')}
-                    onToggle={(newValue: boolean) => {
-                        if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                            showConfirmModal({
-                                title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-                                prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                            return;
-                        }
-                        updateWorkspaceTagEnabled(newValue, tag.name);
-                    }}
-                    showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
-                />
-            ),
-        }));
+        return Object.values(policyTagLists?.at(0)?.tags ?? {}).map((tag) => {
+            const approverEmail = shouldShowApproverColumn ? (getTagApproverRule(policy, tag.name)?.approver ?? '') : '';
+            const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
+            const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
+            const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+
+            return {
+                value: tag.name,
+                text: getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: isControlPolicyWithWideLayout ? (
+                    <>
+                        <View style={glCodeContainerStyle}>
+                            <Text
+                                numberOfLines={1}
+                                style={glCodeTextStyle}
+                            >
+                                {tag['GL Code']}
+                            </Text>
+                        </View>
+                        {shouldShowApproverColumn && (
+                            <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
+                                {approverDisplayName ? (
+                                    <>
+                                        <Avatar
+                                            source={avatar}
+                                            name={approverDisplayName}
+                                            avatarID={accountID}
+                                            type={CONST.ICON_TYPE_AVATAR}
+                                            size={CONST.AVATAR_SIZE.SUBSCRIPT}
+                                            containerStyles={[styles.mr3]}
+                                        />
+                                        <Text
+                                            numberOfLines={1}
+                                            style={glCodeTextStyle}
+                                        >
+                                            {approverDisplayName}
+                                        </Text>
+                                    </>
+                                ) : null}
+                            </View>
+                        )}
+                        <View style={switchContainerStyle}>
+                            <Switch
+                                isOn={tag.enabled}
+                                disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                accessibilityLabel={translate('workspace.tags.enableTag')}
+                                onToggle={(newValue: boolean) => {
+                                    if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                        showConfirmModal({
+                                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                            confirmText: translate('common.buttonConfirm'),
+                                            shouldShowCancelButton: false,
+                                        });
+                                        return;
+                                    }
+                                    updateWorkspaceTagEnabled(newValue, tag.name);
+                                }}
+                                showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <Switch
+                        isOn={tag.enabled}
+                        disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        accessibilityLabel={translate('workspace.tags.enableTag')}
+                        onToggle={(newValue: boolean) => {
+                            if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                    prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
+                                return;
+                            }
+                            updateWorkspaceTagEnabled(newValue, tag.name);
+                        }}
+                        showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                    />
+                ),
+            };
+        });
     }, [
         isMultiLevelTags,
         policyTagLists,
@@ -342,6 +376,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         glCodeTextStyle,
         switchContainerStyle,
         showConfirmModal,
+        shouldShowApproverColumn,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.mr3,
     ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -396,7 +434,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             );
         }
 
-        // Show GL Code column only on wide screens for control policies
+        // Show GL Code column only on wide screens for control policies. Approver column additionally requires rules to be enabled
         if (isControlPolicyWithWideLayout && !isMultiLevelTags) {
             return (
                 <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
@@ -406,6 +444,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     <View style={[styles.flex1, styles.pr16]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.tags.glCode')}</Text>
                     </View>
+                    {shouldShowApproverColumn && (
+                        <View style={[styles.flex1, styles.pr16]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.approver')}</Text>
+                        </View>
+                    )}
                     <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
                     </View>
@@ -864,7 +907,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
                             shouldUseDefaultRightHandSideCheckmark={false}
                             customListHeaderContent={headerContent}
-                            showListEmptyContent={false}
+                            shouldShowListEmptyContent={false}
                             showScrollIndicator={false}
                             onCheckboxPress={toggleTag}
                             isSelected={isTagSelected}
