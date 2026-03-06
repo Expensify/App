@@ -521,10 +521,10 @@ index 0000000..8195a84
 +  public void onPaste(java.util.List<kotlin.Pair<String, String>> items);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index 42f6e03..73238cf 100644
+index 42f6e03..7c6531a 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-@@ -8,6 +8,10 @@
+@@ -8,13 +8,20 @@
  package com.facebook.react.views.textinput
  
  import android.annotation.SuppressLint
@@ -533,9 +533,10 @@ index 42f6e03..73238cf 100644
 +import android.content.ClipDescription
 +import android.content.ContentResolver
  import android.content.Context
++import android.content.Intent
  import android.content.res.Configuration
  import android.graphics.Canvas
-@@ -15,6 +19,8 @@ import android.graphics.Color
+ import android.graphics.Color
  import android.graphics.Paint
  import android.graphics.Rect
  import android.graphics.drawable.Drawable
@@ -544,7 +545,7 @@ index 42f6e03..73238cf 100644
  import android.os.Build
  import android.os.Bundle
  import android.text.Editable
-@@ -128,6 +134,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -128,6 +135,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
    private var selectionWatcher: SelectionWatcher? = null
    private var contentSizeWatcher: ContentSizeWatcher? = null
    private var scrollWatcher: ScrollWatcher?
@@ -552,7 +553,7 @@ index 42f6e03..73238cf 100644
    private var keyListener: InternalKeyListener? = null
    private var detectScrollMovement = false
    private var onKeyPress = false
-@@ -212,6 +219,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -212,6 +220,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
        keyListener = InternalKeyListener()
      }
      scrollWatcher = null
@@ -560,7 +561,7 @@ index 42f6e03..73238cf 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -356,9 +364,64 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -356,9 +365,64 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
@@ -628,7 +629,7 @@ index 42f6e03..73238cf 100644
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
-@@ -421,6 +484,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -421,6 +485,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
      this.scrollWatcher = scrollWatcher
    }
  
@@ -822,3 +823,138 @@ index 968c93c..8cb0634 100644
  
   private:
    void dispatchTextInputEvent(
+diff --git a/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm b/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
+index 1263191..2424ed2 100644
+--- a/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
++++ b/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
+@@ -260,9 +260,7 @@ class RCTHostHostTargetDelegate : public facebook::react::jsinspector_modern::Ho
+   surface.surfaceHandler.setDisplayMode(displayMode);
+   [self _attachSurface:surface];
+ 
+-  __weak RCTFabricSurface *weakSurface = surface;
+-  // Use the BufferedRuntimeExecutor to start the surface after the main JS bundle was fully executed.
+-  [_instance callFunctionOnBufferedRuntimeExecutor:[weakSurface](facebook::jsi::Runtime &_) { [weakSurface start]; }];
++  [_instance callFunctionOnBufferedRuntimeExecutor:[surface](facebook::jsi::Runtime &_) { [surface start]; }];
+   return surface;
+ }
+ 
+diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp b/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
+index db79042..8c4eaef 100644
+--- a/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
++++ b/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
+@@ -478,19 +478,16 @@ static void zeroOutLayoutRecursively(yoga::Node* const node) {
+ }
+ 
+ static void cleanupContentsNodesRecursively(yoga::Node* const node) {
+-  if (node->hasContentsChildren()) [[unlikely]] {
+-    node->cloneContentsChildrenIfNeeded();
+-    for (auto child : node->getChildren()) {
+-      if (child->style().display() == Display::Contents) {
+-        child->getLayout() = {};
+-        child->setLayoutDimension(0, Dimension::Width);
+-        child->setLayoutDimension(0, Dimension::Height);
+-        child->setHasNewLayout(true);
+-        child->setDirty(false);
+-        child->cloneChildrenIfNeeded();
+-
+-        cleanupContentsNodesRecursively(child);
+-      }
++  for (auto child : node->getChildren()) {
++    if (child->style().display() == Display::Contents) {
++      child->getLayout() = {};
++      child->setLayoutDimension(0, Dimension::Width);
++      child->setLayoutDimension(0, Dimension::Height);
++      child->setHasNewLayout(true);
++      child->setDirty(false);
++      child->cloneChildrenIfNeeded();
++
++      cleanupContentsNodesRecursively(child);
+     }
+   }
+ }
+diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
+index d42bd5f..fbdf5c1 100644
+--- a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
++++ b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
+@@ -181,17 +181,6 @@ void Node::setDirty(bool isDirty) {
+   }
+ }
+ 
+-void Node::setChildren(const std::vector<Node*>& children) {
+-  children_ = children;
+-
+-  contentsChildrenCount_ = 0;
+-  for (const auto& child : children) {
+-    if (child->style().display() == Display::Contents) {
+-      contentsChildrenCount_++;
+-    }
+-  }
+-}
+-
+ bool Node::removeChild(Node* child) {
+   auto p = std::find(children_.begin(), children_.end(), child);
+   if (p != children_.end()) {
+@@ -391,23 +380,6 @@ void Node::cloneChildrenIfNeeded() {
+     if (child->getOwner() != this) {
+       child = resolveRef(config_->cloneNode(child, this, i));
+       child->setOwner(this);
+-
+-      if (child->hasContentsChildren()) [[unlikely]] {
+-        child->cloneContentsChildrenIfNeeded();
+-      }
+-    }
+-    i += 1;
+-  }
+-}
+-
+-void Node::cloneContentsChildrenIfNeeded() {
+-  size_t i = 0;
+-  for (Node*& child : children_) {
+-    if (child->style().display() == Display::Contents &&
+-        child->getOwner() != this) {
+-      child = resolveRef(config_->cloneNode(child, this, i));
+-      child->setOwner(this);
+-      child->cloneChildrenIfNeeded();
+     }
+     i += 1;
+   }
+diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
+index 8068c81..5ae7d43 100644
+--- a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
++++ b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
+@@ -96,10 +96,6 @@ class YG_EXPORT Node : public ::YGNode {
+     return config_->hasErrata(errata);
+   }
+ 
+-  bool hasContentsChildren() const {
+-    return contentsChildrenCount_ != 0;
+-  }
+-
+   YGDirtiedFunc getDirtiedFunc() const {
+     return dirtiedFunc_;
+   }
+@@ -248,12 +244,15 @@ class YG_EXPORT Node : public ::YGNode {
+     owner_ = owner;
+   }
+ 
++  void setChildren(const std::vector<Node*>& children) {
++    children_ = children;
++  }
++
+   // TODO: rvalue override for setChildren
+ 
+   void setConfig(Config* config);
+ 
+   void setDirty(bool isDirty);
+-  void setChildren(const std::vector<Node*>& children);
+   void setLayoutLastOwnerDirection(Direction direction);
+   void setLayoutComputedFlexBasis(FloatOptional computedFlexBasis);
+   void setLayoutComputedFlexBasisGeneration(
+@@ -287,7 +286,6 @@ class YG_EXPORT Node : public ::YGNode {
+   void removeChild(size_t index);
+ 
+   void cloneChildrenIfNeeded();
+-  void cloneContentsChildrenIfNeeded();
+   void markDirtyAndPropagate();
+   float resolveFlexGrow() const;
+   float resolveFlexShrink() const;
