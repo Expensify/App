@@ -176,7 +176,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-
     const checkIsOverLabel = (args: HitTestArgs, activeIndex: number) => {
         'worklet';
 
