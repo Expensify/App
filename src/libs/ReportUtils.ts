@@ -11184,18 +11184,33 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: Onyx
     }
 }
 
-function createDraftTransactionAndNavigateToParticipantSelector(
-    transactionID: string | undefined,
-    reportID: string | undefined,
-    actionName: IOUAction,
-    reportActionID: string | undefined,
-    introSelected: OnyxEntry<IntroSelected>,
-    allTransactionDrafts: OnyxCollection<Transaction>,
-    activePolicy: OnyxEntry<Policy>,
-    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
+type CreateDraftTransactionParams = {
+    transactionID: string | undefined;
+    reportID: string | undefined;
+    actionName: IOUAction;
+    reportActionID: string | undefined;
+    introSelected: OnyxEntry<IntroSelected>;
+    allTransactionDrafts: OnyxCollection<Transaction>;
+    activePolicy: OnyxEntry<Policy>;
+    userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    isRestrictedToPreferredPolicy?: boolean;
+    preferredPolicyID?: string;
+};
+
+function createDraftTransactionAndNavigateToParticipantSelector({
+    transactionID,
+    reportID,
+    actionName,
+    reportActionID,
+    introSelected,
+    allTransactionDrafts,
+    activePolicy,
+    userBillingGraceEndPeriodCollection,
+    amountOwed,
     isRestrictedToPreferredPolicy = false,
-    preferredPolicyID?: string,
-): void {
+    preferredPolicyID,
+}: CreateDraftTransactionParams): void {
     if (!transactionID || !reportID) {
         return;
     }
@@ -11258,7 +11273,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriodCollection, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -13477,4 +13492,5 @@ export type {
     OptimisticReportAction,
     OptimisticAnnounceChat,
     GetReportNameParams,
+    CreateDraftTransactionParams,
 };
