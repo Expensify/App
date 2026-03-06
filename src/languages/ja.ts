@@ -971,21 +971,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '初年度が25％オフになります！',
                 subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
             },
-            addShippingAddress: {
-                title: '配送先住所が必要です',
-                subtitle: 'Expensify カードを受け取る住所を入力してください。',
-                cta: '住所を追加',
-            },
-            addPaymentCard: {
-                title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください',
-                subtitle: 'アカウント ＞ サブスクリプション',
-                cta: '追加',
-            },
-            activateCard: {
-                title: 'Expensify カードを有効化する',
-                subtitle: 'カードを認証して支出を始めましょう。',
-                cta: '有効化',
-            },
+            addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
+            addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
+            activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `${merchant} での不正の可能性がある ${amount} を確認`,
@@ -1003,10 +991,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'ワークスペース',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 会計`,
             },
-            fixPersonalCardConnection: {
-                title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'),
-                subtitle: 'ウォレット',
-            },
+            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `${cardName}個人カードの接続を修正` : '個人カードの連携を修正'), subtitle: 'ウォレット'},
         },
         assignedCards: 'お客様の Expensify カード',
         assignedCardsRemaining: ({amount}: {amount: string}) => `残額：${amount}`,
@@ -1065,10 +1050,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `${destination}のホテル`,
             carRentalIn: ({destination}: {destination: string}) => `${destination}でのレンタカー`,
             inOneWeek: '1週間後',
-            inDays: () => ({
-                one: '1日後',
-                other: (count: number) => `${count}日後`,
-            }),
+            inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
             today: '今日',
         },
     },
@@ -1099,22 +1081,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'カテゴリーは追加も更新もされていません。';
-            }
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'カテゴリーは追加も更新もされていません。';
+    }
 
-            if (added && updated) {
-                return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
-            }
+    if (added && updated) {
+        return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
+    }
 
-            if (added) {
-                return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
-            }
+    if (added) {
+        return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
+    }
 
-            return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
-        },
-        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
+},        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加も更新もされていません。';
             }
@@ -3130,11 +3111,7 @@ ${
     detailsPage: {
         localTime: '現地時間',
     },
-    newChatPage: {
-        startGroup: 'グループを開始',
-        addToGroup: 'グループに追加',
-        addUserToGroup: (username: string) => `${username} をグループに追加`,
-    },
+    newChatPage: {startGroup: 'グループを開始', addToGroup: 'グループに追加', addUserToGroup: (username: string) => `${username} をグループに追加`},
     yearPickerPage: {
         year: '年',
         selectYear: '年を選択してください',
@@ -5211,17 +5188,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     subtitle: '現在、Expensify Travel の有効化リクエストを確認中です。準備が整い次第、お知らせしますのでご安心ください。',
                     ctaText: 'リクエストを送信しました',
                 },
-                bookOrManageYourTrip: {
-                    title: '出張予約',
-                    subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。',
-                    ctaText: '出張を管理',
-                },
-                settings: {
-                    autoAddTripName: {
-                        title: '経費に出張名を追加',
-                        subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。',
-                    },
-                },
+                bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
+                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '出張予約',
@@ -5246,11 +5214,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         body: '今後のホテルおよびレンタカーの予約は、キャンセルを避けるために別のお支払い方法で再予約する必要がある場合があります。',
                         confirm: 'オフにする',
                     },
-                    outstandingBalanceModal: {
-                        title: 'トラベル請求書作成をオフにできません',
-                        body: '未清算の出張残高があります。先に残高を精算してください。',
-                        confirm: '了解しました',
-                    },
+                    outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
                 },
                 personalDetailsDescription: '旅行を予約するために、政府発行の身分証明書に記載されているとおりの正式な氏名を入力してください。',
             },
@@ -7272,13 +7236,7 @@ ${reportName}
         },
         has: '持っている',
         groupBy: 'グループ化基準',
-        view: {
-            label: '表示',
-            table: 'テーブル',
-            bar: 'バー',
-            line: '折れ線',
-            pie: '円グラフ',
-        },
+        view: {label: '表示', table: 'テーブル', bar: 'バー', line: '折れ線', pie: '円グラフ'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '差出人',
             [CONST.SEARCH.GROUP_BY.CARD]: 'カード',
@@ -8535,10 +8493,7 @@ ${reportName}
                 other: 'アカウントを閉じる',
             }),
             closeAccountPrompt: '本当によろしいですか？この操作は元に戻せません。',
-            forceCloseAccount: () => ({
-                one: 'アカウントを強制的に閉鎖',
-                other: 'アカウントを強制的に閉鎖',
-            }),
+            forceCloseAccount: () => ({one: 'アカウントを強制的に閉鎖', other: 'アカウントを強制的に閉鎖'}),
             safeCloseAccount: () => ({
                 one: 'アカウントを安全に閉じる',
                 other: 'アカウントを安全に閉じる',
@@ -8566,13 +8521,7 @@ ${reportName}
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
             resetTwoFactorAuth: '2 要素認証をリセット',
         },
-        groups: {
-            title: 'グループ',
-            memberCount: () => ({
-                one: 'メンバー 1 人',
-                other: (count: number) => `${count}名のメンバー`,
-            }),
-        },
+        groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
     },
     proactiveAppReview: {
         title: '新しい Expensify をお楽しみいただけていますか？',

@@ -976,21 +976,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Uzyskaj 25% zniżki na pierwszy rok!',
                 subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`,
             },
-            addShippingAddress: {
-                title: 'Potrzebujemy Twojego adresu wysyłki',
-                subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.',
-                cta: 'Dodaj adres',
-            },
-            addPaymentCard: {
-                title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify',
-                subtitle: 'Konto > Subskrypcja',
-                cta: 'Dodaj',
-            },
-            activateCard: {
-                title: 'Aktywuj swoją Kartę Expensify',
-                subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.',
-                cta: 'Aktywuj',
-            },
+            addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj adres'},
+            addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
+            activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Przejrzyj ${amount} potencjalnie oszukańczych transakcji u ${merchant}`,
@@ -1070,10 +1058,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hotel w ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Wynajem samochodu w ${destination}`,
             inOneWeek: 'Za 1 tydzień',
-            inDays: () => ({
-                one: 'Za 1 dzień',
-                other: (count: number) => `Za ${count} dni`,
-            }),
+            inDays: () => ({one: 'Za 1 dzień', other: (count: number) => `Za ${count} dni`}),
             today: 'Dzisiaj',
         },
     },
@@ -1104,21 +1089,7 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'Nie dodano ani nie zaktualizowano żadnych kategorii.';
-            }
-
-            if (added && updated) {
-                return `Dodano ${added} ${added === 1 ? 'kategorię' : 'kategorie'}, zaktualizowano ${updated} ${updated === 1 ? 'kategorię' : 'kategorie'}.`;
-            }
-
-            if (added) {
-                return added === 1 ? 'Dodano 1 kategorię.' : `Dodano ${added} kategorie.`;
-            }
-
-            return updated === 1 ? 'Zaktualizowano 1 kategorię.' : `Zaktualizowano ${updated} kategorie.`;
-        },
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Dodano ${categories} kategorie.` : 'Dodano 1 kategorię.'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nie dodano ani nie zaktualizowano żadnych członków.';
@@ -3138,11 +3109,7 @@ ${
     detailsPage: {
         localTime: 'Czas lokalny',
     },
-    newChatPage: {
-        startGroup: 'Rozpocznij grupę',
-        addToGroup: 'Dodaj do grupy',
-        addUserToGroup: (username: string) => `Dodaj ${username} do grupy`,
-    },
+    newChatPage: {startGroup: 'Rozpocznij grupę', addToGroup: 'Dodaj do grupy', addUserToGroup: (username: string) => `Dodaj ${username} do grupy`},
     yearPickerPage: {
         year: 'Rok',
         selectYear: 'Wybierz rok',
@@ -4074,10 +4041,7 @@ ${
             },
             budgetFrequency: {monthly: 'miesięcznie', yearly: 'rocznie'},
             budgetFrequencyUnit: {monthly: 'miesiąc', yearly: 'rok'},
-            budgetTypeForNotificationMessage: {
-                tag: 'znacznik',
-                category: 'kategoria',
-            },
+            budgetTypeForNotificationMessage: {tag: 'znacznik', category: 'kategoria'},
             policyExpenseChatName: (displayName: string) => `Wydatki ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje z Karty Expensify będą automatycznie eksportowane do „Konta zobowiązań Karty Expensify” utworzonego dzięki <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
         },
@@ -5241,10 +5205,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     ctaText: 'Zarządzaj podróżami',
                 },
                 settings: {
-                    autoAddTripName: {
-                        title: 'Dodaj nazwy podróży do wydatków',
-                        subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.',
-                    },
+                    autoAddTripName: {title: 'Dodaj nazwy podróży do wydatków', subtitle: 'Automatycznie dodawaj nazwy podróży do opisów wydatków za podróże zarezerwowane w Expensify.'},
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -8577,10 +8538,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 other: 'Zamknij konta',
             }),
             closeAccountPrompt: 'Czy na pewno? Ta czynność jest nieodwracalna.',
-            forceCloseAccount: () => ({
-                one: 'Wymuś zamknięcie konta',
-                other: 'Wymuś zamknięcie kont',
-            }),
+            forceCloseAccount: () => ({one: 'Wymuś zamknięcie konta', other: 'Wymuś zamknięcie kont'}),
             safeCloseAccount: () => ({
                 one: 'Zamknij konto bezpiecznie',
                 other: 'Zamknij konta bezpiecznie',
@@ -8608,13 +8566,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
             resetTwoFactorAuth: 'Zresetuj uwierzytelnianie dwuskładnikowe',
         },
-        groups: {
-            title: 'Grupy',
-            memberCount: () => ({
-                one: '1 członek',
-                other: (count: number) => `${count} członków`,
-            }),
-        },
+        groups: {title: 'Grupy', memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`})},
     },
     proactiveAppReview: {
         title: 'Podoba Ci się nowy Expensify?',

@@ -980,21 +980,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Bénéficiez de 25 % de réduction sur votre première année !',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`,
             },
-            addShippingAddress: {
-                title: 'Nous avons besoin de votre adresse de livraison',
-                subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.',
-                cta: 'Ajouter une adresse',
-            },
-            addPaymentCard: {
-                title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify',
-                subtitle: 'Compte > Abonnement',
-                cta: 'Ajouter',
-            },
-            activateCard: {
-                title: 'Activer votre Carte Expensify',
-                subtitle: 'Validez votre carte et commencez à dépenser.',
-                cta: 'Activer',
-            },
+            addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter une adresse'},
+            addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
+            activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
             reviewCardFraud: {
                 title: 'Examiner une éventuelle fraude sur votre Carte Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Examiner ${amount} de fraude potentielle chez ${merchant}`,
@@ -1074,10 +1062,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hôtel à ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Location de voiture à ${destination}`,
             inOneWeek: 'Dans 1 semaine',
-            inDays: () => ({
-                one: 'Dans 1 jour',
-                other: (count: number) => `Dans ${count} jours`,
-            }),
+            inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
             today: 'Aujourd’hui',
         },
     },
@@ -8637,10 +8622,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 other: 'Fermer les comptes',
             }),
             closeAccountPrompt: 'Êtes-vous sûr(e) ? Cette action est définitive.',
-            forceCloseAccount: () => ({
-                one: 'Forcer la fermeture du compte',
-                other: 'Forcer la fermeture des comptes',
-            }),
+            forceCloseAccount: () => ({one: 'Forcer la fermeture du compte', other: 'Forcer la fermeture des comptes'}),
             safeCloseAccount: () => ({
                 one: 'Fermer le compte en toute sécurité',
                 other: 'Fermer les comptes en toute sécurité',
@@ -8670,13 +8652,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
         },
-        groups: {
-            title: 'Groupes',
-            memberCount: () => ({
-                one: '1 membre',
-                other: (count: number) => `${count} membres`,
-            }),
-        },
+        groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
     },
     proactiveAppReview: {
         title: 'Vous appréciez le nouveau Expensify ?',

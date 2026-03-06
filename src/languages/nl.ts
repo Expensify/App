@@ -975,21 +975,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Krijg 25% korting op je eerste jaar!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'dag' : 'dagen'} resterend`,
             },
-            addShippingAddress: {
-                title: 'We hebben je verzendadres nodig',
-                subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.',
-                cta: 'Adres toevoegen',
-            },
-            addPaymentCard: {
-                title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken',
-                subtitle: 'Account > Abonnement',
-                cta: 'Toevoegen',
-            },
-            activateCard: {
-                title: 'Activeer je Expensify Kaart',
-                subtitle: 'Valideer je kaart en begin met uitgeven.',
-                cta: 'Activeren',
-            },
+            addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
+            addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
+            activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Controleer ${amount} aan mogelijke fraude bij ${merchant}`,
@@ -1069,10 +1057,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Autoverhuur in ${destination}`,
             inOneWeek: 'Over 1 week',
-            inDays: () => ({
-                one: 'Over 1 dag',
-                other: (count: number) => `Over ${count} dagen`,
-            }),
+            inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
             today: 'Vandaag',
         },
     },
@@ -1103,21 +1088,7 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'Er zijn geen categorieën toegevoegd of bijgewerkt.';
-            }
-
-            if (added && updated) {
-                return `${added} ${added === 1 ? 'categorie' : 'categorieën'} toegevoegd, ${updated} ${updated === 1 ? 'categorie' : 'categorieën'} bijgewerkt.`;
-            }
-
-            if (added) {
-                return added === 1 ? '1 categorie is toegevoegd.' : `${added} categorieën zijn toegevoegd.`;
-            }
-
-            return updated === 1 ? '1 categorie is bijgewerkt.' : `${updated} categorieën zijn bijgewerkt.`;
-        },
+        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorieën zijn toegevoegd.` : '1 categorie is toegevoegd.'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Er zijn geen leden toegevoegd of bijgewerkt.';
@@ -3145,11 +3116,7 @@ ${
     detailsPage: {
         localTime: 'Lokale tijd',
     },
-    newChatPage: {
-        startGroup: 'Groep starten',
-        addToGroup: 'Aan groep toevoegen',
-        addUserToGroup: (username: string) => `${username} aan groep toevoegen`,
-    },
+    newChatPage: {startGroup: 'Groep starten', addToGroup: 'Aan groep toevoegen', addUserToGroup: (username: string) => `${username} aan groep toevoegen`},
     yearPickerPage: {
         year: 'Jaar',
         selectYear: 'Selecteer een jaar',
@@ -5247,10 +5214,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     ctaText: 'Reizen beheren',
                 },
                 settings: {
-                    autoAddTripName: {
-                        title: 'Reisnamen aan uitgaven toevoegen',
-                        subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.',
-                    },
+                    autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -5276,11 +5240,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         body: 'Toekomstige hotel en autoverhuurreserveringen moeten mogelijk opnieuw worden geboekt met een andere betaalmethode om annulering te voorkomen.',
                         confirm: 'Uitschakelen',
                     },
-                    outstandingBalanceModal: {
-                        title: 'Kan Reiskostenfacturatie niet uitschakelen',
-                        body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.',
-                        confirm: 'Begrepen',
-                    },
+                    outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
                 },
                 personalDetailsDescription: 'Om een reis te boeken, voer je wettelijke naam in zoals deze op je door de overheid uitgegeven identiteitsbewijs staat.',
             },
@@ -8592,10 +8552,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 other: 'Accounts sluiten',
             }),
             closeAccountPrompt: 'Weet je het zeker? Deze actie is permanent.',
-            forceCloseAccount: () => ({
-                one: 'Account geforceerd sluiten',
-                other: 'Accounts geforceerd sluiten',
-            }),
+            forceCloseAccount: () => ({one: 'Account geforceerd sluiten', other: 'Accounts geforceerd sluiten'}),
             safeCloseAccount: () => ({
                 one: 'Account veilig sluiten',
                 other: 'Accounts veilig sluiten',
@@ -8625,13 +8582,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             forceTwoFactorAuthError: 'Verplichte twee-factor-authenticatie kon niet worden gewijzigd. Probeer het later opnieuw.',
             resetTwoFactorAuth: 'Tweeledige verificatie opnieuw instellen',
         },
-        groups: {
-            title: 'Groepen',
-            memberCount: () => ({
-                one: '1 lid',
-                other: (count: number) => `${count} leden`,
-            }),
-        },
+        groups: {title: 'Groepen', memberCount: () => ({one: '1 lid', other: (count: number) => `${count} leden`})},
     },
     proactiveAppReview: {
         title: 'Geniet je van de nieuwe Expensify?',

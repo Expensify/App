@@ -8554,10 +8554,7 @@ const translations = {
             addMember: 'Add member',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
-            forceCloseAccount: () => ({
-                one: 'Force close account',
-                other: 'Force close accounts',
-            }),
+            forceCloseAccount: () => ({one: 'Force close account', other: 'Force close accounts'}),
             safeCloseAccount: () => ({
                 one: 'Close account safely',
                 other: 'Close accounts safely',

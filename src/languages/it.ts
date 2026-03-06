@@ -976,21 +976,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Ottieni il 25% di sconto sul tuo primo anno!',
                 subtitle: ({days}: {days: number}) => `Restano ${days} ${days === 1 ? 'giorno' : 'giorni'}`,
             },
-            addShippingAddress: {
-                title: 'Ci serve il tuo indirizzo di spedizione',
-                subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.',
-                cta: 'Aggiungi indirizzo',
-            },
-            addPaymentCard: {
-                title: 'Aggiungi una carta di pagamento per continuare a usare Expensify',
-                subtitle: 'Account > Abbonamento',
-                cta: 'Aggiungi',
-            },
-            activateCard: {
-                title: 'Attiva la tua Carta Expensify',
-                subtitle: 'Convalida la tua carta e inizia a spendere.',
-                cta: 'Attiva',
-            },
+            addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
+            addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
+            activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
             reviewCardFraud: {
                 title: 'Esamina una possibile frode sulla tua Carta Expensify',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Verifica ${amount} di potenziale frode presso ${merchant}`,
@@ -1070,10 +1058,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hotel a ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Noleggio auto a ${destination}`,
             inOneWeek: 'Tra 1 settimana',
-            inDays: () => ({
-                one: 'Tra 1 giorno',
-                other: (count: number) => `Tra ${count} giorni`,
-            }),
+            inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
             today: 'Oggi',
         },
     },
@@ -1104,22 +1089,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
         emptyMappedField: (fieldName: string) => `Ops! Il campo ("${fieldName}") contiene uno o più valori vuoti. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return 'Nessuna categoria è stata aggiunta o aggiornata.';
-            }
+importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    if (!added && !updated) {
+        return 'Nessuna categoria è stata aggiunta o aggiornata.';
+    }
 
-            if (added && updated) {
-                return `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`;
-            }
+    if (added && updated) {
+        return `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`;
+    }
 
-            if (added) {
-                return added === 1 ? 'È stata aggiunta 1 categoria.' : `Sono state aggiunte ${added} categorie.`;
-            }
+    if (added) {
+        return added === 1 ? 'È stata aggiunta 1 categoria.' : `Sono state aggiunte ${added} categorie.`;
+    }
 
-            return updated === 1 ? 'È stata aggiornata 1 categoria.' : `Sono state aggiornate ${updated} categorie.`;
-        },
-        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+    return updated === 1 ? 'È stata aggiornata 1 categoria.' : `Sono state aggiornate ${updated} categorie.`;
+},        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Non è stato aggiunto o aggiornato alcun membro.';
             }
@@ -3148,11 +3132,7 @@ ${
     detailsPage: {
         localTime: 'Ora locale',
     },
-    newChatPage: {
-        startGroup: 'Avvia gruppo',
-        addToGroup: 'Aggiungi al gruppo',
-        addUserToGroup: (username: string) => `Aggiungi ${username} al gruppo`,
-    },
+    newChatPage: {startGroup: 'Avvia gruppo', addToGroup: 'Aggiungi al gruppo', addUserToGroup: (username: string) => `Aggiungi ${username} al gruppo`},
     yearPickerPage: {
         year: 'Anno',
         selectYear: 'Seleziona un anno',
@@ -4084,10 +4064,7 @@ ${
             },
             budgetFrequency: {monthly: 'mensile', yearly: 'annuale'},
             budgetFrequencyUnit: {monthly: 'mese', yearly: 'anno'},
-            budgetTypeForNotificationMessage: {
-                tag: 'etichetta',
-                category: 'categoria',
-            },
+            budgetTypeForNotificationMessage: {tag: 'etichetta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della Carta Expensify verranno esportate automaticamente in un "Conto Passivo Carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
@@ -8642,13 +8619,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
         },
-        groups: {
-            title: 'Gruppi',
-            memberCount: () => ({
-                one: '1 membro',
-                other: (count: number) => `${count} membri`,
-            }),
-        },
+        groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
     },
     proactiveAppReview: {
         title: 'Ti piace il nuovo Expensify?',

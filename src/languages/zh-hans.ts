@@ -957,21 +957,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: '首年立享 75 折优惠！',
                 subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`,
             },
-            addShippingAddress: {
-                title: '我们需要您的收货地址',
-                subtitle: '请提供一个地址以接收您的 Expensify 卡。',
-                cta: '添加地址',
-            },
-            addPaymentCard: {
-                title: '添加支付卡以继续使用 Expensify',
-                subtitle: '账户 ＞ 订阅',
-                cta: '添加',
-            },
-            activateCard: {
-                title: '激活你的 Expensify 卡',
-                subtitle: '验证您的银行卡并开始消费。',
-                cta: '启用',
-            },
+            addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
+            addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
+            activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `查看 ${merchant} 可能存在的 ${amount} 欺诈交易`,
@@ -984,10 +972,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: '工作区',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
-            fixPersonalCardConnection: {
-                title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'),
-                subtitle: '钱包',
-            },
+            fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
             fixAccountingConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区',
@@ -1051,10 +1036,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `${destination}的酒店`,
             carRentalIn: ({destination}: {destination: string}) => `在 ${destination} 租车`,
             inOneWeek: '1 周后',
-            inDays: () => ({
-                one: '1 天后',
-                other: (count: number) => `在 ${count} 天后`,
-            }),
+            inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
             today: '今天',
         },
     },
@@ -2226,11 +2208,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} 将失去对此企业银行账户的访问权限。我们仍会完成任何正在处理中的付款。`,
         reachOutForHelp: '它正在与 Expensify 卡一起使用。如需取消共享，请<concierge-link>联系 Concierge</concierge-link>。',
         unshareErrorModalTitle: '无法取消共享银行账户',
-        travelCVV: {
-            title: '旅行 CVV',
-            subtitle: '预订差旅时使用此选项',
-            description: '使用此卡预订 Expensify Travel 行程。结账时它会显示为“Travel Card”。',
-        },
+        travelCVV: {title: '旅行 CVV', subtitle: '预订差旅时使用此选项', description: '使用此卡预订 Expensify Travel 行程。结账时它会显示为“Travel Card”。'},
         chaseAccountNumberDifferent: '为什么我的账户号码不同？',
     },
     cardPage: {
@@ -3088,11 +3066,7 @@ ${
     detailsPage: {
         localTime: '本地时间',
     },
-    newChatPage: {
-        startGroup: '开始群组',
-        addToGroup: '添加到群组',
-        addUserToGroup: (username: string) => `将 ${username} 添加到群组`,
-    },
+    newChatPage: {startGroup: '开始群组', addToGroup: '添加到群组', addUserToGroup: (username: string) => `将 ${username} 添加到群组`},
     yearPickerPage: {
         year: '年份',
         selectYear: '请选择年份',
@@ -5137,17 +5111,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     subtitle: '我们正在审核你启用 Expensify Travel 的请求。别担心，准备好后我们会通知你。',
                     ctaText: '请求已发送',
                 },
-                bookOrManageYourTrip: {
-                    title: '差旅预订',
-                    subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。',
-                    ctaText: '管理差旅',
-                },
-                settings: {
-                    autoAddTripName: {
-                        title: '将行程名称添加到报销单',
-                        subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。',
-                    },
-                },
+                bookOrManageYourTrip: {title: '差旅预订', subtitle: '恭喜！您现在可以在此工作区预订和管理差旅了。', ctaText: '管理差旅'},
+                settings: {autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'}},
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '差旅预订',
@@ -5167,16 +5132,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             settlementFrequencyDescription: 'Expensify 从您的企业银行账户中扣款以结算最近 Expensify Travel 交易的频率。',
                         },
                     },
-                    disableModal: {
-                        title: '关闭差旅开票？',
-                        body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。',
-                        confirm: '关闭',
-                    },
-                    outstandingBalanceModal: {
-                        title: '无法关闭差旅开票',
-                        body: '你仍有未结清的差旅余额。请先支付该余额。',
-                        confirm: '明白了',
-                    },
+                    disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
+                    outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
                 },
                 personalDetailsDescription: '为预订行程，请输入您在政府签发的身份证件上显示的法定姓名。',
             },
@@ -7164,13 +7121,7 @@ ${reportName}
         },
         has: '有',
         groupBy: '分组依据',
-        view: {
-            label: '查看',
-            table: '表格',
-            bar: '栏',
-            line: '折线',
-            pie: '饼图',
-        },
+        view: {label: '查看', table: '表格', bar: '栏', line: '折线', pie: '饼图'},
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: '来自',
             [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -7581,11 +7532,7 @@ ${reportName}
             prompt: '确定要放弃此行程并退出登录吗？',
             confirm: '放弃并退出登录',
         },
-        switchToODWarningTripInProgress: {
-            title: '正在进行 GPS 跟踪',
-            prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？',
-            confirm: '停止并切换',
-        },
+        switchToODWarningTripInProgress: {title: '正在进行 GPS 跟踪', prompt: '您确定要停止 GPS 追踪并切换到 Expensify Classic 吗？', confirm: '停止并切换'},
         locationServicesRequiredModal: {
             title: '需要访问位置信息',
             confirm: '打开设置',
@@ -8437,19 +8384,8 @@ ${reportName}
             forceTwoFactorAuthError: '无法更改强制启用双重身份验证设置。请稍后再试。',
             resetTwoFactorAuth: '重置双重身份验证',
         },
-        groups: {
-            title: '群组',
-            memberCount: () => ({
-                one: '1 名成员',
-                other: (count: number) => `${count} 名成员`,
-            }),
-        },
+        groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
-    proactiveAppReview: {
-        title: '喜欢全新的 Expensify 吗？',
-        description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。',
-        positiveButton: '太棒了！',
-        negativeButton: '不太是',
-    },
+    proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
 };
 export default translations;

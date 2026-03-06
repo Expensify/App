@@ -977,21 +977,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'Erhalte 25 % Rabatt auf dein erstes Jahr!',
                 subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'Tag' : 'Tage'} verbleibend`,
             },
-            addShippingAddress: {
-                title: 'Wir benötigen deine Versandadresse',
-                subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.',
-                cta: 'Adresse hinzufügen',
-            },
-            addPaymentCard: {
-                title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen',
-                subtitle: 'Konto > Abonnement',
-                cta: 'Hinzufügen',
-            },
-            activateCard: {
-                title: 'Aktivieren Sie Ihre Expensify Karte',
-                subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.',
-                cta: 'Aktivieren',
-            },
+            addShippingAddress: {title: 'Wir benötigen deine Versandadresse', subtitle: 'Geben Sie eine Adresse an, um Ihre Expensify Karte zu erhalten.', cta: 'Adresse hinzufügen'},
+            addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
+            activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Überprüfe mögliche betrügerische ${amount} bei ${merchant}`,
@@ -1071,10 +1059,7 @@ const translations: TranslationDeepObject<typeof en> = {
             hotelIn: ({destination}: {destination: string}) => `Hotel in ${destination}`,
             carRentalIn: ({destination}: {destination: string}) => `Mietwagen in ${destination}`,
             inOneWeek: 'In 1 Woche',
-            inDays: () => ({
-                one: 'In 1 Tag',
-                other: (count: number) => `In ${count} Tagen`,
-            }),
+            inDays: () => ({one: 'In 1 Tag', other: (count: number) => `In ${count} Tagen`}),
             today: 'Heute',
         },
     },
@@ -3154,11 +3139,7 @@ ${
     detailsPage: {
         localTime: 'Ortszeit',
     },
-    newChatPage: {
-        startGroup: 'Gruppe starten',
-        addToGroup: 'Zur Gruppe hinzufügen',
-        addUserToGroup: (username: string) => `${username} zur Gruppe hinzufügen`,
-    },
+    newChatPage: {startGroup: 'Gruppe starten', addToGroup: 'Zur Gruppe hinzufügen', addUserToGroup: (username: string) => `${username} zur Gruppe hinzufügen`},
     yearPickerPage: {
         year: 'Jahr',
         selectYear: 'Bitte ein Jahr auswählen',
@@ -5267,16 +5248,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     subtitle: 'Wir prüfen derzeit deine Anfrage zur Aktivierung von Expensify Travel. Keine Sorge, wir sagen dir Bescheid, sobald alles bereit ist.',
                     ctaText: 'Anfrage gesendet',
                 },
-                bookOrManageYourTrip: {
-                    title: 'Reisebuchung',
-                    subtitle: 'Glückwunsch! Du kannst in diesem Arbeitsbereich jetzt Reisen buchen und verwalten.',
-                    ctaText: 'Reisen verwalten',
-                },
+                bookOrManageYourTrip: {title: 'Reisebuchung', subtitle: 'Glückwunsch! Du kannst in diesem Arbeitsbereich jetzt Reisen buchen und verwalten.', ctaText: 'Reisen verwalten'},
                 settings: {
-                    autoAddTripName: {
-                        title: 'Reisenamen zu Ausgaben hinzufügen',
-                        subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.',
-                    },
+                    autoAddTripName: {title: 'Reisenamen zu Ausgaben hinzufügen', subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.'},
                 },
                 travelInvoicing: {
                     travelBookingSection: {
@@ -8627,10 +8601,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 other: 'Konten schließen',
             }),
             closeAccountPrompt: 'Bist du sicher? Diese Aktion ist dauerhaft.',
-            forceCloseAccount: () => ({
-                one: 'Konto zwangsweise schließen',
-                other: 'Konten zwangsweise schließen',
-            }),
+            forceCloseAccount: () => ({one: 'Konto zwangsweise schließen', other: 'Konten zwangsweise schließen'}),
             safeCloseAccount: () => ({
                 one: 'Konto sicher schließen',
                 other: 'Konten sicher schließen',
@@ -8658,13 +8629,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
         },
-        groups: {
-            title: 'Gruppen',
-            memberCount: () => ({
-                one: '1 Mitglied',
-                other: (count: number) => `${count} Mitglieder`,
-            }),
-        },
+        groups: {title: 'Gruppen', memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`})},
     },
     proactiveAppReview: {
         title: 'Gefällt dir das neue Expensify?',
