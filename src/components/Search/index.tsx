@@ -567,6 +567,14 @@ function Search({
     }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
     useEffect(() => {
+        if (!shouldShowLoadingState) {
+            return;
+        }
+
+        Log.info('[Search] Showing skeleton', false, {isOffline, isDataLoaded, isCardFeedsLoading, isSearchLoading: !!searchResults?.search?.isLoading, hasErrors, shouldUseLiveData});
+    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+
+    useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
