@@ -157,7 +157,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             // Set flag to navigate when screen regains focus
             setShouldNavigateOnFocus(true);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
 
     // Handle navigation when screen regains focus and flag is set
@@ -167,7 +167,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         }
         setShouldNavigateOnFocus(false);
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
     }, [isFocused]);
 
     useEffect(() => {
