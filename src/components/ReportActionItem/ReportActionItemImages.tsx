@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import {useMappingHelper} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
 import React from 'react';

@@ -232,6 +232,7 @@ async function signInAndGetApp(): Promise<void> {
 
     await act(async () => {
         await Promise.all([
+            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,

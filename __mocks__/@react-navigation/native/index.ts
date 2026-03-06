@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export, import/no-import-module-exports */
 import type * as ReactNavigation from '@react-navigation/native';
 import createAddListenerMock from '../../../tests/utils/createAddListenerMock';
 
