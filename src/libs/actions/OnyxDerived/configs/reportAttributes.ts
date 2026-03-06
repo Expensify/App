@@ -107,6 +107,7 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+        const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
 
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
@@ -135,7 +136,7 @@ export default createOnyxDerivedValueConfig({
 
         if (isFullyComputed) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -173,6 +174,13 @@ export default createOnyxDerivedValueConfig({
                         transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
                     }
                     dataToIterate.push(...prepareReportKeys(transactionReportIDs));
+                }
+                if (policyTagsUpdates) {
+                    const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
+                    const affectedReportKeys = Object.values(reports)
+                        .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
+                        .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+                    dataToIterate.push(...prepareReportKeys(affectedReportKeys));
                 }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
