@@ -103,7 +103,14 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
  */
 function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroupKey, DomainSecurityGroup] {
     const [key, value] = entry;
-    return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
+    return (
+        key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) &&
+        typeof value === 'object' &&
+        value !== null &&
+        'shared' in value &&
+        typeof value?.shared === 'object' &&
+        value?.shared !== null
+    );
 }
 
 /**
@@ -160,12 +167,11 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
         return getEmptyArray<DomainSecurityGroupWithID>();
     }
 
-    return Object.entries(domain).reduce<DomainSecurityGroupWithID[]>((acc, [key, value]) => {
-        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
-            acc.push({id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''), details: value as DomainSecurityGroup});
-        }
-        return acc;
-    }, []);
+    const entries: Array<[string, unknown]> = Object.entries(domain);
+    return entries.filter(isSecurityGroupEntry).map(([key, value]) => ({
+        id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''),
+        details: value,
+    }));
 }
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
