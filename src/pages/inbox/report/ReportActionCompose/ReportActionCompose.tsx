@@ -540,6 +540,21 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive,
     });
 
+    const handleAttachmentDrop = (event: DragEvent) => {
+        const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
+            const fileWithUri = file;
+
+            fileWithUri.uri = URL.createObjectURL(fileWithUri);
+            return fileWithUri;
+        });
+
+        if (files.length === 0) {
+            return;
+        }
+
+        validateAttachments({files});
+    };
+
     const fsClass = FS.getChatFSClass(report);
 
     return (
@@ -625,13 +640,13 @@ function ReportActionCompose({
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
+                                onAttachmentDrop={handleAttachmentDrop}
                                 onReceiptDrop={onReceiptDropped}
                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                             />
                         )}
                         {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
+                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
                                 <DropZoneUI
                                     icon={icons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}

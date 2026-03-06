@@ -22,6 +22,7 @@ import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -159,51 +160,63 @@ function Composer({
 
             event.preventDefault();
 
-            const TEXT_HTML = 'text/html';
-
-            const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
+            const files: Array<FileObject | undefined> = [];
 
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(Array.from(event.clipboardData.files));
-                return true;
+                files.push(...(Array.from(event.clipboardData.files) as FileObject[]));
             }
 
             // If paste contains base64 image
+
+            const clipboardDataHtml = event.clipboardData?.getData(CONST.SHARE_FILE_MIMETYPE.HTML) ?? '';
             if (clipboardDataHtml?.includes(CONST.IMAGE_BASE64_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, CONST.SHARE_FILE_MIMETYPE.HTML)?.images;
 
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    const src = embeddedImages[0].src;
-                    const file = base64ToFile(src, 'image.png');
-                    onPasteFile(file);
-                    return true;
+                if (embeddedImages.length > 0) {
+                    files.push(...(Array.from(embeddedImages).map((image) => base64ToFile(image.src, 'image.png')) as FileObject[]));
                 }
             }
+
+            const pasteValidFiles = () => {
+                const validFiles = files.filter((file) => file !== undefined);
+                if (validFiles.length === 0) {
+                    return false;
+                }
+
+                onPasteFile(validFiles);
+                return true;
+            };
 
             // If paste contains image from Google Workspaces ex: Sheets, Docs, Slide, etc
             if (clipboardDataHtml?.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, CONST.SHARE_FILE_MIMETYPE.HTML).images;
 
-                if (embeddedImages.length > 0 && embeddedImages[0]?.src) {
-                    const src = embeddedImages[0].src;
-                    if (src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
-                        fetch(src)
+                const filePromises = Array.from(embeddedImages).map((image) => {
+                    if (image.src.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
+                        return fetch(image.src)
                             .then((response) => response.blob())
                             .then((blob) => {
                                 const file = new File([blob], 'image.jpg', {type: 'image/jpeg'});
-                                onPasteFile(file);
+                                return file as FileObject;
                             });
-                        return true;
                     }
-                }
+                    return Promise.resolve(undefined);
+                });
+
+                Promise.all(filePromises).then((f) => {
+                    files.push(...f.filter((file) => file !== undefined));
+                    pasteValidFiles();
+                });
+                return true;
             }
-            return false;
+
+            return pasteValidFiles();
         },
         [onPasteFile, checkComposerVisibility],
     );
