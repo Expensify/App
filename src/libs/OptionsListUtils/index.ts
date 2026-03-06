@@ -1465,6 +1465,15 @@ function createOptionList(
 }
 
 /**
+ * Sort Report objects by archived status and last visible action
+ * Similar to recentReportComparator, but works with raw Report objects instead of SearchOptionData
+ */
+const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap): string => {
+    const isArchived = !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    return `${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
+};
+
+/**
  * Creates an optimized option list with smart pre-filtering.
  *
  * Performance optimization approach:
@@ -1505,11 +1514,7 @@ function createFilteredOptionList(
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
     const sortedReports = isSearching
         ? reportsArray
-        : reportsArray.sort((a, b) => {
-              const aTime = new Date(a.lastVisibleActionCreated ?? 0).getTime();
-              const bTime = new Date(b.lastVisibleActionCreated ?? 0).getTime();
-              return bTime - aTime;
-          });
+        : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
 
     // Step 3: Limit to top N reports
     // In search mode, we will return all reports so downstream getSearchOptions will handle the actual term matching
