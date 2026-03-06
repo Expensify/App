@@ -41,6 +41,7 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
+        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
@@ -60,9 +61,11 @@ function GPSTripStateChecker() {
     const continueGpsTrip = async () => {
         const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
+        const unit = gpsDraftDetails?.unit;
+
         if (isBackgroundTaskRunning) {
-            if (gpsDraftDetails?.unit) {
-                startGpsTripNotification(translate, reportID, gpsDraftDetails?.unit, gpsDraftDetails?.distanceInMeters);
+            if (unit) {
+                startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
             }
             return;
         }
@@ -74,11 +77,11 @@ function GPSTripStateChecker() {
             return;
         }
 
-        if (!gpsDraftDetails?.unit) {
+        if (!unit) {
             return;
         }
 
-        startGpsTripNotification(translate, reportID, gpsDraftDetails?.unit, gpsDraftDetails?.distanceInMeters);
+        startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
     };
 
     const onContinueTrip = () => {
