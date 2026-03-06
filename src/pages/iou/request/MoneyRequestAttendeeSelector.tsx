@@ -83,6 +83,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         keyForList: String(attendee.accountID) ?? (attendee.email || attendee.displayName),
         selected: true,
         // Use || to fall back to displayName for name-only attendees (empty email)
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         login: attendee.email || attendee.displayName,
         ...getPersonalDetailByEmail(attendee.email),
     }));

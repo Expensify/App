@@ -97,6 +97,7 @@ function MoneyRequestReportPreview({
             return false;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
