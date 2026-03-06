@@ -254,7 +254,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         const queryString =
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
-                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {groupBy: searchAdvancedFiltersForm.groupBy},
                 {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
             ) ?? '';
         if (!queryString) {
