@@ -48,6 +48,8 @@ import {
     isCardAlreadyAssigned,
     isCardFrozen,
     isCSVFeedOrExpensifyCard,
+    getEligibleBankAccountsForCard,
+    getEligibleBankAccountsForUkEuCard,
     isCustomFeed as isCustomFeedCardUtils,
     isDirectFeed as isDirectFeedCardUtils,
     isExpensifyCard,
@@ -60,7 +62,7 @@ import {
     splitCardFeedWithDomainID,
     splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -3489,5 +3491,86 @@ describe('formatMaskedCardName', () => {
 
     it('returns non-commercial card names unchanged', () => {
         expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
+    });
+});
+
+describe('getEligibleBankAccountsForCard', () => {
+    const openBusinessAccount: BankAccountList = {
+        '1': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const setupBusinessAccount: BankAccountList = {
+        '2': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const verifyingBusinessAccount: BankAccountList = {
+        '3': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.VERIFYING},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    const pendingBusinessAccount: BankAccountList = {
+        '4': {
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.PENDING},
+            bankCurrency: 'USD',
+            bankCountry: 'US',
+        },
+    };
+
+    it('includes bank accounts with OPEN state', () => {
+        expect(getEligibleBankAccountsForCard(openBusinessAccount)).toHaveLength(1);
+    });
+
+    it('excludes bank accounts with SETUP state', () => {
+        expect(getEligibleBankAccountsForCard(setupBusinessAccount)).toHaveLength(0);
+    });
+
+    it('excludes bank accounts with VERIFYING state', () => {
+        expect(getEligibleBankAccountsForCard(verifyingBusinessAccount)).toHaveLength(0);
+    });
+
+    it('excludes bank accounts with PENDING state', () => {
+        expect(getEligibleBankAccountsForCard(pendingBusinessAccount)).toHaveLength(0);
+    });
+
+    it('filters partially set up accounts from a mixed list', () => {
+        const mixedList: BankAccountList = {
+            ...openBusinessAccount,
+            ...setupBusinessAccount,
+            ...pendingBusinessAccount,
+        };
+        const result = getEligibleBankAccountsForCard(mixedList);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+});
+
+describe('getEligibleBankAccountsForUkEuCard', () => {
+    it('excludes partially set up accounts', () => {
+        const bankAccounts: BankAccountList = {
+            '1': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+            '2': {
+                accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                bankCurrency: 'GBP',
+                bankCountry: 'GB',
+            },
+        };
+        const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
     });
 });
