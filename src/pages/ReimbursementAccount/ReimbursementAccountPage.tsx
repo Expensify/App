@@ -240,11 +240,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         if (policyIDParam) {
             setReimbursementAccountLoading(true);
-            // Don't clear the draft when navigating from BankAccountPurposePage, since it stores the
-            // selected country and currency that the bank account setup flow depends on.
-            if (backTo !== ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE) {
-                clearReimbursementAccountDraft();
-            }
+            clearReimbursementAccountDraft();
         }
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
@@ -497,7 +493,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
-    if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
+    if (!!policyIDParam && (!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 
