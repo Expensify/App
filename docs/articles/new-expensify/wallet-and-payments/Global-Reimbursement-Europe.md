@@ -31,10 +31,11 @@ To comply with financial regulations, the following documents are needed:
 # Step 1: Set Your Workspace Currency and Enable Payments
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Overview**.
-2. Under **Default currency**, select **AUD A$**.
-3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
-4. Under **Connect bank account > Confirm currency and country (Singapore - SGD)**
-5. Click **Confirm**.
+2. Under **Default currency**, select **EUR €**.
+3. From the Workspace settings menu, select **Workflows** > **Add Bank Account**
+   - **Note** To add a bank account, **Payments** must be enabled. 
+4. Confirm the bank account currency (EUR €) and country. 
+7. Click **Confirm**.
 
 ---
 
