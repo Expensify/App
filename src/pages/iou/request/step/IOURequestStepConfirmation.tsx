@@ -802,6 +802,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     betas,
+                    personalDetails,
                 });
             }
         },
@@ -822,6 +823,7 @@ function IOURequestStepConfirmation({
             policyRecentlyUsedCurrencies,
             quickAction,
             betas,
+            personalDetails,
         ],
     );
 
