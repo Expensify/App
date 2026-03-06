@@ -35,7 +35,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
-    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
+    const {typeMenuSections, shouldShowSuggestedSearchSkeleton, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -88,56 +88,53 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     });
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <ScrollView
-                onScroll={onScroll}
-                ref={scrollViewRef}
-                showsVerticalScrollIndicator={false}
-            >
-                {shouldShowSuggestedSearchSkeleton ? (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        <SuggestedSearchSkeleton />
-                    </View>
-                ) : (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        {typeMenuSections.map((section, sectionIndex) => (
-                            <View key={section.translationPath}>
-                                <Text
-                                    style={styles.sectionTitle}
-                                    accessibilityRole={CONST.ROLE.HEADER}
-                                >
-                                    {translate(section.translationPath)}
-                                </Text>
+        <ScrollView
+            onScroll={onScroll}
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+        >
+            {shouldShowSuggestedSearchSkeleton ? (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    <SuggestedSearchSkeleton />
+                </View>
+            ) : (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    {typeMenuSections.map((section, sectionIndex) => (
+                        <View key={section.translationPath}>
+                            <Text
+                                style={styles.sectionTitle}
+                                accessibilityRole={CONST.ROLE.HEADER}
+                            >
+                                {translate(section.translationPath)}
+                            </Text>
 
-                                {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                    <SavedSearchList hash={hash} />
-                                ) : (
-                                    <>
-                                        {section.menuItems.map((item, itemIndex) => {
-                                            const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
-                                            const focused = activeItemIndex === flattenedIndex;
-                                            const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+                            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                                <SavedSearchList hash={hash} />
+                            ) : (
+                                <>
+                                    {section.menuItems.map((item, itemIndex) => {
+                                        const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
+                                        const focused = activeItemIndex === flattenedIndex;
+                                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
-                                            return (
-                                                <SearchTypeMenuItem
-                                                    key={item.key}
-                                                    title={translate(item.translationPath)}
-                                                    icon={icon}
-                                                    badgeText={getItemBadgeText(item.key, reportCounts)}
-                                                    focused={focused}
-                                                    onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                                                />
-                                            );
-                                        })}
-                                    </>
-                                )}
-                            </View>
-                        ))}
-                    </View>
-                )}
-            </ScrollView>
-        </>
+                                        return (
+                                            <SearchTypeMenuItem
+                                                key={item.key}
+                                                title={translate(item.translationPath)}
+                                                icon={icon}
+                                                badgeText={getItemBadgeText(item.key, reportCounts)}
+                                                focused={focused}
+                                                onPress={() => handleTypeMenuItemPress(item.searchQuery)}
+                                            />
+                                        );
+                                    })}
+                                </>
+                            )}
+                        </View>
+                    ))}
+                </View>
+            )}
+        </ScrollView>
     );
 }
 

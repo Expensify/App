@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
@@ -18,11 +18,10 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-const sessionSelector = (session: OnyxEntry<OnyxTypes.Session>) => ({email: session?.email, accountID: session?.accountID});
 
 type BaseFloatingCameraButtonProps = {
     icon: IconAsset;
@@ -35,22 +34,19 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const reportID = useMemo(() => generateReportID(), []);
+    const [reportID] = useState(() => generateReportID());
 
-    const policyChatForActivePolicySelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
-            if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
-                return undefined;
-            }
-            const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
-            return policyChatsForActivePolicy.at(0);
-        },
-        [activePolicy, activePolicyID, session?.accountID],
-    );
-    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatForActivePolicySelector}, [policyChatForActivePolicySelector]);
+    const policyChatForActivePolicySelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        if (isEmptyObject(activePolicy) || !activePolicy?.isPolicyExpenseChatEnabled) {
+            return undefined;
+        }
+        const policyChatsForActivePolicy = getWorkspaceChats(activePolicyID, [session?.accountID ?? CONST.DEFAULT_NUMBER_ID], reports);
+        return policyChatsForActivePolicy.at(0);
+    };
+    const [policyChatForActivePolicy] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyChatForActivePolicySelector});
 
     const onPress = () => {
         interceptAnonymousUser(() => {

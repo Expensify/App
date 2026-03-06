@@ -121,7 +121,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -148,19 +148,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectedReportID={reportID}
-                transactionIDs={selectedTransactionIDs}
-                selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                isEditing={action === CONST.IOU.ACTION.EDIT}
-                createReport={createReport}
-                isPerDiemRequest={hasPerDiemTransactions}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectedReportID={reportID}
+            transactionIDs={selectedTransactionIDs}
+            selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing={action === CONST.IOU.ACTION.EDIT}
+            createReport={createReport}
+            isPerDiemRequest={hasPerDiemTransactions}
+        />
     );
 }
 

@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import {View} from 'react-native';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
@@ -22,7 +22,7 @@ import TravelMenuItem from './FABPopoverContent/menuItems/TravelMenuItem';
 import useScanActions from './FABPopoverContent/useScanActions';
 
 /**
- * Responsible for rendering the {@link FABPopoverContent}, and the accompanying
+ * Responsible for rendering the {@link FABPopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover() {
@@ -37,26 +37,21 @@ function FloatingActionButtonAndPopover() {
     const {startScan, startQuickScan} = useScanActions();
     const [reportID] = useState(() => generateReportID());
 
-    const showCreateMenu = useCallback(() => {
+    const showCreateMenu = () => {
         if (!isFocused && shouldUseNarrowLayout) {
             return;
         }
         setIsCreateMenuActive(true);
-    }, [isFocused, shouldUseNarrowLayout]);
+    };
 
-    const hideCreateMenu = useCallback(() => {
-        if (!isCreateMenuActive) {
-            return;
-        }
+    const hideCreateMenu = () => {
         setIsCreateMenuActive(false);
-    }, [isCreateMenuActive]);
+    };
 
     // Close the menu when the screen loses focus (e.g. navigating away)
-    useFocusEffect(
-        useCallback(() => {
-            return () => hideCreateMenu();
-        }, [hideCreateMenu]),
-    );
+    useFocusEffect(() => {
+        return () => hideCreateMenu();
+    });
 
     // Close menu on dragover — prevents popover from staying open during file drag
     useDragoverDismiss(isCreateMenuActive, hideCreateMenu);

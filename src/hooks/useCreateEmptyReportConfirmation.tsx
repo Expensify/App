@@ -1,14 +1,14 @@
-import type {ReactNode} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -26,100 +26,75 @@ type UseCreateEmptyReportConfirmationParams = {
 type UseCreateEmptyReportConfirmationResult = {
     /** Function to open the confirmation modal */
     openCreateReportConfirmation: () => void;
-    /** The confirmation modal React component to render */
-    CreateReportConfirmationModal: ReactNode;
 };
 
-/**
- * A React hook that provides a confirmation modal for creating empty reports.
- * When a user attempts to create a new report in a workspace where they already have an empty report,
- * this hook displays a confirmation modal to prevent accidental duplicate empty reports.
- *
- * @param params - Configuration object for the hook
- * @param params.policyName - The display name of the policy/workspace
- * @param params.onConfirm - Callback function to execute when user confirms report creation
- * @returns An object containing:
- *          - openCreateReportConfirmation: Function to open the confirmation modal
- *          - CreateReportConfirmationModal: The confirmation modal React component to render
- *
- * @example
- * const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
- *     policyID: 'policy123',
- *     policyName: 'Engineering Team',
- *     onConfirm: handleCreateReport,
- * });
- *
- */
-export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
+function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspaceName: string; checkboxRef: React.MutableRefObject<boolean>; onLinkPress: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const workspaceDisplayName = useMemo(() => (policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName')), [policyName, translate]);
-    const [isVisible, setIsVisible] = useState(false);
-    const [modalWorkspaceName, setModalWorkspaceName] = useState(workspaceDisplayName);
-    const [shouldDismissEmptyReportsConfirmation, setShouldDismissEmptyReportsConfirmation] = useState(false);
+    const [isChecked, setIsChecked] = useState(false);
 
-    const handleConfirm = useCallback(() => {
-        onConfirm(shouldDismissEmptyReportsConfirmation);
-        setShouldDismissEmptyReportsConfirmation(false);
-        setIsVisible(false);
-    }, [onConfirm, shouldDismissEmptyReportsConfirmation]);
-
-    const handleCancel = useCallback(() => {
-        onCancel?.();
-        setShouldDismissEmptyReportsConfirmation(false);
-        setIsVisible(false);
-    }, [onCancel]);
-
-    const handleReportsLinkPress = useCallback(() => {
-        onCancel?.();
-        setShouldDismissEmptyReportsConfirmation(false);
-        setIsVisible(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
-    }, [onCancel]);
-
-    const openCreateReportConfirmation = useCallback(() => {
-        // The caller is responsible for determining if empty report confirmation
-        // should be shown. We simply open the modal when called.
-        setModalWorkspaceName(workspaceDisplayName);
-        setShouldDismissEmptyReportsConfirmation(false);
-        setIsVisible(true);
-    }, [workspaceDisplayName]);
-
-    const prompt = useMemo(
-        () => (
-            <View style={styles.gap4}>
-                <Text>
-                    {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName: modalWorkspaceName})}{' '}
-                    <TextLink onPress={handleReportsLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
-                </Text>
-                <CheckboxWithLabel
-                    accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
-                    label={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
-                    isChecked={shouldDismissEmptyReportsConfirmation}
-                    onInputChange={(value) => setShouldDismissEmptyReportsConfirmation(!!value)}
-                />
-            </View>
-        ),
-        [handleReportsLinkPress, modalWorkspaceName, shouldDismissEmptyReportsConfirmation, styles.gap4, translate],
-    );
-
-    const CreateReportConfirmationModal = useMemo(
-        () => (
-            <ConfirmModal
-                confirmText={translate('report.newReport.createReport')}
-                cancelText={translate('common.cancel')}
-                isVisible={isVisible}
-                onConfirm={handleConfirm}
-                onCancel={handleCancel}
-                prompt={prompt}
-                title={`${translate('report.newReport.emptyReportConfirmationTitle')} `} // Adding a space at the end because of this bug in react-native: https://github.com/facebook/react-native/issues/53286
+    return (
+        <View style={styles.gap4}>
+            <Text>
+                {translate('report.newReport.emptyReportConfirmationPrompt', {workspaceName})}{' '}
+                <TextLink onPress={onLinkPress}>{translate('report.newReport.emptyReportConfirmationPromptLink')}.</TextLink>
+            </Text>
+            <CheckboxWithLabel
+                accessibilityLabel={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
+                label={translate('report.newReport.emptyReportConfirmationDontShowAgain')}
+                isChecked={isChecked}
+                onInputChange={(value) => {
+                    const checked = !!value;
+                    setIsChecked(checked);
+                    // eslint-disable-next-line no-param-reassign
+                    checkboxRef.current = checked;
+                }}
             />
-        ),
-        [handleCancel, handleConfirm, isVisible, prompt, translate],
+        </View>
     );
+}
+
+export default function useCreateEmptyReportConfirmation({policyName, onConfirm, onCancel}: UseCreateEmptyReportConfirmationParams): UseCreateEmptyReportConfirmationResult {
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const workspaceDisplayName = policyName?.trim().length ? policyName : translate('report.newReport.genericWorkspaceName');
+
+    const onConfirmRef = useRef(onConfirm);
+    const onCancelRef = useRef(onCancel);
+    useEffect(() => {
+        onConfirmRef.current = onConfirm;
+        onCancelRef.current = onCancel;
+    }, [onConfirm, onCancel]);
+
+    const openCreateReportConfirmation = () => {
+        const checkboxRef = {current: false};
+
+        const handleLinkPress = () => {
+            onCancelRef.current?.();
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})}));
+        };
+
+        showConfirmModal({
+            title: `${translate('report.newReport.emptyReportConfirmationTitle')} `,
+            confirmText: translate('report.newReport.createReport'),
+            cancelText: translate('common.cancel'),
+            prompt: (
+                <ConfirmationPrompt
+                    workspaceName={workspaceDisplayName}
+                    checkboxRef={checkboxRef}
+                    onLinkPress={handleLinkPress}
+                />
+            ),
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM) {
+                onConfirmRef.current(checkboxRef.current);
+            } else {
+                onCancelRef.current?.();
+            }
+        });
+    };
 
     return {
         openCreateReportConfirmation,
-        CreateReportConfirmationModal,
     };
 }

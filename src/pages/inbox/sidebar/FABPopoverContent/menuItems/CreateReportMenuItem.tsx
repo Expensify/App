@@ -1,4 +1,3 @@
-import React, {useCallback} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -64,10 +63,7 @@ function CreateReportMenuItem() {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const chatEnabledPaidGroupPolicies = useCallback(
-        (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
-        [session?.email],
-    );
+    const chatEnabledPaidGroupPolicies = (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email);
 
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: chatEnabledPaidGroupPolicies}, [session?.email]);
 
@@ -109,50 +105,47 @@ function CreateReportMenuItem() {
         });
     };
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
     });
 
     return (
-        <>
-            <FABFocusableMenuItem
-                itemId={ITEM_ID}
-                isVisible={isVisible}
-                pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
-                icon={icons.Document}
-                title={translate('report.newReport.createReport')}
-                onPress={() => {
-                    interceptAnonymousUser(() => {
-                        if (shouldRedirectToExpensifyClassic) {
-                            showRedirectToExpensifyClassicModal();
-                            return;
+        <FABFocusableMenuItem
+            itemId={ITEM_ID}
+            isVisible={isVisible}
+            pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.CREATE_REPORT}
+            icon={icons.Document}
+            title={translate('report.newReport.createReport')}
+            onPress={() => {
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        showRedirectToExpensifyClassicModal();
+                        return;
+                    }
+
+                    const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+
+                    if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                        return;
+                    }
+
+                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                        if (shouldShowEmptyReportConfirmation) {
+                            openCreateReportConfirmation();
+                        } else {
+                            handleCreateWorkspaceReport(false);
                         }
+                        return;
+                    }
 
-                        const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                        if (!workspaceIDForReportCreation || (shouldRestrictUserBillableActions(workspaceIDForReportCreation) && groupPoliciesWithChatEnabled.length > 1)) {
-                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
-                            return;
-                        }
-
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
-                            if (shouldShowEmptyReportConfirmation) {
-                                openCreateReportConfirmation();
-                            } else {
-                                handleCreateWorkspaceReport(false);
-                            }
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                    });
-                }}
-                shouldCallAfterModalHide={shouldUseNarrowLayout}
-            />
-            {CreateReportConfirmationModal}
-        </>
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                });
+            }}
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
+        />
     );
 }
 

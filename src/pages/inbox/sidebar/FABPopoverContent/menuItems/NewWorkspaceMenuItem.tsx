@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
@@ -27,17 +28,11 @@ function NewWorkspaceMenuItem() {
     const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace'] as const);
     const {isOffline} = useNetwork();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allPolicies] = useMappedPolicies(policyMapper);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
-    const shouldShowNewWorkspaceButton = (() => {
-        if (isRestrictedPolicyCreation) {
-            return false;
-        }
-        const isOfflineBool = !!isOffline;
-        const email = session?.email;
-        return Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, isOfflineBool, email));
-    })();
+    const shouldShowNewWorkspaceButton =
+        !isRestrictedPolicyCreation && Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, sessionEmail));
 
     const isVisible = !isLoading && shouldShowNewWorkspaceButton;
 

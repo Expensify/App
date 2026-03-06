@@ -13,6 +13,7 @@ import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
@@ -26,10 +27,10 @@ function TravelMenuItem() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: accountPrimaryLoginSelector});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
-    const primaryContactMethod = primaryLogin ?? session?.email ?? '';
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isVisible = !!activePolicy?.isTravelEnabled;
 
     const isTravelEnabled = (() => {
