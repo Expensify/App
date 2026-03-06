@@ -21,6 +21,7 @@ function AddPersonalNewCardPage() {
     const styles = useThemeStyles();
     const [addNewPersonalCardFeed, addNewPersonalCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_PERSONAL_CARD);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {currentStep} = addNewPersonalCardFeed ?? {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -69,7 +70,7 @@ function AddPersonalNewCardPage() {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
                 }}
             />
         </>

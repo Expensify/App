@@ -119,7 +119,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
                             (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
                         setAddNewPersonalCardStepAndData({
-                            step: CONST.PERSONAL_CARDS.STEP.SUCCESS,
+                            step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
                             data: {
                                 publicToken,
                                 plaidConnectedFeed,

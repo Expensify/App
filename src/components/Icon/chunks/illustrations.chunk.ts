@@ -269,7 +269,6 @@ const Illustrations = {
     QuestionMark,
     SmartScan,
     TeleScope,
-    QuestionMark,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
     TiltedCoinExpensify,

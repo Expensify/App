@@ -527,9 +527,9 @@ function WalletPage() {
         const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.feed)));
         if (hasDirectFeed) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
-            // return;
+            return;
         }
-        // TODO navigate to add new personal card
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
     };
 
     const openCompanyCardFlow = () => {
