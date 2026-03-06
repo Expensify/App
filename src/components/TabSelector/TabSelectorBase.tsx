@@ -63,11 +63,7 @@ function TabSelectorBase({
             }}
             ref={containerRef}
             style={styles.scrollableTabSelector}
-            contentContainerStyle={{
-                flexGrow: 1,
-                paddingBottom: 12,
-                paddingHorizontal: 20,
-            }}
+            contentContainerStyle={styles.tabSelectorContentContainer}
             horizontal
             showsHorizontalScrollIndicator={false}
         >
