@@ -10,26 +10,26 @@ This article explains how to update the personal details associated with your Ex
 
 # How to Update the Name on Your Expensify Card
 
-The name on your Expensify Card is pulled from the legal name in your profile. To update it:
+The name on your Expensify Card is pulled from the legal name in your profile. To update your legal name:
 
 1. Choose **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Profile**.
 3. Under **Private**, select **Legal name**.
 4. Update your **Legal first name** and **Legal last name**.
-5. Click **Save**.
+5. Click **Confirm**.
 
-Your updated legal name will be associated with your Expensify Card going forward. To receive a new physical card with the updated name embossed on it, you will need to request a replacement card. See the FAQ below for details.
+Your updated legal name will apply to your Expensify Card. To get a new physical card with the updated name embossed on it, request a replacement card. See the FAQ below for details.
 
 ---
 
 # How to Update the Phone Number Linked to Your Expensify Card
 
-The phone number linked to your Expensify Card is used for 3D Secure (Verified by Visa) verification during certain online transactions. This number is pulled from the phone number in your profile.
+The phone number linked to your Expensify Card is used for 3D Secure (Verified by Visa) verification during certain online transactions. It is pulled from your profile.
 
 1. Choose **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
 2. Select **Profile**.
 3. Under **Private**, select **Phone number**.
-4. Enter your updated phone number and click **Save**.
+4. Enter your updated phone number and click **Confirm**.
 
 After updating, your new phone number will be used for future 3D Secure SMS verification codes.
 
@@ -70,4 +70,10 @@ Your new Expensify Visa® Commercial Card will arrive in 3-5 business days.
 
 ## How do I change the name embossed on my physical Expensify Card?
 
-First, update your legal name in your profile by going to **Account > Profile > Private > Legal name**. Then, request a replacement card by going to **Account > Wallet**, selecting your physical card, and clicking **Report card lost or damaged**. Follow the prompts to request a new card. Your old card will be deactivated when the replacement is requested, and the new card will display your updated name.
+To update the embossed name on your physical Expensify Card:
+
+1. Update your legal name by going to **Account > Profile > Private > Legal name**.
+2. Go to **Account > Wallet** and select your physical card.
+3. Click **Report card lost or damaged** and follow the prompts to request a new card.
+
+Your old card will be deactivated when the replacement is requested, and the new card will display your updated name.
