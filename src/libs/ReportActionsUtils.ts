@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import {getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 import type {WorkspaceAddress} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
@@ -3300,10 +3301,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
         return '';
     }
 
-    const [street1Raw, street2Raw] = (address.addressStreet ?? '').split('\n');
-    const street1 = street1Raw?.trim() ?? '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if explicit line 2 can be an empty string
-    const street2 = address.addressStreet2?.trim() || street2Raw?.trim() || '';
+    const {streetLineOne: street1, streetLineTwo: street2} = getWorkspaceAddressStreetLines(address.addressStreet, address.addressStreet2);
     const parts: string[] = [];
 
     if (street1) {
