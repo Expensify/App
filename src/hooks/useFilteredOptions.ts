@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -81,15 +81,18 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
-    const options: OptionList | null =
-        enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, {
-                  maxRecentReports: reportsLimit,
-                  includeP2P,
-                  searchTerm,
-                  betas,
-              })
-            : null;
+    const options: OptionList | null = useMemo(
+        () =>
+            enabled && allReports && allPersonalDetails
+                ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, {
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      searchTerm,
+                      betas,
+                  })
+                : null,
+        [enabled, allReports, allPersonalDetails, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, reportsLimit, includeP2P, searchTerm, betas],
+    );
 
     // Reset loading state after options are computed
     useEffect(() => {

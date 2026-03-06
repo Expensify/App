@@ -329,6 +329,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
         } else {
             newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID, keyForList: `${option.keyForList ?? option.reportID}`}];
+            selectionListRef?.current?.scrollToIndex(0, true);
         }
 
         selectionListRef?.current?.clearInputAfterSelect?.();
@@ -336,9 +337,6 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectionListRef.current?.focusTextInput();
         }
         setSelectedOptions(newSelectedOptions);
-        if (!isOptionInList) {
-            selectionListRef?.current?.scrollToIndex(0, true);
-        }
 
         if (personalData?.login && personalData?.accountID) {
             const participants: SelectedParticipant[] = [
