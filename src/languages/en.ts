@@ -132,6 +132,7 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+/* eslint-disable max-len */
 const translations = {
     common: {
         // @context Used as a noun meaning a numerical total or quantity, not the verb “to count.”
@@ -534,8 +535,6 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
-        approvalLimit: 'Approval limit',
-        overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
@@ -565,6 +564,7 @@ const translations = {
         quarter: 'Quarter',
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
+        approver: 'Approver',
     },
     socials: {
         podcast: 'Follow us on Podcast',
@@ -1384,7 +1384,7 @@ const translations = {
         unapproved: `unapproved`,
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: `approved`,
-        rejectedThisReport: 'rejected this report',
+        rejectedThisReport: 'rejected',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started payment, but is waiting for ${submitterDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -5269,6 +5269,8 @@ const translations = {
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
+                    enabled: 'Central Invoicing enabled!',
+                    enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
