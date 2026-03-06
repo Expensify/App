@@ -171,6 +171,55 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType)
     ];
 }
 
+function areSelectedTransactionInfoEqual(previous: SelectedTransactionInfo | undefined, next: SelectedTransactionInfo): boolean {
+    if (!previous) {
+        return false;
+    }
+
+    return (
+        previous.transaction === next.transaction &&
+        previous.isSelected === next.isSelected &&
+        previous.canReject === next.canReject &&
+        previous.canHold === next.canHold &&
+        previous.isHeld === next.isHeld &&
+        previous.canUnhold === next.canUnhold &&
+        previous.canSplit === next.canSplit &&
+        previous.hasBeenSplit === next.hasBeenSplit &&
+        previous.canChangeReport === next.canChangeReport &&
+        previous.action === next.action &&
+        previous.groupCurrency === next.groupCurrency &&
+        previous.groupExchangeRate === next.groupExchangeRate &&
+        previous.reportID === next.reportID &&
+        previous.policyID === next.policyID &&
+        previous.amount === next.amount &&
+        previous.groupAmount === next.groupAmount &&
+        previous.currency === next.currency &&
+        previous.isFromOneTransactionReport === next.isFromOneTransactionReport &&
+        previous.ownerAccountID === next.ownerAccountID &&
+        previous.reportAction === next.reportAction &&
+        previous.report === next.report
+    );
+}
+
+function getStableSelectedTransactionInfo(previous: SelectedTransactionInfo | undefined, next: SelectedTransactionInfo): SelectedTransactionInfo {
+    if (previous && areSelectedTransactionInfoEqual(previous, next)) {
+        return previous;
+    }
+
+    return next;
+}
+
+function areSelectedTransactionsEqualByReference(previous: SelectedTransactions, next: SelectedTransactions): boolean {
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
+
+    if (previousKeys.length !== nextKeys.length) {
+        return false;
+    }
+
+    return previousKeys.every((key) => previous[key] === next[key]);
+}
+
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -636,6 +685,9 @@ function Search({
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
+        if (!areAllMatchingItemsSelected && isEmptyObject(selectedTransactions)) {
+            return;
+        }
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || isExpenseReportType) {
             for (const transactionGroup of filteredData) {
@@ -650,10 +702,10 @@ function Search({
                     }
                     if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
                         const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
-                        newTransactionList[reportKey] = {
+                        newTransactionList[reportKey] = getStableSelectedTransactionInfo(selectedTransactions[reportKey], {
                             ...emptyReportSelection,
                             isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
-                        };
+                        });
                     }
                     continue;
                 }
@@ -690,7 +742,7 @@ function Search({
                         searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
                         transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
-                    newTransactionList[transactionItem.transactionID] = {
+                    newTransactionList[transactionItem.transactionID] = getStableSelectedTransactionInfo(selectedTransactions[transactionItem.transactionID], {
                         transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
@@ -722,7 +774,7 @@ function Search({
                         reportAction: transactionItem.reportAction,
                         isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                         report: transactionItem.report,
-                    };
+                    });
                 }
             }
         } else {
@@ -746,7 +798,7 @@ function Search({
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
 
-                newTransactionList[transactionItem.transactionID] = {
+                newTransactionList[transactionItem.transactionID] = getStableSelectedTransactionInfo(selectedTransactions[transactionItem.transactionID], {
                     transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
@@ -778,10 +830,13 @@ function Search({
                     reportAction: transactionItem.reportAction,
                     isFromOneTransactionReport: isOneTransactionReport(transactionItem.report),
                     report: transactionItem.report,
-                };
+                });
             }
         }
         if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
+            return;
+        }
+        if (areSelectedTransactionsEqualByReference(selectedTransactions, newTransactionList)) {
             return;
         }
 
