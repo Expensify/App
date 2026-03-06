@@ -44,7 +44,7 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
             }
 
             // Fallback to not found page so users can't land on dynamic suffix directly.
-            if ((pathWithoutDynamicSuffix as string) === '/' || (pathWithoutDynamicSuffix as string) === '') {
+            if (!pathWithoutDynamicSuffix) {
                 const state = {routes: [{name: SCREENS.NOT_FOUND, path: normalizedPathAfterRedirection}]};
 
                 return state;
