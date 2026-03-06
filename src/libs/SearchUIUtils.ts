@@ -1665,7 +1665,6 @@ function getColumnWidthStyle(currentMaxWidth: number, columnValue: string | null
     const maxColumnWidthPx = 400;
     // The actual average length, but lets add padding so we're more accurate, we'd
     // rather go over the actual length, than under and have the text be cut off
-    // const averageCharacterLength = 7.68;
     const averageCharacterPxWithPadding = 8.45;
     const columnValueCharLength = columnValue?.length ?? 0;
 

@@ -252,7 +252,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.tag}}
+                        style={{width: measurements.tag}}
                     >
                         <TextCell text={formattedValues.tag} />
                     </View>
@@ -261,7 +261,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{minWidth: measurements.date}}
+                        style={{width: measurements.date}}
                     >
                         <TextCell text={formattedValues.date} />
                     </View>
@@ -270,7 +270,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.submitted}}
+                        style={{width: measurements.submitted}}
                     >
                         <TextCell text={formattedValues.submitted} />
                     </View>
@@ -279,7 +279,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.approved}}
+                        style={{width: measurements.approved}}
                     >
                         <TextCell text={formattedValues.approved} />
                     </View>
@@ -288,7 +288,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.posted}}
+                        style={{width: measurements.posted}}
                     >
                         <TextCell text={formattedValues.posted} />
                     </View>
@@ -297,7 +297,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.exported}}
+                        style={{width: measurements.exported}}
                     >
                         <TextCell text={formattedValues.exported} />
                     </View>
@@ -306,7 +306,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.category}}
+                        style={{width: measurements.category}}
                     >
                         <TextCell text={formattedValues.category} />
                     </View>
@@ -315,7 +315,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.reimbursable}}
+                        style={{width: measurements.reimbursable}}
                     >
                         <TextCell text={formattedValues.reimbursable} />
                     </View>
@@ -324,7 +324,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.billable}}
+                        style={{width: measurements.billable}}
                     >
                         <TextCell text={formattedValues.billable} />
                     </View>
@@ -425,7 +425,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.exchangeRate}}
+                        style={{width: measurements.exchangeRate}}
                     >
                         <TextCell text={formattedValues.exchangeRate} />
                     </View>
@@ -434,7 +434,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.amount}}
+                        style={{width: measurements.amount}}
                     >
                         <TextCell text={formattedValues.amount} />
                     </View>
@@ -443,7 +443,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.originalAmount}}
+                        style={{width: measurements.originalAmount}}
                     >
                         <TextCell text={formattedValues.originalAmount} />
                     </View>
