@@ -12,6 +12,7 @@ type Section = {
     href: string;
     title: string;
     articles?: Article[];
+    sections?: Section[];
 };
 
 type Hub = {
@@ -60,13 +61,37 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file
+ * Get title from article frontmatter if present, otherwise from filename
  */
-function getArticleObj(filename: string, order?: number): Article {
+function getTitleFromFrontMatter(filePath: string): string | undefined {
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const parts = content.split('---');
+        if (parts.length < 2) return undefined;
+        const frontmatter = yaml.load(parts[1]) as Record<string, unknown>;
+        const title = frontmatter?.title;
+        return typeof title === 'string' ? title : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * @param filename - The name of the file
+ * @param fullPath - Optional full path to read frontmatter title
+ * Card title: use filename for error codes (e.g. NS0521 Sync Error), else frontmatter or toTitleCase
+ */
+function getArticleObj(filename: string, order?: number, fullPath?: string): Article {
     const href = filename.replace('.md', '');
+    const fallbackTitle = toTitleCase(href.replaceAll('-', ' '));
+    // Error-code filenames (e.g. NS0521-Sync-Error): display as "NS0521 Sync Error" from filename
+    const isErrorCode = href.match(/^[A-Z]{2,}\d+/);
+    const title = isErrorCode
+        ? href.replaceAll('-', ' ')
+        : (fullPath && getTitleFromFrontMatter(fullPath)) || fallbackTitle;
     return {
         href,
-        title: toTitleCase(href.replaceAll('-', ' ')),
+        title,
         order,
     };
 }
@@ -94,46 +119,90 @@ function pushOrCreateEntry<TKey extends HubEntriesKey>(hubs: Hub[], hub: string,
 }
 
 function getOrderFromArticleFrontMatter(path: string): number | undefined {
-    const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
-    if (!frontmatter) {
-        return;
+    try {
+        const frontmatter = fs.readFileSync(path, 'utf8').split('---').at(1);
+        if (!frontmatter) return undefined;
+        const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
+        return frontmatterObject.order as number | undefined;
+    } catch {
+        return undefined;
     }
-    const frontmatterObject = yaml.load(frontmatter) as Record<string, unknown>;
-    return frontmatterObject.order as number | undefined;
+}
+
+/**
+ * Build a section from a directory path, with optional parent path for nested href
+ */
+function buildSection(
+    platformName: string,
+    hub: string,
+    sectionPath: string,
+    parentHref: string,
+): Section {
+    const sectionName = sectionPath.split('/').pop() ?? sectionPath;
+    const fullPath = `${docsDir}/articles/${platformName}/${hub}/${sectionPath}`;
+    const articles: Article[] = [];
+    const childSections: Section[] = [];
+    const href = parentHref ? `${parentHref}/${sectionName}` : sectionName;
+
+    for (const entry of fs.readdirSync(fullPath)) {
+        const entryPath = `${fullPath}/${entry}`;
+        if (entry.endsWith('.md')) {
+            const order = getOrderFromArticleFrontMatter(entryPath);
+            articles.push(getArticleObj(entry, order, entryPath));
+        } else if (fs.statSync(entryPath).isDirectory()) {
+            childSections.push(buildSection(platformName, hub, `${sectionPath}/${entry}`, href));
+        }
+    }
+
+    const section: Section = {
+        href,
+        title: toTitleCase(sectionName.replaceAll('-', ' ')),
+        ...(articles.length > 0 && {articles}),
+        ...(childSections.length > 0 && {sections: childSections}),
+    };
+    return section;
+}
+
+/**
+ * Flatten sections for lookup by full path (e.g. netsuite/troubleshooting/connection-errors)
+ */
+function flattenSections(sections: Section[]): Section[] {
+    const result: Section[] = [];
+    for (const s of sections) {
+        result.push(s);
+        if (s.sections?.length) {
+            result.push(...flattenSections(s.sections));
+        }
+    }
+    return result;
 }
 
 /**
  * Add articles and sections to hubs
  * @param hubs - The hubs inside docs/articles/ for a platform
  * @param platformName - Expensify Classic or New Expensify
- * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
+ * @param routeHubs - The hubs inside docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
     for (const hub of hubs) {
-        // Iterate through each directory in articles
-        for (const fileOrFolder of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`)) {
-            // If the directory content is a markdown file, then it is an article
+        const basePath = `${docsDir}/articles/${platformName}/${hub}`;
+
+        for (const fileOrFolder of fs.readdirSync(basePath)) {
             if (fileOrFolder.endsWith('.md')) {
-                const articleObj = getArticleObj(fileOrFolder);
+                const articleObj = getArticleObj(fileOrFolder, undefined, `${basePath}/${fileOrFolder}`);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
                 continue;
             }
 
-            // For readability, we will use the term section to refer to subfolders
-            const section = fileOrFolder;
-            const articles: Article[] = [];
+            const sectionPath = fileOrFolder;
+            const section = buildSection(platformName, hub, sectionPath, '');
+            pushOrCreateEntry(routeHubs, hub, 'sections', section);
+        }
 
-            // Each subfolder will be a section containing articles
-            for (const subArticle of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`)) {
-                const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
-                articles.push(getArticleObj(subArticle, order));
-            }
-
-            pushOrCreateEntry(routeHubs, hub, 'sections', {
-                href: section,
-                title: toTitleCase(section.replaceAll('-', ' ')),
-                articles,
-            });
+        // Add flat section list for nested section page lookup
+        const hubObj = routeHubs.find((obj) => obj.href === hub);
+        if (hubObj?.sections?.length) {
+            (hubObj as Hub & {flatSections?: Section[]}).flatSections = flattenSections(hubObj.sections);
         }
     }
 }

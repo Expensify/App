@@ -1,13 +1,20 @@
-{% assign urlArray = page.url | replace: '/', ' ' | split: " " %}
-
-{% assign activePlatform = urlArray[0] %}
+{% assign urlParts = page.url | split: '/' %}
+{% assign activePlatform = urlParts[1] %}
 {% assign platform = site.data.routes.platforms | where: "href", activePlatform | first %}
 
-{% assign activeHub = urlArray[2] %}
+{% assign activeHub = urlParts[3] %}
 {% assign hub = platform.hubs | where: "href", activeHub | first %}
 
-{% assign activeSection = urlArray[3] | remove: ".html" %}
-{% assign section = hub.sections | where: "href", activeSection | first %}
+{% comment %} Build section path from URL (e.g. netsuite or netsuite/troubleshooting) - strip hub prefix and .html {% endcomment %}
+{% assign hubPrefix = "/" | append: activePlatform | append: "/hubs/" | append: activeHub | append: "/" %}
+{% assign activeSectionPath = page.url | replace: ".html", "" | replace: hubPrefix, "" | replace_first: "/", "" %}
+
+{% if hub.flatSections %}
+    {% assign section = hub.flatSections | where: "href", activeSectionPath | first %}
+{% endif %}
+{% if section == nil %}
+    {% assign section = hub.sections | where: "href", activeSectionPath | first %}
+{% endif %}
 
 <h1 class="title">
     {{ section.title }}
@@ -15,10 +22,17 @@
 
 <section>
     <div class="cards-group">
-        {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
-        {% for article in sortedArticles %}
-            {% assign article_href = section.href | append: '/' | append: article.href %}
-            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
-        {% endfor %}
+        {% if section.sections %}
+            {% for subsection in section.sections %}
+                {% include section-card.html platform=activePlatform hub=hub.href section=subsection.href title=subsection.title %}
+            {% endfor %}
+        {% endif %}
+        {% if section.articles %}
+            {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
+            {% for article in sortedArticles %}
+                {% assign article_href = section.href | append: '/' | append: article.href %}
+                {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+            {% endfor %}
+        {% endif %}
     </div>
 </section>
