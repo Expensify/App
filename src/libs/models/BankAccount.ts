@@ -125,6 +125,7 @@ class BankAccount {
      * @NOTE WARNING KEEP IN SYNC WITH THE PHP
      */
     getClientID() {
+        // eslint-disable-next-line max-len
         return `${Str.makeID(this.getMaskedAccountNumber() ?? '')}${Str.makeID(this.getAddressName() ?? '')}${Str.makeID(this.getRoutingNumber() ?? '')}${this.getTransactionType()}`;
     }
 
