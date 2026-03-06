@@ -727,6 +727,8 @@ const ViolationsUtils = {
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
+            case 'modifiedDistance':
+                return translate('violations.modifiedDistance');
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':

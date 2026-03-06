@@ -7823,6 +7823,7 @@ const translations = {
             }
         },
         modifiedDate: 'Date differs from scanned receipt',
+        modifiedDistance: 'Distance exceeds the calculated route',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
         overAutoApprovalLimit: ({formattedLimit}: ViolationsOverLimitParams) => `Expense exceeds auto-approval limit of ${formattedLimit}`,
         overCategoryLimit: ({formattedLimit}: ViolationsOverCategoryLimitParams) => `Amount over ${formattedLimit}/person category limit`,
