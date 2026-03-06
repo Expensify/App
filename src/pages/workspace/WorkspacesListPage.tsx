@@ -55,7 +55,6 @@ import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
-    getUserFriendlyWorkspaceType,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyAuditor,
@@ -309,7 +308,7 @@ function WorkspacesListPage() {
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade);
+    const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade, policies);
 
     const resetLoadingSpinnerIconIndex = () => {
         setLoadingSpinnerIconIndex(null);
@@ -441,17 +440,6 @@ function WorkspacesListPage() {
             });
         }
 
-        const ownerDisplayName = personalDetails?.[item.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const workspaceType = item.type ? getUserFriendlyWorkspaceType(item.type, translate) : '';
-        const accessibilityLabel = [
-            `${translate('workspace.common.workspace')}: ${item.title}`,
-            isDefault ? translate('common.default') : '',
-            `${translate('workspace.common.workspaceOwner')}: ${ownerDisplayName}`,
-            `${translate('workspace.common.workspaceType')}: ${workspaceType}`,
-        ]
-            .filter(Boolean)
-            .join(', ');
-
         return (
             <OfflineWithFeedback
                 key={`${item.title}_${index}`}
@@ -464,8 +452,7 @@ function WorkspacesListPage() {
                 shouldHideOnDelete={false}
             >
                 <PressableWithoutFeedback
-                    role={isLessThanMediumScreen ? CONST.ROLE.BUTTON : CONST.ROLE.ROW}
-                    accessibilityLabel={accessibilityLabel}
+                    accessible={false}
                     style={[styles.mh5]}
                     disabled={item.disabled}
                     onPress={item.action}
@@ -490,6 +477,8 @@ function WorkspacesListPage() {
                             isLoadingBill={isLoadingBill}
                             resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                             isHovered={hovered}
+                            disabled={item.disabled}
+                            onPress={item.action}
                         />
                     )}
                 </PressableWithoutFeedback>
@@ -697,6 +686,7 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
+    // eslint-disable-next-line react/no-unused-prop-types
     const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
         switch (item.listItemType) {
             case 'workspace': {

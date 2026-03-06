@@ -17,6 +17,7 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
         () => ({
             download: () =>
                 new Promise((resolve, reject) => {
+                    // eslint-disable-next-line es/no-optional-chaining
                     const svg = qrShareRef.current?.getSvg();
                     if (!svg) {
                         reject();
