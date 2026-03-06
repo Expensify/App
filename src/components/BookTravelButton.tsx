@@ -39,6 +39,9 @@ type BookTravelButtonProps = WithSentryLabel & {
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 
     shouldShowVerifyAccountModal?: boolean;
+
+    /** Whether to render a large button */
+    large?: boolean;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
@@ -58,6 +61,7 @@ function BookTravelButton({
     setShouldScrollToBottom,
     shouldShowVerifyAccountModal = true,
     sentryLabel,
+    large = false,
 }: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -208,10 +212,10 @@ function BookTravelButton({
                 text={text}
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
-                style={styles.w100}
+                style={large ? styles.w100 : undefined}
                 isDisabled={!activePolicyID}
                 success
-                large
+                large={large}
                 sentryLabel={sentryLabel}
             />
             {shouldRenderErrorMessageBelowButton && !!errorMessage && (

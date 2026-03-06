@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 type PublicDomainErrorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR>;
@@ -22,10 +22,7 @@ function PublicDomainErrorPage({route}: PublicDomainErrorPageProps) {
     const policyID = route.params.policyID;
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED}
-        >
+        <AccessOrNotFoundWrapper policyID={activePolicyID}>
             <ScreenWrapper
                 shouldEnableMaxHeight
                 testID="PublicDomainErrorPage"
