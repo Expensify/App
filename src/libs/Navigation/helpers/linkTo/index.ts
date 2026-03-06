@@ -1,6 +1,8 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
+import {getRemappedNavigatorKey} from '@libs/Navigation/AppNavigator/createRootStackNavigator/useCustomRootStackNavigatorState/reuseNavigatorKey';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -182,6 +184,13 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
+    // When a route has no embedded state (e.g. because reuseNavigatorKey is rendering it
+    // via a different key), look up the preserved state of the actually mounted navigator.
+    const getStateForRouteKey = (key: string) => {
+        const mountedKey = getRemappedNavigatorKey(key) ?? key;
+        return getPreservedNavigatorState(mountedKey);
+    };
+
+    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState(), getStateForRouteKey);
     navigation.dispatch(minimalAction);
 }

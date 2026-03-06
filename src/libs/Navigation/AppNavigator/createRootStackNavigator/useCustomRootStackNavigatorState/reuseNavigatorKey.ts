@@ -4,6 +4,21 @@ import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 
 type StateRoutes = StackNavigationState<ParamListBase>['routes'];
 
+type RemappedStateRoute = StateRoutes[number] & {originalKey?: string};
+
+/**
+ * Tracks the mapping from a new route's key (originalKey) to the mounted navigator's key.
+ * This allows getMinimalAction to drill into the mounted navigator's preserved state
+ * even though the new route has no embedded state in the root navigation state.
+ *
+ * Example: when T3unFG is remapped to MBc.key, remappedKeyMap[T3unFGKey] = MBcKey.
+ */
+const remappedKeyMap: Record<string, string> = {};
+
+function getRemappedNavigatorKey(originalKey: string): string | undefined {
+    return remappedKeyMap[originalKey];
+}
+
 /**
  * For each fullscreen navigator in routesToRender, checks whether a navigator
  * with the same name is already mounted in the current navigation state.
@@ -16,7 +31,12 @@ type StateRoutes = StackNavigationState<ParamListBase>['routes'];
  *
  * The actual navigation state is not mutated — this only affects what gets rendered.
  */
-function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigationState<ParamListBase>): StateRoutes {
+function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigationState<ParamListBase>): RemappedStateRoute[] {
+    // Rebuild the mapping from scratch on every call so it always reflects the current render state.
+    for (const key of Object.keys(remappedKeyMap)) {
+        delete remappedKeyMap[key];
+    }
+
     return routesToRender.map((route) => {
         const previousRoute = fullState.routes.at(-2);
 
@@ -44,13 +64,21 @@ function reuseNavigatorKey(routesToRender: StateRoutes, fullState: StackNavigati
             screensWithEnteringAnimation.add(existingRoute.key);
         }
 
+        // Track that route.key is rendered via existingRoute.key so that getMinimalAction
+        // can look up the mounted navigator's preserved state when route has no embedded state.
+        remappedKeyMap[route.key] = existingRoute.key;
+
         return {
-            ...existingRoute, // Reuse the mounted navigator (preserve key and internal state)
+            ...existingRoute, // Reuse the mounted navigator (preserve key so React doesn't unmount it)
+            state: undefined, // Clear old embedded state so getInitialState is called with the new params
             params: {
                 ...route.params, // Apply params from the incoming navigation action
             },
+            originalKey: route.key,
         };
     });
 }
 
+export type {RemappedStateRoute};
+export {getRemappedNavigatorKey};
 export default reuseNavigatorKey;
