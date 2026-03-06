@@ -1188,6 +1188,7 @@ describe('split expense', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1357,6 +1358,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1467,6 +1469,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1590,6 +1593,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1742,6 +1746,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -1795,6 +1800,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -1971,6 +1977,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2136,6 +2143,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2315,6 +2323,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2517,6 +2526,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
