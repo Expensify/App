@@ -1134,7 +1134,7 @@ const ROUTES = {
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
             }
-            return `${action}/${iouType}/receipt/${transactionID}/${reportID}?readonly=false` as const;
+            return `${action as string}/${iouType as string}/receipt/${transactionID}/${reportID}?readonly=false` as const;
         },
     },
     MONEY_REQUEST_ODOMETER_PREVIEW: {
@@ -1146,7 +1146,7 @@ const ROUTES = {
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
-            return `${action}/${iouType}/odometer-image-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
+            return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
     MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW: {
@@ -1158,7 +1158,7 @@ const ROUTES = {
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW route');
             }
-            return `${action}/${iouType}/odometer-image-confirmation-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
+            return `${action as string}/${iouType as string}/odometer-image-confirmation-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
     },
     MONEY_REQUEST_EDIT_REPORT: {

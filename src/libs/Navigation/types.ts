@@ -2869,6 +2869,15 @@ type PublicScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
 };
 
+type OdometerPreviewScreenParams = AttachmentModalContainerModalProps & {
+    reportID: string;
+    transactionID: string;
+    action: IOUAction;
+    iouType: IOUType;
+    readonly: string;
+    imageType: OdometerImageType;
+};
+
 type AttachmentModalScreensParamList = {
     [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
@@ -2934,22 +2943,8 @@ type AttachmentModalScreensParamList = {
         iouType: IOUType;
         readonly: string;
     };
-    [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: AttachmentModalContainerModalProps & {
-        reportID: string;
-        transactionID: string;
-        action: IOUAction;
-        iouType: IOUType;
-        readonly: string;
-        imageType: OdometerImageType;
-    };
-    [SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW]: AttachmentModalContainerModalProps & {
-        reportID: string;
-        transactionID: string;
-        action: IOUAction;
-        iouType: IOUType;
-        readonly: string;
-        imageType: OdometerImageType;
-    };
+    [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: OdometerPreviewScreenParams;
+    [SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW]: OdometerPreviewScreenParams;
     [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;
         fallbackSource?: AvatarSource;
