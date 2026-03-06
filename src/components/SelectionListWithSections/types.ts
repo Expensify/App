@@ -254,6 +254,29 @@ type ListItem<K extends string | number = string> = {
     isIndeterminate?: boolean;
 };
 
+type TransactionColumnMeasurements = {
+    date: number;
+    merchant: number;
+    category: number;
+    tag: number;
+    amount: number;
+    exchangeRate: number;
+    description: number;
+    card: number;
+    billable: number;
+    reimbursable: number;
+    title: number;
+    taxRate: number;
+    taxAmount: number;
+    reportID: number;
+    longReportID: number;
+    originalAmount: number;
+    exportedDate: number;
+    submittedDate: number;
+    approvedDate: number;
+    postedDate: number;
+};
+
 type TransactionListItemType = ListItem &
     Transaction & {
         formattedValues: {
@@ -1270,4 +1293,5 @@ export type {
     SortableColumnName,
     SearchListItem,
     UnreportedExpenseListItemType,
+    TransactionColumnMeasurements,
 };

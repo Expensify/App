@@ -43,6 +43,7 @@ import type {
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
+    TransactionColumnMeasurements,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -1678,7 +1679,7 @@ function getTransactionsSections({
     reportActions = {},
     queryJSON,
     cardFeeds,
-}: GetTransactionSectionsParams): [TransactionListItemType[], number] {
+}: GetTransactionSectionsParams): [TransactionListItemType[], number, TransactionColumnMeasurements] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -1950,7 +1951,7 @@ function getTransactionsSections({
         transactionsSections.push(transactionSection);
     }
 
-    return [transactionsSections, transactionsSections.length];
+    return [transactionsSections, transactionsSections.length, measurements];
 }
 
 /**
