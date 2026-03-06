@@ -261,7 +261,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1, minWidth: measurements.date}}
+                        style={{minWidth: measurements.date}}
                     >
                         <TextCell text={formattedValues.date} />
                     </View>
