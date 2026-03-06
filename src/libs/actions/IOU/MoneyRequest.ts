@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -9,6 +9,7 @@ import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} fro
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -58,6 +59,7 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -105,8 +107,10 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    amountOwed: OnyxEntry<number>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -150,6 +154,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
+    amountOwed: OnyxEntry<number>;
 };
 
 function createTransaction({
@@ -172,11 +177,14 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
     isSelfTourViewed,
     betas,
     personalDetails,
     recentWaypoints,
 }: CreateTransactionParams) {
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
@@ -212,6 +220,9 @@ function createTransaction({
                 betas,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+
             requestMoney({
                 report,
                 betas,
@@ -241,6 +252,8 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
             });
@@ -296,8 +309,10 @@ function handleMoneyRequestStepScanParticipants({
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
+    allTransactionDrafts,
     betas,
     recentWaypoints,
+    amountOwed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -334,6 +349,11 @@ function handleMoneyRequestStepScanParticipants({
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             const firstReceiptFile = files.at(0);
             if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
                 const splitReceipt: Receipt = firstReceiptFile.file ?? {};
@@ -399,6 +419,7 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -425,6 +446,7 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
                             recentWaypoints,
@@ -451,6 +473,7 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
+                allTransactionDrafts,
                 betas,
                 personalDetails,
                 recentWaypoints,
@@ -466,7 +489,7 @@ function handleMoneyRequestStepScanParticipants({
 
     // If there was no reportID, then that means the user started this flow from the global + menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -542,6 +565,7 @@ function handleMoneyRequestStepDistanceNavigation({
     recentWaypoints,
     unit,
     personalOutputCurrency,
+    amountOwed,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -568,6 +592,11 @@ function handleMoneyRequestStepDistanceNavigation({
 
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -666,7 +695,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const isSelfDMReport = isSelfDM(targetReport);

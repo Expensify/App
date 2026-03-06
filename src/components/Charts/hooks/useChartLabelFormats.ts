@@ -1,7 +1,7 @@
 import type {SkFont} from '@shopify/react-native-skia';
-import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {LABEL_ROTATIONS} from '@components/Charts/constants';
+import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
 import useLocalize from '@hooks/useLocalize';
-import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
@@ -9,7 +9,7 @@ type UseChartLabelFormatsProps = {
     unit?: UnitWithFallback | string;
     unitPosition?: UnitPosition;
     labelSkipInterval?: number;
-    labelRotation?: number;
+    labelRotation?: LabelRotation;
     truncatedLabels?: string[];
 };
 
@@ -60,7 +60,7 @@ export default function useChartLabelFormats({data, font, unit, unitPosition = '
             return '';
         }
 
-        const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+        const sourceToUse = labelRotation === LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
 
         return sourceToUse.at(index) ?? '';
     };

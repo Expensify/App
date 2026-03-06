@@ -3,7 +3,7 @@ import React from 'react';
 import {AttachmentContext} from '@components/AttachmentContext';
 import VideoRenderer from '@components/HTMLEngineProvider/HTMLRenderers/VideoRenderer';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
@@ -29,19 +29,23 @@ jest.mock('@components/VideoPlayerPreview', () => {
                 onPress={handlePress}
                 accessibilityRole="button"
                 accessibilityLabel={fileName}
+                sentryLabel="VideoRendererTest-ShowModalButton"
             />
         );
     };
 });
 
-const mockShowContextMenuValue = {
+const mockShowContextMenuStateValue = {
     anchor: null,
     report: undefined,
     isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
-    checkIfContextMenuActive: () => {},
     isDisabled: true,
+};
+
+const mockShowContextMenuActionsValue = {
+    checkIfContextMenuActive: () => {},
     onShowContextMenu: (callback: () => void) => callback(),
 };
 const mockTNodeAttributes = {
@@ -60,12 +64,14 @@ describe('VideoRenderer', () => {
     it('should open the report attachment with isAuthTokenRequired=true', () => {
         // Given a VideoRenderer component with a valid attributes
         render(
-            <ShowContextMenuContext.Provider value={mockShowContextMenuValue}>
-                <AttachmentContext.Provider value={{type: CONST.ATTACHMENT_TYPE.SEARCH}}>
-                    {/* @ts-expect-error - Ignoring type errors for testing purposes */}
-                    <VideoRenderer tnode={{attributes: mockTNodeAttributes}} />
-                </AttachmentContext.Provider>
-            </ShowContextMenuContext.Provider>,
+            <ShowContextMenuStateContext.Provider value={mockShowContextMenuStateValue}>
+                <ShowContextMenuActionsContext.Provider value={mockShowContextMenuActionsValue}>
+                    <AttachmentContext.Provider value={{type: CONST.ATTACHMENT_TYPE.SEARCH}}>
+                        {/* @ts-expect-error - Ignoring type errors for testing purposes */}
+                        <VideoRenderer tnode={{attributes: mockTNodeAttributes}} />
+                    </AttachmentContext.Provider>
+                </ShowContextMenuActionsContext.Provider>
+            </ShowContextMenuStateContext.Provider>,
         );
 
         // When the user presses the show modal button

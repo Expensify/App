@@ -21,8 +21,7 @@ const buildFeedKeysWithAssignedCards = (allWorkspaceCards: OnyxCollection<Worksp
             continue;
         }
 
-        const {cardList, ...assignedCards} = cards;
-        if (Object.keys(assignedCards).length > 0) {
+        if (Object.keys(cards).some((k) => k !== 'cardList')) {
             const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
             result[feedKey] = true;
         }
@@ -56,6 +55,16 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
+ * Get only personal cards from the card list.
+ */
+const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
+    return filterObject(
+        cards ?? {},
+        (key, card) => card?.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card?.fundID === '0'),
+    );
+};
+
+/**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
@@ -81,4 +90,12 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
         .filter((card) => isCard(card) && isExpensifyCard(card))
         .every((card) => card.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
-export {filterCardsHiddenFromSearch, filterOutPersonalCards, defaultExpensifyCardSelector, cardByIdSelector, areAllExpensifyCardsShipped, buildFeedKeysWithAssignedCards};
+export {
+    filterCardsHiddenFromSearch,
+    filterOutPersonalCards,
+    defaultExpensifyCardSelector,
+    cardByIdSelector,
+    areAllExpensifyCardsShipped,
+    buildFeedKeysWithAssignedCards,
+    getBankLinkedPersonalCards,
+};

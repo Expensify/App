@@ -42,11 +42,17 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
+type UseSearchTypeMenuSectionsParams = {
+    hash?: number;
+    similarSearchHash?: number;
+};
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
-const useSearchTypeMenuSections = () => {
+const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
+    const {hash, similarSearchHash} = queryParams ?? {};
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -119,10 +125,29 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
+    const activeItemIndex = useMemo(() => {
+        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+
+        if (isSavedSearchActive) {
+            return -1;
+        }
+
+        let index = 0;
+        for (const section of typeMenuSections) {
+            const found = section.menuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+            if (found !== -1) {
+                return index + found;
+            }
+            index += section.menuItems.length;
+        }
+        return -1;
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash]);
+
     return {
         typeMenuSections,
         CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+        activeItemIndex,
     };
 };
 
