@@ -1806,7 +1806,12 @@ function getTransactionsSections({
         measurements.description = Math.max(measurements.description, descriptionPixelWidth);
 
         // Handle the card
-        measurements.card = Math.max(measurements.card);
+        // JACK_TODO: This is missing customCardNames but it doesnt matter for now
+        const deletedFeedCardName = isCardFeedDeleted ? translate('workspace.companyCards.deletedFeed') : null;
+        const cashCardName = transaction.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : null;
+        const formattedCardName = deletedFeedCardName ?? cashCardName ?? transaction.cardName ?? '';
+        const cardPixelWidth = formattedCardName.length * averageCharacterLengthWithPadding;
+        measurements.card = Math.max(measurements.card, cardPixelWidth);
 
         // Handle the billable
         const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
@@ -1897,7 +1902,7 @@ function getTransactionsSections({
                 amount: formattedAmount,
                 exchangeRate: formattedExchangeRate,
                 description: formattedDescription,
-                card: 'xxx',
+                card: formattedCardName,
                 billable: formattedBillable,
                 reimbursable: formattedReimbursable,
                 title: formattedTitle,
