@@ -163,6 +163,7 @@ function IOURequestStepConfirmation({
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -691,6 +692,7 @@ function IOURequestStepConfirmation({
                     isSelfTourViewed,
                     betas,
                     personalDetails,
+                    bankAccountList,
                 });
                 existingIOUReport = iouReport;
             }
@@ -732,6 +734,7 @@ function IOURequestStepConfirmation({
             betas,
             personalDetails,
             isGPSDistanceRequest,
+            bankAccountList,
         ],
     );
 
@@ -802,6 +805,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     betas,
+                    bankAccountList,
                 });
             }
         },
@@ -822,6 +826,7 @@ function IOURequestStepConfirmation({
             policyRecentlyUsedCurrencies,
             quickAction,
             betas,
+            bankAccountList,
         ],
     );
 
@@ -976,6 +981,7 @@ function IOURequestStepConfirmation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                bankAccountList,
             });
         },
         [
@@ -1006,6 +1012,7 @@ function IOURequestStepConfirmation({
             personalDetails,
             recentWaypoints,
             betas,
+            bankAccountList,
         ],
     );
 

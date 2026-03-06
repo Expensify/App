@@ -50,6 +50,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         selector: reportAttributesSelector,
     });
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
     let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
@@ -143,6 +144,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     hasViolations,
                     recentlyUsedReportFields,
                     hasOtherViolations,
+                    bankAccountList,
                 );
             }
             goBack();

@@ -26,13 +26,13 @@ import {getAmount} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportAction} from '@src/types/onyx';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
 
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = []) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = [], bankAccountList?: OnyxEntry<BankAccountList>) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -252,6 +252,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             shouldFixViolations: true,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -322,17 +323,17 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = [], bankAccountList?: OnyxEntry<BankAccountList>) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, ancestors);
+        putOnHold(transactionID, comment, childReportID, ancestors, bankAccountList);
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>, bankAccountList?: OnyxEntry<BankAccountList>) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -464,6 +465,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,

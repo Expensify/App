@@ -2971,6 +2971,7 @@ function updateReportField(
     hasViolationsParam: boolean,
     recentlyUsedReportFields: OnyxEntry<RecentlyUsedReportFields>,
     shouldFixViolations = false,
+    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     const reportID = report.reportID;
     const fieldKey = getReportFieldKey(reportField.fieldID);
@@ -2992,6 +2993,7 @@ function updateReportField(
         currentUserEmailParam: email,
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report,
@@ -3332,6 +3334,7 @@ function buildNewReportOptimisticData(
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
     betas: OnyxEntry<Beta[]>,
+    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -3406,6 +3409,7 @@ function buildNewReportOptimisticData(
         currentUserEmailParam: email ?? '',
         hasViolations: hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
     const outstandingChildRequest = getOutstandingChildRequest(optimisticReportData);
 
@@ -3563,6 +3567,7 @@ function createNewReport(
     betas: OnyxEntry<Beta[]>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
+    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -3577,6 +3582,7 @@ function createNewReport(
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         betas,
+        bankAccountList,
     );
 
     if (shouldDismissEmptyReportsConfirmation) {
@@ -6323,6 +6329,7 @@ function buildOptimisticChangePolicyData(
     isReportLastVisibleArchived: boolean | undefined,
     reportNextStep?: ReportNextStepDeprecated,
     optimisticPolicyExpenseChatReport?: Report,
+    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -6414,6 +6421,7 @@ function buildOptimisticChangePolicyData(
             currentUserEmailParam: email,
             hasViolations: hasViolationsParam,
             isASAPSubmitBetaEnabled,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: {...report, policyID: policy.id},
@@ -6784,6 +6792,7 @@ function changeReportPolicy(
     isASAPSubmitBetaEnabled: boolean,
     reportNextStep?: ReportNextStepDeprecated,
     isReportLastVisibleArchived = false,
+    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
@@ -6799,6 +6808,8 @@ function changeReportPolicy(
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
+        undefined,
+        bankAccountList,
     );
 
     const params = {
@@ -6829,6 +6840,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList,
     formatPhoneNumber,
     isReportLastVisibleArchived,
+    bankAccountList,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -6841,6 +6853,7 @@ function changeReportPolicyAndInviteSubmitter({
     employeeList: PolicyEmployeeList | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     isReportLastVisibleArchived: boolean | undefined;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }) {
     if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
         return;
@@ -6889,6 +6902,7 @@ function changeReportPolicyAndInviteSubmitter({
         isReportLastVisibleArchived,
         undefined,
         membersChats.reportCreationData[submitterEmail],
+        bankAccountList,
     );
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

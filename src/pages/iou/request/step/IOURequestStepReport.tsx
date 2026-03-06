@@ -87,6 +87,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
@@ -175,6 +176,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         allTransactions,
                         translate,
                         toLocaleDigit,
+                        bankAccountList,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -221,6 +223,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                bankAccountList,
             });
             removeTransaction(transaction.transactionID);
         });
@@ -235,7 +238,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+            bankAccountList,
+        );
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 

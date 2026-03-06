@@ -52,6 +52,7 @@ function SearchTransactionsChangeReport() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionsKeys);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
@@ -102,6 +103,7 @@ function SearchTransactionsChangeReport() {
             betas,
             false,
             shouldDismissEmptyReportsConfirmation,
+            bankAccountList,
         );
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
@@ -117,6 +119,7 @@ function SearchTransactionsChangeReport() {
                 allTransactions: transactions,
                 translate,
                 toLocaleDigit,
+                bankAccountList,
             });
             clearSelectedTransactions();
         });
@@ -161,6 +164,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            bankAccountList,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -183,6 +187,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            bankAccountList,
         });
         clearSelectedTransactions();
         Navigation.goBack();

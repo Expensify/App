@@ -36,6 +36,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
 
     const ancestors = useAncestors(report);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = useCallback(
@@ -46,7 +47,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             }
 
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, ancestors, bankAccountList);
                 clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(currentSearchHash, Object.keys(selectedTransactions), comment, allTransactions, allReportActions);
@@ -65,6 +66,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             allTransactions,
             allReportActions,
             ancestors,
+            bankAccountList,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
         ],

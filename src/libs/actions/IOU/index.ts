@@ -533,6 +533,7 @@ type PerDiemExpenseInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
     shouldHandleNavigation?: boolean;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -549,6 +550,7 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type RequestMoneyInformation = {
@@ -579,6 +581,7 @@ type RequestMoneyInformation = {
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestInformationParams = {
@@ -610,6 +613,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -656,6 +660,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -688,6 +693,7 @@ type CreateDistanceRequestInformation = {
     shouldHandleNavigation?: boolean;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -1977,6 +1983,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2604,6 +2611,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                bankAccountList,
             }),
         });
         onyxData.optimisticData?.push({
@@ -3352,6 +3360,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        bankAccountList,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3661,6 +3670,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bankAccountList,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -3717,6 +3727,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        bankAccountList,
     });
 
     return {
@@ -3819,6 +3830,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        bankAccountList,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -3997,6 +4009,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
+        bankAccountList,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
@@ -4048,6 +4061,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserEmailParam,
         hasViolations,
         quickAction,
+        bankAccountList,
     });
 
     return {
@@ -6226,6 +6240,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    bankAccountList,
 }: {
     transactionIDs: string[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -6238,6 +6253,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -6355,6 +6371,7 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -6608,6 +6625,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isSelfTourViewed,
         betas,
         personalDetails,
+        bankAccountList,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6703,6 +6721,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        bankAccountList,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6883,6 +6902,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         betas,
         customUnitPolicyID,
         shouldHandleNavigation = true,
+        bankAccountList,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -6930,6 +6950,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        bankAccountList,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -8339,6 +8360,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldHandleNavigation = true,
         personalDetails,
         betas,
+        bankAccountList,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8501,6 +8523,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            bankAccountList,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -10599,6 +10622,7 @@ function approveMoneyRequest(
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
     full?: boolean,
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>,
 ) {
     if (!expenseReport) {
         return;
@@ -10632,6 +10656,7 @@ function approveMoneyRequest(
           buildNextStepNew({
               report: expenseReport,
               policy,
+              bankAccountList,
               currentUserAccountIDParam,
               currentUserEmailParam,
               hasViolations,

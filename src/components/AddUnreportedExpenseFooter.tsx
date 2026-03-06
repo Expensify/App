@@ -47,6 +47,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
 
     const handleConfirm = () => {
@@ -70,6 +71,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     quickAction,
                     personalDetails,
                     betas,
+                    bankAccountList,
                 });
             } else {
                 changeTransactionsReport({
@@ -84,6 +86,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     translate,
                     toLocaleDigit,
                     allTransactions,
+                    bankAccountList,
                 });
             }
         });

@@ -78,6 +78,7 @@ function ProcessMoneyReportHoldMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -107,6 +108,7 @@ function ProcessMoneyReportHoldMenu({
                 betas,
                 userBillingGraceEndPeriods,
                 full,
+                bankAccountList,
             );
         } else if (chatReport && paymentType) {
             if (startAnimation) {

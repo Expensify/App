@@ -708,7 +708,19 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
+            approveMoneyRequest(
+                moneyRequestReport,
+                policy,
+                accountID,
+                email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                true,
+                bankAccountList,
+            );
         }
     };
 
@@ -896,7 +908,7 @@ function MoneyReportHeader({
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction);
+            changeMoneyRequestHoldStatus(requestParentReportAction, bankAccountList);
         }
     };
 
@@ -904,7 +916,7 @@ function MoneyReportHeader({
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, bankAccountList);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1204,7 +1216,7 @@ function MoneyReportHeader({
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action);
+                            changeMoneyRequestHoldStatus(action, bankAccountList);
                         }
                         return;
                     }
@@ -1214,7 +1226,7 @@ function MoneyReportHeader({
                         return;
                     }
 
-                    changeMoneyRequestHoldStatus(moneyRequestAction);
+                    changeMoneyRequestHoldStatus(moneyRequestAction, bankAccountList);
                 }}
             />
         ),
@@ -1464,7 +1476,7 @@ function MoneyReportHeader({
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, bankAccountList);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1487,7 +1499,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, bankAccountList);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -1897,6 +1909,7 @@ function MoneyReportHeader({
             iouReportNextStep: nextStep,
             betas,
             userBillingGraceEndPeriods,
+            bankAccountList,
         });
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));

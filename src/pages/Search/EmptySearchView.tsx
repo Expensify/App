@@ -143,6 +143,7 @@ function EmptySearchViewContent({
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
     });
@@ -190,6 +191,7 @@ function EmptySearchViewContent({
             betas,
             false,
             shouldDismissEmptyReportsConfirmation,
+            bankAccountList,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(

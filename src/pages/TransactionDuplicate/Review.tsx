@@ -67,6 +67,7 @@ function TransactionDuplicateReview() {
 
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const transactions = useMemo(() => transactionsSelector(allTransactions ?? {}), [allTransactions, transactionsSelector]);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const originalTransactionIDsListRef = useRef<string[] | null>(null);
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
@@ -104,6 +105,7 @@ function TransactionDuplicateReview() {
             policy,
             isASAPSubmitBetaEnabled,
             allTransactions,
+            bankAccountList,
         });
         Navigation.goBack();
     };

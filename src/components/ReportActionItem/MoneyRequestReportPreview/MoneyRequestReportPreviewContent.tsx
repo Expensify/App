@@ -357,6 +357,7 @@ function MoneyRequestReportPreviewContent({
                 betas,
                 userBillingGraceEndPeriods,
                 true,
+                bankAccountList,
             );
         }
     };
