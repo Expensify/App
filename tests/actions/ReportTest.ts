@@ -1674,7 +1674,7 @@ describe('actions/Report', () => {
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
         const whisper = reportActions?.[WHISPER_ACTION_ID];
-        expect(whisper?.originalMessage).toMatchObject({deleted: expect.any(String)});
+        expect(getOriginalMessage(whisper)).toMatchObject({deleted: expect.any(String)});
     });
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
