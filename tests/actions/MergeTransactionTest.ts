@@ -788,7 +788,13 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, undefined, '', userLogins, thread, sourceIOUAction.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: undefined,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             let transactionThreadReportActions: OnyxEntry<ReportActions>;
@@ -956,7 +962,13 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, undefined, '', userLogins, thread, sourceIOUAction.reportActionID);
+            openReport({
+                reportID: thread.reportID,
+                introSelected: undefined,
+                participantLoginList: userLogins,
+                newReportObject: thread,
+                parentReportActionID: sourceIOUAction.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             await new Promise<void>((resolve) => {
