@@ -21,7 +21,7 @@ function useTimeSensitiveOffers() {
     const shouldShow25off = shouldShowDiscount && discountInfo?.discountType === 25;
 
     // Show add payment card for users whose trial ended and haven't added a payment card
-    const shouldShowAddPaymentCard = hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID);
+    const shouldShowAddPaymentCard = hasTeam2025Pricing && hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID);
 
     return {
         shouldShow50off,
