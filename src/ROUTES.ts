@@ -1141,10 +1141,10 @@ const ROUTES = {
         route: ':action/:iouType/odometer-image-preview/:transactionID/:reportID/:imageType?',
         getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
             if (!reportID) {
-                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
             if (!transactionID) {
-                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
             return `${action}/${iouType}/odometer-image-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
@@ -1153,10 +1153,10 @@ const ROUTES = {
         route: ':action/:iouType/odometer-image-confirmation-preview/:transactionID/:reportID/:imageType?',
         getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
             if (!reportID) {
-                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW route');
             }
             if (!transactionID) {
-                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW route');
             }
             return `${action}/${iouType}/odometer-image-confirmation-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
         },
