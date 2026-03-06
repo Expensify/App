@@ -50,11 +50,12 @@ function AnimatedSettlementButton({
 
     const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
 
-    const resetAnimationState = () => {
+    const finishAnimationAndReset = () => {
         setMinWidth(0);
         setCanShow(true);
         height.set(variables.componentSizeNormal);
         buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+        onAnimationFinish();
     };
 
     const onButtonExitComplete: () => void = () => {
@@ -63,15 +64,11 @@ function AnimatedSettlementButton({
         if (shouldAddTopMargin) {
             buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
         }
-        const finishAndReset = () => {
-            resetAnimationState();
-            onAnimationFinish();
-        };
         if (willShowPaymentButton) {
-            scheduleOnRN(finishAndReset);
+            scheduleOnRN(finishAnimationAndReset);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(finishAndReset)));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(finishAnimationAndReset)));
     };
 
     const buttonAnimation = new Keyframe({
