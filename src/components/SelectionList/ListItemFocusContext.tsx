@@ -1,7 +1,7 @@
 import {createContext, useContext} from 'react';
 
 type ListItemFocusContextValue = {
-    isFocused: boolean;
+    isFocused?: boolean;
 };
 
 const ListItemFocusContext = createContext<ListItemFocusContextValue>({isFocused: false});

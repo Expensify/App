@@ -161,7 +161,7 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused: !!isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!item.shouldShowRightIcon && (
                             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                                 <Icon
