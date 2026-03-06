@@ -93,6 +93,7 @@ function IOURequestStepDistanceMap({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -190,7 +191,8 @@ function IOURequestStepDistanceMap({
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
-                : (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
 
             const {unit, rate} = mileageRate ?? {};
             const distance = getDistanceInMeters(transaction, unit);
@@ -335,6 +337,7 @@ function IOURequestStepDistanceMap({
             betas,
             recentWaypoints,
             draftTransactionIDs,
+            amountOwed,
         });
     }, [
         iouType,
@@ -370,6 +373,7 @@ function IOURequestStepDistanceMap({
         betas,
         recentWaypoints,
         draftTransactionIDs,
+        amountOwed,
     ]);
 
     const getError = () => {

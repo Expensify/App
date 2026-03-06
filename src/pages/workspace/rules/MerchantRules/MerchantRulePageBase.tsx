@@ -210,7 +210,17 @@ function MerchantRulePageBase({policyID, ruleID, titleKey, testID}: MerchantRule
             const existingMerchant = rule.filters.right.toLowerCase();
             const existingMatchType = rule.filters.operator ?? defaultMatchType;
 
-            return existingMerchant === normalizedMerchant && existingMatchType === currentMatchType;
+            if (existingMerchant !== normalizedMerchant || existingMatchType !== currentMatchType) {
+                return false;
+            }
+
+            // When editing, if the rule being edited was created before the duplicate,
+            // the edited rule already has priority — no warning needed
+            if (isEditing && existingRule?.created && rule.created && existingRule.created <= rule.created) {
+                return false;
+            }
+
+            return true;
         });
     };
 
