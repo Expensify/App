@@ -8417,8 +8417,6 @@ const CONST = {
         },
         RECEIPT: {
             IMAGE: 'Receipt-Image',
-            ENLARGE_BUTTON: 'Receipt-EnlargeButton',
-            ADD_ATTACHMENT_BUTTON: 'Receipt-AddAttachmentButton',
         },
         RECEIPT_MODAL: {
             REPLACE_RECEIPT: 'ReceiptModal-ReplaceReceipt',
