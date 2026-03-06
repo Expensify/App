@@ -11,9 +11,9 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, filterSelectedOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -302,15 +302,25 @@ function SearchFiltersParticipantsSelector({
             });
         }
 
-        const noResultsFound =
-            chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption && !chatOptions.userToInvite;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption && !chatOptions.userToInvite;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID, allowFreeTextInput]);
+    }, [
+        areOptionsInitialized,
+        cleanSearchTerm,
+        selectedOptions,
+        chatOptions,
+        personalDetails,
+        reportAttributesDerived,
+        translate,
+        formatPhoneNumber,
+        currentUserAccountID,
+        allowFreeTextInput,
+    ]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
