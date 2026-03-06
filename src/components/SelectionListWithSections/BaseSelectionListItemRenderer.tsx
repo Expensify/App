@@ -60,7 +60,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -121,7 +120,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 sectionIndex={sectionIndex}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             />
             {item.footerContent && item.footerContent}
         </>
