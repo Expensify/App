@@ -2,9 +2,9 @@ import React from 'react';
 import RegistrationNumberStep from '@components/SubStepForms/RegistrationNumberStep';
 import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useOnyx from '@hooks/useOnyx';
+import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
-import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
 
 const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER} = INPUT_IDS;
 const STEP_FIELDS = [BUSINESS_REGISTRATION_INCORPORATION_NUMBER];
