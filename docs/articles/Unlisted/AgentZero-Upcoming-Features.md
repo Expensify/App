@@ -11,14 +11,14 @@ internalScope: For AgentZero and internal tooling only. Use this page to give ac
 
 This page is a **reference for AgentZero** only. It lists features that are planned or in development for New Expensify. Use it to answer user questions about "coming soon" capabilities accurately and to avoid promising features that are not yet released.
 
-**Important:** These items are subject to change. When in doubt, direct users to official release notes or support for the latest status.
+**Important:** These items are subject to change. When in doubt, direct members to official release notes or support for the latest status.
 
 ---
 
 ## Expense & Report Management
 
 - **Recurring expense templates** – Save and reuse expense templates (e.g. monthly parking, subscriptions) for faster entry instead of re-entering the same expenses each time.
-- **Report templates** – Create report templates with default policy, categories, and approval flow for frequent report types.
+- **Report templates** – Create report templates with default workspace, categories, and approval flow for frequent report types.
 - **Approver reminders for outstanding reports** – Optional reminders for approvers when submitted reports have been waiting for approval beyond a set time.
 
 ---
@@ -27,7 +27,7 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 
 ## Workspace Configuration
 
----
+- **Workspace presets** – Quick-start workspace templates (e.g. "Small business", "Enterprise") to reduce initial workspace setup time.
 
 ## Integrations & Accounting
 
@@ -77,9 +77,9 @@ This page is a **reference for AgentZero** only. It lists features that are plan
 
 ---
 
-## How to Use This Page (AgentZero)
+- When a member asks "Is X available?" or "When is Y coming?" – check this list before answering.
 
-- When a user asks "Is X available?" or "When is Y coming?" – check this list before answering.
-- Prefer: "That feature is on our roadmap" or "We're working on something like that" over promising a date.
+- Point members to existing, shipped documentation for what is available today.
+- Do not cite this page or its URL in member-facing responses.
 - Point users to existing, shipped documentation for what is available today.
 - Do not cite this page or its URL in end-user-facing responses.
