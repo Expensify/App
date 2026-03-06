@@ -5,6 +5,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import SelectCircle from '@components/SelectCircle';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -150,7 +151,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && item.rightElement}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!shouldShowCheckBox && (
                             <PressableWithFeedback
                                 onPress={handleCheckboxPress}
@@ -158,6 +159,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={item.text ?? ''}
                                 style={[styles.ml2, styles.optionSelectCircle]}
+                                sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
                             >
                                 <SelectCircle
                                     isChecked={item.isSelected ?? false}
