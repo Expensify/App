@@ -75,7 +75,6 @@ class OpenAIUtils {
                     model,
                     input,
                     instructions,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     prompt_cache_key: promptCacheKey,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -123,7 +122,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
             run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;

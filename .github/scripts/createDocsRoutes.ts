@@ -60,13 +60,16 @@ function toTitleCase(str: string): string {
 }
 
 /**
- * @param filename - The name of the file
+ * @param filename - The name of the file (path used for href)
+ * @param order - Optional order from front matter
+ * @param titleOverride - Optional display title (e.g. subfolder name: "Export-Errors" -> "Export Errors")
  */
-function getArticleObj(filename: string, order?: number): Article {
+function getArticleObj(filename: string, order?: number, titleOverride?: string): Article {
     const href = filename.replace('.md', '');
+    const title = titleOverride ? toTitleCase(titleOverride.replaceAll('-', ' ')) : toTitleCase(href.replaceAll('-', ' '));
     return {
         href,
-        title: toTitleCase(href.replaceAll('-', ' ')),
+        title,
         order,
     };
 }
@@ -123,10 +126,40 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
             const section = fileOrFolder;
             const articles: Article[] = [];
 
-            // Each subfolder will be a section containing articles
-            for (const subArticle of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`)) {
-                const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
-                articles.push(getArticleObj(subArticle, order));
+            // Section can contain .md files directly and/or subfolders (and nested subfolders) that contain .md files
+            const sectionPath = `${docsDir}/articles/${platformName}/${hub}/${section}`;
+            for (const entry of fs.readdirSync(sectionPath)) {
+                const entryPath = `${sectionPath}/${entry}`;
+                if (entry.endsWith('.md') && fs.statSync(entryPath).isFile()) {
+                    const order = getOrderFromArticleFrontMatter(entryPath);
+                    articles.push(getArticleObj(entry, order));
+                    continue;
+                }
+                if (fs.statSync(entryPath).isDirectory()) {
+                    // One level: section/SubFolder/file.md -> href "SubFolder/file", display title = "Troubleshoot SubFolder"
+                    for (const file of fs.readdirSync(entryPath)) {
+                        const filePath = `${entryPath}/${file}`;
+                        if (file.endsWith('.md') && fs.statSync(filePath).isFile()) {
+                            const order = getOrderFromArticleFrontMatter(filePath);
+                            articles.push(getArticleObj(`${entry}/${file}`, order, `Troubleshoot ${entry}`));
+                            continue;
+                        }
+                        if (fs.statSync(filePath).isDirectory()) {
+                            // Two levels: section/SubFolder/NestedFolder/file.md -> href "SubFolder/NestedFolder/file", display title = "Troubleshoot NestedFolder" (e.g. "Troubleshoot Export Errors")
+                            for (const nestedFile of fs.readdirSync(filePath)) {
+                                if (!nestedFile.endsWith('.md')) {
+                                    continue;
+                                }
+                                const nestedPath = `${filePath}/${nestedFile}`;
+                                if (!fs.statSync(nestedPath).isFile()) {
+                                    continue;
+                                }
+                                const order = getOrderFromArticleFrontMatter(nestedPath);
+                                articles.push(getArticleObj(`${entry}/${file}/${nestedFile}`, order, `Troubleshoot ${file}`));
+                            }
+                        }
+                    }
+                }
             }
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {

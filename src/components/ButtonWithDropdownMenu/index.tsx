@@ -60,10 +60,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         shouldUseShortForm = false,
         shouldUseOptionIcon = false,
         shouldStayNormalOnDisable = false,
+        brickRoadIndicator,
         sentryLabel,
     } = props;
 
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'DotIndicator']);
+    const hasError = brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -184,11 +186,14 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRight={icons.DownArrow}
                         iconRightStyles={isMenuVisible ? styles.flipUpsideDown : undefined}
                         shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
-                        isSplitButton={isSplitButton}
                         testID={testID}
                         textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
                         secondLineText={secondLineText}
-                        icon={icon}
+                        icon={hasError ? icons.DotIndicator : icon}
+                        iconFill={hasError ? theme.danger : undefined}
+                        iconHoverFill={hasError ? theme.danger : undefined}
+                        iconRightFill={hasError ? theme.icon : undefined}
+                        iconRightHoverFill={hasError ? theme.icon : undefined}
                         sentryLabel={sentryLabel}
                     />
 
