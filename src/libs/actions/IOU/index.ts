@@ -231,13 +231,13 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from '@userActions/Policy/Member';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -298,7 +298,6 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactions: OnyxCollection<OnyxTypes.Transaction>;
 };
@@ -533,6 +532,7 @@ type PerDiemExpenseInformation = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
+    shouldHandleNavigation?: boolean;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -750,6 +750,7 @@ type CreateTrackExpenseParams = {
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     accountantParams?: TrackExpenseAccountantParams;
     isRetry?: boolean;
     shouldPlaySound?: boolean;
@@ -794,6 +795,7 @@ type GetTrackExpenseInformationParticipantParams = {
 type GetTrackExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
     policyParams: BasePolicyParams;
@@ -1218,7 +1220,6 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
-    isTrackDistanceExpense = false,
     isFromFloatingActionButton,
     currentIouRequestType,
     newIouRequestType,
@@ -1271,7 +1272,7 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -1374,7 +1375,10 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+            isFromFloatingActionButton,
+            ...(requestType && {iouRequestType: requestType}),
+        });
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -1804,7 +1808,7 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
     const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     let newDistance;
-    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit) {
+    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit && !isOdometerDistanceRequestTransactionUtils(transaction)) {
         newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), newDistanceUnit);
     }
 
@@ -4079,6 +4083,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {
         parentChatReport,
         moneyRequestReportID = '',
+        existingTransaction,
         existingTransactionID,
         participantParams,
         policyParams,
@@ -4293,14 +4298,14 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // But we'll use the `shouldUseMoneyReport && iouReport` check further instead of `shouldUseMoneyReport` to avoid TS errors.
 
     // STEP 3: Build optimistic receipt and transaction
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
-    const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
-    const isOdometerDistanceRequest = existingTransaction && isOdometerDistanceRequestTransactionUtils(existingTransaction);
-    const isGPSDistanceRequest = existingTransaction && isGPSDistanceRequestTransactionUtils(existingTransaction);
+    const existingTransactionData = existingTransaction ?? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransactionData && isDistanceRequestTransactionUtils(existingTransactionData);
+    const isManualDistanceRequest = existingTransactionData && isManualDistanceRequestTransactionUtils(existingTransactionData);
+    const isOdometerDistanceRequest = existingTransactionData && isOdometerDistanceRequestTransactionUtils(existingTransactionData);
+    const isGPSDistanceRequest = existingTransactionData && isGPSDistanceRequestTransactionUtils(existingTransactionData);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID: optimisticTransactionID,
-        existingTransaction,
+        existingTransaction: existingTransactionData,
         policy,
         transactionParams: {
             amount: -amount,
@@ -4318,7 +4323,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             billable,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable,
-            filename: existingTransaction?.receipt?.filename,
+            filename: existingTransactionData?.receipt?.filename,
             attendees,
             odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
             odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
@@ -4335,7 +4340,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
     if (isDistanceRequest) {
-        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+        optimisticTransaction = fastMerge(existingTransactionData, optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -4426,7 +4431,7 @@ function calculateDiffAmount(
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReportLocal = isExpenseReport(iouReport);
+    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedCurrency = getCurrency(updatedTransaction);
     const currentCurrency = getCurrency(transaction);
 
@@ -4541,7 +4546,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     const isTransactionOnHold = isOnHold(transaction);
-    const isFromExpenseReport = isExpenseReport(iouReport);
+    const isFromExpenseReport = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
               transaction,
@@ -6880,6 +6885,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyRecentlyUsedCurrencies,
         betas,
         customUnitPolicyID,
+        shouldHandleNavigation = true,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
@@ -6971,7 +6977,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate});
+    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
 
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
@@ -7386,6 +7392,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isDraftPolicy,
         participantParams,
         policyParams: policyData = {},
+        existingTransaction,
         transactionParams: transactionData,
         accountantParams,
         shouldHandleNavigation = true,
@@ -7490,6 +7497,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     } = getTrackExpenseInformation({
         parentChatReport: currentChatReport,
         moneyRequestReportID,
+        existingTransaction,
         existingTransactionID:
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
                 ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
@@ -7707,10 +7715,15 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
-                ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
                 gpsCoordinates,
-                isDistance: isGPSDistanceRequest || isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
+                isDistance:
+                    isGPSDistanceRequest ||
+                    isMapDistanceRequest(transaction) ||
+                    isManualDistanceRequestTransactionUtils(transaction) ||
+                    isOdometerDistanceRequestTransactionUtils(transaction),
+                odometerStart,
+                odometerEnd,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -9656,6 +9669,7 @@ function getDuplicateActionsForPartialReport(
         CONST.REPORT.ACTIONS.TYPE.APPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
         CONST.REPORT.ACTIONS.TYPE.RETRACTED,
         CONST.REPORT.ACTIONS.TYPE.CLOSED,
         CONST.REPORT.ACTIONS.TYPE.REOPENED,

@@ -33,11 +33,13 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isValidCode = isValidValidateCode(code);
 
     return (
         <FullPageNotFoundView
             testID="validate-code-not-found"
-            shouldShow={!isValidValidateCode(code)}
+            shouldShow={!isValidCode}
+            shouldForceFullScreen={!isValidCode}
             shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();

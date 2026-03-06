@@ -6,7 +6,7 @@ import SearchInputSelectionSkeleton from '@components/Skeletons/SearchInputSelec
 
 function SearchInputSelectionWrapper({ref, ...props}: SearchAutocompleteInputProps) {
     return (
-        <Suspense fallback={<SearchInputSelectionSkeleton />}>
+        <Suspense fallback={<SearchInputSelectionSkeleton reasonAttributes={{context: 'SearchInputSelectionWrapper'}} />}>
             <Deferred>
                 <SearchAutocompleteInput
                     ref={ref}

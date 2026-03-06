@@ -1,5 +1,5 @@
-import React, {useRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -11,14 +11,13 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormInputErrors, FormProps, InputRefs} from './types';
+import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -66,6 +65,8 @@ type FormWrapperProps = ChildrenProps &
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+        ref?: ForwardedRef<FormWrapperRef>;
     };
 
 function FormWrapper({
@@ -99,6 +100,7 @@ function FormWrapper({
     onScroll = () => {},
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
+    ref,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -135,17 +137,15 @@ function FormWrapper({
             );
         }
 
-        // We use InteractionManager to ensure the accessibility focus happens after the scroll animation completes
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-            const nativeRef = (focusInput as any)?.getNativeRef?.() ?? focusInput;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            Accessibility.moveAccessibilityFocus(nativeRef);
+        // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+        focusInput?.focus?.();
+    };
 
-            // Focus the input after moving accessibility focus
-            focusInput?.focus?.();
-        });
+    const scrollToEnd = () => {
+        // We need to wait for the keyboard animation to complete before scrolling to the end
+        setTimeout(() => {
+            formRef.current?.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
@@ -170,6 +170,10 @@ function FormWrapper({
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
     });
+
+    useImperativeHandle(ref, () => ({
+        scrollToEnd,
+    }));
 
     const SubmitButton = isSubmitButtonVisible && (
         <FormAlertWithSubmitButton
