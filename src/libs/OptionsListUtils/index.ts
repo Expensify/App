@@ -1518,8 +1518,7 @@ function createFilteredOptionList(
 
     // Step 3: Limit to top N reports
     // In search mode, we will return all reports so downstream getSearchOptions will handle the actual term matching
-    const effectiveLimit = isSearching ? reportsArray.length : maxRecentReports;
-    const limitedReports = sortedReports.slice(0, effectiveLimit);
+    const limitedReports = isSearching ? sortedReports : sortedReports.slice(0, maxRecentReports);
 
     // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
