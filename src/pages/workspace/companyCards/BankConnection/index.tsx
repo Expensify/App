@@ -130,14 +130,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
         if (feed) {
             if (!isFeedExpired) {
                 customWindow?.close();
-                if (isFeedConnectionBroken) {
-                    updateBrokenConnection();
-                }
                 if (isRefreshConnectionFlow && onRefreshComplete) {
+                    if (isFeedConnectionBroken) {
+                        updateBrokenConnection();
+                    }
                     onRefreshComplete();
                     return;
                 }
                 if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
                     Navigation.closeRHPFlow();
                     return;
                 }

@@ -70,7 +70,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
         () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
-    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
+    const headerTitleAddCards = !backTo ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
@@ -110,14 +110,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
 
         // Handle assign card flow
         if (feed && !isFeedExpired) {
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-            }
             if (isRefreshConnectionFlow && onRefreshComplete) {
+                if (isFeedConnectionBroken) {
+                    updateBrokenConnection();
+                }
                 onRefreshComplete();
                 return;
             }
             if (isFeedConnectionBroken) {
+                updateBrokenConnection();
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
                 return;
             }
