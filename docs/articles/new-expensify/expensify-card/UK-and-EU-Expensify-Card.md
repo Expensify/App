@@ -99,10 +99,6 @@ Once enabled, **Expensify Card** will appear in the navigation tabs.
 The member can begin spending with the virtual Expensify Card immediately after it’s issued.
 
 
-### 4. Begin using your cards
-
-That’s it! Employees can now spend using their Expensify Cards in **GBP or EUR**. All transactions will automatically appear using the Report filters
-
 # FAQ
 
 ## What exchange rate does the Expensify Card use for foreign currency purchases?
