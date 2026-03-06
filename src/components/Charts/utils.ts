@@ -331,8 +331,7 @@ type ChartLabelHitTestParams = {
  * Shared hit-test for chart x-axis labels at 0°, 45°, or 90°.
  * Used by BarChart and LineChart to detect cursor over rotated labels.
  */
-function isCursorOverChartLabel(params: ChartLabelHitTestParams): boolean {
-    const {cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90} = params;
+function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90}: ChartLabelHitTestParams): boolean {
     if (angleRad === 0) {
         return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
     }
