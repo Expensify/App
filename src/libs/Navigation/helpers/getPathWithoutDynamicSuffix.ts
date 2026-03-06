@@ -2,24 +2,17 @@ import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import splitPathAndQuery from './splitPathAndQuery';
 
-function getQueryParamsToStrip(dynamicSuffix: string): string[] | undefined {
+function getQueryParamsToStrip(dynamicSuffix: string): readonly string[] | undefined {
     const keys = Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>;
     const match = keys.find((key) => DYNAMIC_ROUTES[key].path === dynamicSuffix);
     if (!match) {
         return undefined;
     }
     const config = DYNAMIC_ROUTES[match];
-    if (!('getRoute' in config) || !config.getRoute) {
+    if (!('queryParams' in config)) {
         return undefined;
     }
-    const getRouteFn = config.getRoute as (...args: string[]) => string;
-    const placeholderArgs: string[] = Array(getRouteFn.length).fill('') as string[];
-    const routeOutput = getRouteFn(...placeholderArgs);
-    const [, query] = splitPathAndQuery(routeOutput);
-    if (!query) {
-        return undefined;
-    }
-    return Array.from(new URLSearchParams(query).keys());
+    return config.queryParams;
 }
 
 /**

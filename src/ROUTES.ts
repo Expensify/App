@@ -57,6 +57,7 @@ type DynamicRouteConfig = {
     path: string;
     entryScreens: Screen[];
     getRoute?: (...args: never[]) => string;
+    queryParams?: readonly string[];
 };
 
 type DynamicRoutes = Record<string, DynamicRouteConfig>;
@@ -108,7 +109,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
             SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
         ],
-        getRoute: (country: string) => `country${country ? `?country=${country}` : ''}`,
+        getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+        queryParams: ['country'],
     },
 } as const satisfies DynamicRoutes;
 
