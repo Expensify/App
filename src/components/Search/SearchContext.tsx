@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid circular dependencies in SearchContext
 // eslint-disable-next-line no-restricted-imports
@@ -6,6 +7,7 @@ import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useTodos from '@hooks/useTodos';
+import {getDeepestFocusedScreen} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
@@ -15,14 +17,13 @@ import {getSuggestedSearches, isTodoSearch, isTransactionListItemType, isTransac
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchActionsContextValue, SearchContextData, SearchStateContextValue, SelectedTransactions} from './types';
 
 type SearchContextProps = {
     children: React.ReactNode;
-    params?: PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
 };
 
 // Default search info when building from live data
@@ -78,7 +79,20 @@ const defaultSearchActionsContext: SearchActionsContextValue = {
 const SearchStateContext = React.createContext<SearchStateContextValue>(defaultSearchStateContext);
 const SearchActionsContext = React.createContext<SearchActionsContextValue>(defaultSearchActionsContext);
 
-function SearchContextProvider({children, params}: SearchContextProps) {
+function SearchContextProvider({children}: SearchContextProps) {
+    const focusedScreen = useNavigationState((state) => getDeepestFocusedScreen(state));
+    const focusedScreenName = focusedScreen?.name;
+    const focusedScreenParams = focusedScreen?.params;
+
+    // Get the params for the search page so that we can derive the search query JSON from it
+    const params = useMemo(() => {
+        if (focusedScreenName !== SCREENS.SEARCH.ROOT) {
+            return undefined;
+        }
+
+        return focusedScreenParams as PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>['route']['params'];
+    }, [focusedScreenName, focusedScreenParams]);
+
     const queryParam = params?.q;
     const rawQueryParam = params?.rawQuery;
     const definedQueryParam = usePreviousDefined(queryParam) ?? buildSearchQueryString();
