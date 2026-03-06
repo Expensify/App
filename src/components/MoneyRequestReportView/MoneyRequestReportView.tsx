@@ -29,6 +29,7 @@ import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTra
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -85,11 +86,14 @@ function goBackFromSearchMoneyRequest() {
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
-function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
+function InitialLoadingSkeleton({styles, reasonAttributes}: {styles: ThemeStyles; reasonAttributes: SkeletonSpanReasonAttributes}) {
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.appContentHeader, styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={() => {}}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </View>
@@ -213,7 +217,17 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     if (shouldShowOpenReportLoadingSkeleton) {
-        return <InitialLoadingSkeleton styles={styles} />;
+        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'MoneyRequestReportView.InitialLoadingSkeleton',
+            isLoadingInitialReportActions: !!isLoadingInitialReportActions,
+            shouldWaitForTransactions,
+        };
+        return (
+            <InitialLoadingSkeleton
+                styles={styles}
+                reasonAttributes={skeletonReasonAttributes}
+            />
+        );
     }
 
     if (reportActions.length === 0) {
@@ -227,7 +241,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     if (isLoadingApp) {
         return (
             <View style={styles.flex1}>
-                <ReportHeaderSkeletonView />
+                <ReportHeaderSkeletonView reasonAttributes={{context: 'MoneyRequestReportView', isLoadingApp: !!isLoadingApp}} />
                 <ReportActionsSkeletonView />
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
