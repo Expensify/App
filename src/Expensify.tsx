@@ -24,8 +24,6 @@ import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/actions/replaceOptimisticReportWithActualReport';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import {growlRef} from './libs/Growl';
@@ -40,8 +38,6 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
@@ -203,6 +199,13 @@ function Expensify() {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
+
+        // Load non-critical modules after splash hides so their Onyx collection subscriptions
+        // don't compete with critical-path reads
+        requestAnimationFrame(() => {
+            import('./libs/UnreadIndicatorUpdater');
+            import('./libs/actions/replaceOptimisticReportWithActualReport');
+        });
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
