@@ -767,6 +767,9 @@ function duplicateReport({
 
         const {linkedTrackedExpenseReportAction, ...transactionWithoutLinkedAction} = transaction;
 
+        // Strip waypoints for split distance expenses to preserve the split's amount and distance.
+        const waypoints = !isExpenseSplit(transaction) ? (transactionDetails.waypoints as WaypointCollection | undefined) : undefined;
+
         const params: RequestMoneyInformation = {
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
@@ -791,7 +794,7 @@ function duplicateReport({
                 originalTransactionID: undefined,
                 receipt: undefined,
                 source: undefined,
-                waypoints: transactionDetails.waypoints as WaypointCollection | undefined,
+                waypoints,
                 type: transaction.comment?.type,
                 count: transaction.comment?.units?.count,
                 rate: transaction.comment?.units?.rate,
@@ -813,6 +816,10 @@ function duplicateReport({
             personalDetails,
         };
 
+        if (isExpenseSplit(transaction) && isDistanceRequest(transaction)) {
+            params.transactionParams.distance = transaction.comment?.customUnit?.quantity ?? undefined;
+        }
+
         const transactionType = getTransactionType(transaction);
 
         switch (transactionType) {
@@ -831,7 +838,7 @@ function duplicateReport({
                     transactionParams: {
                         ...(params.transactionParams ?? {}),
                         comment: Parser.htmlToMarkdown(transactionDetails.comment ?? ''),
-                        validWaypoints: transactionDetails.waypoints as WaypointCollection | undefined,
+                        validWaypoints: waypoints,
                     },
                     policyRecentlyUsedCurrencies,
                     quickAction,
