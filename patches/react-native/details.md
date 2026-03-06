@@ -231,3 +231,20 @@
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/55934
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR Introducing Patch: https://github.com/Expensify/App/pull/79962
+
+### [react-native+0.83.1+031+nested-text-border-radius.patch](react-native+0.83.1+031+nested-text-border-radius.patch)
+
+- Reason:
+
+    ```
+    Adds borderRadius support for nested <Text> backgrounds on iOS and Android.
+    On the C++ side, a std::optional<Float> borderRadius field is added to TextAttributes and wired
+    through BaseTextProps and conversions. On Android, a custom DrawCommandSpan with
+    ReactBackgroundDrawSpan draws rounded-rect backgrounds. On iOS, a custom NSLayoutManager subclass
+    (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw rounded rectangles
+    using UIBezierPath, with per-line corner rounding for multiline spans.
+    ```
+
+- Upstream PR/issue: 🛑
+- E/App issue: 🛑
+- PR introducing patch: 🛑
