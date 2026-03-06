@@ -5,7 +5,7 @@ import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,22 +38,31 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): void {
+function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>, report?: OnyxEntry<Report>): void {
     if (!transaction) {
         return;
     }
 
-    const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
+    const isSelfDMReport = isSelfDM(report) || isSelfDM(parentReport);
+
+    let reportID;
+    if (isSelfDMReport) {
+        reportID = report?.reportID;
+    } else {
+        reportID = transaction.reportID;
+    }
+
     if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(allTransactions, allReports, originalTransactionID);
+        const relatedTransactions = getChildTransactions(allTransactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => {
             const currentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true});
+            return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: isSelfDMReport ? reportID : undefined});
         });
         const draftTransaction = buildOptimisticTransaction({
             originalTransactionID,
@@ -118,6 +127,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(0) ?? 0,
             transactionID: rand64(),
+            reportID,
             customUnit: splitCustomUnits.at(0),
             merchant: splitMerchants.at(0),
             isManuallyEdited: false,
@@ -125,6 +135,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         initSplitExpenseItemData(transaction, transactionReport, {
             amount: splitAmounts.at(1) ?? 0,
             transactionID: rand64(),
+            reportID,
             customUnit: splitCustomUnits.at(1),
             merchant: splitMerchants.at(1),
             isManuallyEdited: false,

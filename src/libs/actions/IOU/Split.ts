@@ -37,6 +37,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isSelfDM,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
@@ -1048,6 +1049,23 @@ function updateSplitTransactions({
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
+    const chatReport = getReportOrDraftReport(expenseReport?.chatReportID);
+
+    // Determine if the original transaction is in a selfDM report (used for first IOU action handling)
+    let isOriginalTransactionInSelfDM = false;
+    let originalSelfDMReportID: string | undefined;
+
+    if (isSelfDM(transactionReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = transactionReport?.reportID;
+    } else if (isSelfDM(parentTransactionReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = parentTransactionReport?.reportID;
+    } else if (isSelfDM(chatReport)) {
+        isOriginalTransactionInSelfDM = true;
+        originalSelfDMReportID = chatReport?.reportID;
+    }
+
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -1058,8 +1076,8 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
-    const allChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID, true);
-    const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const allChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
+    const originalChildTransactions = allChildTransactions;
     const processedChildTransactionIDs: string[] = [];
 
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
@@ -1145,7 +1163,40 @@ function updateSplitTransactions({
             processedChildTransactionIDs.push(splitTransaction.transactionID);
         }
 
-        const splitReportActions = getAllReportActions(isReverseSplitOperation ? expenseReport?.reportID : splitTransaction?.reportID);
+        // Determine if this split expense is going to a selfDM report FIRST
+        // We need this before finding report actions because selfDM report actions are stored in selfDM report, not in "0"
+        let isSelfDMSplit = splitExpense.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        let selfDMReportID: string | undefined = isSelfDMSplit ? originalSelfDMReportID : undefined;
+
+        // If not already determined as selfDM, check the report hierarchy
+        if (!isSelfDMSplit) {
+            const splitExpenseReport = getReportOrDraftReport(splitExpense.reportID);
+            const splitExpenseParentReport = getReportOrDraftReport(splitExpenseReport?.parentReportID);
+            const splitExpenseChatReport = getReportOrDraftReport(splitExpenseReport?.chatReportID);
+
+            if (isSelfDM(splitExpenseReport)) {
+                isSelfDMSplit = true;
+                selfDMReportID = splitExpenseReport?.reportID;
+            } else if (isSelfDM(splitExpenseParentReport)) {
+                isSelfDMSplit = true;
+                selfDMReportID = splitExpenseParentReport?.reportID;
+            } else if (isSelfDM(splitExpenseChatReport)) {
+                isSelfDMSplit = true;
+                selfDMReportID = splitExpenseChatReport?.reportID;
+            }
+        }
+
+        // For selfDM, report actions are stored in the selfDM report, not in "0"
+        let reportActionsReportID: string | undefined;
+        if (isReverseSplitOperation) {
+            reportActionsReportID = expenseReport?.reportID;
+        } else if (isSelfDMSplit) {
+            reportActionsReportID = selfDMReportID ?? originalSelfDMReportID;
+        } else {
+            reportActionsReportID = splitTransaction?.reportID;
+        }
+
+        const splitReportActions = getAllReportActions(reportActionsReportID);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === existingTransactionID;
@@ -1189,8 +1240,15 @@ function updateSplitTransactions({
                 distance: splitExpense.customUnit?.quantity,
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
+                // Mark this split as belonging to self DM so money-request
+                // logic can route IOU actions to the self DM report instead
+                // of creating separate IOU/chat reports.
+                isSelfDMSplit,
+                selfDMReportID,
             },
-            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
+            parentChatReport:
+                isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID) : getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -1229,6 +1287,9 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        // For selfDM, use UNREPORTED_REPORT_ID for moneyRequestReportID
+        const moneyRequestReportIDForSplit = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
+
         const {
             transactionThreadReportID,
             createdReportActionIDForThread,
@@ -1240,7 +1301,7 @@ function updateSplitTransactions({
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: splitExpense?.reportID,
+            moneyRequestReportID: moneyRequestReportIDForSplit,
             existingTransaction,
             existingTransactionID,
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)) ?? 0,
@@ -1320,15 +1381,18 @@ function updateSplitTransactions({
                     isASAPSubmitBetaEnabled,
                     iouReportNextStep,
                     isSplitTransaction: true,
+                    isSelfDMSplit,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
                 }
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
+
             // For new split transactions, set the reportID once the transaction and associated report are created
         } else if (currentSplit) {
-            currentSplit.reportID = splitExpense?.reportID;
+            // For selfDM reports, use UNREPORTED_REPORT_ID (0) for the API params
+            currentSplit.reportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
         }
 
         if (currentSplit) {
@@ -1366,14 +1430,21 @@ function updateSplitTransactions({
 
     for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
-        const splitReportActions = getAllReportActions(splitTransaction?.reportID);
+        const isSelfDMTransaction = splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const reportActionsReportID = isSelfDMTransaction ? originalSelfDMReportID : splitTransaction?.reportID;
+        const splitReportActions = getAllReportActions(reportActionsReportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
-        const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitTransaction?.reportID}`];
+        const splitReportID = isSelfDMTransaction ? (originalSelfDMReportID ?? String(CONST.DEFAULT_NUMBER_ID)) : (splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+        const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === undeletedTransaction?.transactionID;
-        }) as ReportAction;
+        }) as ReportAction | undefined;
+
+        if (!currentReportAction) {
+            continue;
+        }
 
         // For a reverse split operation (i.e. deleting one transaction from a 2-split), the other split(undeleted)
         // transaction also gets marked for deletion optimistically. This causes the undeleted split to remain visible,
@@ -1442,6 +1513,8 @@ function updateSplitTransactions({
                 },
             };
             const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`] ?? null;
+            // For selfDM, use the selfDM report ID for report actions
+            const reportActionsReportID = isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID;
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
@@ -1449,13 +1522,13 @@ function updateSplitTransactions({
             });
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
                 value: updatedReportAction,
             });
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
                 value: {
                     [firstIOU.reportActionID]: {
                         ...firstIOU,

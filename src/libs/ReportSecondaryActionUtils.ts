@@ -97,6 +97,7 @@ function isSplitAction(
     currentUserLogin: string,
     currentUserAccountID: number,
     policy?: OnyxEntry<Policy>,
+    parentReport?: OnyxEntry<Report>,
 ): boolean {
     if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
@@ -129,7 +130,7 @@ function isSplitAction(
         return false;
     }
 
-    if (!isExpenseReportUtils(report)) {
+    if (!isExpenseReportUtils(report) && !(isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport))) {
         return false;
     }
 
@@ -139,6 +140,10 @@ function isSplitAction(
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
+    }
+
+    if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
+        return true;
     }
 
     const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
@@ -837,6 +842,7 @@ function getSecondaryReportActions({
     reportMetadata,
     policies,
     isChatReportArchived = false,
+    parentReport,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -853,6 +859,7 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    parentReport?: OnyxEntry<Report>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -936,7 +943,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -1025,7 +1032,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy, parentReport)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 

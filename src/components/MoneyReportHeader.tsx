@@ -371,6 +371,9 @@ function MoneyReportHeader({
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.parentReportID}`];
+
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
@@ -1281,6 +1284,7 @@ function MoneyReportHeader({
             reportMetadata,
             policies,
             isChatReportArchived,
+            parentReport,
         });
     }, [
         moneyRequestReport,
@@ -1290,13 +1294,14 @@ function MoneyReportHeader({
         nonPendingDeleteTransactions,
         originalIOUTransaction,
         violations,
+        bankAccountList,
         policy,
         reportNameValuePairs,
         reportActions,
         reportMetadata,
         policies,
         isChatReportArchived,
-        bankAccountList,
+        parentReport,
     ]);
 
     const secondaryExportActions = useMemo(() => {
@@ -1492,7 +1497,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(currentTransaction, policy);
+                initSplitExpense(currentTransaction, policy, moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
