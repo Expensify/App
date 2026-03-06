@@ -7738,10 +7738,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per iniziare il tracciamento della distanza GPS.',
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
+        liveActivity: {subtitle: 'Rilevamento distanza', button: 'Visualizza avanzamento'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',

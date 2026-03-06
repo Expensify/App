@@ -7528,10 +7528,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         fabGpsTripExplained: '前往 GPS 页面（浮动操作）',
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',

@@ -7774,10 +7774,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
-        liveActivity: {
-            subtitle: 'Tracking distance',
-            button: 'View progress',
-        },
+        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'relevé de notes perdu ou endommagé',
