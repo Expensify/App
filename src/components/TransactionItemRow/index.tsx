@@ -301,7 +301,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={{flex: 1}}
+                        style={{flex: 1, minWidth: measurements.tag}}
                     >
                         <TextCell text={formattedValues.tag} />
                     </View>
@@ -310,96 +310,72 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
+                        style={{flex: 1, minWidth: measurements.date}}
                     >
-                        <DateCell
-                            date={createdAt}
-                            showTooltip={shouldShowTooltip}
-                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.date} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.submitted}}
                     >
-                        <DateCell
-                            date={report?.submitted ?? ''}
-                            showTooltip={shouldShowTooltip}
-                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.submitted} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
+                        style={{flex: 1, ...measurements.approved}}
                     >
-                        <DateCell
-                            date={report?.approved ?? ''}
-                            showTooltip={shouldShowTooltip}
-                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.approved} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.POSTED:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.posted}}
                     >
-                        <DateCell
-                            date={transactionItem.posted ?? ''}
-                            showTooltip={shouldShowTooltip}
-                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.posted} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
+                        style={{flex: 1, minWidth: measurements.exported}}
                     >
-                        <DateCell
-                            date={transactionItem.exported ?? ''}
-                            showTooltip={shouldShowTooltip}
-                            isLargeScreenWidth={!shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.exported} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}
+                        style={{flex: 1, minWidth: measurements.category}}
                     >
-                        <CategoryCell
-                            transactionItem={transactionItem}
-                            shouldShowTooltip={shouldShowTooltip}
-                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                        />
+                        <TextCell text={formattedValues.category} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
+                        style={{flex: 1, minWidth: measurements.reimbursable}}
                     >
-                        <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
+                        <TextCell text={formattedValues.reimbursable} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
+                        style={{flex: 1, minWidth: measurements.billable}}
                     >
-                        <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
+                        <TextCell text={formattedValues.billable} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:

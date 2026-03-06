@@ -255,7 +255,6 @@ type ListItem<K extends string | number = string> = {
 };
 
 type TransactionColumnMeasurements = {
-    date: number;
     merchant: number;
     category: number;
     tag: number;
@@ -271,17 +270,17 @@ type TransactionColumnMeasurements = {
     reportID: number;
     longReportID: number;
     originalAmount: number;
-    exportedDate: number;
-    submittedDate: number;
-    approvedDate: number;
-    postedDate: number;
+    date: number;
+    exported: number;
+    submitted: number;
+    approved: number;
+    posted: number;
 };
 
 type TransactionListItemType = ListItem &
     Transaction & {
         measurements: TransactionColumnMeasurements;
         formattedValues: {
-            date: string;
             merchant: string;
             category: string;
             tag: string;
@@ -297,10 +296,11 @@ type TransactionListItemType = ListItem &
             reportID: string;
             longReportID: string;
             originalAmount: string;
-            exportedDate: string;
-            submittedDate: string;
-            approvedDate: string;
-            postedDate: string;
+            date: string;
+            exported: string;
+            submitted: string;
+            approved: string;
+            posted: string;
         };
 
         /** Report to which the transaction belongs */
@@ -1295,4 +1295,5 @@ export type {
     SearchListItem,
     UnreportedExpenseListItemType,
     TransactionColumnMeasurements,
+    TransactionColumnSize,
 };

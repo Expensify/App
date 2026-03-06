@@ -44,6 +44,7 @@ import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionColumnMeasurements,
+    TransactionColumnSize,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -1660,7 +1661,7 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
-function getColumnWidth(currentMaxWidth: number, columnValue: string | null | undefined): number {
+function getColumnWidthStyle(currentMaxWidth: number, columnValue: string | null | undefined): number {
     const maxColumnWidthPx = 400;
     // The actual average length, but lets add padding so we're more accurate, we'd
     // rather go over the actual length, than under and have the text be cut off
@@ -1668,7 +1669,9 @@ function getColumnWidth(currentMaxWidth: number, columnValue: string | null | un
     const averageCharacterPxWithPadding = 8.45;
     const columnValueCharLength = columnValue?.length ?? 0;
 
-    return Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding)));
+    // The maximum amount of space the column would need for its longest value
+    const columnMaxWidth = Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding)));
+    return columnMaxWidth;
 }
 
 /**
@@ -1728,10 +1731,10 @@ function getTransactionsSections({
         reportID: 0,
         longReportID: 0,
         originalAmount: 0,
-        exportedDate: 0,
-        submittedDate: 0,
-        approvedDate: 0,
-        postedDate: 0,
+        exported: 0,
+        submitted: 0,
+        approved: 0,
+        posted: 0,
     };
 
     for (const key of transactionKeys) {
@@ -1785,102 +1788,102 @@ function getTransactionsSections({
 
         // Compute the maximum size of all of the text fields to determine how much space we need to delegate
         // Handle the merchant
-        measurements.merchant = getColumnWidth(measurements.merchant, formattedMerchant);
+        measurements.merchant = getColumnWidthStyle(measurements.merchant, formattedMerchant);
 
         // Handle the category
         const formattedCategory = isCategoryMissing(transaction?.category) ? '' : getDecodedCategoryName(transaction?.category ?? '');
-        measurements.category = getColumnWidth(measurements.category, formattedCategory);
+        measurements.category = getColumnWidthStyle(measurements.category, formattedCategory);
 
         // Handle the tag
         const formattedTag = getTagForDisplay(transaction);
-        measurements.tag = getColumnWidth(measurements.tag, formattedTag);
+        measurements.tag = getColumnWidthStyle(measurements.tag, formattedTag);
 
         // Handle the amount
         const transactionCurrency = getOriginalCurrencyForDisplay(transaction);
         const transactionDisplayAmount = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const formattedAmount = convertToDisplayString(transactionDisplayAmount, transactionCurrency);
-        measurements.amount = getColumnWidth(measurements.amount, formattedAmount);
+        measurements.amount = getColumnWidthStyle(measurements.amount, formattedAmount);
 
         // Handle the exchange rate
         const formattedExchangeRate = getExchangeRate(transaction);
-        measurements.exchangeRate = getColumnWidth(measurements.exchangeRate, formattedExchangeRate);
+        measurements.exchangeRate = getColumnWidthStyle(measurements.exchangeRate, formattedExchangeRate);
 
         // Handle the description
         const formattedDescription = getDescription(transaction);
-        measurements.description = getColumnWidth(measurements.description, formattedDescription);
+        measurements.description = getColumnWidthStyle(measurements.description, formattedDescription);
 
         // Handle the card
         // JACK_TODO: This is missing customCardNames but it doesnt matter for now
         const deletedFeedCardName = isCardFeedDeleted ? translate('workspace.companyCards.deletedFeed') : null;
         const cashCardName = transaction.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : null;
         const formattedCardName = deletedFeedCardName ?? cashCardName ?? transaction.cardName ?? '';
-        measurements.card = getColumnWidth(measurements.card, formattedCardName);
+        measurements.card = getColumnWidthStyle(measurements.card, formattedCardName);
 
         // Handle the billable
         const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
-        measurements.billable = getColumnWidth(measurements.billable, formattedBillable);
+        measurements.billable = getColumnWidthStyle(measurements.billable, formattedBillable);
 
         // Handle the reimbursable
         const formattedReimbursable = getReimbursable(transaction) ? translate('common.yes') : translate('common.no');
-        measurements.reimbursable = getColumnWidth(measurements.reimbursable, formattedReimbursable);
+        measurements.reimbursable = getColumnWidthStyle(measurements.reimbursable, formattedReimbursable);
 
         // Handle the title
         const formattedTitle = getReportNameUtil(report);
-        measurements.title = getColumnWidth(measurements.title, formattedTitle);
+        measurements.title = getColumnWidthStyle(measurements.title, formattedTitle);
 
         // Handle the tax rate
         const formattedTaxRate = !isTimeRequest(transaction) ? (getTaxName(policy, transaction) ?? transaction.taxValue ?? '') : '';
-        measurements.taxRate = getColumnWidth(measurements.taxRate, formattedTaxRate);
+        measurements.taxRate = getColumnWidthStyle(measurements.taxRate, formattedTaxRate);
 
         // Handle the tax
         const transactionTaxAmount = getTaxAmount(transaction, true);
         const transactionTaxAmountCurrency = getCurrency(transaction);
         const formattedTaxAmount = !isTimeRequest(transaction) ? convertToDisplayString(transactionTaxAmount, transactionTaxAmountCurrency) : '';
-        measurements.taxAmount = getColumnWidth(measurements.taxAmount, formattedTaxAmount);
+        measurements.taxAmount = getColumnWidthStyle(measurements.taxAmount, formattedTaxAmount);
 
         // Handle the report ID
         const formattedReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : (transaction.reportID?.toString() ?? '');
-        measurements.reportID = getColumnWidth(measurements.reportID, formattedReportID);
+        measurements.reportID = getColumnWidthStyle(measurements.reportID, formattedReportID);
 
         // Handle the base62 report ID
         const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
-        measurements.longReportID = getColumnWidth(measurements.longReportID, formattedBase62ReportID);
+        measurements.longReportID = getColumnWidthStyle(measurements.longReportID, formattedBase62ReportID);
 
         // Handle the original amount
         const originalAmountTotal = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const originalAmountCurrency = getOriginalCurrencyForDisplay(transaction);
         const formattedOriginalAmount = convertToDisplayString(originalAmountTotal, originalAmountCurrency);
-        measurements.originalAmount = getColumnWidth(measurements.originalAmount, formattedOriginalAmount);
+        measurements.originalAmount = getColumnWidthStyle(measurements.originalAmount, formattedOriginalAmount);
 
         // Handle the date
         const createdDate = date ?? '';
         const isCreatedLastYear = DateUtils.doesDateBelongToAPastYear(createdDate);
         const formattedDate = DateUtils.formatWithUTCTimeZone(createdDate, isCreatedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.date = getColumnWidth(measurements.date, formattedDate);
+        measurements.date = getColumnWidthStyle(measurements.date, formattedDate);
 
         // Handle exported date
         const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
         const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
         const formattedExportDate = DateUtils.formatWithUTCTimeZone(exportDate, isExportedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.exportedDate = getColumnWidth(measurements.exportedDate, formattedExportDate);
+        measurements.exported = getColumnWidthStyle(measurements.exported, formattedExportDate);
 
         // Handle submitted date
         const submittedDate = report.submitted ?? '';
         const isSubmittedLastYear = DateUtils.doesDateBelongToAPastYear(submittedDate);
         const formattedSubmittedDate = DateUtils.formatWithUTCTimeZone(submittedDate, isSubmittedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.submittedDate = getColumnWidth(measurements.submittedDate, formattedSubmittedDate);
+        measurements.submitted = getColumnWidthStyle(measurements.submitted, formattedSubmittedDate);
 
         // Handle approved date
         const approvedDate = report.approved ?? '';
         const isApprovedLastYear = DateUtils.doesDateBelongToAPastYear(approvedDate);
         const formattedApprovedDate = DateUtils.formatWithUTCTimeZone(approvedDate, isApprovedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.approvedDate = getColumnWidth(measurements.approvedDate, formattedApprovedDate);
+        measurements.approved = getColumnWidthStyle(measurements.approved, formattedApprovedDate);
 
         // Handle posted date
         const postedDate = posted ?? '';
         const isPostedLastYear = DateUtils.doesDateBelongToAPastYear(postedDate);
         const formattedPostedDate = DateUtils.formatWithUTCTimeZone(postedDate, isPostedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.postedDate = getColumnWidth(measurements.postedDate, formattedPostedDate);
+        measurements.posted = getColumnWidthStyle(measurements.posted, formattedPostedDate);
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
@@ -1902,10 +1905,10 @@ function getTransactionsSections({
                 reportID: formattedReportID,
                 longReportID: formattedBase62ReportID,
                 originalAmount: formattedOriginalAmount,
-                exportedDate: formattedExportDate,
-                submittedDate: formattedSubmittedDate,
-                approvedDate: formattedApprovedDate,
-                postedDate: formattedPostedDate,
+                exported: formattedExportDate,
+                submitted: formattedSubmittedDate,
+                approved: formattedApprovedDate,
+                posted: formattedPostedDate,
             },
             keyForList: transaction.transactionID,
             action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
