@@ -884,6 +884,7 @@ describe('MoneyRequest', () => {
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
             amountOwed: 0,
+            draftTransactionIDs: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
