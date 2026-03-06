@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -83,6 +83,13 @@ function UpdatePersonalBankAccountPage() {
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
+
+    useEffect(() => {
+        if (!bankAccountID && !shouldShowSuccess) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        }
+    }, [bankAccountID, shouldShowSuccess]);
+
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
     const exitFlow = () => {
