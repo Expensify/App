@@ -4,7 +4,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
@@ -34,6 +37,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     useConfirmReadyToOpenApp();
 
@@ -86,6 +90,11 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                     optionMode={viewMode}
                     onFirstItemRendered={setSidebarLoaded}
                 />
+                {!!isLoadingReportData && optionListItems?.length === 0 && (
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
+                        <OptionsListSkeletonView shouldAnimate />
+                    </View>
+                )}
             </View>
         </View>
     );
