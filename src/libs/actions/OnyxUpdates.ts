@@ -183,6 +183,7 @@ function saveUpdateInformation<TKey extends OnyxKey>(updateParams: OnyxUpdatesFr
         modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: {apiRequestType: updateParams.request?.data?.apiRequestType}}};
     }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams as AnyOnyxUpdatesFromServer);
 }
 
@@ -218,5 +219,6 @@ function doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID}: DoesC
     return false;
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {apply, doesClientNeedToBeUpdated, saveUpdateInformation, applyHTTPSOnyxUpdates as INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates};
 export type {DoesClientNeedToBeUpdatedParams as ManualOnyxUpdateCheckIds};

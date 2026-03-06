@@ -26,6 +26,7 @@ function switchToOldDot(exitSurveyResponse: string | undefined) {
         },
     ];
 
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.write(
         WRITE_COMMANDS.SWITCH_TO_OLD_DOT,
         {

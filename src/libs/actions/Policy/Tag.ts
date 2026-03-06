@@ -1188,7 +1188,7 @@ function setPolicyTagApprover(policy: OnyxEntry<Policy>, tag: string, approver: 
     const policyID = policy.id;
     const prevApprovalRules = policy?.rules?.approvalRules ?? [];
     const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policy, tag);
-    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule.id !== approverRuleToUpdate.id) : prevApprovalRules;
+    const filteredApprovalRules = approverRuleToUpdate ? prevApprovalRules.filter((rule) => rule !== approverRuleToUpdate) : prevApprovalRules;
     const toBeUnselected = approverRuleToUpdate?.approver === approver;
 
     const updatedApproverRule = approverRuleToUpdate
