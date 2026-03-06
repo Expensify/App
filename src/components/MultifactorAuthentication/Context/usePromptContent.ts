@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import {MULTIFACTOR_AUTHENTICATION_PROMPT_UI} from '@components/MultifactorAuthentication/config';
 import type {MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/config/types';
 import useOnyx from '@hooks/useOnyx';
@@ -8,7 +9,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account} from '@src/types/onyx';
 import {useMultifactorAuthenticationState} from './State';
-import useNativeBiometrics from './useNativeBiometrics';
 
 type PromptContent = {
     animation: DotLottieAnimation;
@@ -38,7 +38,7 @@ function serverHasRegisteredCredentials(data: OnyxEntry<Account>) {
  */
 function usePromptContent(promptType: MultifactorAuthenticationPromptType): PromptContent {
     const state = useMultifactorAuthenticationState();
-    const {areLocalCredentialsKnownToServer} = useNativeBiometrics();
+    const {areLocalCredentialsKnownToServer} = useBiometrics();
     const [serverHasCredentials, setServerHasCredentials] = useState(false);
     const [deviceBiometricsState] = useOnyx(ONYXKEYS.DEVICE_BIOMETRICS);
     const hasEverAcceptedSoftPrompt = deviceBiometricsState?.hasAcceptedSoftPrompt ?? false;

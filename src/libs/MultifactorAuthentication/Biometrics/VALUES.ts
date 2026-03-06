@@ -100,6 +100,15 @@ const REASON = {
         KEY_NOT_FOUND: 'Key not found in SecureStore',
         UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
     },
+    WEBAUTHN: {
+        NOT_ALLOWED: 'WebAuthn operation was denied by the user or timed out',
+        INVALID_STATE: 'Credential already registered on this authenticator',
+        SECURITY_ERROR: 'WebAuthn security check failed',
+        ABORT: 'WebAuthn operation was aborted',
+        NOT_SUPPORTED: 'WebAuthn algorithm or authenticator not supported',
+        CONSTRAINT_ERROR: 'Authenticator does not meet required constraints',
+        GENERIC: 'An unknown WebAuthn error occurred',
+    },
 } as const;
 
 const HTTP_STATUS = {
@@ -222,6 +231,32 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     EXPO_ERRORS,
 
     /**
+     * WebAuthn DOMException name strings for error matching.
+     */
+    WEBAUTHN_ERRORS: {
+        SEARCH_STRING: {
+            NOT_ALLOWED: 'NotAllowedError',
+            INVALID_STATE: 'InvalidStateError',
+            SECURITY: 'SecurityError',
+            ABORT: 'AbortError',
+            NOT_SUPPORTED: 'NotSupportedError',
+            CONSTRAINT: 'ConstraintError',
+        },
+    },
+
+    /**
+     * Maps WebAuthn DOMException names to appropriate reason messages.
+     */
+    WEBAUTHN_ERROR_MAPPINGS: {
+        NotAllowedError: REASON.WEBAUTHN.NOT_ALLOWED,
+        InvalidStateError: REASON.WEBAUTHN.INVALID_STATE,
+        SecurityError: REASON.WEBAUTHN.SECURITY_ERROR,
+        AbortError: REASON.WEBAUTHN.ABORT,
+        NotSupportedError: REASON.WEBAUTHN.NOT_SUPPORTED,
+        ConstraintError: REASON.WEBAUTHN.CONSTRAINT_ERROR,
+    },
+
+    /**
      * Maps authentication Expo errors to appropriate reason messages.
      */
     EXPO_ERROR_MAPPINGS: {
@@ -248,6 +283,7 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      */
     TYPE: {
         BIOMETRICS: 'BIOMETRICS',
+        PASSKEYS: 'PASSKEYS',
     },
     CHALLENGE_TYPE: {
         REGISTRATION: 'registration',

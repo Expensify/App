@@ -2,6 +2,8 @@ import React, {createContext, useCallback, useContext, useEffect, useMemo} from 
 import type {ReactNode} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/common/types';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -15,8 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
-import useNativeBiometrics from './useNativeBiometrics';
-import type {AuthorizeResult, RegisterResult} from './useNativeBiometrics';
 
 let deviceBiometricsState: OnyxEntry<DeviceBiometrics>;
 
@@ -68,7 +68,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
 
-    const biometrics = useNativeBiometrics();
+    const biometrics = useBiometrics();
     const {isOffline} = useNetwork();
     const platform = getPlatform();
     const isWeb = useMemo(() => platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.MOBILE_WEB, [platform]);

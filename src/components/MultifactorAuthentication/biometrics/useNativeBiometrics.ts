@@ -1,87 +1,13 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {AuthenticationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account} from '@src/types/onyx';
-
-type BaseRegisterResult = {
-    privateKey: string;
-    publicKey: string;
-    authenticationMethod: AuthTypeInfo;
-};
-
-type RegisterResult =
-    | ({
-          success: true;
-          reason: MultifactorAuthenticationReason;
-      } & BaseRegisterResult)
-    | ({
-          success: false;
-          reason: MultifactorAuthenticationReason;
-      } & Partial<BaseRegisterResult>);
-
-type AuthorizeParams = {
-    challenge: AuthenticationChallenge;
-};
-
-type AuthorizeResultSuccess = {
-    success: true;
-    reason: MultifactorAuthenticationReason;
-    signedChallenge: SignedChallenge;
-    authenticationMethod: AuthTypeInfo;
-};
-
-type AuthorizeResultFailure = {
-    success: false;
-    reason: MultifactorAuthenticationReason;
-};
-
-type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
-
-// In the 4th release of the Multifactor Authentication this interface will not focus on the Onyx/Auth values.
-// Instead, the providers abstraction will be added.
-// For context, see: https://github.com/Expensify/App/pull/79473#discussion_r2747993460
-type UseNativeBiometricsReturn = {
-    /** Whether server has any registered credentials for this account */
-    serverHasAnyCredentials: boolean;
-
-    /** List of credential IDs known to server (from Onyx) */
-    serverKnownCredentialIDs: string[];
-
-    /** Check if device supports biometrics */
-    doesDeviceSupportBiometrics: () => boolean;
-
-    /** Check if device has biometric credentials stored locally */
-    hasLocalCredentials: () => Promise<boolean>;
-
-    /** Check if local credentials are known to server (local credential exists in server's list) */
-    areLocalCredentialsKnownToServer: () => Promise<boolean>;
-
-    /** Register biometrics on device */
-    register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
-
-    /** Authorize using biometrics */
-    authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
-
-    /** Reset keys for account */
-    resetKeysForAccount: () => Promise<void>;
-};
-
-/**
- * Selector to get multifactor authentication public key IDs from Account Onyx state.
- */
-function getMultifactorAuthenticationPublicKeyIDs(data: OnyxEntry<Account>) {
-    return data?.multifactorAuthenticationPublicKeyIDs;
-}
+import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './common/types';
+import useServerCredentials from './common/useServerCredentials';
 
 /**
  * Clears local credentials to allow re-registration.
@@ -112,13 +38,10 @@ async function isBiometryConfigured(accountID: number, authPublicKeys: string[] 
     };
 }
 
-function useNativeBiometrics(): UseNativeBiometricsReturn {
+function useNativeBiometrics(): UseBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-
-    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
-    const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
-    const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
+    const {serverHasAnyCredentials, serverKnownCredentialIDs} = useServerCredentials();
 
     /**
      * Checks if the device supports biometric authentication methods.
@@ -268,4 +191,3 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
 }
 
 export default useNativeBiometrics;
-export type {RegisterResult, AuthorizeParams, AuthorizeResult, UseNativeBiometricsReturn};

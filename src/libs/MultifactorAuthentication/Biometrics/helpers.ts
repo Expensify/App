@@ -98,4 +98,18 @@ const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?:
     return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
 };
 
-export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, parseHttpRequest};
+/**
+ * Decodes WebAuthn DOMException errors and maps them to authentication error reasons.
+ */
+function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
+    if (error instanceof DOMException) {
+        const mapping = VALUES.WEBAUTHN_ERROR_MAPPINGS[error.name as keyof typeof VALUES.WEBAUTHN_ERROR_MAPPINGS];
+        if (mapping) {
+            return mapping;
+        }
+    }
+
+    return VALUES.REASON.WEBAUTHN.GENERIC;
+}
+
+export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, decodeWebAuthnError, parseHttpRequest};

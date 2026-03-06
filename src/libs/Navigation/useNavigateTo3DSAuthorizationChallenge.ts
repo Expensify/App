@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {useEffect, useMemo} from 'react';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
-import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import {isTransactionStillPending3DSReview} from '@libs/actions/MultifactorAuthentication';
@@ -56,7 +56,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
         return isMFAFlowScreen(focusedScreen);
     });
 
-    const {doesDeviceSupportBiometrics} = useNativeBiometrics();
+    const {doesDeviceSupportBiometrics} = useBiometrics();
 
     const transactionPending3DSReview = useMemo(() => {
         if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
@@ -100,11 +100,10 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        // TODO: when adding Passkey support, update the switch-case below.
-        // Passkey issue: https://github.com/expensify/app/issues/79470
         const doesDeviceSupportAnAllowedAuthenticationMethod = AuthorizeTransaction.allowedAuthenticationMethods.some((method) => {
             switch (method) {
                 case CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS:
+                case CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS:
                     return doesDeviceSupportBiometrics();
                 default:
                     return false;

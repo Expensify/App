@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
+import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
