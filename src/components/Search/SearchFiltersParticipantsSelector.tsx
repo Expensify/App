@@ -294,14 +294,23 @@ function SearchFiltersParticipantsSelector({
             sectionIndex: 2,
         });
 
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
+        // When free text input is enabled, show the userToInvite option so users can type arbitrary emails
+        if (allowFreeTextInput && chatOptions.userToInvite) {
+            newSections.push({
+                data: [chatOptions.userToInvite],
+                sectionIndex: 3,
+            });
+        }
+
+        const noResultsFound =
+            chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption && !chatOptions.userToInvite;
         const message = noResultsFound ? translate('common.noResultsFound') : undefined;
 
         return {
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID, allowFreeTextInput]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
