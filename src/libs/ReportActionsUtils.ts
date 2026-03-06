@@ -35,7 +35,7 @@ import type {
     OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
 } from '@src/types/onyx/OriginalMessage';
-import type {CompanyAddress, PolicyReportFieldType} from '@src/types/onyx/Policy';
+import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -60,6 +60,7 @@ import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowup
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
+import type {WorkspaceAddress} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -3285,8 +3286,6 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
     }
     return getReportActionText(action);
 }
-
-type WorkspaceAddress = Partial<Pick<CompanyAddress, 'addressStreet' | 'addressStreet2' | 'city' | 'state' | 'zipCode'>>;
 
 type CompanyAddressOriginalMessage = {
     newAddress: WorkspaceAddress;
