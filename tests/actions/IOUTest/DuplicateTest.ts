@@ -2084,5 +2084,116 @@ describe('actions/Duplicate', () => {
             expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
             expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
         });
+
+        it('should strip waypoints and use stored distance for split distance expenses', async () => {
+            const splitDistanceTx = createCashTransaction('splitDist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    originalTransactionID: 'origTx1',
+                    source: 'split',
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 42,
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([splitDistanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+            expect(distanceCall?.at(1)).toEqual(expect.objectContaining({waypoints: 'null'}));
+        });
+
+        it('should preserve waypoints for non-split distance expenses', async () => {
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                    waypoints: {
+                        waypoint0: {lat: 37.7749, lng: -122.4194, address: 'San Francisco'},
+                        waypoint1: {lat: 34.0522, lng: -118.2437, address: 'Los Angeles'},
+                    },
+                },
+            });
+
+            duplicateReport(getDefaultParams([distanceTx]));
+            await waitForBatchedUpdates();
+
+            const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
+            expect(distanceCall).toBeDefined();
+
+            const waypoints = distanceCall?.at(1)?.waypoints;
+            expect(waypoints).toBeDefined();
+            expect(waypoints).not.toBe('null');
+        });
+
+        it('should correctly route a report with mixed cash, distance, and per diem transactions', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const distanceTx = createCashTransaction('dist1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
+                },
+            });
+            const perDiemTx = createCashTransaction('pd1', {
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        customUnitID: 'unit1',
+                        customUnitRateID: 'rate1',
+                        subRates: [{id: 'sub1', quantity: 1, name: 'Full Day', rate: 100}],
+                        attributes: {dates: {start: '2024-01-01', end: '2024-01-02'}},
+                    },
+                },
+            });
+            const cashTx2 = createCashTransaction('cash2');
+
+            duplicateReport(getDefaultParams([cashTx, distanceTx, perDiemTx, cashTx2]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST)).toBe(1);
+        });
+
+        it('should preserve transaction fields like category, tag, and currency', async () => {
+            const tx = createCashTransaction('tx1', {
+                category: 'Travel',
+                tag: 'Business',
+                currency: 'EUR',
+                amount: -1500,
+                billable: true,
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(
+                expect.objectContaining({
+                    category: 'Travel',
+                    tag: 'Business',
+                    currency: 'EUR',
+                    amount: 1500,
+                    billable: true,
+                }),
+            );
+        });
     });
 });
