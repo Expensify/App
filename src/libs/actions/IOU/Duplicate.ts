@@ -8,7 +8,6 @@ import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/par
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -840,7 +839,10 @@ function duplicateReport({
                     personalDetails,
                     recentWaypoints,
                 };
-                createDistanceRequest(distanceParams);
+                const distanceResult = createDistanceRequest(distanceParams);
+                if (distanceResult?.iouReport) {
+                    currentIOUReport = distanceResult.iouReport;
+                }
                 break;
             }
             case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
@@ -854,15 +856,20 @@ function duplicateReport({
                     hasViolations: false,
                     customUnitPolicyID: targetPolicy?.id,
                 };
-                submitPerDiemExpense(perDiemParams);
+                const perDiemResult = submitPerDiemExpense(perDiemParams);
+                if (perDiemResult?.iouReport) {
+                    currentIOUReport = perDiemResult.iouReport;
+                }
                 break;
             }
-            default:
-                requestMoney(params);
+            default: {
+                const result = requestMoney(params);
+                if (result?.iouReport) {
+                    currentIOUReport = result.iouReport;
+                }
                 break;
+            }
         }
-
-        currentIOUReport = updateIOUOwnerAndTotal(currentIOUReport, userAccountID, transactionDetails.amount ?? 0, transactionDetails.currency ?? '');
     }
 
     playSound(SOUNDS.DONE);

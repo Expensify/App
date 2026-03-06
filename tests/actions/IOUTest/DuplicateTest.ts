@@ -1978,5 +1978,111 @@ describe('actions/Duplicate', () => {
 
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
+
+        it('should set duplicated transaction dates to today', async () => {
+            const oldDate = '2023-06-15';
+            const tx = createCashTransaction('tx1', {created: oldDate});
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+
+            const today = new Date().toISOString().slice(0, 10);
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({created: today}));
+        });
+
+        it('should clear receipt data from duplicated transactions', async () => {
+            const txWithReceipt = createCashTransaction('tx1', {
+                receipt: {source: 'https://example.com/receipt.jpg', state: CONST.IOU.RECEIPT_STATE.OPEN},
+            });
+
+            duplicateReport(getDefaultParams([txWithReceipt]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({receipt: undefined}));
+        });
+
+        it('should use modifiedMerchant when available', async () => {
+            const tx = createCashTransaction('tx1', {
+                merchant: 'Original Merchant',
+                modifiedMerchant: 'Modified Merchant',
+            });
+
+            duplicateReport(getDefaultParams([tx]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>] | undefined;
+            expect(requestMoneyCall).toBeDefined();
+            expect(requestMoneyCall?.at(1)).toEqual(expect.objectContaining({merchant: 'Modified Merchant'}));
+        });
+
+        it('should pass the same reportPreviewReportActionID to all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+            const tx3 = createCashTransaction('tx3');
+
+            duplicateReport(getDefaultParams([tx1, tx2, tx3]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>][];
+            expect(requestMoneyCalls).toHaveLength(3);
+
+            const firstPreviewID = requestMoneyCalls.at(0)?.at(1)?.reportPreviewReportActionID;
+            expect(firstPreviewID).toBeDefined();
+            for (const call of requestMoneyCalls) {
+                expect(call.at(1)?.reportPreviewReportActionID).toBe(firstPreviewID);
+            }
+        });
+
+        it('should target the same chat report for all expense calls', async () => {
+            const tx1 = createCashTransaction('tx1');
+            const tx2 = createCashTransaction('tx2');
+
+            duplicateReport(getDefaultParams([tx1, tx2]));
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>][];
+            expect(requestMoneyCalls).toHaveLength(2);
+
+            const firstChatReportID = requestMoneyCalls.at(0)?.at(1)?.chatReportID;
+            const secondChatReportID = requestMoneyCalls.at(1)?.at(1)?.chatReportID;
+            expect(firstChatReportID).toBeDefined();
+            expect(firstChatReportID).toBe(secondChatReportID);
+        });
+
+        it('should filter out partial (incomplete) transactions', async () => {
+            const normalTx = createCashTransaction('normal1');
+            const partialTx = createCashTransaction('partial1', {
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            });
+
+            duplicateReport(getDefaultParams([normalTx, partialTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(1);
+        });
+
+        it('should handle mixed eligible and ineligible transactions correctly', async () => {
+            const cashTx = createCashTransaction('cash1');
+            const cardTx = createCashTransaction('card1', {transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD});
+            const accountantTx = createCashTransaction('acct1', {accountant: {accountID: 999, login: 'a@test.com'}});
+            const cashTx2 = createCashTransaction('cash2');
+            const scanningTx = createCashTransaction('scan1', {
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {source: 'r.jpg', state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            });
+
+            duplicateReport(getDefaultParams([cashTx, cardTx, accountantTx, cashTx2, scanningTx]));
+            await waitForBatchedUpdates();
+
+            expect(countWriteCommandCalls(WRITE_COMMANDS.CREATE_APP_REPORT)).toBe(1);
+            expect(countWriteCommandCalls(WRITE_COMMANDS.REQUEST_MONEY)).toBe(2);
+        });
     });
 });

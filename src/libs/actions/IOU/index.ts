@@ -6996,6 +6996,8 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
     }
+
+    return {iouReport};
 }
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -8401,6 +8403,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS | typeof ONYXKEYS.GPS_DRAFT_DETAILS>;
+    let distanceIouReport: OnyxInputValue<OnyxTypes.Report> = null;
     const sanitizedWaypoints = !isManualDistanceRequest ? sanitizeRecentWaypoints(validWaypoints) : null;
     if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {
@@ -8524,6 +8527,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         });
 
         onyxData = moneyRequestOnyxData;
+        distanceIouReport = iouReport;
 
         const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 
@@ -8604,6 +8608,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     if (!isMoneyRequestReport) {
         notifyNewAction(activeReportID, undefined, true);
     }
+
+    return {iouReport: distanceIouReport};
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
