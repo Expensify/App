@@ -945,7 +945,7 @@ function getSecondaryReportActions({
     }
 
     if (isDuplicateAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE);
     }
 
     if (isDuplicateReportAction(report)) {

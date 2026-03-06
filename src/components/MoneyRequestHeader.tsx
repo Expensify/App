@@ -495,11 +495,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, [], false, isOnSearch);
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
+        [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE]: {
             text: isDuplicateActive ? translate('common.duplicateExpense') : translate('common.duplicated'),
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
-            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
+            value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
                     showConfirmModal({

@@ -385,6 +385,7 @@ function MoneyReportHeader({
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
+    const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -1517,11 +1518,11 @@ function MoneyReportHeader({
                 setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
             },
         },
-        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
+        [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
             text: isDuplicateActive ? translate('common.duplicateExpense') : translate('common.duplicated'),
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             iconFill: isDuplicateActive ? undefined : theme.icon,
-            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
+            value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
                     setRateErrorModalVisible(true);
@@ -1553,11 +1554,19 @@ function MoneyReportHeader({
                 activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
-            text: translate('common.duplicateReport'),
-            icon: expensifyIcons.ReportCopy,
+            text: isDuplicateReportActive ? translate('common.duplicateReport') : translate('common.duplicated'),
+            icon: isDuplicateReportActive ? expensifyIcons.ReportCopy : expensifyIcons.Checkmark,
+            iconFill: isDuplicateReportActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DUPLICATE_REPORT,
+            shouldCloseModalOnSelect: false,
             onSelected: () => {
+                if (!isDuplicateReportActive) {
+                    return;
+                }
+
+                temporarilyDisableDuplicateReportAction();
+
                 const sourcePolicy = policy;
                 const targetPolicy = sourcePolicy && isPolicyMember(sourcePolicy, currentUserLogin) ? sourcePolicy : defaultExpensePolicy;
                 const targetPolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicy?.id}`] ?? {};
