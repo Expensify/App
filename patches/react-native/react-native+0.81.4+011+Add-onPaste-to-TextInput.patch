@@ -358,140 +358,370 @@ index 407d46e..8be994c 100644
  
  RCT_EXPORT_SHADOW_PROPERTY(text, NSString)
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
+new file mode 100644
+index 0000000..a07af20
+--- /dev/null
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
+@@ -0,0 +1,45 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import <Foundation/Foundation.h>
++#import <UIKit/UIKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++/**
++ * Utility class for handling paste operations from UIPasteboard.
++ * Processes pasteboard items and returns them in a standardized format
++ * suitable for the TextInput onPaste event.
++ */
++@interface RCTPasteHandlerUtil : NSObject
++
++/**
++ * Process the UIPasteboard and returns an array of info dictionaries for pasted items.
++ *
++ * Each dictionary contains:
++ * - type: (NSString) the MIME type of the content.
++ * - data: (NSString) either the string content or a file:// URI for binary data.
++ *
++ * This method will process text, URLs, images, and other file types.
++ * Binary data (images, files) are written to temporary files and returned as file:// URIs.
++ *
++ * @param pasteboard The UIPasteboard instance to process.
++ * @return An array of info dictionaries with "type" and "data" keys.
++ */
+++ (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfosFromPasteboard:(UIPasteboard *)pasteboard;
++
++/**
++ * Checks if the provided pasteboard has pasteable content.
++ *
++ * @param pasteboard The UIPasteboard instance to check.
++ * @return YES if there is content that can be pasted, NO otherwise.
++ */
+++ (BOOL)hasPasteableContent:(UIPasteboard *)pasteboard;
++
++@end
++
++NS_ASSUME_NONNULL_END
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
+new file mode 100644
+index 0000000..f583bb9
+--- /dev/null
++++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
+@@ -0,0 +1,223 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#import "RCTPasteHandlerUtil.h"
++
++#import <React/RCTUtils.h>
++
++#import <MobileCoreServices/MobileCoreServices.h>
++#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
++
++@implementation RCTPasteHandlerUtil
++
++#pragma mark - Public Methods
++
+++ (NSArray<NSDictionary<NSString *, NSString *> *> *)itemInfosFromPasteboard:(UIPasteboard *)pasteboard
++{
++  NSMutableArray<NSDictionary<NSString *, NSString *> *> *itemInfos = [NSMutableArray array];
++  NSArray<NSDictionary *> *items = pasteboard.items;
++
++  // Generic UTIs to deprioritize if a more specific UTI is available
++  NSArray<NSString *> *genericUTIs = @[@"public.data", @"public.item"];
++
++  for (NSDictionary *item in items) {
++    @try {
++      NSDictionary<NSString *, NSString *> *info = [self processItem:item
++                                                      fromPasteboard:pasteboard
++                                                         genericUTIs:genericUTIs];
++      if (info) {
++        [itemInfos addObject:info];
++      }
++    } @catch (NSException *exception) {
++      // Skip items that fail to process - don't break the whole paste
++      continue;
++    }
++  }
++
++  return itemInfos;
++}
++
+++ (BOOL)hasPasteableContent:(UIPasteboard *)pasteboard
++{
++  if (pasteboard.hasStrings || pasteboard.hasImages) {
++    return YES;
++  }
++
++  // Check if there are any other pasteable items
++  return pasteboard.numberOfItems > 0;
++}
++
++#pragma mark - Private Methods
++
+++ (nullable NSDictionary<NSString *, NSString *> *)processItem:(NSDictionary *)item
++                                                fromPasteboard:(UIPasteboard *)pasteboard
++                                                   genericUTIs:(NSArray<NSString *> *)genericUTIs
++{
++  // Select the best UTI, preferring non-generic types
++  NSString *selectedUTI = [self selectBestUTI:item.allKeys genericUTIs:genericUTIs];
++  if (!selectedUTI) {
++    return nil;
++  }
++
++  id value = item[selectedUTI];
++  NSData *fileData = [self extractDataFromValue:value
++                                        withUTI:selectedUTI
++                                     pasteboard:pasteboard];
++  if (!fileData) {
++    return nil;
++  }
++
++  // Determine MIME type
++  NSString *mimeType = [self mimeTypeForUTI:selectedUTI];
++
++  // Determine the payload (string or file URI)
++  NSString *payload = [self payloadFromData:fileData withUTI:selectedUTI];
++  if (!payload || payload.length == 0) {
++    return nil;
++  }
++
++  return @{@"type": mimeType, @"data": payload};
++}
++
+++ (nullable NSString *)selectBestUTI:(NSArray<NSString *> *)types
++                         genericUTIs:(NSArray<NSString *> *)genericUTIs
++{
++  if (types.count == 0) {
++    return nil;
++  }
++
++  // First, try to find a preferred canonical type
++  for (NSString *preferred in @[
++         (NSString *)kUTTypeFileURL,
++         (NSString *)kUTTypeURL,
++         (NSString *)kUTTypePlainText
++       ]) {
++    if ([types containsObject:preferred]) {
++      return preferred;
++    }
++  }
++
++  // Then, prefer non-generic types
++  for (NSString *uti in types) {
++    if (![genericUTIs containsObject:uti]) {
++      return uti;
++    }
++  }
++
++  // Fall back to first available type
++  return types.firstObject;
++}
++
+++ (nullable NSData *)extractDataFromValue:(id)value
++                                  withUTI:(NSString *)uti
++                               pasteboard:(UIPasteboard *)pasteboard
++{
++  // If the value is NSData, use it directly
++  if ([value isKindOfClass:[NSData class]]) {
++    return value;
++  }
++
++  // If it's a UIImage, convert to PNG or JPEG data
++  if ([value isKindOfClass:[UIImage class]]) {
++    return [self dataFromImage:(UIImage *)value withUTI:uti];
++  }
++
++  // If the value is an NSString, try to retrieve NSData from the pasteboard
++  if ([value isKindOfClass:[NSString class]]) {
++    return [pasteboard dataForPasteboardType:uti];
++  }
++
++  // Try to get data directly from pasteboard
++  return [pasteboard dataForPasteboardType:uti];
++}
++
+++ (nullable NSData *)dataFromImage:(UIImage *)image withUTI:(NSString *)uti
++{
++  // Choose PNG or JPEG based on UTI
++  if (@available(iOS 14.0, *)) {
++    UTType *utType = [UTType typeWithIdentifier:uti];
++    if (utType && [utType conformsToType:UTTypePNG]) {
++      return UIImagePNGRepresentation(image);
++    }
++    return UIImageJPEGRepresentation(image, 1.0);
++  }
++
++  // Fallback for older iOS versions
++  if (UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypePNG)) {
++    return UIImagePNGRepresentation(image);
++  }
++  return UIImageJPEGRepresentation(image, 1.0);
++}
++
+++ (NSString *)mimeTypeForUTI:(NSString *)uti
++{
++  if (@available(iOS 14.0, *)) {
++    UTType *utType = [UTType typeWithIdentifier:uti];
++    if (utType && utType.preferredMIMEType) {
++      return utType.preferredMIMEType;
++    }
++  }
++
++  // Fallback using Core Services
++  CFStringRef mimeTypeRef = UTTypeCopyPreferredTagWithClass(
++      (__bridge CFStringRef)uti, kUTTagClassMIMEType);
++  if (mimeTypeRef) {
++    return (__bridge_transfer NSString *)mimeTypeRef;
++  }
++
++  return @"application/octet-stream";
++}
++
+++ (NSString *)fileExtensionForUTI:(NSString *)uti
++{
++  if (@available(iOS 14.0, *)) {
++    UTType *utType = [UTType typeWithIdentifier:uti];
++    if (utType && utType.preferredFilenameExtension) {
++      return utType.preferredFilenameExtension;
++    }
++  }
++
++  // Fallback using Core Services
++  CFStringRef extRef = UTTypeCopyPreferredTagWithClass(
++      (__bridge CFStringRef)uti, kUTTagClassFilenameExtension);
++  if (extRef) {
++    return (__bridge_transfer NSString *)extRef;
++  }
++
++  return @"bin";
++}
++
+++ (nullable NSString *)payloadFromData:(NSData *)data withUTI:(NSString *)uti
++{
++  // For text-based types, return the string content directly
++  if (UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypePlainText) ||
++      UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeURL) ||
++      UTTypeConformsTo((__bridge CFStringRef)uti, kUTTypeFileURL)) {
++    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
++  }
++
++  // For binary data, write to a temp file and return the file URI
++  NSString *ext = [self fileExtensionForUTI:uti];
++  if (ext.length == 0) {
++    ext = @"bin";
++  }
++
++  NSError *error = nil;
++  NSString *tempPath = RCTTempFilePath(ext, &error);
++  if (!tempPath || error) {
++    return nil;
++  }
++
++  BOOL success = [data writeToFile:tempPath atomically:YES];
++  if (!success) {
++    return nil;
++  }
++
++  return [NSURL fileURLWithPath:tempPath].absoluteString;
++}
++
++@end
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 377f41e..960c9bb 100644
+index 377f41e..8bfde96 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -12,6 +12,10 @@
+@@ -12,6 +12,8 @@
  #import <React/RCTUtils.h>
  #import <React/UIView+React.h>
  
-+#import <MobileCoreServices/MobileCoreServices.h>
-+#import <MobileCoreServices/UTType.h>
-+#import <UIKit/UIKit.h>
++#import "RCTPasteHandlerUtil.h"
 +
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -180,6 +184,10 @@
+@@ -180,6 +182,10 @@
      return NO;
    }
  
-+  if (action == @selector(paste:) && [UIPasteboard generalPasteboard].numberOfItems > 0) {
-+    return YES;
++  if (action == @selector(paste:)) {
++    return [RCTPasteHandlerUtil hasPasteableContent:[UIPasteboard generalPasteboard]];
 +  }
 +
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -260,10 +268,83 @@
-   // Singleline TextInput does not require scrolling after calling setSelectedTextRange (PR 38679).
- }
- 
--- (void)paste:(id)sender
--{
-+- (void)paste:(id)sender {
+@@ -263,7 +269,26 @@
+ - (void)paste:(id)sender
+ {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +
++  // Fast path for plain text - also call super to insert the text
 +  if (clipboard.hasStrings && clipboard.string != nil) {
-+    NSDictionary<NSString *, NSString *> * stringItem = @{@"type" : @"text/plain", @"data" : clipboard.string};
++    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
 +    [_textInputDelegateAdapter didPaste:@[stringItem]];
 +    [super paste:sender];
 +    return;
 +  }
 +
-+  NSMutableArray<NSDictionary<NSString *, NSString *> *> *items =
-+      [NSMutableArray new];
-+
-+  for (NSInteger i = 0; i < clipboard.numberOfItems; i++) {
-+    NSIndexSet *itemSet = [NSIndexSet indexSetWithIndex:i];
-+    NSArray<NSString *> *types =
-+        [clipboard pasteboardTypesForItemSet:itemSet].firstObject;
-+    if (types.count == 0) {
-+      continue;
-+    }
-+
-+    // Prefer one canonical representation per item.
-+    NSString *type = nil;
-+    for (NSString *preferred in @[
-+           (NSString *)kUTTypeFileURL, (NSString *)kUTTypeURL,
-+           (NSString *)kUTTypePlainText
-+         ]) {
-+      if ([types containsObject:preferred]) {
-+        type = preferred;
-+        break;
-+      }
-+    }
-+    if (!type) {
-+      type = types.firstObject;
-+    }
-+
-+    NSData *data =
-+        [clipboard dataForPasteboardType:type inItemSet:itemSet].firstObject;
-+    if (!data) {
-+      continue;
-+    }
-+
-+    NSString *mimeType =
-+        (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass(
-+            (__bridge CFStringRef)type, kUTTagClassMIMEType)
-+            ?: @"application/octet-stream";
-+    NSString *payload = nil;
-+
-+    if (UTTypeConformsTo((__bridge CFStringRef)type, kUTTypePlainText) ||
-+        UTTypeConformsTo((__bridge CFStringRef)type, kUTTypeURL) ||
-+        UTTypeConformsTo((__bridge CFStringRef)type, kUTTypeFileURL)) {
-+      payload = [[NSString alloc] initWithData:data
-+                                      encoding:NSUTF8StringEncoding];
-+    } else {
-+      NSString *ext =
-+          (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass(
-+              (__bridge CFStringRef)type, kUTTagClassFilenameExtension)
-+              ?: @"bin";
-+      NSString *base = [NSTemporaryDirectory()
-+          stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
-+      NSString *path = [base stringByAppendingPathExtension:ext];
-+      [data writeToFile:path atomically:YES];
-+      payload = [NSURL fileURLWithPath:path].absoluteString;
-+    }
-+
-+    if (payload.length > 0) {
-+      [items addObject:@{@"type" : mimeType, @"data" : payload}];
-+    }
-+  }
++  // Process non-text items using the utility
++  NSArray<NSDictionary<NSString *, NSString *> *> *items =
++      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
 +
 +  if (items.count == 0) {
 +    [super paste:sender];
 +    return;
 +  }
 +
-+  [self->_textInputDelegateAdapter didPaste:[items copy]];
++  [_textInputDelegateAdapter didPaste:items];
  }
  
  #pragma mark - Layout
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index d160af1..e3de3a7 100644
+index d160af1..5808e65 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -521,6 +521,21 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -521,6 +521,32 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
    }
  }
  
 +- (void)textInputDidPaste:(NSArray<NSDictionary<NSString *, NSString *> *> *)items
 +{
-+  if (_eventEmitter) {
-+    std::vector<std::pair<std::string, std::string>> itemsVector;
-+    for (NSDictionary<NSString *, NSString *> *item in items) {
-+      NSString *type = item[@"type"];
-+      NSString *data = item[@"data"];
-+      if (type && data) {
-+        itemsVector.push_back({std::string([type UTF8String]), std::string([data UTF8String])});
-+      }
-+    }
-+    static_cast<const TextInputEventEmitter &>(*_eventEmitter).onPaste(itemsVector);
++  if (!_eventEmitter) {
++    return;
 +  }
++
++  std::vector<std::pair<std::string, std::string>> itemsVector;
++  for (NSDictionary<NSString *, NSString *> *item in items) {
++    NSString *type = item[@"type"];
++    NSString *data = item[@"data"];
++
++    // Defensive null checks to avoid crash when type or data is nil/unexpected
++    const char *typeCStr = (type && [type isKindOfClass:[NSString class]]) ? [type UTF8String] : "";
++    const char *dataCStr = (data && [data isKindOfClass:[NSString class]]) ? [data UTF8String] : "";
++
++    // Skip items with empty type or data
++    if (strlen(typeCStr) == 0 || strlen(dataCStr) == 0) {
++      continue;
++    }
++
++    itemsVector.push_back({std::string(typeCStr), std::string(dataCStr)});
++  }
++
++  static_cast<const TextInputEventEmitter &>(*_eventEmitter).onPaste(itemsVector);
 +}
 +
  #pragma mark - RCTBackedTextInputDelegate (UIScrollViewDelegate)
