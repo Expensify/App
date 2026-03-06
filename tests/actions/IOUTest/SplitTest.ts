@@ -146,6 +146,22 @@ const getPolicyTags = async (reportID: string) => {
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
     return policyTags;
 };
+const getParticipantsPolicyTags = async (participants: IOUParticipant[]) => {
+    let participantsPolicyTags: Record<string, PolicyTagLists> = {};
+    await getOnyxData({
+        waitForCollectionCallback: true,
+        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+        callback: (tags) => {
+            participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                if (participant.policyID) {
+                    acc[participant.policyID] = tags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                }
+                return acc;
+            }, {});
+        },
+    });
+    return participantsPolicyTags;
+};
 
 let mockFetch: MockFetch;
 
@@ -1035,6 +1051,9 @@ describe('split expense', () => {
             },
         });
 
+        const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
         // Start a scan split bill
         const {splitTransactionID} = startSplitBill({
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1051,6 +1070,7 @@ describe('split expense', () => {
             quickAction: undefined,
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
+            participantsPolicyTags,
         });
 
         await waitForBatchedUpdates();
@@ -1206,6 +1226,7 @@ describe('split expense', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1249,9 +1270,12 @@ describe('startSplitBill', () => {
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
         // When doing a split bill with a receipt
         startSplitBill({
-            participants: [{isPolicyExpenseChat: true, policyID}],
+            participants,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
             currentUserAccountID: currentUserPersonalDetails.accountID,
             comment: '',
@@ -1264,6 +1288,7 @@ describe('startSplitBill', () => {
             policyRecentlyUsedTags,
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags,
         });
 
         waitForBatchedUpdates();
@@ -1280,6 +1305,92 @@ describe('startSplitBill', () => {
         });
         expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
         expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
+    });
+
+    it('should return splitTransactionID and create the transaction in Onyx with correct values', async () => {
+        // Given a participant
+        const policyID = 'A';
+        const testComment = 'Test split comment';
+        const testCategory = 'Food';
+        const testCurrency = CONST.CURRENCY.USD;
+
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
+        // When starting a split bill
+        const {splitTransactionID} = startSplitBill({
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: testComment,
+            receipt: {},
+            category: testCategory,
+            tag: '',
+            currency: testCurrency,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            participantsPolicyTags,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the returned splitTransactionID should be defined
+        expect(splitTransactionID).toBeDefined();
+
+        // And the transaction should be created in Onyx with correct values
+        const createdTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
+        expect(createdTransaction).toBeDefined();
+        expect(createdTransaction?.transactionID).toBe(splitTransactionID);
+        expect(createdTransaction?.comment?.comment).toBe(testComment);
+        expect(createdTransaction?.category).toBe(testCategory);
+        expect(createdTransaction?.currency).toBe(testCurrency);
+        expect(createdTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+        expect(createdTransaction?.reportID).toBe(CONST.REPORT.SPLIT_REPORT_ID);
+    });
+
+    it('should update NVP_QUICK_ACTION_GLOBAL_CREATE with SPLIT_SCAN action', async () => {
+        // Given an existing quick action
+        const policyID = 'B';
+        const existingQuickAction = {
+            action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
+            chatReportID: '12345',
+        };
+
+        await Onyx.merge(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, existingQuickAction);
+
+        const participants: IOUParticipant[] = [{isPolicyExpenseChat: true, policyID, accountID: RORY_ACCOUNT_ID}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
+        // When starting a split bill
+        const {splitTransactionID} = startSplitBill({
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {},
+            category: '',
+            tag: '',
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            quickAction: existingQuickAction,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            participantsPolicyTags,
+        });
+
+        await waitForBatchedUpdates();
+
+        expect(splitTransactionID).toBeDefined();
+
+        // Then NVP_QUICK_ACTION_GLOBAL_CREATE should be updated with SPLIT_SCAN action
+        const quickAction = await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.SPLIT_SCAN);
+        expect(quickAction?.chatReportID).toBeDefined();
+        expect(quickAction?.isFirstQuickAction).toBe(false);
     });
 });
 
@@ -1375,6 +1486,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1485,6 +1597,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1608,6 +1721,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -1760,6 +1874,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -1813,6 +1928,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             policyRecentlyUsedCurrencies: [],
             quickAction: undefined,
             iouReportNextStep: undefined,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -1989,6 +2105,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2154,6 +2271,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2333,6 +2451,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2535,6 +2654,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             quickAction: undefined,
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
 
         await waitForBatchedUpdates();
@@ -2709,6 +2829,7 @@ describe('updateSplitTransactions', () => {
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
@@ -2830,6 +2951,7 @@ describe('updateSplitTransactions', () => {
             iouReportNextStep: undefined,
             betas: [CONST.BETAS.ALL],
             policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
         });
         await waitForBatchedUpdates();
 
