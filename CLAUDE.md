@@ -193,7 +193,7 @@ The skill provides guidance on:
 **ALWAYS run these steps after making code changes, before committing:**
 1. **Prettier**: Run `npx prettier --write <changed files>` on every file you modified. This is mandatory - CI will reject unformatted code.
 2. **ESLint**: Run `npx eslint <changed files> --max-warnings=0` to catch lint errors early.
-3. **TypeScript**: Run `npm run typecheck` if you changed types, interfaces, or function signatures.
+3. **TypeScript**: Run `npm run typecheck-tsgo` if you changed types, interfaces, or function signatures (~10x faster, usually stricter than tsc). CI validates with `npm run typecheck` (tsc) separately.
 
 ### Testing
 - **Unit Tests**: Jest with React Native Testing Library
@@ -234,7 +234,10 @@ npm install
 # Clean build artifacts
 npm run clean
 
-# Type checking
+# Type checking (fast, preferred for development)
+npm run typecheck-tsgo
+
+# Type checking (tsc, CI production gate)
 npm run typecheck
 
 # Linting
