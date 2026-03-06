@@ -37,7 +37,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
 
     useConfirmReadyToOpenApp();
 

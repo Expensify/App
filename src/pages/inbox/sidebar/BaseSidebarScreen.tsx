@@ -22,7 +22,7 @@ import SidebarLinksData from './SidebarLinksData';
 // remounts (e.g. navigating between tabs).
 let hasEverFinishedLoading = false;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
+    key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
     callback: (value) => {
         if (value !== false) {
             return;
@@ -37,7 +37,7 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
 
     // Must be called unconditionally so openApp() can proceed even when
