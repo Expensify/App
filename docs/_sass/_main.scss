@@ -1168,7 +1168,9 @@ button {
         position: absolute;
         top: 16px;
         right: 16px;
-        padding: 8px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
         border: none;
         border-radius: 50%;
         background-color: var(--color-row-hover);
@@ -1182,8 +1184,8 @@ button {
         }
 
         img {
-            width: 20px;
-            height: 20px;
+            width: 12px;
+            height: 12px;
             display: block;
         }
 
