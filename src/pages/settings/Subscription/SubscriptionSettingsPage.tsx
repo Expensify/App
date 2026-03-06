@@ -31,8 +31,8 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     useEffect(() => {
         openSubscriptionPage();
     }, []);
-    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);                                                                                                                                                 
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, {canBeMissing: true});      
+    const [isAppLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const shouldShowPage = !!subscriptionPlan || (amountOwed ?? 0) > 0;
 
     useEffect(() => {
