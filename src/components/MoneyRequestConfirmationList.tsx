@@ -42,6 +42,7 @@ import {getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
@@ -81,6 +82,7 @@ import UserListItem from './SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {Section} from './SelectionList/SelectionListWithSections/types';
 import SettlementButton from './SettlementButton';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
@@ -216,6 +218,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
+
+    /** When true, hide the "To:" section (e.g. when adding an expense directly to the current report) */
+    shouldHideToSection?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | OptionData;
@@ -267,6 +272,7 @@ function MoneyRequestConfirmationList({
     isTimeRequest = false,
     iouTimeCount,
     iouTimeRate,
+    shouldHideToSection = false,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -320,6 +326,15 @@ function MoneyRequestConfirmationList({
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+
+    const hasEndedListReadySpan = useRef(false);
+    useEffect(() => {
+        if (hasEndedListReadySpan.current || !transaction?.transactionID) {
+            return;
+        }
+        hasEndedListReadySpan.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+    }, [transaction?.transactionID]);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -837,7 +852,8 @@ function MoneyRequestConfirmationList({
                     sectionIndex: 1,
                 },
             );
-        } else {
+            // When adding an expense from within a report, hide the "To:" section since the destination is already the current report
+        } else if (!shouldHideToSection) {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
@@ -865,6 +881,7 @@ function MoneyRequestConfirmationList({
         isTestReceipt,
         isRestrictedToPreferredPolicy,
         isTypeInvoice,
+        shouldHideToSection,
     ]);
 
     useEffect(() => {
@@ -965,7 +982,7 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        ({paymentType: paymentMethod}: PaymentActionParams) => {
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -1034,6 +1051,11 @@ function MoneyRequestConfirmationList({
                 const decimals = getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
+                    return;
+                }
+
+                if (isDistanceRequest && Math.abs(iouAmount) > CONST.IOU.MAX_SAFE_AMOUNT) {
+                    setFormError('iou.error.distanceAmountTooLarge');
                     return;
                 }
 
@@ -1199,7 +1221,7 @@ function MoneyRequestConfirmationList({
                     <View>
                         <ButtonWithDropdownMenu
                             pressOnEnter
-                            onPress={(event, value) => confirm(value as PaymentMethodType)}
+                            onPress={(event, value) => confirm({paymentType: value as PaymentMethodType})}
                             options={splitOrRequestOptions}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             enterKeyEventListenerPriority={1}
@@ -1295,6 +1317,7 @@ function MoneyRequestConfirmationList({
                 policyTags={policyTags}
                 policyTagLists={policyTagLists}
                 rate={rate}
+                distanceRateName={mileageRate.name}
                 receiptFilename={receiptFilename}
                 receiptPath={receiptPath}
                 reportActionID={reportActionID}
@@ -1330,7 +1353,7 @@ function MoneyRequestConfirmationList({
                 onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 shouldPreventDefaultFocusOnSelectRow
-                showListEmptyContent={false}
+                shouldShowListEmptyContent={false}
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 style={selectionListStyle}
@@ -1375,5 +1398,6 @@ export default memo(
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate,
+        prevProps.iouTimeRate === nextProps.iouTimeRate &&
+        prevProps.shouldHideToSection === nextProps.shouldHideToSection,
 );
