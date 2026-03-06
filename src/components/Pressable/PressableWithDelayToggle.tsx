@@ -1,4 +1,4 @@
-/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
+/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors -- False positive for this polymorphic wrapper (Text or PressableWithoutFeedback). Tracking: https://github.com/Expensify/App/issues/84312 */
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
