@@ -3,6 +3,7 @@ import React, {useContext, useState} from 'react';
 import type {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import Badge from '@components/Badge';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TabIcon from '@components/TabSelector/TabIcon';
 import TabLabel from '@components/TabSelector/TabLabel';
@@ -28,6 +29,7 @@ function ScrollableTabSelectorItem({
     testID,
     equalWidth = false,
     sentryLabel,
+    badgeText,
 }: ScrollableTabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -65,6 +67,12 @@ function ScrollableTabSelectorItem({
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
+                />
+            )}
+            {!!badgeText && (
+                <Badge
+                    text={badgeText}
+                    success
                 />
             )}
         </AnimatedPressableWithFeedback>

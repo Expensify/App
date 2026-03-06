@@ -2,6 +2,7 @@ import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {View} from 'react-native';
+import Badge from '@components/Badge';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -39,6 +40,7 @@ function TabSelectorItem({
     parentX = 0,
     parentWidth = 0,
     equalWidth = false,
+    badgeText,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -106,6 +108,12 @@ function TabSelectorItem({
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
+                />
+            )}
+            {!!badgeText && (
+                <Badge
+                    text={badgeText}
+                    success
                 />
             )}
         </AnimatedPressableWithFeedback>

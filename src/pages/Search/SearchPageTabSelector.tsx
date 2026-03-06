@@ -50,13 +50,14 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
 
     for (const item of flattenedItems) {
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
-        const todoItemsCount = getItemBadgeText(item.key, reportCounts);
+        const badgeText = getItemBadgeText(item.key, reportCounts);
         const title = translate(item.translationPath);
 
         tabItems.push({
             key: item.key,
             icon,
-            title: todoItemsCount ? `${title} (${todoItemsCount})` : title,
+            title,
+            badgeText,
         });
         queryMap.set(item.key, {query: item.searchQuery});
         if (queryJSON && item.similarSearchHash === queryJSON.similarSearchHash) {

@@ -134,6 +134,7 @@ function TabSelectorBase({
                         parentWidth={selectorWidth}
                         parentX={selectorX}
                         equalWidth={equalWidth}
+                        badgeText={tab.badgeText}
                     />
                 );
             })}

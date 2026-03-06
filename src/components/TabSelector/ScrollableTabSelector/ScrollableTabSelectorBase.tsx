@@ -107,6 +107,7 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
                         sentryLabel={tab.sentryLabel}
                         shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                         equalWidth={equalWidth}
+                        badgeText={tab.badgeText}
                     />
                 );
             })}

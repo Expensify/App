@@ -37,6 +37,9 @@ type TabSelectorBaseItem = WithSentryLabel & {
 
     /** Test identifier used to find elements in tests. */
     testID?: string;
+
+    /** Text to display on the badge on the tab. */
+    badgeText?: string;
 };
 
 type TabSelectorBaseProps = {
@@ -101,6 +104,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Text to display on the badge on the tab. */
+    badgeText?: string;
 };
 
 type AnimationConfigBase = {
