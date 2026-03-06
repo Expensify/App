@@ -42,6 +42,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     /**
      * Delete transactions by IDs
@@ -157,6 +158,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
+                    personalDetails,
                     bankAccountList,
                 });
             }
@@ -209,6 +211,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             reportActions,
             transactionViolations,
             betas,
+            personalDetails,
         ],
     );
 

@@ -5281,6 +5281,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         body: 'Hai ancora un saldo di viaggio in sospeso. Paga prima il tuo saldo.',
                         confirm: 'Capito',
                     },
+                    exportToPDF: 'Esporta in PDF',
+                    exportToCSV: 'Esporta in CSV',
+                    selectDateRangeError: 'Seleziona un intervallo di date da esportare',
+                    invalidDateRangeError: 'La data di inizio deve essere precedente alla data di fine',
                     enabled: 'Fatturazione centralizzata abilitata!',
                     enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora centralizzate in una fattura mensile.',
                 },
@@ -7761,6 +7765,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per iniziare il tracciamento della distanza GPS.',
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
+        liveActivity: {subtitle: 'Rilevamento distanza', button: 'Visualizza avanzamento'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',

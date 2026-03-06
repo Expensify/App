@@ -532,6 +532,7 @@ type PerDiemExpenseInformation = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
     bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
@@ -550,6 +551,7 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
@@ -612,7 +614,7 @@ type MoneyRequestInformationParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>;
 };
 
@@ -843,6 +845,7 @@ type StartSplitBilActionParams = {
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
+    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 type ReplaceReceipt = {
@@ -3830,6 +3833,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
         bankAccountList,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -4061,6 +4065,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserEmailParam,
         hasViolations,
         quickAction,
+        personalDetails,
         bankAccountList,
     });
 
@@ -6901,6 +6906,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyRecentlyUsedCurrencies,
         betas,
         customUnitPolicyID,
+        personalDetails,
         shouldHandleNavigation = true,
         bankAccountList,
     } = submitPerDiemExpenseInformation;
@@ -6950,6 +6956,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
         bankAccountList,
     });
 

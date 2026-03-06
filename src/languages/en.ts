@@ -5267,6 +5267,10 @@ const translations = {
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
+                    exportToPDF: 'Export to PDF',
+                    exportToCSV: 'Export to CSV',
+                    selectDateRangeError: 'Please select a date range to export',
+                    invalidDateRangeError: 'The start date must be before the end date',
                     enabled: 'Central Invoicing enabled!',
                     enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
@@ -7735,6 +7739,10 @@ const translations = {
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
         fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',

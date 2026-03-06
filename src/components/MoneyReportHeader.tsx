@@ -1909,6 +1909,7 @@ function MoneyReportHeader({
             iouReportNextStep: nextStep,
             betas,
             userBillingGraceEndPeriods,
+            amountOwed,
             bankAccountList,
         });
 

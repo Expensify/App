@@ -5292,6 +5292,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         body: 'Sie haben noch einen offenen Reisensaldo. Bitte begleichen Sie zuerst Ihren Saldo.',
                         confirm: 'Verstanden',
                     },
+                    exportToPDF: 'Als PDF exportieren',
+                    exportToCSV: 'Als CSV exportieren',
+                    selectDateRangeError: 'Bitte wählen Sie einen Datumsbereich für den Export aus',
+                    invalidDateRangeError: 'Das Startdatum muss vor dem Enddatum liegen',
                     enabled: 'Zentrale Rechnungsstellung aktiviert!',
                     enabledDescription: 'Alle Reisekosten in diesem Workspace werden nun in einer monatlichen Rechnung zentralisiert.',
                 },
@@ -7775,6 +7779,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
         },
         fabGpsTripExplained: 'Zum GPS-Bildschirm wechseln (Schnellaktion)',
+        liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',
