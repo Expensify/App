@@ -428,10 +428,10 @@ function getRate({
     const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    // Only fall back to the default rate when no custom rate ID is stored on the transaction.
-    // If a custom rate ID exists but is not found in the policy (e.g. the rate was deleted),
-    // we intentionally return undefined so the UI can detect the rate is out of policy.
-    const customMileageRate = customUnitRateID ? mileageRates?.[customUnitRateID] : defaultMileageRate;
+    // Use raw stored ID (not getRateID() which defaults to FAKE_P2P_ID) so transactions
+    // without a stored rate fall back to default, while deleted rates correctly resolve to undefined.
+    const storedRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    const customMileageRate = storedRateID ? mileageRates?.[customUnitRateID] : defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {

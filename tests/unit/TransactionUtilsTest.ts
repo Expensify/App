@@ -839,7 +839,7 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
             expect(result).toBe(false);
         });
-        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
+        it('should be true when transaction is unreported and has invalid rate even if policy has default rate', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 customUnits: defaultCustomUnitPolicyID1,
@@ -855,7 +855,7 @@ describe('TransactionUtils', () => {
             };
 
             const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
         it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
             const fakePolicy: Policy = {
