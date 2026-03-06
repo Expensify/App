@@ -388,9 +388,6 @@ const CONST = {
     // Regex to get link in href prop inside of <a/> component
     REGEX_LINK_IN_ANCHOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi,
 
-    // Regex to parse a single anchor tag and extract text, href, and label
-    REGEX_ANCHOR_WITH_TEXT: /^(.*?)<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>(.*)$/s,
-
     // Regex to read violation value from string given by backend
     VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
