@@ -67,8 +67,8 @@ import {
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
-    hasMissingSmartscanFields,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
@@ -78,7 +78,6 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
     isScanning as isScanningTransactionUtils,
-    isScanRequest,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -212,11 +211,7 @@ function isSubmitAction({
         return false;
     }
 
-    const hasSmartScanFailedWithMissingFields = reportTransactions?.some(
-        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
-    );
-
-    if (hasSmartScanFailedWithMissingFields) {
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 

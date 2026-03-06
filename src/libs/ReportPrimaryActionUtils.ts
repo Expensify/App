@@ -48,14 +48,13 @@ import {
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
-    hasMissingSmartscanFields,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isScanning,
-    isScanRequest,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
@@ -123,11 +122,7 @@ function isSubmitAction(
         return false;
     }
 
-    const hasSmartScanFailedWithMissingFields = reportTransactions?.some(
-        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
-    );
-
-    if (hasSmartScanFailedWithMissingFields) {
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 

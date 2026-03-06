@@ -20,7 +20,7 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasMissingSmartscanFields, hasSubmissionBlockingViolations, isPending, isScanning, isScanRequest} from './TransactionUtils';
+import {hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -47,11 +47,7 @@ function canSubmit(
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
-    const hasSmartScanFailedWithMissingFields = transactions?.some(
-        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
-    );
-
-    if (hasSmartScanFailedWithMissingFields) {
+    if (hasSmartScanFailedWithMissingFields(transactions ?? [], report)) {
         return false;
     }
 

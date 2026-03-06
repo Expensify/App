@@ -211,7 +211,7 @@ import {
     getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
-    hasMissingSmartscanFields,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -10542,10 +10542,6 @@ function canSubmitReport(
     const hasAnySubmissionBlockingViolations = transactions.some((transaction) =>
         hasSubmissionBlockingViolations(transaction, allViolations, currentUserEmailParam, currentUserAccountID, report, policy),
     );
-    const hasSmartScanFailedWithMissingFields = transactions.some(
-        (transaction) => isScanRequestTransactionUtils(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
-    );
-
     return (
         isOpenExpenseReport &&
         (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
@@ -10554,7 +10550,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         !hasAnySubmissionBlockingViolations &&
-        !hasSmartScanFailedWithMissingFields &&
+        !hasSmartScanFailedWithMissingFields(transactions, report) &&
         transactions.length > 0
     );
 }
