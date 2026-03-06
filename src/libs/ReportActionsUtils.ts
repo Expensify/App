@@ -3317,7 +3317,6 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
     }
 
     let stateZip = '';
-
     if (address.state) {
         stateZip = address.state;
         if (address.zipCode) {
