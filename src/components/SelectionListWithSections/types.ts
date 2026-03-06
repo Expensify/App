@@ -254,54 +254,38 @@ type ListItem<K extends string | number = string> = {
     isIndeterminate?: boolean;
 };
 
-type TransactionColumnMeasurements = {
-    merchant: number;
-    category: number;
-    tag: number;
-    amount: number;
-    exchangeRate: number;
-    description: number;
-    card: number;
-    billable: number;
-    reimbursable: number;
-    title: number;
-    taxRate: number;
-    taxAmount: number;
-    reportID: number;
-    longReportID: number;
-    originalAmount: number;
-    date: number;
-    exported: number;
-    submitted: number;
-    approved: number;
-    posted: number;
-};
+// Columns that are shown in plain text
+type TransactionTextColumns =
+    | typeof CONST.SEARCH.TABLE_COLUMNS.MERCHANT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.CATEGORY
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TAG
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION
+    | typeof CONST.SEARCH.TABLE_COLUMNS.CARD
+    | typeof CONST.SEARCH.TABLE_COLUMNS.BILLABLE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TITLE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TAX_RATE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.REPORT_ID
+    | typeof CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID
+    | typeof CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.DATE
+    | typeof CONST.SEARCH.TABLE_COLUMNS.EXPORTED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.SUBMITTED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.APPROVED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.POSTED;
+
+type TransactionColumnMeasurements = Record<TransactionTextColumns, number>;
 
 type TransactionListItemType = ListItem &
     Transaction & {
+        /** The measurements for each column */
         measurements: TransactionColumnMeasurements;
-        formattedValues: {
-            merchant: string;
-            category: string;
-            tag: string;
-            amount: string;
-            exchangeRate: string;
-            description: string;
-            card: string;
-            billable: string;
-            reimbursable: string;
-            title: string;
-            taxRate: string;
-            taxAmount: string;
-            reportID: string;
-            longReportID: string;
-            originalAmount: string;
-            date: string;
-            exported: string;
-            submitted: string;
-            approved: string;
-            posted: string;
-        };
+
+        /** Formatted values for each column */
+        formattedValues: Record<TransactionTextColumns, string>;
 
         /** Report to which the transaction belongs */
         report: Report | undefined;
@@ -1294,5 +1278,5 @@ export type {
     SearchListItem,
     UnreportedExpenseListItemType,
     TransactionColumnMeasurements,
-    TransactionColumnSize,
+    TransactionTextColumns,
 };

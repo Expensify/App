@@ -44,7 +44,6 @@ import type {
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionColumnMeasurements,
-    TransactionColumnSize,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -1713,27 +1712,27 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
 
     // New Measurement Data
-    const measurements = {
-        date: 0,
-        merchant: 0,
-        category: 0,
-        tag: 0,
-        amount: 0,
-        exchangeRate: 0,
-        description: 0,
-        card: 0,
-        billable: 0,
-        reimbursable: 0,
-        title: 0,
-        taxRate: 0,
-        taxAmount: 0,
-        reportID: 0,
-        longReportID: 0,
-        originalAmount: 0,
-        exported: 0,
-        submitted: 0,
-        approved: 0,
-        posted: 0,
+    const measurements: TransactionColumnMeasurements = {
+        [CONST.SEARCH.TABLE_COLUMNS.DATE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.TAG]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.CARD]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 0,
+        [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 0,
     };
 
     for (const key of transactionKeys) {
@@ -1787,127 +1786,127 @@ function getTransactionsSections({
 
         // Compute the maximum size of all of the text fields to determine how much space we need to delegate
         // Handle the merchant
-        measurements.merchant = getColumnWidthStyle(measurements.merchant, formattedMerchant);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.MERCHANT], formattedMerchant);
 
         // Handle the category
         const formattedCategory = isCategoryMissing(transaction?.category) ? '' : getDecodedCategoryName(transaction?.category ?? '');
-        measurements.category = getColumnWidthStyle(measurements.category, formattedCategory);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.CATEGORY] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.CATEGORY], formattedCategory);
 
         // Handle the tag
         const formattedTag = getTagForDisplay(transaction);
-        measurements.tag = getColumnWidthStyle(measurements.tag, formattedTag);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAG] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAG], formattedTag);
 
         // Handle the amount
         const transactionCurrency = getOriginalCurrencyForDisplay(transaction);
         const transactionDisplayAmount = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const formattedAmount = convertToDisplayString(transactionDisplayAmount, transactionCurrency);
-        measurements.amount = getColumnWidthStyle(measurements.amount, formattedAmount);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], formattedAmount);
 
         // Handle the exchange rate
         const formattedExchangeRate = getExchangeRate(transaction);
-        measurements.exchangeRate = getColumnWidthStyle(measurements.exchangeRate, formattedExchangeRate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE], formattedExchangeRate);
 
         // Handle the description
         const formattedDescription = getDescription(transaction);
-        measurements.description = getColumnWidthStyle(measurements.description, formattedDescription);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION], formattedDescription);
 
         // Handle the card
         // JACK_TODO: This is missing customCardNames but it doesnt matter for now
         const deletedFeedCardName = isCardFeedDeleted ? translate('workspace.companyCards.deletedFeed') : null;
         const cashCardName = transaction.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : null;
         const formattedCardName = deletedFeedCardName ?? cashCardName ?? transaction.cardName ?? '';
-        measurements.card = getColumnWidthStyle(measurements.card, formattedCardName);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.CARD] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.CARD], formattedCardName);
 
         // Handle the billable
         const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
-        measurements.billable = getColumnWidthStyle(measurements.billable, formattedBillable);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.BILLABLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.BILLABLE], formattedBillable);
 
         // Handle the reimbursable
         const formattedReimbursable = getReimbursable(transaction) ? translate('common.yes') : translate('common.no');
-        measurements.reimbursable = getColumnWidthStyle(measurements.reimbursable, formattedReimbursable);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE], formattedReimbursable);
 
         // Handle the title
         const formattedTitle = getReportNameUtil(report);
-        measurements.title = getColumnWidthStyle(measurements.title, formattedTitle);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TITLE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TITLE], formattedTitle);
 
         // Handle the tax rate
         const formattedTaxRate = !isTimeRequest(transaction) ? (getTaxName(policy, transaction) ?? transaction.taxValue ?? '') : '';
-        measurements.taxRate = getColumnWidthStyle(measurements.taxRate, formattedTaxRate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE], formattedTaxRate);
 
         // Handle the tax
         const transactionTaxAmount = getTaxAmount(transaction, true);
         const transactionTaxAmountCurrency = getCurrency(transaction);
         const formattedTaxAmount = !isTimeRequest(transaction) ? convertToDisplayString(transactionTaxAmount, transactionTaxAmountCurrency) : '';
-        measurements.taxAmount = getColumnWidthStyle(measurements.taxAmount, formattedTaxAmount);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT], formattedTaxAmount);
 
         // Handle the report ID
         const formattedReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : (transaction.reportID?.toString() ?? '');
-        measurements.reportID = getColumnWidthStyle(measurements.reportID, formattedReportID);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.REPORT_ID], formattedReportID);
 
         // Handle the base62 report ID
         const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
-        measurements.longReportID = getColumnWidthStyle(measurements.longReportID, formattedBase62ReportID);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID], formattedBase62ReportID);
 
         // Handle the original amount
         const originalAmountTotal = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const originalAmountCurrency = getOriginalCurrencyForDisplay(transaction);
         const formattedOriginalAmount = convertToDisplayString(originalAmountTotal, originalAmountCurrency);
-        measurements.originalAmount = getColumnWidthStyle(measurements.originalAmount, formattedOriginalAmount);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT], formattedOriginalAmount);
 
         // Handle the date
         const createdDate = date ?? '';
         const isCreatedLastYear = DateUtils.doesDateBelongToAPastYear(createdDate);
         const formattedDate = DateUtils.formatWithUTCTimeZone(createdDate, isCreatedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.date = getColumnWidthStyle(measurements.date, formattedDate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.DATE] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.DATE], formattedDate);
 
         // Handle exported date
         const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
         const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
         const formattedExportDate = DateUtils.formatWithUTCTimeZone(exportDate, isExportedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.exported = getColumnWidthStyle(measurements.exported, formattedExportDate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.EXPORTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.EXPORTED], formattedExportDate);
 
         // Handle submitted date
         const submittedDate = report.submitted ?? '';
         const isSubmittedLastYear = DateUtils.doesDateBelongToAPastYear(submittedDate);
         const formattedSubmittedDate = DateUtils.formatWithUTCTimeZone(submittedDate, isSubmittedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.submitted = getColumnWidthStyle(measurements.submitted, formattedSubmittedDate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.SUBMITTED], formattedSubmittedDate);
 
         // Handle approved date
         const approvedDate = report.approved ?? '';
         const isApprovedLastYear = DateUtils.doesDateBelongToAPastYear(approvedDate);
         const formattedApprovedDate = DateUtils.formatWithUTCTimeZone(approvedDate, isApprovedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.approved = getColumnWidthStyle(measurements.approved, formattedApprovedDate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.APPROVED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.APPROVED], formattedApprovedDate);
 
         // Handle posted date
         const postedDate = posted ?? '';
         const isPostedLastYear = DateUtils.doesDateBelongToAPastYear(postedDate);
         const formattedPostedDate = DateUtils.formatWithUTCTimeZone(postedDate, isPostedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        measurements.posted = getColumnWidthStyle(measurements.posted, formattedPostedDate);
+        measurements[CONST.SEARCH.TABLE_COLUMNS.POSTED] = getColumnWidthStyle(measurements[CONST.SEARCH.TABLE_COLUMNS.POSTED], formattedPostedDate);
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
             measurements,
             formattedValues: {
-                date: formattedDate,
-                merchant: formattedMerchant,
-                category: formattedCategory,
-                tag: formattedTag,
-                amount: formattedAmount,
-                exchangeRate: formattedExchangeRate,
-                description: formattedDescription,
-                card: formattedCardName,
-                billable: formattedBillable,
-                reimbursable: formattedReimbursable,
-                title: formattedTitle,
-                taxRate: formattedTaxRate,
-                taxAmount: formattedTaxAmount,
-                reportID: formattedReportID,
-                longReportID: formattedBase62ReportID,
-                originalAmount: formattedOriginalAmount,
-                exported: formattedExportDate,
-                submitted: formattedSubmittedDate,
-                approved: formattedApprovedDate,
-                posted: formattedPostedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.DATE]: formattedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: formattedMerchant,
+                [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: formattedCategory,
+                [CONST.SEARCH.TABLE_COLUMNS.TAG]: formattedTag,
+                [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: formattedAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: formattedExchangeRate,
+                [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: formattedDescription,
+                [CONST.SEARCH.TABLE_COLUMNS.CARD]: formattedCardName,
+                [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: formattedBillable,
+                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: formattedReimbursable,
+                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: formattedTitle,
+                [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: formattedTaxRate,
+                [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: formattedTaxAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: formattedReportID,
+                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: formattedBase62ReportID,
+                [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: formattedOriginalAmount,
+                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: formattedExportDate,
+                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: formattedSubmittedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: formattedApprovedDate,
+                [CONST.SEARCH.TABLE_COLUMNS.POSTED]: formattedPostedDate,
             },
             keyForList: transaction.transactionID,
             action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
