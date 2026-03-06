@@ -3,38 +3,36 @@ import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+import {BusinessInfoSubPageProps} from '../types';
 
-type AverageReimbursementsProps = SubStepProps & {currency: string};
+const {ANNUAL_VOLUME} = INPUT_IDS;
+const STEP_FIELDS = [ANNUAL_VOLUME];
 
-const {TRADE_VOLUME} = INPUT_IDS;
-const STEP_FIELDS = [TRADE_VOLUME];
-
-function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageReimbursementsProps) {
+function PaymentVolume({onNext, onMove, isEditing, currency}: BusinessInfoSubPageProps) {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
-    const tradeVolumeRangeListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
-        [corpayOnboardingFields?.picklists.TradeVolumeRange],
+    const annualVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange],
     );
 
     const pushRowFields = useMemo(
         () => [
             {
-                inputID: TRADE_VOLUME,
-                defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
-                options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
-                modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
-                searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
+                inputID: ANNUAL_VOLUME,
+                defaultValue: enableGlobalReimbursementsDraft?.[ANNUAL_VOLUME] ?? '',
+                options: annualVolumeRangeListOptions,
+                description: translate('businessInfoStep.annualPaymentVolumeInCurrency', currency),
+                modalHeaderTitle: translate('businessInfoStep.selectAnnualPaymentVolume'),
+                searchInputTitle: translate('businessInfoStep.findAnnualPaymentVolume'),
             },
         ],
-        [enableGlobalReimbursementsDraft, currency, tradeVolumeRangeListOptions, translate],
+        [enableGlobalReimbursementsDraft, currency, annualVolumeRangeListOptions, translate],
     );
 
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
@@ -53,11 +51,11 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: AverageRei
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS}
-            formTitle={translate('businessInfoStep.whatsYourExpectedAverageReimbursements')}
+            formTitle={translate('businessInfoStep.whatsTheBusinessAnnualPayment')}
             onSubmit={handleSubmit}
             pushRowFields={pushRowFields}
         />
     );
 }
 
-export default AverageReimbursements;
+export default PaymentVolume;

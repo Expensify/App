@@ -3,15 +3,15 @@ import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+import type {BusinessInfoSubPageProps} from '../types';
 
 const {APPLICANT_TYPE_ID, BUSINESS_CATEGORY} = INPUT_IDS;
 const STEP_FIELDS = [APPLICANT_TYPE_ID, BUSINESS_CATEGORY];
 
-function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
+function BusinessType({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);

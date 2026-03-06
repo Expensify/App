@@ -491,7 +491,14 @@ function WalletPage() {
                                   closeModal(() => showLockedAccountModal());
                                   return;
                               }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                              closeModal(() =>
+                                  Navigation.navigate(
+                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                          paymentMethod.selectedPaymentMethod.bankAccountID,
+                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                      ),
+                                  ),
+                              );
                           },
                       },
                   ]

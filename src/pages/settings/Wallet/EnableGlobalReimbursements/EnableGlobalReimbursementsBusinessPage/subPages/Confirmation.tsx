@@ -2,10 +2,10 @@ import React, {useMemo} from 'react';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+import type {BusinessInfoSubPageProps} from '../types';
 
 const {BUSINESS_REGISTRATION_INCORPORATION_NUMBER, ANNUAL_VOLUME, APPLICANT_TYPE_ID, TRADE_VOLUME, BUSINESS_CATEGORY} = INPUT_IDS;
 
@@ -13,7 +13,7 @@ const displayStringValue = (list: Array<{id: string; name: string; stringValue: 
     return list.find((item) => item.name === matchingName)?.stringValue ?? '';
 };
 
-function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
+function Confirmation({onNext, onMove, isEditing}: BusinessInfoSubPageProps) {
     const {translate} = useLocalize();
 
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);

@@ -736,11 +736,15 @@ const CONST = {
         },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
-        STEP_NAMES: ['1', '2', '3'],
-        STEP: {
-            BUSINESS_INFO: 'BusinessInfoStep',
-            AGREEMENTS: 'AgreementsStep',
-            DOCUSIGN: 'DocusignStep',
+        STEP_INDEX_LIST: ['1', '2', '3'],
+        PAGE_NAME: {
+            BUSINESS_INFO: {
+                REGISTRATION_NUMBER: 'registration-number',
+                TYPE: 'type',
+                PAYMENT_VOLUME: 'payment-volume',
+                AVERAGE_REIMBURSEMENT: 'average-reimbursement',
+                CONFIRM: 'confirm',
+            },
         },
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
     },
