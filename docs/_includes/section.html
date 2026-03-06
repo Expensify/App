@@ -21,7 +21,10 @@
 </h1>
 
 <section>
-    {% assign sortedArticles = section.articles | default: empty | sort: 'order', 'last' %}
+    {% assign sortedArticles = "" | split: "," %}
+    {% if section.articles %}
+        {% assign sortedArticles = section.articles | sort: 'order', 'last' %}
+    {% endif %}
 
     {% comment %} Render direct articles (no nested path) {% endcomment %}
     <div class="cards-group">
@@ -31,7 +34,7 @@
             {% endfor %}
         {% endif %}
         {% if section.articles %}
-            {% assign sortedArticles = section.articles | default: empty %}
+            {% assign sortedArticles = section.articles %}
             {% for article in sortedArticles %}
                 {% assign article_href = section.href | append: '/' | append: article.href %}
                 {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
