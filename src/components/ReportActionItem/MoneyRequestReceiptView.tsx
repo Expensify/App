@@ -9,6 +9,7 @@ import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
@@ -497,13 +498,13 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                             </PressableWithoutFeedback>
                                         )}
                                     </AttachmentPicker>
-                                    <PressableWithoutFeedback
+                                    <PressableWithoutFocus
                                         onPress={() =>
                                             Navigation.navigate(
                                                 ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
                                             )
                                         }
-                                        style={styles.receiptActionButton}
+                                        style={[styles.receiptActionButton, styles.noOutline]}
                                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                         role={CONST.ROLE.BUTTON}
                                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
@@ -516,7 +517,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                 fill={theme.icon}
                                             />
                                         </View>
-                                    </PressableWithoutFeedback>
+                                    </PressableWithoutFocus>
                                 </View>
                             )}
                         </View>
