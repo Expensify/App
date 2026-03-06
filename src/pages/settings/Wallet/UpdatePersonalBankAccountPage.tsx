@@ -66,7 +66,7 @@ const formPages = [
  * Returns the first non-skipped page name for the update flow based on the bank account's existing data.
  */
 function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>, bankAccountID?: number): string {
-    const completedSteps = getCompletedStepsForBankAccount(bankAccountList, bankAccountID);
+    const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
     const skipPageNames = new Set(completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
     const firstPage = PAGE_NAMES.find((name) => !skipPageNames.has(name));
     return firstPage ?? PAGE_NAME.LEGAL_NAME;
@@ -82,7 +82,8 @@ function UpdatePersonalBankAccountPage() {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const completedSteps = getCompletedStepsForBankAccount(bankAccountList, personalBankAccount?.bankAccountID);
+    const bankAccountID = personalBankAccount?.bankAccountID;
+    const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);

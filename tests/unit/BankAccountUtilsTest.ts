@@ -1,4 +1,12 @@
-import {getDefaultCompanyWebsite, getLastFourDigits, hasPartiallySetupBankAccount, isBankAccountPartiallySetup, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    getCompletedStepsForBankAccount,
+    getDefaultCompanyWebsite,
+    getLastFourDigits,
+    hasPartiallySetupBankAccount,
+    isBankAccountPartiallySetup,
+    isPersonalBankAccountMissingInfo,
+    PERSONAL_INFO_STEP,
+} from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
@@ -223,6 +231,99 @@ describe('BankAccountUtils', () => {
         it('handles undefined session', () => {
             const account: Account = {isFromPublicDomain: false} as Account;
             expect(getDefaultCompanyWebsite(undefined, account)).toBe('https://www.');
+        });
+    });
+
+    describe('getCompletedStepsForBankAccount', () => {
+        const bankAccountID = 12345;
+        const bankAccountKey = String(bankAccountID);
+
+        const fullAdditionalData = {
+            firstName: 'John',
+            lastName: 'Doe',
+            addressStreet: '123 Main St',
+            addressCity: 'New York',
+            addressState: 'NY',
+            addressZipCode: '10001',
+            companyPhone: '+15551234567',
+        };
+
+        it('returns all steps when all data is present', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {accountData: {additionalData: fullAdditionalData}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+            const result = getCompletedStepsForBankAccount(bankAccountList, bankAccountID);
+            expect(result).toEqual([PERSONAL_INFO_STEP.NAME, PERSONAL_INFO_STEP.ADDRESS, PERSONAL_INFO_STEP.PHONE]);
+        });
+
+        it('returns empty array when bank account is not found', () => {
+            const bankAccountList = {} as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+
+        it('returns empty array when bankAccountList is undefined', () => {
+            expect(getCompletedStepsForBankAccount(undefined, bankAccountID)).toEqual([]);
+        });
+
+        it('returns only NAME step when only name fields are present', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {accountData: {additionalData: {firstName: 'John', lastName: 'Doe'}}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.NAME]);
+        });
+
+        it('returns only ADDRESS step when only address fields are present', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {
+                    accountData: {additionalData: {addressStreet: '123 Main St', addressCity: 'New York', addressState: 'NY', addressZipCode: '10001'}},
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.ADDRESS]);
+        });
+
+        it('returns only PHONE step when only phone is present', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {accountData: {additionalData: {companyPhone: '+15551234567'}}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.PHONE]);
+        });
+
+        it('returns empty array when accountData has no additionalData', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {accountData: {}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+
+        it('does not include NAME when only firstName is present (lastName missing)', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {accountData: {additionalData: {firstName: 'John'}}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+
+        it('returns multiple steps when some groups are complete', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {
+                    accountData: {additionalData: {firstName: 'John', lastName: 'Doe', companyPhone: '+15551234567'}},
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([PERSONAL_INFO_STEP.NAME, PERSONAL_INFO_STEP.PHONE]);
+        });
+
+        it('does not include ADDRESS when one address field is missing', () => {
+            const bankAccountList = {
+                [bankAccountKey]: {
+                    accountData: {additionalData: {addressStreet: '123 Main St', addressCity: 'New York', addressState: 'NY'}},
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
         });
     });
 });
