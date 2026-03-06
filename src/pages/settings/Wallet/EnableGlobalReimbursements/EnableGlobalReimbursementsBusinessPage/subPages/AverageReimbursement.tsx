@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
-import type {BusinessInfoSubPageProps} from '../types';
+import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
 
 const {TRADE_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [TRADE_VOLUME];

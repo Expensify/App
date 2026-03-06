@@ -41,6 +41,20 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
         Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.getRoute(Number(bankAccountID)));
     };
 
+    const {CurrentPage, isEditing, pageIndex, prevPage, nextPage, moveTo} = useSubPage<BusinessInfoSubPageProps>({
+        pages,
+        onFinished: goToAgreementsPage,
+        buildRoute: (pageName, action) => ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), pageName, action),
+    });
+
+    useEffect(() => {
+        getCorpayOnboardingFields(country);
+    }, [country]);
+
+    useEffect(() => {
+        return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
+    }, []);
+
     const goBackToConfirmStep = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.CONFIRM));
     };
@@ -59,20 +73,6 @@ function EnableGlobalReimbursementsBusinessPage({route}: EnableGlobalReimburseme
 
         prevPage();
     };
-
-    const {CurrentPage, isEditing, pageIndex, prevPage, nextPage, moveTo} = useSubPage<BusinessInfoSubPageProps>({
-        pages,
-        onFinished: goToAgreementsPage,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(Number(bankAccountID), pageName, action),
-    });
-
-    useEffect(() => {
-        getCorpayOnboardingFields(country);
-    }, [country]);
-
-    useEffect(() => {
-        return clearErrors(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
-    }, []);
 
     return (
         <InteractiveStepWrapper
