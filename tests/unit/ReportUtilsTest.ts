@@ -61,6 +61,7 @@ import {
     doesReportBelongToWorkspace,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
+    getAddExpenseDropdownOptions,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getApprovalChain,
     getAvailableReportFields,
@@ -157,6 +158,7 @@ import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -682,6 +684,61 @@ describe('ReportUtils', () => {
                     onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                 }),
             );
+        });
+
+        it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {
+                    message: '',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            expect(result?.guidedSetupData).toHaveLength(0);
+        });
+
+        it('should not include sign-off message for LOOKING_AROUND intent', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: {
+                    message: '',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            // For LOOKING_AROUND with empty message and no tasks, guidedSetupData should be empty
+            // because both the message and the sign-off are suppressed
+            expect(result?.guidedSetupData).toHaveLength(0);
+
+            // The sign-off message should not be in the optimistic data for the target report
+            const reportActionsKeys = result?.optimisticData.filter((i) => i.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`).map((i) => i.key);
+            expect(reportActionsKeys).toHaveLength(0);
+        });
+
+        it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                onboardingMessage: {
+                    message: 'Here is how to track your spend in a few clicks.',
+                    tasks: [],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            });
+
+            // Non-LOOKING_AROUND intents with a message should have guidedSetupData entries
+            // At minimum: the message itself and the sign-off
+            expect(result?.guidedSetupData.length).toBeGreaterThanOrEqual(1);
+            const messageEntries = result?.guidedSetupData.filter((data) => data.type === 'message');
+            expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
         });
     });
 
@@ -2380,7 +2437,27 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected this report');
+                    expect(reportName).toBe('rejected');
+                });
+
+                test('should return rejected action name for REJECTED_TO_SUBMITTER', () => {
+                    const rejectedToSubmitterAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: rejectedToSubmitterAction.reportActionID,
+                    };
+
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {[rejectedToSubmitterAction.reportActionID]: rejectedToSubmitterAction},
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe('rejected');
                 });
 
                 test('should handle integration sync failed action', () => {
@@ -4106,6 +4183,23 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
             };
             expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeTruthy();
+        });
+
+        it('should return false for admins rooms thread when posting tasks in admins room', async () => {
+            const onboardingValue = {hasCompletedGuidedSetupFlow: true} as Onboarding;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_ONBOARDING]: onboardingValue,
+            });
+
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                parentReportID: '1',
+                parentReportActionID: '2',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            expect(isChatUsedForOnboarding(report, onboardingValue, undefined, CONST.ONBOARDING_CHOICES.MANAGE_TEAM)).toBeFalsy();
         });
 
         it('should return false for admins room when engagement choice is TRACK_WORKSPACE (Concierge is used for onboarding)', async () => {
@@ -13238,6 +13332,96 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getAddExpenseDropdownOptions', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockIcons = {
+            Location: jest.fn() as unknown as IconAsset,
+            ReceiptPlus: jest.fn() as unknown as IconAsset,
+        };
+        const mockIouReportID = '12345';
+
+        it('should return exactly 3 dropdown options', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            expect(result).toHaveLength(3);
+        });
+
+        it('should return options with correct values', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, undefined, undefined);
+            expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
+            expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
+            expect(result.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+        });
+
+        it('should return options with correct translated text', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
+            expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
+            expect(result.at(2)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.addUnreportedExpense'));
+        });
+
+        it('should return options with correct sentry labels', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
+            expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
+            expect(result.at(2)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED);
+        });
+
+        it('should pass amountOwed to shouldRestrictUserBillableActions when onSelected is called', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            const amountOwed = 100;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, amountOwed, undefined);
+
+            // Trigger each onSelected - the function should not throw
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should return options with zero amountOwed without triggering billing restrictions', () => {
+            const mockPolicy = createRandomPolicy(0);
+            mockPolicy.type = CONST.POLICY.TYPE.CORPORATE;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, mockPolicy, undefined, 0, undefined);
+
+            expect(result).toHaveLength(3);
+            // Each onSelected should work without issues when amountOwed is 0
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should handle undefined iouReportID in CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE onSelected', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, 0, undefined);
+
+            // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
+            expect(() => result.at(0)?.onSelected?.()).not.toThrow();
+            expect(() => result.at(1)?.onSelected?.()).not.toThrow();
+            // ADD_UNREPORTED_EXPENSE does not require iouReportID
+            expect(() => result.at(2)?.onSelected?.()).not.toThrow();
+        });
+
+        it('should handle undefined policy gracefully', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+
+            expect(result).toHaveLength(3);
+            for (const option of result) {
+                expect(() => option.onSelected?.()).not.toThrow();
+            }
+        });
+
+        it('should accept amountOwed as a number parameter', () => {
+            const amountOwed = 500;
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, amountOwed, undefined);
+
+            expect(result).toHaveLength(3);
+        });
+
+        it('should use the provided icons for Location and ReceiptPlus', () => {
+            const result = getAddExpenseDropdownOptions(mockTranslate, mockIcons, mockIouReportID, undefined, undefined, 0, undefined);
+            expect(result.at(1)?.icon).toBe(mockIcons.Location);
+            expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
+        });
+    });
     describe('GBR: draft report with delayed submission off then on (issue #69891)', () => {
         const policyID = 'policy-delayed-submit';
         const adminAccountID = 42;
@@ -13373,6 +13557,99 @@ describe('ReportUtils', () => {
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             await Onyx.clear();
+        });
+    });
+    describe('getAddExpenseDropdownOptions', () => {
+        const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
+        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;
+        const policyID = '5001';
+        const iouReportID = 'reportABC';
+        const ownerAccountID = 999;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should return 3 dropdown options with correct values', () => {
+            const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, undefined, undefined, undefined, undefined);
+
+            expect(options).toHaveLength(3);
+            expect(options.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
+            expect(options.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
+            expect(options.at(2)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE);
+        });
+
+        describe('CREATE_NEW_EXPENSE', () => {
+            it('should return early when iouReportID is undefined', () => {
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, undefined, undefined, undefined, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
+
+            it('should navigate to restricted action when non-personal policy owner is past due', async () => {
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                options.at(0)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
+        });
+
+        describe('ADD_UNREPORTED_EXPENSE', () => {
+            it('should navigate to restricted action when policy owner is past due', async () => {
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await waitForBatchedUpdates();
+
+                const pastDueCollection = {
+                    [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
+                        value: Math.floor(Date.now() / 1000) - 3600,
+                    },
+                };
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, pastDueCollection, undefined, undefined);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
+
+            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+                const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
+                const testPolicy = {
+                    ...createRandomPolicy(Number(policyID)),
+                    id: policyID,
+                    ownerAccountID: currentUserAccountID,
+                } as Policy;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
+                await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+                await waitForBatchedUpdates();
+
+                const options = getAddExpenseDropdownOptions(mockTranslate, mockIcons, iouReportID, testPolicy, undefined, undefined, gracePeriodEnd);
+                options.at(2)?.onSelected?.();
+
+                expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            });
         });
     });
 });

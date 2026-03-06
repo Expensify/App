@@ -57,6 +57,9 @@ type AmountFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Callback when the input is focused */
+    onFocus?: () => void;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
 
 /**
@@ -79,6 +82,7 @@ function AmountForm({
     autoGrowExtraSpace,
     autoGrowMarginSide,
     onSubmitEditing,
+    onFocus,
     ref,
     numberFormRef,
 }: AmountFormProps) {
@@ -119,6 +123,7 @@ function AmountForm({
             autoGrowMarginSide={autoGrowMarginSide}
             onSubmitEditing={onSubmitEditing}
             disabled={disabled}
+            onFocus={onFocus}
         />
     );
 }
