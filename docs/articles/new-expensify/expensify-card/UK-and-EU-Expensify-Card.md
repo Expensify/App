@@ -14,7 +14,6 @@ Workspace Admins can issue virtual Expensify Cards to members and manage spendin
 
 <!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow the instructions below -->
 
-# UK/EU Expensify Card setup
 
 
 ## Who can set up the Expensify Cards in the UK and EU
