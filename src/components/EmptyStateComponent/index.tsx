@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -27,7 +28,9 @@ function EmptyStateComponent({
     subtitleText,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
+    const hasMultipleButtons = buttons && buttons.length > 1;
 
     const HeaderComponent = useMemo(
         () => (
@@ -62,7 +65,20 @@ function EmptyStateComponent({
                             ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt6, styles.flexRow, styles.flexWrap, styles.justifyContentCenter]}>
+                            <View
+                                style={[
+                                    styles.gap2,
+                                    styles.mt6,
+                                    shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow,
+                                    shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
+                                    styles.flexWrap,
+                                    styles.justifyContentCenter,
+                                    styles.alignItemsCenter,
+                                    styles.mw400p,
+                                    styles.alignSelfCenter,
+                                    (hasMultipleButtons || !shouldUseNarrowLayout) && styles.w100,
+                                ]}
+                            >
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
                                     dropDownOptions ? (
                                         <ButtonWithDropdownMenu
@@ -72,7 +88,7 @@ function EmptyStateComponent({
                                             customText={buttonText}
                                             options={dropDownOptions}
                                             isSplitButton={false}
-                                            style={style}
+                                            style={[hasMultipleButtons && (shouldUseNarrowLayout ? styles.w100 : styles.flex1), style]}
                                         />
                                     ) : (
                                         <Button
@@ -81,8 +97,9 @@ function EmptyStateComponent({
                                             onPress={buttonAction}
                                             text={buttonText}
                                             icon={icon}
+                                            large
                                             isDisabled={isDisabled}
-                                            style={style}
+                                            style={[hasMultipleButtons && (shouldUseNarrowLayout ? styles.w100 : styles.flex1), style]}
                                         />
                                     ),
                                 )}

@@ -151,6 +151,10 @@ export default {
         maxWidth: '100%',
     },
 
+    mw400p: {
+        maxWidth: 400,
+    },
+
     wAuto: {
         width: 'auto',
     },
