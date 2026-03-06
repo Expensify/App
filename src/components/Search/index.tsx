@@ -1263,6 +1263,20 @@ function Search({
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     }, []);
 
+    const measurements = useMemo(() => {
+        if (!filteredDataLength) {
+            return undefined;
+        }
+
+        const firstItem = filteredData.at(0);
+
+        if (firstItem && isTransactionListItemType(firstItem)) {
+            return firstItem.measurements;
+        }
+
+        return undefined;
+    }, [filteredDataLength, filteredData]);
+
     // On re-visits, react-freeze serves the cached layout — onLayout/onLayoutSkeleton never fire.
     // useFocusEffect fires on unfreeze, which is when the screen becomes visible.
     useFocusEffect(
@@ -1402,6 +1416,7 @@ function Search({
                         !shouldShowTableHeader ? undefined : (
                             <View style={[!isTask && styles.pr8, styles.flex1]}>
                                 <SearchTableHeader
+                                    measurements={measurements}
                                     canSelectMultiple={canSelectMultiple}
                                     columns={columnsToShow}
                                     type={type}

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SortableHeaderText from './SortableHeaderText';
-import type {SortableColumnName} from './types';
+import type {SortableColumnName, TransactionColumnMeasurements} from './types';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
@@ -20,6 +20,7 @@ type ColumnConfig = {
 };
 
 type SearchTableHeaderProps = {
+    measurements?: TransactionColumnMeasurements;
     columns: ColumnConfig[];
     sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
@@ -38,6 +39,7 @@ type SearchTableHeaderProps = {
 };
 
 function SortableTableHeader({
+    measurements,
     columns,
     sortBy,
     sortOrder,
