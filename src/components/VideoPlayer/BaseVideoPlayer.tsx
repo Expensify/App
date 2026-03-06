@@ -123,11 +123,11 @@ function BaseVideoPlayer({
     }, [isOffline]);
 
     useEffect(() => {
-        if (!(isVideoOffline && isLoading)) {
+        if (!(isVideoOffline && isLoading && isOffline)) {
             return;
         }
         videoPlayerRef.current.replaceAsync('');
-    }, [isLoading, isVideoOffline]);
+    }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
