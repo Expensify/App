@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -146,8 +146,16 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
+    const isMouseInsideRef = useRef(false);
     const isTouchScreen = canUseTouchScreen();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
+
+    useEffect(() => {
+        if (isLoading || !isMouseInsideRef.current) {
+            return;
+        }
+        hoverBind.onMouseEnter();
+    }, [isLoading, hoverBind]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -457,8 +465,16 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 showBorderlessLoading && styles.flex1,
                                 fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
                             ]}
-                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
-                            onMouseLeave={hoverBind.onMouseLeave}
+                            onMouseEnter={() => {
+                                isMouseInsideRef.current = true;
+                                if (!isLoading) {
+                                    hoverBind.onMouseEnter();
+                                }
+                            }}
+                            onMouseLeave={() => {
+                                isMouseInsideRef.current = false;
+                                hoverBind.onMouseLeave();
+                            }}
                         >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
