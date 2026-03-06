@@ -58,6 +58,7 @@ function PayAndDowngradePage() {
     }, [billingDetails, translate]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (billingDetails?.isLoading || !prevIsLoading || billingDetails?.errors) {
             return;
         }

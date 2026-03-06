@@ -12,7 +12,8 @@ type DuplicateWorkspaceParams = {
     adminsCreatedReportActionID: string;
     expenseCreatedReportActionID: string;
     announceChatReportActionID: string;
-    customUnitID: string;
+    perDiemCustomUnitID: string;
+    distanceCustomUnitID: string;
     customUnitRateID: string;
     file?: FileObject;
 };
