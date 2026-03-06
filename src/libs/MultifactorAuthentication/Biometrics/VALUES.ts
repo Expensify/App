@@ -1,6 +1,7 @@
 /**
  * Constants for multifactor authentication biometrics flow and API responses.
  */
+import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
@@ -197,8 +198,12 @@ const EXPO_ERRORS = {
     },
 } as const;
 
+type ReasonValue = ValueOf<{
+    [K in keyof typeof REASON]: ValueOf<(typeof REASON)[K]>;
+}>;
+
 /** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
-const ROUTINE_FAILURES = new Set([
+const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.EXPO.CANCELED,
     REASON.EXPO.NO_METHOD_AVAILABLE,
     REASON.EXPO.NOT_SUPPORTED,
@@ -217,7 +222,7 @@ const ROUTINE_FAILURES = new Set([
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
-const ANOMALOUS_FAILURES = new Set([
+const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.BACKEND.REGISTRATION_REQUIRED,
     REASON.BACKEND.INVALID_CHALLENGE_TYPE,
     REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
