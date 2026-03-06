@@ -31,6 +31,15 @@ type ButtonProps = Partial<ChildrenProps> &
         /** The icon asset to display to the right of the text */
         iconRight?: IconAsset;
 
+        /** The fill color to pass into the iconRight. */
+        iconRightFill?: string;
+
+        /** The fill color to pass into the iconRight when the button is hovered. */
+        iconRightHoverFill?: string;
+
+        /** The icon asset to display to the left of the text */
+        icon?: IconAsset | null;
+
         /** The fill color to pass into the icon. */
         iconFill?: string;
 
@@ -139,17 +148,11 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
-        /** The icon asset to display to the left of the text */
-        icon?: IconAsset | null;
-
         /** The text for the button label */
         text?: string;
 
         /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
-
-        /** Whether the button should use split style or not */
-        isSplitButton?: boolean;
 
         /** Whether button's content should be centered */
         isContentCentered?: boolean;
@@ -231,9 +234,11 @@ function Button({
     allowBubble = false,
 
     iconRight,
+    iconRightFill,
+    iconRightHoverFill,
+    icon = null,
     iconFill,
     iconHoverFill,
-    icon = null,
     iconStyles = [],
     iconRightStyles = [],
     iconWrapperStyles = [],
@@ -278,7 +283,6 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
-    isSplitButton = false,
     link = false,
     isContentCentered = false,
     isPressOnEnterActive,
@@ -354,6 +358,7 @@ function Button({
 
         const defaultFill = success || danger ? theme.textLight : theme.icon;
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
@@ -375,27 +380,15 @@ function Button({
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            {!isSplitButton ? (
-                                <Icon
-                                    src={iconRight ?? icons.ArrowRight}
-                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    extraSmall={extraSmall}
-                                    small={small}
-                                    medium={medium}
-                                    large={large}
-                                    isButtonIcon
-                                />
-                            ) : (
-                                <Icon
-                                    src={iconRight ?? icons.ArrowRight}
-                                    fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
-                                    extraSmall={extraSmall}
-                                    small={small}
-                                    medium={medium}
-                                    large={large}
-                                    isButtonIcon
-                                />
-                            )}
+                            <Icon
+                                src={iconRight ?? icons.ArrowRight}
+                                fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
+                                extraSmall={extraSmall}
+                                small={small}
+                                medium={medium}
+                                large={large}
+                                isButtonIcon
+                            />
                         </View>
                     )}
                 </View>

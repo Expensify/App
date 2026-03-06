@@ -269,6 +269,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: {
+                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -2114,9 +2122,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
                     // We want to avoid that situation, so we will return an empty string instead.
                     parse: {
+                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                     stringify: {
+                        // eslint-disable-next-line
                         reportID: (reportID: string | undefined) => reportID ?? '',
                     },
                 },

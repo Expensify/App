@@ -1,7 +1,9 @@
 import React from 'react';
+import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -16,6 +18,8 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 type DomainReportSuspiciousActivityPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT>;
 
 function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActivityPageProps) {
+    const styles = useThemeStyles();
+
     const {domainAccountID, accountID} = route.params;
 
     const [memberLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(accountID)});
@@ -25,7 +29,11 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
 
     const confirmModalPrompt = translate('domain.members.reportSuspiciousActivityConfirmationPrompt');
 
-    const lockAccountPagePrompt = <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin ?? '')} />;
+    const lockAccountPagePrompt = (
+        <View style={styles.renderHTML}>
+            <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin ?? '')} />
+        </View>
+    );
 
     const handleLockRequestFinish = () => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
 
