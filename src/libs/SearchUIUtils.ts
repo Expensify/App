@@ -1660,6 +1660,15 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
+function getColumnWidth(currentMaxWidth: number, columnValue: string | null | undefined): number {
+    const maxColumnWidth = 400;
+    // const averageCharacterLength = 7.68;
+    const averageCharacterLengthWithPadding = 8.45;
+    const columnValueLength = columnValue?.length ?? 0;
+
+    return Math.min(maxColumnWidth, Math.max(currentMaxWidth, columnValueLength * averageCharacterLengthWithPadding));
+}
+
 /**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
@@ -1776,122 +1785,102 @@ function getTransactionsSections({
 
         // Compute the maximum size of all of the text fields to determine how much space we need to delegate
         // Handle the merchant
-        const merchantPixelWidth = (formattedMerchant?.length ?? 0) * averageCharacterLengthWithPadding;
-        measurements.merchant = Math.max(measurements.merchant, merchantPixelWidth);
+        measurements.merchant = getColumnWidth(measurements.merchant, formattedMerchant);
 
         // Handle the category
         const formattedCategory = isCategoryMissing(transaction?.category) ? '' : getDecodedCategoryName(transaction?.category ?? '');
-        const categoryPixelWidth = (formattedCategory?.length ?? 0) * averageCharacterLengthWithPadding;
-        measurements.category = Math.max(measurements.category, categoryPixelWidth);
+        measurements.category = getColumnWidth(measurements.category, formattedCategory);
 
         // Handle the tag
         const formattedTag = getTagForDisplay(transaction);
-        const tagPixelWidth = (formattedTag?.length ?? 0) * averageCharacterLengthWithPadding;
-        measurements.tag = Math.max(measurements.tag, tagPixelWidth);
+        measurements.tag = getColumnWidth(measurements.tag, formattedTag);
 
         // Handle the amount
         const transactionCurrency = getOriginalCurrencyForDisplay(transaction);
         const transactionDisplayAmount = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const formattedAmount = convertToDisplayString(transactionDisplayAmount, transactionCurrency);
-        const amountPixelWidth = formattedAmount.length * averageCharacterLengthWithPadding;
-        measurements.amount = Math.max(measurements.amount, amountPixelWidth);
+        measurements.amount = getColumnWidth(measurements.amount, formattedAmount);
 
         // Handle the exchange rate
         const formattedExchangeRate = getExchangeRate(transaction);
-        const exchangeRatePixelWidth = formattedExchangeRate.length * averageCharacterLengthWithPadding;
-        measurements.exchangeRate = Math.max(measurements.exchangeRate, exchangeRatePixelWidth);
+        measurements.exchangeRate = getColumnWidth(measurements.exchangeRate, formattedExchangeRate);
 
         // Handle the description
         const formattedDescription = getDescription(transaction);
-        const descriptionPixelWidth = formattedDescription.length * averageCharacterLengthWithPadding;
-        measurements.description = Math.max(measurements.description, descriptionPixelWidth);
+        measurements.description = getColumnWidth(measurements.description, formattedDescription);
 
         // Handle the card
         // JACK_TODO: This is missing customCardNames but it doesnt matter for now
         const deletedFeedCardName = isCardFeedDeleted ? translate('workspace.companyCards.deletedFeed') : null;
         const cashCardName = transaction.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : null;
         const formattedCardName = deletedFeedCardName ?? cashCardName ?? transaction.cardName ?? '';
-        const cardPixelWidth = formattedCardName.length * averageCharacterLengthWithPadding;
-        measurements.card = Math.max(measurements.card, cardPixelWidth);
+        measurements.card = getColumnWidth(measurements.card, formattedCardName);
 
         // Handle the billable
         const formattedBillable = getBillable(transaction) ? translate('common.yes') : translate('common.no');
-        const billablePixelWidth = formattedBillable.length * averageCharacterLengthWithPadding;
-        measurements.billable = Math.max(measurements.billable, billablePixelWidth);
+        measurements.billable = getColumnWidth(measurements.billable, formattedBillable);
 
         // Handle the reimbursable
         const formattedReimbursable = getReimbursable(transaction) ? translate('common.yes') : translate('common.no');
-        const reimbursablePixelWidth = formattedReimbursable.length * averageCharacterLengthWithPadding;
-        measurements.reimbursable = Math.max(measurements.reimbursable, reimbursablePixelWidth);
+        measurements.reimbursable = getColumnWidth(measurements.reimbursable, formattedReimbursable);
 
         // Handle the title
         const formattedTitle = getReportNameUtil(report);
-        const titlePixelWidth = formattedTitle.length * averageCharacterLengthWithPadding;
-        measurements.title = Math.max(measurements.title, titlePixelWidth);
+        measurements.title = getColumnWidth(measurements.title, formattedTitle);
 
         // Handle the tax rate
         const formattedTaxRate = !isTimeRequest(transaction) ? (getTaxName(policy, transaction) ?? transaction.taxValue ?? '') : '';
-        const taxRatePixelWidth = formattedTaxRate.length * averageCharacterLengthWithPadding;
-        measurements.taxRate = Math.max(measurements.taxRate, taxRatePixelWidth);
+        measurements.taxRate = getColumnWidth(measurements.taxRate, formattedTaxRate);
 
         // Handle the tax
         const transactionTaxAmount = getTaxAmount(transaction, true);
         const transactionTaxAmountCurrency = getCurrency(transaction);
         const formattedTaxAmount = !isTimeRequest(transaction) ? convertToDisplayString(transactionTaxAmount, transactionTaxAmountCurrency) : '';
-        const taxAmountPixelWidth = formattedTaxAmount.length * averageCharacterLengthWithPadding;
-        measurements.taxAmount = Math.max(measurements.taxAmount, taxAmountPixelWidth);
+        measurements.taxAmount = getColumnWidth(measurements.taxAmount, formattedTaxAmount);
 
         // Handle the report ID
         const formattedReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : (transaction.reportID?.toString() ?? '');
-        const reportIDPixelWidth = formattedReportID.toString().length * averageCharacterLength;
-        measurements.reportID = Math.max(measurements.reportID, reportIDPixelWidth);
+        measurements.reportID = getColumnWidth(measurements.reportID, formattedReportID);
 
         // Handle the base62 report ID
         const formattedBase62ReportID = transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transaction.reportID));
-        const base62ReportIDPixelWidth = formattedBase62ReportID.length * averageCharacterLength;
-        measurements.longReportID = Math.max(measurements.longReportID, base62ReportIDPixelWidth);
+        measurements.longReportID = getColumnWidth(measurements.longReportID, formattedBase62ReportID);
 
         // Handle the original amount
         const originalAmountTotal = getOriginalAmountForDisplay(transaction, isExpenseReport(report));
         const originalAmountCurrency = getOriginalCurrencyForDisplay(transaction);
         const formattedOriginalAmount = convertToDisplayString(originalAmountTotal, originalAmountCurrency);
-        const originalAmountPixelWidth = formattedOriginalAmount.length * averageCharacterLengthWithPadding;
-        measurements.originalAmount = Math.max(measurements.originalAmount, originalAmountPixelWidth);
+        measurements.originalAmount = getColumnWidth(measurements.originalAmount, formattedOriginalAmount);
 
         // Handle the date
         const createdDate = date ?? '';
         const isCreatedLastYear = DateUtils.doesDateBelongToAPastYear(createdDate);
         const formattedDate = DateUtils.formatWithUTCTimeZone(createdDate, isCreatedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const datePixelWidth = (formattedDate?.length ?? 0) * averageCharacterLengthWithPadding;
-        measurements.date = Math.max(measurements.date, datePixelWidth);
+        measurements.date = getColumnWidth(measurements.date, formattedDate);
 
         // Handle exported date
         const exportDate = transaction.reportID ? (lastExportedActionByReportID.get(transaction.reportID)?.created ?? '') : '';
         const isExportedLastYear = DateUtils.doesDateBelongToAPastYear(exportDate);
         const formattedExportDate = DateUtils.formatWithUTCTimeZone(exportDate, isExportedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const exportedDatePixelWidth = formattedExportDate.length * averageCharacterLengthWithPadding;
-        measurements.exportedDate = Math.max(measurements.exportedDate, exportedDatePixelWidth);
+        measurements.exportedDate = getColumnWidth(measurements.exportedDate, formattedExportDate);
 
         // Handle submitted date
         const submittedDate = report.submitted ?? '';
         const isSubmittedLastYear = DateUtils.doesDateBelongToAPastYear(submittedDate);
         const formattedSubmittedDate = DateUtils.formatWithUTCTimeZone(submittedDate, isSubmittedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const submittedDatePixelWidth = formattedSubmittedDate.length * averageCharacterLengthWithPadding;
-        measurements.submittedDate = Math.max(measurements.submittedDate, submittedDatePixelWidth);
+        measurements.submittedDate = getColumnWidth(measurements.submittedDate, formattedSubmittedDate);
 
         // Handle approved date
         const approvedDate = report.approved ?? '';
         const isApprovedLastYear = DateUtils.doesDateBelongToAPastYear(approvedDate);
         const formattedApprovedDate = DateUtils.formatWithUTCTimeZone(approvedDate, isApprovedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const approvedDatePixelWidth = formattedApprovedDate.length * averageCharacterLengthWithPadding;
-        measurements.approvedDate = Math.max(measurements.approvedDate, approvedDatePixelWidth);
+        measurements.approvedDate = getColumnWidth(measurements.approvedDate, formattedApprovedDate);
 
         // Handle posted date
         const postedDate = posted ?? '';
         const isPostedLastYear = DateUtils.doesDateBelongToAPastYear(postedDate);
         const formattedPostedDate = DateUtils.formatWithUTCTimeZone(postedDate, isPostedLastYear ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        const postedDatePixelWidth = formattedPostedDate.length * averageCharacterLengthWithPadding;
-        measurements.postedDate = Math.max(measurements.postedDate, postedDatePixelWidth);
+        measurements.postedDate = getColumnWidth(measurements.postedDate, formattedPostedDate);
 
         const transactionSection: TransactionListItemType = {
             ...transaction,
