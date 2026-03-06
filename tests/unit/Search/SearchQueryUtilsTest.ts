@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import {
     buildFilterFormValuesFromQuery,
+    buildFilterQueryWithSortDefaults,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -17,6 +18,7 @@ import {
     getQueryWithUpdatedValues,
     getRangeBoundariesFromFormValue,
     shouldHighlight,
+    shouldResetSort,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -146,7 +148,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:bar groupBy:category from:12345`);
+            expect(result).toEqual('type:expense sortBy:groupCategory sortOrder:asc view:bar groupBy:category from:12345');
         });
 
         test('returns query with view:line', () => {
@@ -154,8 +156,8 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            // LINE view defaults to sortOrder:asc (chronological) and groupBy:month
-            expect(result).toEqual('type:expense sortBy:date sortOrder:asc view:line groupBy:month category:travel');
+            // LINE view defaults to sortBy:groupmonth, sortOrder:asc (chronological), and groupBy:month
+            expect(result).toEqual('type:expense sortBy:groupmonth sortOrder:asc view:line groupBy:month category:travel');
         });
 
         test('returns query with view:pie', () => {
@@ -163,7 +165,7 @@ describe('SearchQueryUtils', () => {
 
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} view:pie groupBy:category merchant:Amazon`);
+            expect(result).toEqual('type:expense sortBy:groupCategory sortOrder:asc view:pie groupBy:category merchant:Amazon');
         });
 
         test('deduplicates conflicting type filters keeping the last occurrence', () => {
@@ -192,7 +194,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense policyID:12345 amount<100');
+            expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
         test('with Policy ID', () => {
@@ -202,7 +204,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc policyID:12345');
+            expect(result).toEqual('policyID:12345');
         });
 
         test('with keywords', () => {
@@ -218,7 +220,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+            expect(result).toEqual('type:expense policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
         });
 
         test('currencies and categories', () => {
@@ -231,7 +233,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense category:services,consulting currency:USD,EUR');
+            expect(result).toEqual('type:expense category:services,consulting currency:USD,EUR');
         });
 
         test('has empty category values', () => {
@@ -243,7 +245,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense category:equipment,consulting,none,Uncategorized');
+            expect(result).toEqual('type:expense category:equipment,consulting,none,Uncategorized');
         });
 
         test('empty filter values', () => {
@@ -251,7 +253,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc');
+            expect(result).toEqual('');
         });
 
         test('array of from', () => {
@@ -262,7 +264,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com');
+            expect(result).toEqual('type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com');
         });
 
         test('complex filter values', () => {
@@ -278,9 +280,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual(
-                'sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date>2025-03-01 date<2025-03-10 amount>1 amount<1000',
-            );
+            expect(result).toEqual('type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date>2025-03-01 date<2025-03-10 amount>1 amount<1000');
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
         });
 
@@ -369,7 +369,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense total>1 total<1000');
+            expect(result).toEqual('type:expense total>1 total<1000');
         });
 
         test('equal to filter values', () => {
@@ -380,7 +380,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:500 total:750');
+            expect(result).toEqual('type:expense amount:500 total:750');
         });
 
         test('combined equal to and range filter values', () => {
@@ -392,7 +392,7 @@ describe('SearchQueryUtils', () => {
             };
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense amount:100 total>50 total<200');
+            expect(result).toEqual('type:expense amount:100 total>50 total<200');
         });
 
         test('with withdrawal type filter', () => {
@@ -404,7 +404,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawalType:expensify-card');
+            expect(result).toEqual('type:expense withdrawalType:expensify-card');
         });
 
         test('with withdrawn filter', () => {
@@ -416,7 +416,7 @@ describe('SearchQueryUtils', () => {
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
-            expect(result).toEqual('sortBy:date sortOrder:desc type:expense withdrawn:last-month');
+            expect(result).toEqual('type:expense withdrawn:last-month');
         });
 
         describe('limit option', () => {
@@ -427,7 +427,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
 
-                expect(result).toEqual('sortBy:date sortOrder:desc type:expense limit:10');
+                expect(result).toEqual('type:expense limit:10');
             });
 
             test('combines limit with sort options', () => {
@@ -472,7 +472,7 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).toContain('limit:"10 90"');
-                expect(result).toEqual('sortBy:date sortOrder:desc type:expense hi limit:"10 90"');
+                expect(result).toEqual('type:expense hi limit:"10 90"');
             });
 
             test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
@@ -505,7 +505,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:bar');
+                expect(result).toEqual('type:expense groupBy:category view:bar');
             });
 
             test('with view parameter set to table', () => {
@@ -517,7 +517,7 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                expect(result).toEqual('sortBy:date sortOrder:desc type:expense groupBy:category view:table');
+                expect(result).toEqual('type:expense groupBy:category view:table');
             });
 
             test('without view parameter omits view from query', () => {
@@ -555,7 +555,7 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).not.toContain('view:');
-                expect(result).toEqual('sortBy:date sortOrder:desc type:expense');
+                expect(result).toEqual('type:expense');
             });
         });
     });
@@ -1492,6 +1492,113 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toContain('view:pie');
             expect(result).toContain('merchant:Amazon');
+        });
+    });
+
+    describe('buildFilterQueryWithSortDefaults', () => {
+        test('groupBy change replaces stale sortBy with new default', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe('asc');
+        });
+
+        test('view change from table to bar derives correct sortBy and sortOrder', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE},
+                {sortBy: 'date', sortOrder: 'desc'},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+            expect(queryJSON?.sortOrder).toBe('asc');
+        });
+
+        test('sortBy is reset to groupBy default on groupBy change even when previously set to a custom value', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: 'amount'},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
+        });
+
+        test('sortOrder is correctly derived when sortBy matches groupBy default (view change)', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
+        });
+
+        test('result contains sortOrder in the query string (visible in URL)', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY},
+            );
+
+            expect(result).toContain('sortOrder:asc');
+        });
+
+        test('non-time groupBy gets desc even when sortBy is re-fed', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            expect(queryJSON?.sortOrder).toBe('desc');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN);
+        });
+
+        test('preserves sortOrder when view and groupBy do not change', () => {
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: 'desc'},
+            );
+
+            expect(result).toContain('sortOrder:desc');
+        });
+    });
+
+    describe('shouldResetSort', () => {
+        test('returns true when view changes', () => {
+            expect(shouldResetSort({newView: 'line', oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(true);
+        });
+
+        test('returns true when groupBy changes', () => {
+            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+        });
+
+        test('returns false when view and groupBy stay the same', () => {
+            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'category', oldGroupBy: 'category'})).toBe(false);
+        });
+
+        test('returns false when both views are undefined and groupBy does not change', () => {
+            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
+        });
+
+        test('returns true when both views are undefined and groupBy changes', () => {
+            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+        });
+
+        test('returns false when form has undefined view and URL has table (parser default) with no groupBy change', () => {
+            expect(shouldResetSort({newView: undefined, oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
         });
     });
 
