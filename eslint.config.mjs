@@ -593,6 +593,42 @@ const config = defineConfig([
     },
 
     {
+        files: ['src/libs/ReportNameUtils.ts'],
+        rules: {
+            'no-restricted-syntax': [
+                'error',
+                // Global selectors (must be repeated since file-scoped rules override the global ones)
+                {
+                    selector: 'TSEnumDeclaration',
+                    message: "Please don't declare enums, use union types instead.",
+                },
+                {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+                },
+                {
+                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
+                    message:
+                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
+                },
+                {
+                    selector: 'LabeledStatement',
+                    message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+                },
+                {
+                    selector: 'WithStatement',
+                    message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
+                },
+                // File-specific: getReportName must only read from reportAttributesDerivedValue — no function calls allowed.
+                {
+                    selector: 'FunctionDeclaration[id.name="getReportName"] CallExpression',
+                    message: 'getReportName must be a pure read-only function. Move any computation to computeReportName instead.',
+                },
+            ],
+        },
+    },
+
+    {
         files: ['src/**/*'],
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
         rules: {
