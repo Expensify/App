@@ -77,6 +77,7 @@ function ScrollableTabSelectorContextProvider({children, activeTabKey}: Scrollab
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue = {containerRef, registerTab, onTabLayout, onContainerLayout, onContainerScroll, scrollToTab};
 
+    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <ScrollableTabSelectorContext.Provider value={contextValue}>{children}</ScrollableTabSelectorContext.Provider>;
 }
 

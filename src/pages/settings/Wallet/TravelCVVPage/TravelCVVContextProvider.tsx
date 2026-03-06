@@ -34,6 +34,7 @@ function TravelCVVContextProvider({children}: PropsWithChildren) {
         setValidateError,
     };
 
+    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <TravelCVVContext.Provider value={contextValue}>{children}</TravelCVVContext.Provider>;
 }
 
