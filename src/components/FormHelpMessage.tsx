@@ -102,7 +102,11 @@ function FormHelpMessage({
                     additionalStyles={[styles.mr1]}
                 />
             )}
-            <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
+            <View
+                style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}
+                accessible={shouldRenderMessageAsHTML && typeof message === 'string'}
+                accessibilityLabel={shouldRenderMessageAsHTML && typeof message === 'string' ? message : undefined}
+            >
                 {children ??
                     (shouldRenderMessageAsHTML ? (
                         <RenderHTML html={HTMLMessage} />

@@ -923,7 +923,11 @@ function MenuItem({
                                                                 fsClass={forwardedFSClass}
                                                             >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
-                                                                    <View style={styles.renderHTMLTitle}>
+                                                                    <View
+                                                                        style={styles.renderHTMLTitle}
+                                                                        accessible
+                                                                        accessibilityLabel={title}
+                                                                    >
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}
