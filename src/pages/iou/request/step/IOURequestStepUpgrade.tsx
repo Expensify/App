@@ -34,7 +34,7 @@ type IOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigator
 
 function IOURequestStepUpgrade({
     route: {
-        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, iouType, backTo},
+        params: {transactionID, action, reportID, shouldSubmitExpense, upgradePath, backTo},
     },
 }: IOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
@@ -47,7 +47,6 @@ function IOURequestStepUpgrade({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
-    const isTrack = iouType === CONST.IOU.TYPE.TRACK;
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
@@ -104,20 +103,22 @@ function IOURequestStepUpgrade({
 
                 Navigation.goBack(backToRoute);
 
-                // For track expense, we want to create the expense inside self dm (which is not expenseReportID).
-                if (!isTrack) {
-                    setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
-                    Navigation.setParams({reportID: expenseReportID});
-                }
+                setTransactionReport(transactionID, {reportID: expenseReportID}, true);
+                // Let the confirmation step decide the distance rate because policy data is not fully available at this step
+                setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                Navigation.setParams({reportID: expenseReportID});
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, isTrack ? reportID : expenseReportID, iouType, action));
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
                 Navigation.goBack();
-                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                if (action === CONST.IOU.ACTION.CREATE) {
+                    // Coming from "Create report" button (no workspace) → go to workspace selection which creates the report
+                    navigateWithMicrotask(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                } else {
+                    navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                }
 
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
@@ -177,8 +178,8 @@ function IOURequestStepUpgrade({
 
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
-            policyOwnerEmail: undefined,
-            makeMeAdmin: false,
+            policyOwnerEmail: params.owner,
+            makeMeAdmin: params.makeMeAdmin,
             policyName: params.name,
             policyID: params.policyID,
             currency: params.currency,

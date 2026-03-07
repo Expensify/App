@@ -234,7 +234,7 @@ function TaskAssigneeSelectorModal() {
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
-                        showLoadingPlaceholder={!areOptionsInitialized}
+                        shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
