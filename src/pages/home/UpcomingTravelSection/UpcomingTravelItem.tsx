@@ -2,8 +2,10 @@ import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -82,7 +84,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage', 'ArrowRight']);
 
-    const {reservation, reportID, transactionID, sequenceIndex} = upcomingReservation;
+    const {reservation, reportID, transactionID, sequenceIndex, isCancelled} = upcomingReservation;
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
     const title = getTitle(translate, reservation);
     const relativeTime = getRelativeTime(translate, reservation.start.date);
@@ -95,8 +97,23 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
 
     return (
         <MenuItemWithTopDescription
-            description={subtitle}
-            title={title}
+            description={isCancelled ? undefined : subtitle}
+            titleComponent={
+                isCancelled ? (
+                    <View>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                            <Text style={[styles.textLabelSupporting, styles.textSupporting]}>{subtitle}</Text>
+                            <Badge
+                                text={translate('iou.canceled')}
+                                isCondensed
+                                badgeStyles={styles.ml0}
+                            />
+                        </View>
+                        <Text style={styles.textNormal}>{title}</Text>
+                    </View>
+                ) : undefined
+            }
+            title={isCancelled ? undefined : title}
             titleStyle={styles.textBold}
             onPress={handlePress}
             shouldShowRightIcon

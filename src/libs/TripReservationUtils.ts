@@ -25,7 +25,7 @@ function getTripReservationIcon(icons: TripReservationIcons, reservationType?: R
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number; isCancelled?: boolean};
 type ReservationPNRData = {
     pnrID: string;
     totalFareAmount: number;
@@ -140,8 +140,8 @@ function findTravelerInfo(travelers: PnrTraveler[], userId: string | undefined) 
     return travelers.find((travelerData) => travelerData.userId.id === userId)?.personalInfo;
 }
 
-function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
-    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
+function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation; isCancelled?: boolean}> {
+    const reservationList: Array<{reservationIndex: number; reservation: Reservation; isCancelled?: boolean}> = [];
 
     if (!pnr.data.airPnr) {
         return [];
@@ -160,9 +160,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 const leg = pnrData.legs?.at(legIdx);
                 const flightObject = leg?.flights.at(flightIdx);
 
-                if (leg?.legStatus === CONST.LEG_STATUS.CANCELLED || isCancelledPnrStatus(flightObject?.flightStatus ?? '')) {
-                    continue;
-                }
+                const isFlightCancelled = leg?.legStatus === CONST.LEG_STATUS.CANCELLED || isCancelledPnrStatus(flightObject?.flightStatus ?? '');
 
                 const airlineCode = flightObject?.marketing.airlineCode;
                 const longAirlineName = airlineInfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
@@ -224,7 +222,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                     },
                 };
 
-                reservationList.push({reservation: reservationObject, reservationIndex: index});
+                reservationList.push({reservation: reservationObject, reservationIndex: index, isCancelled: isFlightCancelled || undefined});
             }
         }
     }
@@ -433,11 +431,11 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
     }
 
     const reservations: ReservationData[] = tripData.pnrs
-        .filter((pnr) => !isPnrCancelled(pnr))
         .flatMap((pnr) => {
             const travelers = pnr.data.pnrTravelers ?? [];
+            const pnrCancelled = isPnrCancelled(pnr);
 
-            const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [
+            const reservationList: Array<{reservationIndex: number; reservation: Reservation; isCancelled?: boolean}> = [
                 ...getAirReservations(pnr, travelers),
                 ...getHotelReservations(pnr, travelers),
                 ...getCarReservations(pnr, travelers),
@@ -450,6 +448,7 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
                 transactionID: '0',
                 sequenceIndex: 0,
                 reservationIndex: reservationData.reservationIndex,
+                isCancelled: pnrCancelled ?? reservationData.isCancelled ?? undefined,
             }));
         })
         .map((reservationData, index) => ({...reservationData, sequenceIndex: index}));

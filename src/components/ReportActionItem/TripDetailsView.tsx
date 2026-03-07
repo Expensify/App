@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -35,9 +36,10 @@ type ReservationViewProps = {
     sequenceIndex: number;
     shouldShowArrowIcon?: boolean;
     shouldCenterIcon?: boolean;
+    isCancelled?: boolean;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex, shouldShowArrowIcon = true, shouldCenterIcon = false, isCancelled}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -81,6 +83,8 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         return StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
     }, [reservation]);
 
+    const titleTextStyle = isCancelled ? styles.textNormal : styles.textStrong;
+
     const titleComponent = () => {
         if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT || reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
             return (
@@ -88,17 +92,17 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                         {shouldShowArrowIcon ? (
                             <>
-                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.start)}</Text>
                                 <Icon
                                     src={expensifyIcons.ArrowRightLong}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
                                     fill={theme.icon}
                                 />
-                                <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
+                                <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>{formatAirportInfo(reservation.end)}</Text>
                             </>
                         ) : (
-                            <Text style={[styles.textStrong, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
+                            <Text style={[titleTextStyle, styles.lh20, shouldUseNarrowLayout && styles.flex1]}>
                                 {formatAirportInfo(reservation.start)} {translate('common.to').toLowerCase()} {formatAirportInfo(reservation.end)}
                             </Text>
                         )}
@@ -112,7 +116,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             <View style={styles.gap1}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textStrong, styles.lh20]}
+                    style={[titleTextStyle, styles.lh20]}
                 >
                     {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '')}
                 </Text>
@@ -128,11 +132,31 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
         );
     };
 
+    const descriptionComponent = isCancelled ? (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+            <Text style={[styles.textLabelSupporting, styles.lh16]}>{formattedDate}</Text>
+            <Badge
+                text={translate('iou.canceled')}
+                isCondensed
+                badgeStyles={styles.ml0}
+            />
+        </View>
+    ) : undefined;
+
     return (
         <MenuItemWithTopDescription
-            description={formattedDate}
+            description={isCancelled ? undefined : formattedDate}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={titleComponent()}
+            titleComponent={
+                isCancelled ? (
+                    <View>
+                        {descriptionComponent}
+                        {titleComponent()}
+                    </View>
+                ) : (
+                    titleComponent()
+                )
+            }
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable
@@ -256,7 +280,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                         subtitleTextStyles={[styles.textLabelSupporting, styles.textLineHeightNormal]}
                         subtitleMuted
                     >
-                        {reservations.map(({reservation, transactionID, sequenceIndex}) => {
+                        {reservations.map(({reservation, transactionID, sequenceIndex, isCancelled}) => {
                             return (
                                 <OfflineWithFeedback key={`${pnrID}-${sequenceIndex}`}>
                                     <ReservationView
@@ -266,6 +290,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                                         sequenceIndex={sequenceIndex}
                                         shouldShowArrowIcon={false}
                                         shouldCenterIcon
+                                        isCancelled={isCancelled}
                                     />
                                 </OfflineWithFeedback>
                             );

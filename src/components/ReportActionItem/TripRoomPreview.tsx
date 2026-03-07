@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -58,9 +59,10 @@ type TripRoomPreviewProps = {
 type ReservationViewProps = {
     reservation: Reservation;
     onPress?: () => void;
+    isCancelled?: boolean;
 };
 
-function ReservationView({reservation, onPress}: ReservationViewProps) {
+function ReservationView({reservation, onPress, isCancelled}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -70,10 +72,13 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
 
+    const description = translate(`travel.${reservation.type}`);
+
     let titleComponent = (
         <Text
             numberOfLines={1}
             ellipsizeMode="tail"
+            style={isCancelled ? styles.colorMuted : undefined}
         >
             {title}
         </Text>
@@ -87,17 +92,34 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
             <Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
+                style={isCancelled ? styles.colorMuted : undefined}
             >
                 {startName} {translate('common.to').toLowerCase()} {endName}
             </Text>
         );
     }
 
+    const fullTitleComponent = isCancelled ? (
+        <View>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                <Text style={[styles.textLabelSupporting, styles.lh16]}>{description}</Text>
+                <Badge
+                    text={translate('iou.canceled')}
+                    isCondensed
+                    badgeStyles={styles.ml0}
+                />
+            </View>
+            {titleComponent}
+        </View>
+    ) : (
+        titleComponent
+    );
+
     return (
         <MenuItemWithTopDescription
-            description={translate(`travel.${reservation.type}`)}
+            description={isCancelled ? undefined : description}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
-            titleComponent={titleComponent}
+            titleComponent={fullTitleComponent}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}
@@ -154,6 +176,7 @@ function TripRoomPreview({
         <ReservationView
             reservation={item.reservation}
             onPress={navigateToTrip}
+            isCancelled={item.isCancelled}
         />
     );
 
