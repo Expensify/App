@@ -303,9 +303,13 @@ function ReportActionCompose({
     }, []);
 
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
+    /** Object URLs created for dropped files; revoked when the attachment modal closes without confirm */
+    const pendingDropObjectUrlsRef = useRef<string[]>([]);
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
+        // User confirmed; URLs are now on the files and will be used on submit. Stop tracking for revoke-on-close.
+        pendingDropObjectUrlsRef.current = [];
 
         const clearWorklet = composerRef.current?.clearWorklet;
 
@@ -318,8 +322,15 @@ function ReportActionCompose({
 
     /**
      * Event handler to update the state after the attachment preview is closed.
+     * Revokes object URLs for dropped files when the user closed without confirming (avoids leaking blob URLs).
      */
     const onAttachmentPreviewClose = useCallback(() => {
+        if (attachmentFileRef.current === null) {
+            for (const url of pendingDropObjectUrlsRef.current) {
+                URL.revokeObjectURL(url);
+            }
+            pendingDropObjectUrlsRef.current = [];
+        }
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
@@ -541,10 +552,12 @@ function ReportActionCompose({
     });
 
     const handleAttachmentDrop = (event: DragEvent) => {
+        const createdUrls: string[] = [];
         const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
             const fileWithUri = file;
-
-            fileWithUri.uri = URL.createObjectURL(fileWithUri);
+            const objectUrl = URL.createObjectURL(fileWithUri);
+            fileWithUri.uri = objectUrl;
+            createdUrls.push(objectUrl);
             return fileWithUri;
         });
 
@@ -552,6 +565,7 @@ function ReportActionCompose({
             return;
         }
 
+        pendingDropObjectUrlsRef.current = createdUrls;
         validateAttachments({files});
     };
 
