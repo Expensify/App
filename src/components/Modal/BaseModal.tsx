@@ -72,6 +72,7 @@ function BaseModal({
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
     shouldDisplayBelowModals = false,
+    isBottomDockedDismissAccessible,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -94,8 +95,6 @@ function BaseModal({
 
     const [modalOverlapsWithTopSafeArea, setModalOverlapsWithTopSafeArea] = useState(false);
     const [modalHeight, setModalHeight] = useState(0);
-    const [isBottomDockedDismissAccessible, setIsBottomDockedDismissAccessible] = useState(true);
-    const dismissRef = useRef<View>(null);
 
     const insets = useSafeAreaInsets();
 
@@ -271,35 +270,7 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
-    const shouldDelayBottomDockedDismissAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton;
-    const dismissAccessibilityDelay = (animationInDelay ?? 0) + (animationInTiming ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
-
-    useEffect(() => {
-        if (!shouldDelayBottomDockedDismissAccessibility) {
-            setIsBottomDockedDismissAccessible(true);
-            return;
-        }
-
-        if (!isVisible) {
-            setIsBottomDockedDismissAccessible(false);
-            return;
-        }
-
-        setIsBottomDockedDismissAccessible(false);
-        let animationFrameID = 0;
-        const timeoutID = setTimeout(() => {
-            animationFrameID = requestAnimationFrame(() => {
-                setIsBottomDockedDismissAccessible(true);
-            });
-        }, dismissAccessibilityDelay);
-
-        return () => {
-            if (animationFrameID) {
-                cancelAnimationFrame(animationFrameID);
-            }
-            clearTimeout(timeoutID);
-        };
-    }, [dismissAccessibilityDelay, isVisible, shouldDelayBottomDockedDismissAccessibility]);
+    const isNativeIOSBottomDockedDismissAccessible = !isNativeIOS || !shouldShowBottomDockedDismissButton || isBottomDockedDismissAccessible === true;
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
@@ -420,7 +391,6 @@ function BaseModal({
                                     onPress={handleBackdropPress}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.dismiss')}
-                                    ref={dismissRef}
                                     tabIndex={0}
                                     sentryLabel="Modal-DismissDialog"
                                     style={styles.bottomDockedModalDismissButton}
@@ -433,11 +403,11 @@ function BaseModal({
                             {!isWeb && shouldShowBottomDockedDismissButton && (
                                 <PressableWithoutFeedback
                                     onPress={handleBackdropPress}
-                                    accessible={isBottomDockedDismissAccessible}
+                                    accessible={isNativeIOSBottomDockedDismissAccessible}
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.dismiss')}
-                                    accessibilityElementsHidden={!isBottomDockedDismissAccessible}
-                                    importantForAccessibility={isBottomDockedDismissAccessible ? 'auto' : 'no-hide-descendants'}
+                                    accessibilityElementsHidden={!isNativeIOSBottomDockedDismissAccessible}
+                                    importantForAccessibility={isNativeIOSBottomDockedDismissAccessible ? 'auto' : 'no-hide-descendants'}
                                     sentryLabel="Modal-DismissDialog"
                                     style={styles.bottomDockedModalDismissButton}
                                     shouldUseAutoHitSlop

@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
-import {isSafari} from '@libs/Browser';
+import {isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
@@ -313,9 +313,11 @@ function BasePopoverMenu({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
     const isIOS = platform === CONST.PLATFORM.IOS;
+    const shouldCoordinateDismissAccessibility = isIOS || isMobileSafari();
     const firstMenuItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
+    const [isBottomDockedDismissAccessible, setIsBottomDockedDismissAccessible] = useState(!shouldCoordinateDismissAccessibility);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -323,10 +325,23 @@ function BasePopoverMenu({
     useEffect(() => {
         isVisibleRef.current = isVisible;
         if (isVisible) {
+            if (shouldCoordinateDismissAccessibility) {
+                setIsBottomDockedDismissAccessible(false);
+            }
             return;
         }
         hasFocusedFirstItemOnCurrentOpenRef.current = false;
-    }, [isVisible]);
+        if (shouldCoordinateDismissAccessibility) {
+            setIsBottomDockedDismissAccessible(false);
+        }
+    }, [isVisible, shouldCoordinateDismissAccessibility]);
+
+    useEffect(() => {
+        if (shouldCoordinateDismissAccessibility) {
+            return;
+        }
+        setIsBottomDockedDismissAccessible(true);
+    }, [shouldCoordinateDismissAccessibility]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -496,8 +511,11 @@ function BasePopoverMenu({
 
         target.focus();
         hasFocusedFirstItemOnCurrentOpenRef.current = true;
+        if (shouldCoordinateDismissAccessibility) {
+            setIsBottomDockedDismissAccessible(true);
+        }
         return true;
-    }, []);
+    }, [shouldCoordinateDismissAccessibility]);
 
     const focusFirstMenuItemOnNative = useCallback(() => {
         if (!isVisibleRef.current || hasFocusedFirstItemOnCurrentOpenRef.current) {
@@ -516,8 +534,11 @@ function BasePopoverMenu({
 
         Accessibility.moveAccessibilityFocus(firstMenuItemRef);
         hasFocusedFirstItemOnCurrentOpenRef.current = true;
+        if (shouldCoordinateDismissAccessibility) {
+            setIsBottomDockedDismissAccessible(true);
+        }
         return true;
-    }, [isAndroid]);
+    }, [isAndroid, shouldCoordinateDismissAccessibility]);
 
     const focusFirstMenuItem = useCallback(() => {
         if (isWeb) {
@@ -713,6 +734,7 @@ function BasePopoverMenu({
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
+            isBottomDockedDismissAccessible={shouldCoordinateDismissAccessibility ? isBottomDockedDismissAccessible : undefined}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
