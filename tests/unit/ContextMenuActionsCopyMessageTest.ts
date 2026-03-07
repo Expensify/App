@@ -1,5 +1,6 @@
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {copyMessageToClipboard} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
@@ -42,7 +43,7 @@ const createParams = (selection: string) => ({
     reportAction: {
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         message: [{html: selection}],
-    } as unknown as ReportAction,
+    } as ReportAction,
     transaction: undefined,
     selection,
     report: undefined,
@@ -56,13 +57,13 @@ const createParams = (selection: string) => ({
     policy: undefined,
     getLocalDateFromDatetime: jest.fn(),
     policyTags: undefined,
-    translate: ((translateKey: string) => translateKey) as unknown as Parameters<typeof copyMessageToClipboard>[0]['translate'],
+    translate: ((translateKey: string) => translateKey) as LocalizedTranslate,
     harvestReport: undefined,
     currentUserPersonalDetails: {
         accountID: 1,
         login: 'user@expensify.com',
         email: 'user@expensify.com',
-    } as unknown as Parameters<typeof copyMessageToClipboard>[0]['currentUserPersonalDetails'],
+    },
 });
 
 describe('ContextMenuActions copy message', () => {
