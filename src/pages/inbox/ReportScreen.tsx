@@ -76,7 +76,6 @@ import {
     isMoneyRequestReportPendingDeletion,
     isOneTransactionThread,
     isPolicyExpenseChat,
-    isReportArchivedByID as isReportArchivedByIDUtil,
     isReportTransactionThread,
     isTaskReport,
     isValidReportIDFromPath,
@@ -177,7 +176,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchivedByID = useCallback((reportID?: string) => isReportArchivedByIDUtil(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -1022,7 +1020,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                     report={transactionThreadReport ?? report}
                                                     fillSpace
                                                     isDisplayedInWideRHP
-                                                    isReportArchivedByID={isReportArchivedByID}
+                                                    archivedReportsIDSet={archivedReportsIDSet}
                                                 />
                                             </ScrollView>
                                         </Animated.View>

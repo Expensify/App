@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -34,8 +34,10 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
+    isReportArchivedByID as isReportArchivedByIDUtil,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -72,8 +74,8 @@ type MoneyRequestReceiptViewProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Whether a report with provided reportID is archived */
-    isReportArchivedByID: (reportID?: string) => boolean;
+    /** Archived report identifiers keyed by report name value pairs */
+    archivedReportsIDSet: ArchivedReportsIDSet;
 
     /** Whether the receipt view should fill the given space */
     fillSpace?: boolean;
@@ -100,7 +102,7 @@ function MoneyRequestReceiptView({
     updatedTransaction,
     fillSpace = false,
     mergeTransactionID,
-    isReportArchivedByID,
+    archivedReportsIDSet,
     isDisplayedInWideRHP = false,
 }: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
@@ -143,6 +145,7 @@ function MoneyRequestReceiptView({
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const isReportArchivedByID = useCallback((reportID?: string) => isReportArchivedByIDUtil(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...

@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -844,6 +845,7 @@ function MoneyRequestView({
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
+    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -865,7 +867,7 @@ function MoneyRequestView({
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
                         mergeTransactionID={mergeTransactionID}
-                        isReportArchivedByID={isReportArchivedByID}
+                        archivedReportsIDSet={archivedReportsIDSet}
                     />
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
