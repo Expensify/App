@@ -84,7 +84,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({
                 reportID,
-                reportActionID,
+                reportActionID: attachment.reportActionID,
                 attachmentID: attachment.attachmentID,
                 type,
                 source: SafeString(attachment.source),
