@@ -109,17 +109,18 @@ function Composer({
                     .finally(() => file);
             });
 
-            let files: FileObject[] = [];
-            Promise.all(filePromises)
-                .then((f) => {
-                    files = f.filter((file) => file !== undefined);
-                })
-                .catch((error) => {
-                    Log.warn('Pasted files could not be pasted', {error});
-                })
-                .finally(() => {
-                    onPasteFile(files);
-                });
+            // Use allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
+            Promise.allSettled(filePromises).then((results) => {
+                const files: FileObject[] = [];
+                for (const [index, result] of results.entries()) {
+                    if (result.status === 'fulfilled' && result.value !== undefined) {
+                        files.push(result.value);
+                    } else if (result.status === 'rejected') {
+                        Log.warn('Pasted file could not be processed', {error: result.reason, index});
+                    }
+                }
+                onPasteFile(files);
+            });
         },
         [onPasteFile],
     );
