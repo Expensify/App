@@ -9,11 +9,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
     const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED);
-    const isVisible = !!payload;
     const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
-        if (!isVisible) {
+        if (!payload) {
             return;
         }
 
@@ -25,8 +24,8 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
         }).then(() => {
             clearSupportalPermissionDenied();
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to show the modal once when payload first becomes available
+    }, [payload]);
 
     return children;
 }
