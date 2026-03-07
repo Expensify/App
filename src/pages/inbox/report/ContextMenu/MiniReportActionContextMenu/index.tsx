@@ -401,16 +401,16 @@ function MiniReportActionContextMenu() {
                 style={StyleSheet.absoluteFill}
                 pointerEvents="box-none"
             >
-                <View
-                    style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
-                    pointerEvents={isVisible ? 'auto' : 'none'}
+                <Hoverable
+                    onHoverIn={() => keepOpen()}
+                    onHoverOut={() => {
+                        release();
+                        hideMiniContextMenu();
+                    }}
                 >
-                    <Hoverable
-                        onHoverIn={() => keepOpen()}
-                        onHoverOut={() => {
-                            release();
-                            hideMiniContextMenu();
-                        }}
+                    <View
+                        style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
+                        pointerEvents={isVisible ? 'auto' : 'none'}
                     >
                         <View
                             ref={menuContainerRef}
@@ -468,8 +468,8 @@ function MiniReportActionContextMenu() {
                                 </MiniContextMenuItem>
                             )}
                         </View>
-                    </Hoverable>
-                </View>
+                    </View>
+                </Hoverable>
             </View>
         </Portal>
     );

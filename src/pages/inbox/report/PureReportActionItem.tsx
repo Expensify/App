@@ -2048,7 +2048,6 @@ function PureReportActionItem({
                             return;
                         }
                         const rect = node.getBoundingClientRect();
-                        setIsContextMenuActive(true);
                         showMiniContextMenu({
                             reportID,
                             reportActionID: action.reportActionID,
@@ -2065,6 +2064,7 @@ function PureReportActionItem({
                             },
                             onMenuHide: () => setIsContextMenuActive(false),
                         });
+                        setIsContextMenuActive(true);
                     }}
                     onHoverOut={() => {
                         setIsReportActionActive(!!isReportActionLinked);

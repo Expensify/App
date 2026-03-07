@@ -60,6 +60,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
     const shouldKeepOpenRef = useRef(false);
     const pendingHideRef = useRef(false);
     const onMenuHideRef = useRef<(() => void) | null>(null);
+    const activeReportActionIDRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
         if (state?.isVisible ?? false) {
@@ -67,29 +68,48 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
         }
         onMenuHideRef.current?.();
         onMenuHideRef.current = null;
+        activeReportActionIDRef.current = undefined;
     }, [state?.isVisible]);
 
     const [actions] = useState<MiniContextMenuActions>(() => {
+        const isGuarded = () => shouldKeepOpenRef.current;
+
+        // Deferred to a microtask so that all event handlers in the current
+        // task (e.g. both mouseleave on the row AND mouseenter on the menu)
+        // finish and update refs before we decide whether to actually hide.
         const performHide = () => {
-            setState((prev) => {
-                if (shouldKeepOpenRef.current) {
+            queueMicrotask(() => {
+                if (isGuarded()) {
                     pendingHideRef.current = true;
-                    return prev;
+                    return;
                 }
-                return prev ? {...prev, isVisible: false} : null;
+                setState((prev) => (prev ? {...prev, isVisible: false} : null));
             });
+        };
+
+        const drainPendingHide = () => {
+            if (!pendingHideRef.current || isGuarded()) {
+                return;
+            }
+            pendingHideRef.current = false;
+            performHide();
         };
 
         return {
             showMiniContextMenu: (params: ShowMiniContextMenuParams) => {
-                onMenuHideRef.current?.();
+                const isSameRow = params.reportActionID === activeReportActionIDRef.current;
+                if (!isSameRow) {
+                    onMenuHideRef.current?.();
+                }
+                activeReportActionIDRef.current = params.reportActionID;
                 const {onMenuHide, ...stateParams} = params;
                 onMenuHideRef.current = onMenuHide ?? null;
                 pendingHideRef.current = false;
+                shouldKeepOpenRef.current = true;
                 setState({...stateParams, isVisible: true});
             },
             hideMiniContextMenu: () => {
-                if (shouldKeepOpenRef.current) {
+                if (isGuarded()) {
                     pendingHideRef.current = true;
                     return;
                 }
@@ -101,10 +121,7 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
             },
             release: () => {
                 shouldKeepOpenRef.current = false;
-                if (pendingHideRef.current) {
-                    pendingHideRef.current = false;
-                    performHide();
-                }
+                drainPendingHide();
             },
         };
     });
