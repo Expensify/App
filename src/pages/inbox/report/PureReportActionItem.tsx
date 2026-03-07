@@ -201,7 +201,7 @@ import {
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
-import type {MissingPaymentMethod} from '@libs/ReportUtils';
+import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
     canWriteInReport,
     chatIncludesConcierge,
@@ -239,7 +239,6 @@ import {
 } from '@userActions/Report';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
-import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -393,18 +392,7 @@ type PureReportActionItemProps = {
     ) => void;
 
     /** Function to create a draft transaction and navigate to participant selector */
-    createDraftTransactionAndNavigateToParticipantSelector?: (
-        transactionID: string | undefined,
-        reportID: string | undefined,
-        actionName: IOUAction,
-        reportActionID: string,
-        introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
-        allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>,
-        activePolicy: OnyxEntry<OnyxTypes.Policy>,
-        userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
-        isRestrictedToPreferredPolicy?: boolean,
-        preferredPolicyID?: string,
-    ) => void;
+    createDraftTransactionAndNavigateToParticipantSelector?: (params: CreateDraftTransactionParams) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
@@ -555,6 +543,7 @@ function PureReportActionItem({
     reportMetadata,
     userBillingGraceEndPeriodCollection,
 }: PureReportActionItemProps) {
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -593,6 +582,7 @@ function PureReportActionItem({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
     );
@@ -752,6 +742,7 @@ function PureReportActionItem({
                 return;
             }
 
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
                 transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
@@ -949,18 +940,19 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
+                        createDraftTransactionAndNavigateToParticipantSelector({
                             transactionID,
-                            reportActionReportID,
-                            CONST.IOU.ACTION.SUBMIT,
-                            action.reportActionID,
+                            reportID: reportActionReportID,
+                            actionName: CONST.IOU.ACTION.SUBMIT,
+                            reportActionID: action.reportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            undefined,
+                            userBillingGraceEndPeriodCollection,
+                            amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
-                        );
+                        });
                     },
                 },
             ];
@@ -971,32 +963,34 @@ function PureReportActionItem({
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
+                            createDraftTransactionAndNavigateToParticipantSelector({
                                 transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.CATEGORIZE,
-                                action.reportActionID,
+                                reportID: reportActionReportID,
+                                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                                reportActionID: action.reportActionID,
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
                                 userBillingGraceEndPeriodCollection,
-                            );
+                                amountOwed,
+                            });
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(
+                            createDraftTransactionAndNavigateToParticipantSelector({
                                 transactionID,
-                                reportActionReportID,
-                                CONST.IOU.ACTION.SHARE,
-                                action.reportActionID,
+                                reportID: reportActionReportID,
+                                actionName: CONST.IOU.ACTION.SHARE,
+                                reportActionID: action.reportActionID,
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                undefined,
-                            );
+                                userBillingGraceEndPeriodCollection,
+                                amountOwed,
+                            });
                         },
                     },
                 );
@@ -1141,6 +1135,7 @@ function PureReportActionItem({
         originalReport,
         personalPolicyID,
         userBillingGraceEndPeriodCollection,
+        amountOwed,
     ]);
 
     /**
@@ -1354,6 +1349,9 @@ function PureReportActionItem({
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
                 children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
+            } else if (isDEWPolicy) {
+                // Don't show a memo for DEW actions, it's shown in the Concierge action below
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', getOriginalMessage(action)?.message)} />;
             }
@@ -2101,6 +2099,7 @@ function PureReportActionItem({
                                 <OfflineWithFeedback
                                     onClose={onClose}
                                     dismissError={dismissError}
+                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                     pendingAction={
                                         draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                     }

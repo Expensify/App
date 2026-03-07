@@ -45,6 +45,7 @@ type SelectPaymentTypeParams = {
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
 };
 
 type BusinessBankAccountOption = {
@@ -222,8 +223,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReportNextStep,
         betas,
         userBillingGraceEndPeriods,
+        amountOwed,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }

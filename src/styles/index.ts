@@ -99,7 +99,11 @@ type StyleObject = ViewStyle | TextStyle | ImageStyle | WebViewStyle | OfflineFe
 type StyleFunction = (...args: any[]) => StyleObject;
 
 type StaticStyles = Record<string, StyleObject>;
-type DynamicStyles = Record<string, StyleFunction>;
+type DynamicStyles = Record<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    StyleFunction
+>;
 type Styles = Record<string, StyleObject | StyleFunction>;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target

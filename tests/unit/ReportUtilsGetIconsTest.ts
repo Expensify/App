@@ -118,6 +118,7 @@ beforeAll(() => {
         },
     });
     // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
 });
 
@@ -510,6 +511,7 @@ describe('getIcons', () => {
             type: CONST.REPORT.TYPE.IOU,
             ownerAccountID: 1,
             managerID: 2, // Different from current user (5)
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             participants: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
