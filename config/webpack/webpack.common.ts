@@ -17,6 +17,9 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions
+import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // eslint-disable-next-line import/extensions
 import type Environment from './types.ts';
 
@@ -55,8 +58,9 @@ const includeModules = [
     'react-native-view-shot',
     '@react-native/assets',
     'expo',
-    'expo-av',
+    'expo-audio',
     'expo-video',
+    'expo-image',
     'expo-image-manipulator',
     'expo-modules-core',
     'victory-native',
@@ -119,6 +123,15 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 isStaging: file === '.env.staging',
                 useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
             }),
+            // Inject <link rel="prefetch" /> into HTML
+            // This is not "webpackPrefetch: true" equivalent!
+            // By convention we use ".prefetch" suffix for such chunks
+            new PreloadWebpackPlugin({
+                rel: 'prefetch',
+                as: 'script',
+                fileWhitelist: [/(.+)\.prefetch(.*)\.js$/],
+                include: 'asyncChunks',
+            }),
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
@@ -165,6 +178,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
                 ],
             }),
+            new ModuleInitTimingPlugin(),
             new webpack.EnvironmentPlugin({JEST_WORKER_ID: ''}),
             new webpack.IgnorePlugin({
                 resourceRegExp: /^\.\/locale$/,
@@ -376,6 +390,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
                         chunks: 'all',
+                        priority: 10, // ensure this chunk has always its own group
                     },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {

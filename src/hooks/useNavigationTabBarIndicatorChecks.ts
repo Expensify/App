@@ -4,6 +4,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/acti
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasDomainErrors} from '@libs/DomainUtils';
 import {getUberConnectionErrorDirectlyFromPolicy, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError} from '@libs/PolicyUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
@@ -19,27 +20,31 @@ type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
 type NavigationTabBarChecksResult = {
     accountStatus: IndicatorStatus | undefined;
     policyStatus: IndicatorStatus | undefined;
+    domainStatus: IndicatorStatus | undefined;
     infoStatus: IndicatorStatus | undefined;
     policyIDWithErrors: string | undefined;
 };
 
 function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
-    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`, {canBeMissing: true});
-    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
-    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
-    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
-    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
-    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
+    const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING);
+    const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
+    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
+    const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -75,6 +80,8 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
             retryBillingFailed,
             fundList,
             billingStatus,
+            amountOwed,
+            ownerBillingGraceEndPeriod,
         ),
         [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && hasLoginListError(loginList),
@@ -94,12 +101,19 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
             retryBillingFailed,
             fundList,
             billingStatus,
+            amountOwed,
+            ownerBillingGraceEndPeriod,
         ),
         [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
+    const domainChecks: Partial<Record<IndicatorStatus, boolean>> = {
+        [CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS]: Object.values(allDomainErrors ?? {}).some((domainErrors) => hasDomainErrors(domainErrors)),
+    };
+
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
     const [policyStatus] = Object.entries(policyChecks).find(([, value]) => value) ?? [];
+    const [domainStatus] = Object.entries(domainChecks).find(([, value]) => value) ?? [];
     const [infoStatus] = Object.entries(infoChecks).find(([, value]) => value) ?? [];
 
     const policyIDWithErrors = Object.values(policyChecks).find(Boolean)?.id;
@@ -107,6 +121,7 @@ function useNavigationTabBarIndicatorChecks(): NavigationTabBarChecksResult {
     return {
         accountStatus: accountStatus as IndicatorStatus | undefined,
         policyStatus: policyStatus as IndicatorStatus | undefined,
+        domainStatus: domainStatus as IndicatorStatus | undefined,
         infoStatus: infoStatus as IndicatorStatus | undefined,
         policyIDWithErrors,
     };

@@ -168,13 +168,13 @@ function ScreenWrapper({
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {initialURL} = useInitialURLState();
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSetNVP: false});
+        closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
 
     useEffect(() => {

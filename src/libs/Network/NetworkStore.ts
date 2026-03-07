@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import {getCurrentUserEmail} from '@src/libs/CurrentUserStore';
 import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -9,7 +10,6 @@ let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
-let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;
 
@@ -56,7 +56,6 @@ Onyx.connectWithoutView({
     callback: (val) => {
         authToken = val?.authToken ?? null;
         authTokenType = val?.authTokenType ?? null;
-        currentUserEmail = val?.email ?? null;
         checkRequiredData();
     },
 });
@@ -116,10 +115,6 @@ function isSupportAuthToken(): boolean {
 
 function setAuthToken(newAuthToken: string | null) {
     authToken = newAuthToken;
-}
-
-function getCurrentUserEmail(): string | null {
-    return currentUserEmail;
 }
 
 function hasReadRequiredDataFromStorage(): Promise<unknown> {

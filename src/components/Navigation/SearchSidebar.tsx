@@ -1,7 +1,8 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,11 +24,13 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
     const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, setLastSearchType, currentSearchResults} = useSearchContext();
+    const {lastSearchType, currentSearchResults} = useSearchStateContext();
+    const {setLastSearchType} = useSearchActionsContext();
 
     const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
 
@@ -52,7 +55,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         <View style={styles.searchSidebar}>
             <View style={styles.flex1}>
                 <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState}
+                    shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                     breadcrumbLabel={translate('common.reports')}
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}

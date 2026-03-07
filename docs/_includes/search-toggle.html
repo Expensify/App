@@ -1,5 +1,11 @@
+{% unless page.url == "/" or page.url contains "/search" %}
 <div class="search-icon">
-    <a onclick="openSidebar()" id="toggle-search-open">
+    {% if page.url contains "expensify-classic" %}
+    <a href="/search?platform=expensify-classic" id="toggle-search-open">
+    {% else %}
+    <a href="/search" id="toggle-search-open">
+    {% endif %}
         <img src="/assets/images/search.svg" class="base-icon" />
     </a>
 </div>
+{% endunless %}

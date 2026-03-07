@@ -24,6 +24,7 @@ function ActivateCard({card}: ActivateCardProps) {
             subtitle={translate('homePage.timeSensitiveSection.activateCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.activateCard.cta')}
             onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)))}
+            buttonProps={{success: true}}
         />
     );
 }

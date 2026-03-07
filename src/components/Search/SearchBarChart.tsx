@@ -1,79 +1,33 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {BarChart} from '@components/Charts';
-import type {BarChartDataPoint} from '@components/Charts';
-import type {
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionMemberGroupListItemType,
-    TransactionWithdrawalIDGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ChartDataPoint} from '@components/Charts';
 import {convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {SearchChartProps} from './types';
 
-type GroupedItem = TransactionMemberGroupListItemType | TransactionCardGroupListItemType | TransactionWithdrawalIDGroupListItemType | TransactionCategoryGroupListItemType;
+function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onItemPress, isLoading, unit, unitPosition}: SearchChartProps) {
+    const chartData: ChartDataPoint[] = data.map((item) => {
+        const currency = item.currency ?? 'USD';
+        const totalInDisplayUnits = convertToFrontendAmountAsInteger(item.total ?? 0, currency);
 
-type SearchBarChartProps = {
-    /** Grouped transaction data from search results */
-    data: TransactionGroupListItemType[];
+        return {
+            label: getLabel(item),
+            total: totalInDisplayUnits,
+        };
+    });
 
-    /** Chart title */
-    title: string;
+    const handleBarPress = (dataPoint: ChartDataPoint, index: number) => {
+        if (!onItemPress) {
+            return;
+        }
 
-    /** Chart title icon */
-    titleIcon: IconAsset;
+        const item = data.at(index);
+        if (!item) {
+            return;
+        }
 
-    /** Function to extract label from grouped item */
-    getLabel: (item: GroupedItem) => string;
-
-    /** Function to build filter query from grouped item */
-    getFilterQuery: (item: GroupedItem) => string;
-
-    /** Callback when a bar is pressed - receives the filter query to apply */
-    onBarPress?: (filterQuery: string) => void;
-
-    /** Whether data is loading */
-    isLoading?: boolean;
-
-    /** Currency symbol for Y-axis labels */
-    yAxisUnit?: string;
-
-    /** Position of currency symbol relative to value */
-    yAxisUnitPosition?: 'left' | 'right';
-};
-
-function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBarPress, isLoading, yAxisUnit, yAxisUnitPosition}: SearchBarChartProps) {
-    // Transform grouped transaction data to BarChart format
-    const chartData: BarChartDataPoint[] = useMemo(() => {
-        return data.map((item) => {
-            const groupedItem = item as GroupedItem;
-            const currency = groupedItem.currency ?? 'USD';
-            const totalInDisplayUnits = convertToFrontendAmountAsInteger(groupedItem.total ?? 0, currency);
-
-            return {
-                label: getLabel(groupedItem),
-                total: totalInDisplayUnits,
-                currency,
-            };
-        });
-    }, [data, getLabel]);
-
-    const handleBarPress = useCallback(
-        (dataPoint: BarChartDataPoint, index: number) => {
-            if (!onBarPress) {
-                return;
-            }
-
-            const item = data.at(index);
-            if (!item) {
-                return;
-            }
-
-            const filterQuery = getFilterQuery(item as GroupedItem);
-            onBarPress(filterQuery);
-        },
-        [data, getFilterQuery, onBarPress],
-    );
+        const filterQuery = getFilterQuery(item);
+        onItemPress(filterQuery);
+    };
 
     return (
         <BarChart
@@ -82,8 +36,8 @@ function SearchBarChart({data, title, titleIcon, getLabel, getFilterQuery, onBar
             titleIcon={titleIcon}
             isLoading={isLoading}
             onBarPress={handleBarPress}
-            yAxisUnit={yAxisUnit}
-            yAxisUnitPosition={yAxisUnitPosition}
+            yAxisUnit={unit}
+            yAxisUnitPosition={unitPosition}
         />
     );
 }

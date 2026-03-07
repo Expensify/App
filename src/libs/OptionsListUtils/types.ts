@@ -1,8 +1,19 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, Login, PersonalDetails, PersonalDetailsList, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    Login,
+    PersonalDetails,
+    PersonalDetailsList,
+    Report,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    TransactionViolation,
+    VisibleReportActionsDerivedValue,
+} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -91,6 +102,10 @@ type OptionList = {
 };
 
 type Option = Partial<OptionData>;
+
+type OptionWithKey = Option & {
+    keyForList: string;
+};
 
 /**
  * A narrowed version of `Option` is used when we have a guarantee that given values exist.
@@ -186,6 +201,7 @@ type IsValidReportsConfig = Pick<
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
+    excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
@@ -193,14 +209,20 @@ type GetOptionsConfig = {
     excludeHiddenThreads?: boolean;
     canShowManagerMcTest?: boolean;
     searchString?: string;
+    searchInputValue?: string;
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
     shouldAcceptName?: boolean;
+    countryCode?: number;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    searchInputValue?: string;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;
@@ -230,8 +252,10 @@ type MemberForList = {
 };
 
 type SectionForSearchTerm = {
-    section: Section;
+    section: SelectionListSection<OptionWithKey>;
 };
+
+type SelectionListSections = Array<SelectionListSection<OptionWithKey>>;
 
 type Options = {
     recentReports: SearchOptionData[];
@@ -251,7 +275,7 @@ type PreviewConfig = {
     isSelected?: boolean;
 };
 
-type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName'> & {
+type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };
@@ -284,6 +308,7 @@ export type {
     GetValidReportsConfig,
     MemberForList,
     Option,
+    OptionWithKey,
     OptionList,
     OptionTree,
     Options,
@@ -296,6 +321,7 @@ export type {
     SearchOptionData,
     Section,
     SectionBase,
+    SelectionListSections,
     SectionForSearchTerm,
     IsValidReportsConfig,
 };

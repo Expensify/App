@@ -1,7 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {updateGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import geodesicDistance from '@src/utils/geodesicDistance';
 
 function resetGPSDraftDetails() {
@@ -20,7 +23,7 @@ function setEndAddress(endAddress: GpsDraftDetails['endAddress']) {
     });
 }
 
-function initGpsDraft(reportID: string) {
+function initGpsDraft(reportID: string, unit: Unit) {
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: [],
         isTracking: true,
@@ -28,6 +31,7 @@ function initGpsDraft(reportID: string) {
         startAddress: {value: '', type: 'coordinates'},
         endAddress: {value: '', type: 'coordinates'},
         reportID,
+        unit,
     });
 }
 
@@ -39,24 +43,27 @@ function setIsTracking(isTracking: boolean) {
 
 type GPSPoint = GpsDraftDetails['gpsPoints'][number];
 
-function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, gpsPointsToAdd: GpsDraftDetails['gpsPoints']) {
+function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, newGpsPoints: GpsDraftDetails['gpsPoints']) {
     const capturedPoints = gpsDraftDetails?.gpsPoints ?? [];
 
-    const pointsToMeasureDistanceBetween: GPSPoint[] = [capturedPoints.at(-1), ...gpsPointsToAdd].filter((val): val is GPSPoint => !!val);
-
-    let previousPoint: GPSPoint | undefined;
+    let previousPoint: GPSPoint | undefined = capturedPoints.at(-1);
     let distanceToAdd = 0;
-    for (const point of pointsToMeasureDistanceBetween) {
-        if (previousPoint === undefined) {
+    const gpsPointsToAdd: GPSPoint[] = [];
+
+    for (const point of newGpsPoints) {
+        if (!previousPoint) {
             previousPoint = point;
+            gpsPointsToAdd.push(point);
             continue;
         }
 
         const distanceBetweenPoints = geodesicDistance(point, previousPoint);
 
-        distanceToAdd += distanceBetweenPoints;
-
-        previousPoint = point;
+        if (distanceBetweenPoints >= GPS_DISTANCE_INTERVAL_METERS) {
+            distanceToAdd += distanceBetweenPoints;
+            previousPoint = point;
+            gpsPointsToAdd.push(point);
+        }
     }
 
     const capturedDistance = gpsDraftDetails?.distanceInMeters ?? 0;
@@ -64,6 +71,10 @@ function addGpsPoints(gpsDraftDetails: OnyxEntry<GpsDraftDetails>, gpsPointsToAd
     const updatedDistance = capturedDistance + distanceToAdd;
 
     const updatedGpsPoints = [...capturedPoints, ...gpsPointsToAdd];
+
+    if (updatedDistance > 0) {
+        updateGpsTripNotification(updatedDistance);
+    }
 
     Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {
         gpsPoints: updatedGpsPoints,

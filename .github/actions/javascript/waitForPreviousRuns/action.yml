@@ -1,0 +1,23 @@
+name: 'Wait for previous workflow runs'
+description: 'Polls GitHub API and waits until all older runs of the same workflow have completed (FIFO queue)'
+inputs:
+  GITHUB_TOKEN:
+    description: Auth token for GitHub API
+    required: true
+  WORKFLOW_ID:
+    description: The workflow filename (e.g. testBuildOnPush.yml)
+    required: true
+  CURRENT_RUN_ID:
+    description: The current workflow run ID
+    required: true
+  POLL_RATE_SECONDS:
+    description: Polling interval in seconds (default 20)
+    required: false
+    default: '20'
+  QUEUE_LIMIT:
+    description: Max number of recent workflow runs to fetch per poll (default 20)
+    required: false
+    default: '20'
+runs:
+  using: 'node20'
+  main: './index.js'

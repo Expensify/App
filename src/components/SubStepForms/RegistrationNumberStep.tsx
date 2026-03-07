@@ -61,7 +61,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID], translate);
 
             if (values[inputID] && !isValidRegistrationNumber(values[inputID] as string, country)) {
                 errors[inputID] = translate('businessInfoStep.error.registrationNumber');

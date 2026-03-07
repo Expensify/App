@@ -245,6 +245,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
             ...existedValue,
             name: category.name,
             pendingAction: category.pendingAction,
+            enabled: category.enabled ?? false,
         });
     }
 
@@ -255,12 +256,12 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      */
     const flatHierarchy = (initialHierarchy: Hierarchy) =>
         Object.values(initialHierarchy).reduce((acc: Category[], category) => {
-            const {name, pendingAction, ...subcategories} = category;
+            const {name, pendingAction, enabled, ...subcategories} = category;
             if (name) {
                 const categoryObject: Category = {
                     name,
                     pendingAction,
-                    enabled: categories[name]?.enabled ?? false,
+                    enabled: enabled ?? false,
                 };
 
                 acc.push(categoryObject);
