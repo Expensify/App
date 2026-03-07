@@ -9,6 +9,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+const mockGetReportOrDraftReport = jest.fn();
+const mockGetReportSubtitlePrefix = jest.fn(() => '');
+
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual('@libs/ReportUtils'),
+    getReportOrDraftReport: (...args: Parameters<typeof mockGetReportOrDraftReport>) => mockGetReportOrDraftReport(...args),
+    getReportSubtitlePrefix: (...args: Parameters<typeof mockGetReportSubtitlePrefix>) => mockGetReportSubtitlePrefix(...args),
+}));
+
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
@@ -73,6 +82,8 @@ describe('SearchAutocompleteList', () => {
 
     beforeEach(() => {
         mockHtmlToText.mockClear();
+        mockGetReportOrDraftReport.mockReset();
+        mockGetReportSubtitlePrefix.mockReturnValue('');
     });
 
     afterEach(async () => {
@@ -84,11 +95,9 @@ describe('SearchAutocompleteList', () => {
     it('should not call Parser.htmlToText when lastActionType is ADD_COMMENT', async () => {
         const reportID = '10';
 
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            });
+        mockGetReportOrDraftReport.mockReturnValue({
+            reportID,
+            lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         });
 
         render(
@@ -115,10 +124,8 @@ describe('SearchAutocompleteList', () => {
     it('should call Parser.htmlToText when lastActionType is not ADD_COMMENT', async () => {
         const reportID = '10';
 
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-            });
+        mockGetReportOrDraftReport.mockReturnValue({
+            reportID,
         });
 
         render(
