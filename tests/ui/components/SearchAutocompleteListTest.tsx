@@ -7,16 +7,8 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
-
-const mockGetReportOrDraftReport = jest.fn();
-const mockGetReportSubtitlePrefix = jest.fn(() => '');
-
-jest.mock('@libs/ReportUtils', () => ({
-    ...jest.requireActual('@libs/ReportUtils'),
-    getReportOrDraftReport: (...args: Parameters<typeof mockGetReportOrDraftReport>) => mockGetReportOrDraftReport(...args),
-    getReportSubtitlePrefix: (...args: Parameters<typeof mockGetReportSubtitlePrefix>) => mockGetReportSubtitlePrefix(...args),
-}));
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -82,8 +74,6 @@ describe('SearchAutocompleteList', () => {
 
     beforeEach(() => {
         mockHtmlToText.mockClear();
-        mockGetReportOrDraftReport.mockReset();
-        mockGetReportSubtitlePrefix.mockReturnValue('');
     });
 
     afterEach(async () => {
@@ -92,12 +82,25 @@ describe('SearchAutocompleteList', () => {
         });
     });
 
-    it('should not call Parser.htmlToText when lastActionType is ADD_COMMENT', async () => {
+    it('should not call Parser.htmlToText when parentReportAction is ADD_COMMENT', async () => {
         const reportID = '10';
+        const parentReportID = '20';
+        const parentActionID = '100';
 
-        mockGetReportOrDraftReport.mockReturnValue({
-            reportID,
-            lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        const parentReportAction = {
+            ...createRandomReportAction(Number(parentActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                [parentActionID]: parentReportAction,
+            });
         });
 
         render(
@@ -121,11 +124,13 @@ describe('SearchAutocompleteList', () => {
         expect(mockHtmlToText).not.toHaveBeenCalled();
     });
 
-    it('should call Parser.htmlToText when lastActionType is not ADD_COMMENT', async () => {
+    it('should call Parser.htmlToText when parentReportAction is not ADD_COMMENT', async () => {
         const reportID = '10';
 
-        mockGetReportOrDraftReport.mockReturnValue({
-            reportID,
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+            });
         });
 
         render(
