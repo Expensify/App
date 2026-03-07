@@ -28,6 +28,7 @@ type BaseDomainVerifiedPageProps = {
 function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const redirectToPath: string = redirectTo;
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
@@ -37,8 +38,8 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo}: BaseDomainVerifie
         if (!doesDomainExist || domain?.validated) {
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectTo, {forceReplace: true}));
-    }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(redirectToPath as Route, {forceReplace: true}));
+    }, [domain?.validated, doesDomainExist, redirectToPath] as React.DependencyList);
 
     if (isLoadingOnyxValue(domainMetadata, isAdminMetadata)) {
         return <FullScreenLoadingIndicator />;

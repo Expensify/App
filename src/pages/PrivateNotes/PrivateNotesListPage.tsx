@@ -39,7 +39,7 @@ type NoteListItem = {
 
 function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNotesListPageProps) {
     const route = useRoute<PlatformStackRouteProp<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.LIST>>();
-    const backTo = route.params.backTo;
+    const backTo: string | undefined = route.params.backTo;
     const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -85,7 +85,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
                 disabled: Number(sessionAccountID) !== accountID,
             };
         });
-    }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
+    }, [report, personalDetailsList, sessionAccountID, translate, backTo] as React.DependencyList);
 
     return (
         <ScreenWrapper testID="PrivateNotesListPage">
