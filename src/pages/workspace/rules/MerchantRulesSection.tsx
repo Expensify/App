@@ -6,6 +6,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import SearchBar from '@components/SearchBar';
+import useSearchResults from '@hooks/useSearchResults';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -63,6 +65,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
     // Lowercase any subsequent rule after the first one
     return actions.map((action, index) => (index === 0 ? action : action.charAt(0).toLowerCase() + action.slice(1))).join(', ');
 }
+const filterMerchantRule = (rule: {filters?: {right?: string}}, searchInput: string) =>
+    (rule.filters?.right ?? '').toLowerCase().includes(searchInput);
 
 function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     const {translate} = useLocalize();
@@ -101,6 +105,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             });
     }, [codingRules]);
 
+    const [merchantSearchInput, setMerchantSearchInput, filteredRules] = useSearchResults(sortedRules, filterMerchantRule);
+
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
@@ -121,7 +127,22 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         >
             {hasRules && (
                 <View style={[styles.mt3]}>
-                    {sortedRules.map((rule) => {
+                    {sortedRules.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT && (
+                        <SearchBar
+                            label={translate('workspace.rules.merchantRules.findRule')}
+                            inputValue={merchantSearchInput}
+                            onChangeText={setMerchantSearchInput}
+                            style={[styles.mt6, styles.mb3, {marginHorizontal: 0}]}
+                        />
+                    )}
+                    {filteredRules.length === 0 && merchantSearchInput.length > 0 && (
+                        <View style={[styles.pt3, styles.pb5]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>
+                                {translate('common.noResultsFoundMatching', merchantSearchInput)}
+                            </Text>
+                        </View>
+                    )}
+                    {filteredRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
                         const matchDescription = translate('workspace.rules.merchantRules.ruleSummaryTitle', merchantName, isExactMatch);
