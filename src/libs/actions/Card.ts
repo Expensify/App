@@ -645,16 +645,22 @@ function revealVirtualCardDetails(cardID: number, validateCode: string): Promise
     });
 }
 
-function updateSettlementFrequency(workspaceAccountID: number, settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>, currentFrequency?: Date) {
+function updateSettlementFrequency(
+    workspaceAccountID: number,
+    feedCountry: string | undefined,
+    settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
+    currentFrequency?: Date,
+) {
     const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
+
+    const settlementValue = feedCountry ? {[feedCountry]: {monthlySettlementDate}} : {monthlySettlementDate};
+    const failureValue = feedCountry ? {[feedCountry]: {monthlySettlementDate: currentFrequency}} : {monthlySettlementDate: currentFrequency};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate,
-            },
+            value: settlementValue,
         },
     ];
 
@@ -662,9 +668,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate,
-            },
+            value: settlementValue,
         },
     ];
 
@@ -672,9 +676,7 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                monthlySettlementDate: currentFrequency,
-            },
+            value: failureValue,
         },
     ];
 
@@ -686,19 +688,41 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(domainName: string, workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
+function updateSettlementAccount(
+    domainName: string,
+    workspaceAccountID: number,
+    policyID: string,
+    feedCountry: string | undefined,
+    settlementBankAccountID?: number,
+    currentSettlementBankAccountID?: number,
+) {
     if (!settlementBankAccountID) {
         return;
     }
+
+    const optimisticValue = feedCountry
+        ? {[feedCountry]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true}
+        : {paymentBankAccountID: settlementBankAccountID, isLoading: true};
+
+    const successValue = feedCountry ? {[feedCountry]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false} : {paymentBankAccountID: settlementBankAccountID, isLoading: false};
+
+    const failureValue = feedCountry
+        ? {
+              [feedCountry]: {paymentBankAccountID: currentSettlementBankAccountID},
+              isLoading: false,
+              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+          }
+        : {
+              paymentBankAccountID: currentSettlementBankAccountID,
+              isLoading: false,
+              errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+          };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: settlementBankAccountID,
-                isLoading: true,
-            },
+            value: optimisticValue,
         },
     ];
 
@@ -706,10 +730,7 @@ function updateSettlementAccount(domainName: string, workspaceAccountID: number,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: settlementBankAccountID,
-                isLoading: false,
-            },
+            value: successValue,
         },
     ];
 
@@ -717,11 +738,7 @@ function updateSettlementAccount(domainName: string, workspaceAccountID: number,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
-            value: {
-                paymentBankAccountID: currentSettlementBankAccountID,
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-            },
+            value: failureValue,
         },
     ];
 

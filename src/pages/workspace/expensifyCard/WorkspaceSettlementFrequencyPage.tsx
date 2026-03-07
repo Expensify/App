@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardFeedCountry, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,6 +29,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const feedCountry = getCardFeedCountry(cardSettings);
     const settings = getCardSettings(cardSettings);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
@@ -58,7 +59,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        updateSettlementFrequencyUtil(defaultFundID, value, settings?.monthlySettlementDate);
+        updateSettlementFrequencyUtil(defaultFundID, feedCountry, value, settings?.monthlySettlementDate);
     };
 
     return (

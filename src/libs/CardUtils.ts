@@ -1084,6 +1084,23 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+/**
+ * Detects which card program key exists in the card settings object.
+ * Returns the first matching program key (US, CURRENT, or GB), or undefined if none found.
+ * Used to determine the correct nested key for optimistic writes.
+ */
+function getCardFeedCountry(cardSettings: OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    const programKeys = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
+    return programKeys.find((key) => {
+        const value = cardSettings[key as keyof typeof cardSettings];
+        return value && typeof value === 'object' && !Array.isArray(value);
+    });
+}
+
 function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
     if (!cardSettings) {
         return undefined;
@@ -1434,6 +1451,7 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     getCardSettings,
+    getCardFeedCountry,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
