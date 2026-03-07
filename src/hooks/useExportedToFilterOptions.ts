@@ -39,8 +39,6 @@ function exportedToPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColle
  * It collects standard export templates and all connected integrations to build the filter options.
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
-export {exportedToPoliciesSelector};
-
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchStateContext();
     const policyIDs = currentSearchQueryJSON?.policyID;
@@ -94,3 +92,5 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         connectedIntegrationNames,
     };
 }
+
+export {exportedToPoliciesSelector};
