@@ -18,6 +18,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
@@ -149,6 +150,7 @@ function SearchAutocompleteList({
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
@@ -315,6 +317,7 @@ function SearchAutocompleteList({
                       autoCompleteWithSpace: false,
                       translate,
                       feedKeysWithCards,
+                      reportAttributes,
                   })
                 : query,
             singleIcon: expensifyIcons.History,

@@ -10,6 +10,7 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -43,6 +44,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const reportAttributes = useReportAttributes();
 
     const {showDeleteModal} = useDeleteSavedSearch();
     const {
@@ -74,6 +76,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                 autoCompleteWithSpace: false,
                 translate,
                 feedKeysWithCards,
+                reportAttributes,
             });
         }
 
