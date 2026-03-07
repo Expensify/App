@@ -3,6 +3,9 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import Onyx, {useOnyx} from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
+import {typeOptionsPoliciesSelector} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
+import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
+import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -107,6 +110,74 @@ describe('useFilterFormValues', () => {
             );
 
             await measureFunction(() => policyTagsSelector(tags));
+        });
+
+        test('exportedToPoliciesSelector with 500 policies', async () => {
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) =>
+                    ({
+                        ...createRandomPolicy(index),
+                        connections: {
+                            quickbooksOnline: {
+                                config: {realmId: `realm${index}`, companyName: `Company ${index}`},
+                                lastSync: {isConnected: true, lastSyncDate: new Date().toISOString()},
+                            },
+                        },
+                        exportLayouts: Object.fromEntries(Array.from({length: 5}, (_unused, i) => [`template${i}`, {name: `Template ${i}`}])),
+                        employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
+                        taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
+                    }) as unknown as Policy,
+                POLICY_COUNT,
+            );
+
+            await measureFunction(() => exportedToPoliciesSelector(policies));
+        });
+
+        test('typeOptionsPoliciesSelector with 500 policies', async () => {
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) =>
+                    ({
+                        ...createRandomPolicy(index),
+                        connections: {
+                            quickbooksOnline: {
+                                config: {realmId: `realm${index}`},
+                                lastSync: {isConnected: true},
+                            },
+                        },
+                        taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
+                        fieldList: Object.fromEntries(Array.from({length: 10}, (_unused, i) => [`field${i}`, {name: `Field ${i}`, type: 'text'}])),
+                        employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
+                    }) as unknown as Policy,
+                POLICY_COUNT,
+            );
+
+            await measureFunction(() => typeOptionsPoliciesSelector(policies));
+        });
+
+        test('advancedSearchPoliciesSelector with 500 policies', async () => {
+            const policies = createCollection<Policy>(
+                (_, index) => `${ONYXKEYS.COLLECTION.POLICY}${index}`,
+                (index) =>
+                    ({
+                        ...createRandomPolicy(index),
+                        connections: {
+                            quickbooksOnline: {
+                                config: {realmId: `realm${index}`, companyName: `Company ${index}`},
+                                lastSync: {isConnected: true, lastSyncDate: new Date().toISOString()},
+                            },
+                        },
+                        exportLayouts: Object.fromEntries(Array.from({length: 5}, (_unused, i) => [`template${i}`, {name: `Template ${i}`}])),
+                        rules: {approvalRules: Array.from({length: 10}, (_unused, i) => ({id: `rule${i}`, name: `Rule ${i}`}))},
+                        employeeList: Object.fromEntries(Array.from({length: 100}, (_unused, i) => [`user${i}@test.com`, {email: `user${i}@test.com`, role: 'user'}])),
+                        taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '10%', foreignTaxDefault: '', taxes: {}},
+                        fieldList: Object.fromEntries(Array.from({length: 10}, (_unused, i) => [`field${i}`, {name: `Field ${i}`, type: 'text'}])),
+                    }) as unknown as Policy,
+                POLICY_COUNT,
+            );
+
+            await measureFunction(() => advancedSearchPoliciesSelector(policies));
         });
     });
 

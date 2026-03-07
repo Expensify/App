@@ -53,9 +53,6 @@ function policyCategoriesSelector(categories: OnyxCollection<PolicyCategories>):
         }
         const minimalCategories: PolicyCategories = {};
         for (const [catKey, category] of Object.entries(policyCategories)) {
-            if (!category) {
-                continue;
-            }
             minimalCategories[catKey] = {name: category.name} as PolicyCategories[string];
         }
         result[collectionKey] = minimalCategories;
@@ -74,14 +71,8 @@ function policyTagsSelector(tags: OnyxCollection<PolicyTagLists>): OnyxCollectio
         }
         const minimalTagLists: PolicyTagLists = {};
         for (const [listKey, tagList] of Object.entries(policyTagLists)) {
-            if (!tagList) {
-                continue;
-            }
             const minimalTags: Record<string, {name: string}> = {};
             for (const [tagKey, tag] of Object.entries(tagList.tags ?? {})) {
-                if (!tag) {
-                    continue;
-                }
                 minimalTags[tagKey] = {name: tag.name};
             }
             minimalTagLists[listKey] = {tags: minimalTags} as PolicyTagLists[string];
