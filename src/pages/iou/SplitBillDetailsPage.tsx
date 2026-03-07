@@ -114,6 +114,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             quickAction,
             transactionViolations,
             betas,
+            personalDetails,
             session?.email,
         );
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations, betas]);

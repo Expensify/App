@@ -1151,6 +1151,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1184,6 +1185,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1339,6 +1341,7 @@ function IOURequestStepConfirmation({
             requestType,
             betas,
             allPolicyTags,
+            personalDetails,
         ],
     );
 
