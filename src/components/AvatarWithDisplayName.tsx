@@ -193,7 +193,6 @@ function AvatarWithDisplayName({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
 
     const reportAttributes = useReportAttributes();
     const isReportArchived = useReportIsArchived(report?.reportID);
