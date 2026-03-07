@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -110,7 +111,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -207,7 +208,34 @@ function IOURequestStepConfirmation({
 
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const participantPolicyIDs = useMemo(() => {
+        const ids = new Set<string>();
+        for (const p of transaction?.participants ?? []) {
+            if (p.policyID) {
+                ids.add(p.policyID);
+            }
+        }
+        return Array.from(ids).sort().join(',');
+    }, [transaction?.participants]);
+
+    const policyTagsSelector = useCallback(
+        (allTags: OnyxCollection<PolicyTagLists>) => {
+            if (!participantPolicyIDs) {
+                return {};
+            }
+            const policyIDs = participantPolicyIDs.split(',');
+            return policyIDs.reduce<Record<string, PolicyTagLists>>((acc, participantPolicyID) => {
+                const key = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${participantPolicyID}`;
+                if (allTags?.[key]) {
+                    acc[participantPolicyID] = allTags[key];
+                }
+                return acc;
+            }, {});
+        },
+        [participantPolicyIDs],
+    );
+
+    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -1085,13 +1113,6 @@ function IOURequestStepConfirmation({
                         }
                         const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
 
-                        const participantsPolicyTags = selectedParticipants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
-                            if (participant.policyID) {
-                                acc[participant.policyID] = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
-                            }
-                            return acc;
-                        }, {});
-
                         // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
                         startSplitBill({
                             participants: selectedParticipants,
@@ -1336,7 +1357,7 @@ function IOURequestStepConfirmation({
             reportID,
             requestType,
             betas,
-            allPolicyTags,
+            participantsPolicyTags,
         ],
     );
 
