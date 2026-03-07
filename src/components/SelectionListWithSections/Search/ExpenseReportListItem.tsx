@@ -248,7 +248,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     <ExpenseReportListItemRow
                         item={reportItem}
                         columns={columns}
-                        policy={snapshotPolicy}
                         reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}

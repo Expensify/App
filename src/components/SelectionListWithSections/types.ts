@@ -17,6 +17,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -500,6 +501,15 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** Pre-computed flag indicating whether all transactions are scanning */
         isAllScanning?: boolean;
+
+        /** Pre-computed primary avatar icon for the report */
+        primaryAvatar?: Icon;
+
+        /** Pre-computed secondary avatar icon for the report (workspace icon for subscript display) */
+        secondaryAvatar?: Icon;
+
+        /** Layout type for the report avatar, matching CONST.REPORT_ACTION_AVATARS.TYPE */
+        avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &

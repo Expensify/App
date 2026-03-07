@@ -410,7 +410,7 @@ function useSearchSelectorBase({
             selectedOptions.some(
                 (selected) =>
                     (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
     }, [selectedOptions]);
@@ -467,7 +467,7 @@ function useSearchSelectorBase({
             const isSelected = selectedOptions.some(
                 (selected) =>
                     (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                    (selected.reportID && selected.reportID === option.reportID) ||
+                    (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                     (selected.login && selected.login === option.login),
             );
 
@@ -476,7 +476,7 @@ function useSearchSelectorBase({
                       (selected) =>
                           !(
                               (selected.accountID && selected.accountID === option.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-                              (selected.reportID && selected.reportID === option.reportID) ||
+                              (selected.reportID && selected.reportID === option.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
                               (selected.login && selected.login === option.login)
                           ),
                   )
