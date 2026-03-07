@@ -14,7 +14,7 @@ You can safely delegate tasks to someone else without sharing your login informa
 
 ---
 
-# How to Assign a CoPilot
+# How to Assign a Copilot
 
 1. Go to **Settings > Account > Profile**.
 2. Under **Copilot Access**, enter the email or phone number of the person you want to assign as your Copilot.
