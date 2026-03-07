@@ -1,5 +1,5 @@
 import type {ReactNode, RefObject} from 'react';
-import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useRef, useState} from 'react';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
 type RowMeasurements = {
@@ -62,15 +62,6 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
     const onMenuHideRef = useRef<(() => void) | null>(null);
     const activeReportActionIDRef = useRef<string | undefined>(undefined);
 
-    useEffect(() => {
-        if (state?.isVisible ?? false) {
-            return;
-        }
-        onMenuHideRef.current?.();
-        onMenuHideRef.current = null;
-        activeReportActionIDRef.current = undefined;
-    }, [state?.isVisible]);
-
     const [actions] = useState<MiniContextMenuActions>(() => {
         const isGuarded = () => shouldKeepOpenRef.current;
 
@@ -84,6 +75,9 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                     return;
                 }
                 setState((prev) => (prev ? {...prev, isVisible: false} : null));
+                onMenuHideRef.current?.();
+                onMenuHideRef.current = null;
+                activeReportActionIDRef.current = undefined;
             });
         };
 
