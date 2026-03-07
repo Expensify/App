@@ -1794,6 +1794,7 @@ const CONST = {
         SPAN_SEARCH_ROUTER_OPTIONS_INIT: 'SearchRouter.OptionsInit',
         SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS: 'SearchRouter.ComputeOptions',
         SPAN_SEARCH_ROUTER_LIST_RENDER: 'SearchRouter.ListRender',
+        SPAN_SEARCH_PAGE_VISIBLE: 'ManualOpenSearchRouterPageVisible',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_CAMERA_INIT: 'ManualCameraInit',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
@@ -2362,7 +2363,7 @@ const CONST = {
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL: 96,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
-    EXPENSIFY_MERCHANT: 'Expensify',
+    EXPENSIFY_MERCHANT: 'Expensify, Inc.',
     EMAIL,
 
     FULLSTORY: {
@@ -2640,7 +2641,15 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
-        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
+        NETSUITE_ADD_CUSTOM_LIST: {
+            STEP_INDEX_LIST: ['1', '2', '3', '4'],
+            PAGE_NAME: {
+                NAME: 'name',
+                FIELD_ID: 'field-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
+            },
+        },
         NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES: ['1', '2,', '3', '4', '5', '6,'],
     },
 
@@ -3320,6 +3329,7 @@ const CONST = {
             IMPORT_SPREADSHEET: 'importSpreadsheet',
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
+            EXPORT: 'export',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3685,6 +3695,9 @@ const CONST = {
         NAME: 'expensifyCard',
         BANK: 'Expensify Card',
         ROUTE: 'expensify-card',
+        CARD_PROGRAM: {
+            CURRENT: 'CURRENT',
+        },
         FRAUD_TYPES: {
             DOMAIN: 'domain',
             INDIVIDUAL: 'individual',
@@ -6249,6 +6262,7 @@ const CONST = {
             NORMAL: 8,
         },
         DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        OFFLINE_THRESHOLD: 7000,
     },
 
     INTRO_CHOICES: {
@@ -7556,6 +7570,7 @@ const CONST = {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
             SEARCH: 'searchItem',
+            FIND_ITEM: 'findItem',
         },
         SEARCH_USER_FRIENDLY_KEYS: {
             TYPE: 'type',
@@ -8794,6 +8809,8 @@ const CONST = {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
                 NEW_DOMAIN_BUTTON: 'WorkspaceList-NewDomainButton',
                 THREE_DOT_MENU: 'WorkspaceList-ThreeDotMenu',
+                ROW: 'WorkspaceList-Row',
+                ROW_ARROW: 'WorkspaceList-RowArrow',
             },
             INITIAL: {
                 PROFILE: 'WorkspaceInitial-Profile',
