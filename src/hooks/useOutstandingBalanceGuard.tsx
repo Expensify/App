@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasAmountOwed} from '@libs/SubscriptionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 
 /**
  * Hook that encapsulates the outstanding balance guard logic for workspace deletion.
@@ -18,8 +19,9 @@ import useLocalize from './useLocalize';
 function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const {translate} = useLocalize();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
-    const wouldBlockDeletion = hasAmountOwed() && ownedPaidPoliciesCount === 1;
+    const wouldBlockDeletion = !!amountOwed && ownedPaidPoliciesCount === 1;
 
     const shouldBlockDeletion = useCallback(() => {
         if (wouldBlockDeletion) {

@@ -93,32 +93,6 @@ function hasGracePeriodOverdue(gracePeriodEnd: OnyxEntry<number>): boolean {
     return !!gracePeriodEnd && Date.now() > new Date(gracePeriodEnd).getTime();
 }
 
-function getOverdueGracePeriodDate(gracePeriodEnd?: OnyxEntry<number>): OnyxEntry<number> {
-    return gracePeriodEnd ?? ownerBillingGraceEndPeriodDeprecated;
-}
-
-/**
- * @returns Whether the workspace owner has an overdue grace period.
- */
-function hasOverdueGracePeriod(gracePeriodEnd?: OnyxEntry<number>): boolean {
-    const value = gracePeriodEnd ?? ownerBillingGraceEndPeriodDeprecated;
-    return !!value;
-}
-
-/**
- * @returns The amount owed by the workspace owner.
- */
-function getAmountOwed(amountOwed?: OnyxEntry<number>): number {
-    return amountOwed ?? privateAmountOwed ?? 0;
-}
-
-/**
- * @returns Whether there is an amount owed by the workspace owner.
- */
-function hasAmountOwed(): boolean {
-    return !!privateAmountOwed;
-}
-
 /**
  * @returns Whether there is a card authentication error.
  */
@@ -631,15 +605,11 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
-    getAmountOwed,
-    hasAmountOwed,
     getCardForSubscriptionBilling,
     getFreeTrialText,
-    getOverdueGracePeriodDate,
     getSubscriptionStatus,
     hasCardAuthenticatedError,
     hasGracePeriodOverdue,
-    hasOverdueGracePeriod,
     hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
