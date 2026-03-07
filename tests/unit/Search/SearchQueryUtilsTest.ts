@@ -849,7 +849,7 @@ describe('SearchQueryUtils', () => {
                         },
                     },
                 },
-            };
+            } as unknown as OnyxCollection<OnyxTypes.PolicyTagLists>;
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -872,7 +872,7 @@ describe('SearchQueryUtils', () => {
 
             const policyCategories = {};
             const policyTags = {};
-            const currencyList = {USD: {}, EUR: {}, GBP: {}};
+            const currencyList = {USD: {}, EUR: {}, GBP: {}} as unknown as OnyxTypes.CurrencyList;
             const personalDetails = {};
             const cardList = {};
             const reports = {};
