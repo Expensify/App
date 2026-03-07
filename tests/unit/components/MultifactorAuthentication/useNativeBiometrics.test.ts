@@ -268,6 +268,7 @@ describe('useNativeBiometrics hook', () => {
             });
 
             // Verify the full flow was triggered
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(generateKeyPair).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PrivateKeyStore.set).toHaveBeenCalled();
