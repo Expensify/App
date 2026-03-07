@@ -1,27 +1,35 @@
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -34,10 +42,8 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
-    isReportArchivedByID as isReportArchivedByIDUtil,
     isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -48,9 +54,10 @@ import {
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
+import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
-import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
-import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
+import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,9 +81,6 @@ type MoneyRequestReceiptViewProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Archived report identifiers keyed by report name value pairs */
-    archivedReportsIDSet: ArchivedReportsIDSet;
-
     /** Whether the receipt view should fill the given space */
     fillSpace?: boolean;
 
@@ -96,15 +100,7 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
-function MoneyRequestReceiptView({
-    report,
-    readonly = false,
-    updatedTransaction,
-    fillSpace = false,
-    mergeTransactionID,
-    archivedReportsIDSet,
-    isDisplayedInWideRHP = false,
-}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, fillSpace = false, mergeTransactionID, isDisplayedInWideRHP = false}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -144,34 +140,24 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const isReportArchivedByID = useCallback((reportID?: string) => isReportArchivedByIDUtil(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
+    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
+    const theme = useTheme();
+    const ancestors = useAncestors(report);
+    const {hovered, bind: hoverBind} = useHover();
+    const isTouchScreen = canUseTouchScreen();
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit =
-        isMoneyRequestAction(parentReportAction) &&
-        canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction, isReportArchivedByID) &&
-        isEditable;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
-        isEditable &&
-        canEditFieldOfMoneyRequest(
-            parentReportAction,
-            CONST.EDIT_REQUEST_FIELD.RECEIPT,
-            undefined,
-            isChatReportArchived,
-            undefined,
-            transaction,
-            moneyRequestReport,
-            policy,
-            isReportArchivedByID,
-        );
+        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -295,7 +281,7 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -332,7 +318,7 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, true, true);
         }
     };
 
@@ -349,6 +335,8 @@ function MoneyRequestReceiptView({
     const showBorderlessLoading = isLoading && fillSpace;
 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
+
+    const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
 
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
@@ -451,6 +439,8 @@ function MoneyRequestReceiptView({
                                 showBorderlessLoading && styles.flex1,
                                 fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
                             ]}
+                            onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
+                            onMouseLeave={hoverBind.onMouseLeave}
                         >
                             <ReportActionItemImage
                                 shouldUseThumbnailImage={!fillSpace}
@@ -469,6 +459,66 @@ function MoneyRequestReceiptView({
                                 onLoad={() => setIsLoading(false)}
                                 onLoadFailure={() => setIsLoading(false)}
                             />
+                            {canShowReceiptActions && (
+                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isTouchScreen && styles.opacity0]}>
+                                    <AttachmentPicker>
+                                        {({openPicker}) => (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    openPicker({
+                                                        onPicked: (files) => {
+                                                            if (!report?.reportID) {
+                                                                return;
+                                                            }
+                                                            addAttachmentWithComment({
+                                                                report,
+                                                                notifyReportID: moneyRequestReport?.reportID ?? report.reportID,
+                                                                ancestors,
+                                                                attachments: files,
+                                                                currentUserAccountID,
+                                                                timezone: currentUserTimezone,
+                                                            });
+                                                        },
+                                                    });
+                                                }}
+                                                style={styles.receiptActionButton}
+                                                accessibilityLabel={translate('reportActionCompose.addAttachment')}
+                                                role={CONST.ROLE.BUTTON}
+                                                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                            >
+                                                <View style={styles.primaryMediumIcon}>
+                                                    <Icon
+                                                        src={lazyIcons.ReceiptPlus}
+                                                        height={variables.iconSizeSmall}
+                                                        width={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </View>
+                                            </PressableWithoutFeedback>
+                                        )}
+                                    </AttachmentPicker>
+                                    <PressableWithoutFeedback
+                                        onPress={() =>
+                                            Navigation.navigate(
+                                                ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
+                                            )
+                                        }
+                                        style={styles.receiptActionButton}
+                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                        role={CONST.ROLE.BUTTON}
+                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
+                                    >
+                                        <View style={styles.primaryMediumIcon}>
+                                            <Icon
+                                                src={lazyIcons.Expand}
+                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeSmall}
+                                                fill={theme.icon}
+                                            />
+                                        </View>
+                                    </PressableWithoutFeedback>
+                                </View>
+                            )}
                         </View>
                     )}
                     {/* For WideRHP (fillSpace is true), we need to wait for the image to load to get the correct size, then display the violation message to avoid the jumping issue.

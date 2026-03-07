@@ -1,10 +1,10 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {isArchivedReport, isReportArchivedByID} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import useOnyx from './useOnyx';
 
 /**
@@ -12,7 +12,7 @@ import useOnyx from './useOnyx';
  * Onyx performs shallow comparison on the returned array to prevent
  * unnecessary re-renders without expensive deep comparison of Sets.
  */
-const archivedReportIDsSelector = (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): string[] => {
+const archivedReportIdsSelector = (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): string[] => {
     if (!reportNameValuePairs) {
         return [];
     }
@@ -29,17 +29,17 @@ const archivedReportIDsSelector = (reportNameValuePairs: OnyxCollection<ReportNa
 /**
  * Hook that returns a Set of archived report IDs
  */
-function useArchivedReportsIDSet(): ArchivedReportsIDSet {
-    const [archivedReportIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: archivedReportIDsSelector});
+function useArchivedReportsIdSet(): ArchivedReportsIDSet {
+    const [archivedReportIds = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: archivedReportIdsSelector});
 
-    return useMemo(() => new Set(archivedReportIDs), [archivedReportIDs]);
+    return new Set(archivedReportIds);
 }
 
 function useIsReportArchivedByID() {
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
 
-    return useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
+    return useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIdSet, reportID), [archivedReportsIdSet]);
 }
 
-export default useArchivedReportsIDSet;
+export default useArchivedReportsIdSet;
 export {useIsReportArchivedByID};

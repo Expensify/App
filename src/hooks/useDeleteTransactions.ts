@@ -10,7 +10,7 @@ import {getChildTransactions, getOriginalTransactionWithSplitInfo} from '@libs/T
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import useArchivedReportsIDSet from './useArchivedReportsIDSet';
+import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -39,9 +39,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     /**
      * Delete transactions by IDs
@@ -133,12 +135,17 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return initSplitExpenseItemData(childTransaction, transactionReport);
                 });
 
+                const reportID = report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+                const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
+                const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: transactionID,
                         splitExpenses: remainingSplitExpenses,
                     },
@@ -157,6 +164,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
+                    policyTags,
+                    personalDetails,
                 });
             }
 
@@ -168,7 +177,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
-                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIDSet, chatIOUReportID);
+                const isChatIOUReportArchived = isReportArchivedByID(archivedReportsIdSet, chatIOUReportID);
                 deleteMoneyRequest({
                     transactionID,
                     reportAction: action,
@@ -196,7 +205,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             allReportNameValuePairs,
             allReports,
             allTransactions,
-            archivedReportsIDSet,
+            archivedReportsIdSet,
             currentUserPersonalDetails,
             iouReportNextStep,
             isBetaEnabled,
@@ -208,6 +217,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             reportActions,
             transactionViolations,
             betas,
+            allPolicyTags,
+            personalDetails,
         ],
     );
 
