@@ -115,7 +115,7 @@ function Composer({
                     files = f.filter((file) => file !== undefined);
                 })
                 .catch((error) => {
-                    Log.warn('Pasted files could not be validated', {error});
+                    Log.warn('Pasted files could not be pasted', {error});
                 })
                 .finally(() => {
                     onPasteFile(files);

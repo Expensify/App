@@ -23,6 +23,7 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import Log from '@libs/Log';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -209,10 +210,14 @@ function Composer({
                     return Promise.resolve(undefined);
                 });
 
-                Promise.all(filePromises).then((f) => {
-                    files.push(...f.filter((file) => file !== undefined));
-                    pasteValidFiles();
-                });
+                Promise.all(filePromises)
+                    .then((f) => {
+                        files.push(...f.filter((file) => file !== undefined));
+                        pasteValidFiles();
+                    })
+                    .catch((error) => {
+                        Log.warn('Pasted Google Docs files could not be pasted', {error});
+                    });
                 return true;
             }
 
