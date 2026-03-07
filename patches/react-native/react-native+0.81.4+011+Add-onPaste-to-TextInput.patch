@@ -136,113 +136,52 @@ index 5fa8811..ad2bf61 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index 6e9c384..c9f38ba 100644
+index 6e9c384..9137221 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -13,6 +13,10 @@
+@@ -13,6 +13,8 @@
  #import <React/RCTBackedTextInputDelegateAdapter.h>
  #import <React/RCTTextAttributes.h>
  
-+#import <MobileCoreServices/MobileCoreServices.h>
-+#import <MobileCoreServices/UTType.h>
-+#import <UIKit/UIKit.h>
++#import "RCTPasteHandlerUtil.h"
 +
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -206,10 +210,83 @@ static UIColor *defaultPlaceholderColor(void)
-   [super scrollRangeToVisible:range];
- }
- 
--- (void)paste:(id)sender
--{
-+- (void)paste:(id)sender {
+@@ -209,7 +211,26 @@ static UIColor *defaultPlaceholderColor(void)
+ - (void)paste:(id)sender
+ {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +
++  // Fast path for plain text - also call super to insert the text
 +  if (clipboard.hasStrings && clipboard.string != nil) {
-+    NSDictionary<NSString *, NSString *> * stringItem = @{@"type" : @"text/plain", @"data" : clipboard.string};
++    NSDictionary<NSString *, NSString *> *stringItem = @{@"type": @"text/plain", @"data": clipboard.string};
 +    [_textInputDelegateAdapter didPaste:@[stringItem]];
 +    [super paste:sender];
 +    return;
 +  }
 +
-+  NSMutableArray<NSDictionary<NSString *, NSString *> *> *items =
-+      [NSMutableArray new];
-+
-+  for (NSInteger i = 0; i < clipboard.numberOfItems; i++) {
-+    NSIndexSet *itemSet = [NSIndexSet indexSetWithIndex:i];
-+    NSArray<NSString *> *types =
-+        [clipboard pasteboardTypesForItemSet:itemSet].firstObject;
-+    if (types.count == 0) {
-+      continue;
-+    }
-+
-+    // Prefer one canonical representation per item.
-+    NSString *type = nil;
-+    for (NSString *preferred in @[
-+           (NSString *)kUTTypeFileURL, (NSString *)kUTTypeURL,
-+           (NSString *)kUTTypePlainText
-+         ]) {
-+      if ([types containsObject:preferred]) {
-+        type = preferred;
-+        break;
-+      }
-+    }
-+    if (!type) {
-+      type = types.firstObject;
-+    }
-+
-+    NSData *data =
-+        [clipboard dataForPasteboardType:type inItemSet:itemSet].firstObject;
-+    if (!data) {
-+      continue;
-+    }
-+
-+    NSString *mimeType =
-+        (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass(
-+            (__bridge CFStringRef)type, kUTTagClassMIMEType)
-+            ?: @"application/octet-stream";
-+    NSString *payload = nil;
-+
-+    if (UTTypeConformsTo((__bridge CFStringRef)type, kUTTypePlainText) ||
-+        UTTypeConformsTo((__bridge CFStringRef)type, kUTTypeURL) ||
-+        UTTypeConformsTo((__bridge CFStringRef)type, kUTTypeFileURL)) {
-+      payload = [[NSString alloc] initWithData:data
-+                                      encoding:NSUTF8StringEncoding];
-+    } else {
-+      NSString *ext =
-+          (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass(
-+              (__bridge CFStringRef)type, kUTTagClassFilenameExtension)
-+              ?: @"bin";
-+      NSString *base = [NSTemporaryDirectory()
-+          stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
-+      NSString *path = [base stringByAppendingPathExtension:ext];
-+      [data writeToFile:path atomically:YES];
-+      payload = [NSURL fileURLWithPath:path].absoluteString;
-+    }
-+
-+    if (payload.length > 0) {
-+      [items addObject:@{@"type" : mimeType, @"data" : payload}];
-+    }
-+  }
++  // Process non-text items using the utility
++  NSArray<NSDictionary<NSString *, NSString *> *> *items =
++      [RCTPasteHandlerUtil itemInfosFromPasteboard:clipboard];
 +
 +  if (items.count == 0) {
 +    [super paste:sender];
 +    return;
 +  }
 +
-+  [self->_textInputDelegateAdapter didPaste:[items copy]];
++  [_textInputDelegateAdapter didPaste:items];
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -301,6 +378,10 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -301,6 +322,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
-+  if (action == @selector(paste:) && [UIPasteboard generalPasteboard].numberOfItems > 0) {
-+    return YES;
++  if (action == @selector(paste:)) {
++    return [RCTPasteHandlerUtil hasPasteableContent:[UIPasteboard generalPasteboard]];
 +  }
 +
    return [super canPerformAction:action withSender:sender];
@@ -1053,138 +992,3 @@ index 968c93c..8cb0634 100644
  
   private:
    void dispatchTextInputEvent(
-diff --git a/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm b/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
-index 1263191..2424ed2 100644
---- a/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
-+++ b/node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTHost.mm
-@@ -260,9 +260,7 @@ class RCTHostHostTargetDelegate : public facebook::react::jsinspector_modern::Ho
-   surface.surfaceHandler.setDisplayMode(displayMode);
-   [self _attachSurface:surface];
- 
--  __weak RCTFabricSurface *weakSurface = surface;
--  // Use the BufferedRuntimeExecutor to start the surface after the main JS bundle was fully executed.
--  [_instance callFunctionOnBufferedRuntimeExecutor:[weakSurface](facebook::jsi::Runtime &_) { [weakSurface start]; }];
-+  [_instance callFunctionOnBufferedRuntimeExecutor:[surface](facebook::jsi::Runtime &_) { [surface start]; }];
-   return surface;
- }
- 
-diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp b/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
-index db79042..8c4eaef 100644
---- a/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
-+++ b/node_modules/react-native/ReactCommon/yoga/yoga/algorithm/CalculateLayout.cpp
-@@ -478,19 +478,16 @@ static void zeroOutLayoutRecursively(yoga::Node* const node) {
- }
- 
- static void cleanupContentsNodesRecursively(yoga::Node* const node) {
--  if (node->hasContentsChildren()) [[unlikely]] {
--    node->cloneContentsChildrenIfNeeded();
--    for (auto child : node->getChildren()) {
--      if (child->style().display() == Display::Contents) {
--        child->getLayout() = {};
--        child->setLayoutDimension(0, Dimension::Width);
--        child->setLayoutDimension(0, Dimension::Height);
--        child->setHasNewLayout(true);
--        child->setDirty(false);
--        child->cloneChildrenIfNeeded();
--
--        cleanupContentsNodesRecursively(child);
--      }
-+  for (auto child : node->getChildren()) {
-+    if (child->style().display() == Display::Contents) {
-+      child->getLayout() = {};
-+      child->setLayoutDimension(0, Dimension::Width);
-+      child->setLayoutDimension(0, Dimension::Height);
-+      child->setHasNewLayout(true);
-+      child->setDirty(false);
-+      child->cloneChildrenIfNeeded();
-+
-+      cleanupContentsNodesRecursively(child);
-     }
-   }
- }
-diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
-index d42bd5f..fbdf5c1 100644
---- a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
-+++ b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.cpp
-@@ -181,17 +181,6 @@ void Node::setDirty(bool isDirty) {
-   }
- }
- 
--void Node::setChildren(const std::vector<Node*>& children) {
--  children_ = children;
--
--  contentsChildrenCount_ = 0;
--  for (const auto& child : children) {
--    if (child->style().display() == Display::Contents) {
--      contentsChildrenCount_++;
--    }
--  }
--}
--
- bool Node::removeChild(Node* child) {
-   auto p = std::find(children_.begin(), children_.end(), child);
-   if (p != children_.end()) {
-@@ -391,23 +380,6 @@ void Node::cloneChildrenIfNeeded() {
-     if (child->getOwner() != this) {
-       child = resolveRef(config_->cloneNode(child, this, i));
-       child->setOwner(this);
--
--      if (child->hasContentsChildren()) [[unlikely]] {
--        child->cloneContentsChildrenIfNeeded();
--      }
--    }
--    i += 1;
--  }
--}
--
--void Node::cloneContentsChildrenIfNeeded() {
--  size_t i = 0;
--  for (Node*& child : children_) {
--    if (child->style().display() == Display::Contents &&
--        child->getOwner() != this) {
--      child = resolveRef(config_->cloneNode(child, this, i));
--      child->setOwner(this);
--      child->cloneChildrenIfNeeded();
-     }
-     i += 1;
-   }
-diff --git a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
-index 8068c81..5ae7d43 100644
---- a/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
-+++ b/node_modules/react-native/ReactCommon/yoga/yoga/node/Node.h
-@@ -96,10 +96,6 @@ class YG_EXPORT Node : public ::YGNode {
-     return config_->hasErrata(errata);
-   }
- 
--  bool hasContentsChildren() const {
--    return contentsChildrenCount_ != 0;
--  }
--
-   YGDirtiedFunc getDirtiedFunc() const {
-     return dirtiedFunc_;
-   }
-@@ -248,12 +244,15 @@ class YG_EXPORT Node : public ::YGNode {
-     owner_ = owner;
-   }
- 
-+  void setChildren(const std::vector<Node*>& children) {
-+    children_ = children;
-+  }
-+
-   // TODO: rvalue override for setChildren
- 
-   void setConfig(Config* config);
- 
-   void setDirty(bool isDirty);
--  void setChildren(const std::vector<Node*>& children);
-   void setLayoutLastOwnerDirection(Direction direction);
-   void setLayoutComputedFlexBasis(FloatOptional computedFlexBasis);
-   void setLayoutComputedFlexBasisGeneration(
-@@ -287,7 +286,6 @@ class YG_EXPORT Node : public ::YGNode {
-   void removeChild(size_t index);
- 
-   void cloneChildrenIfNeeded();
--  void cloneContentsChildrenIfNeeded();
-   void markDirtyAndPropagate();
-   float resolveFlexGrow() const;
-   float resolveFlexShrink() const;
