@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
@@ -788,10 +789,16 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });
@@ -962,10 +969,16 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });
