@@ -36,6 +36,7 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         const upcoming: UpcomingReservation[] = [];
 
         for (const report of reports) {
+            // Only include reservations where the current user is the traveller
             if (!report || report.ownerAccountID !== accountID) {
                 continue;
             }
