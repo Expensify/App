@@ -342,6 +342,7 @@ function SearchList({
                 return;
             }
 
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
