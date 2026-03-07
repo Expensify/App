@@ -827,7 +827,6 @@ function computeReportName({
             reportActions,
             currentUserAccountID,
             currentUserLogin,
-            allPolicyTags,
         });
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
