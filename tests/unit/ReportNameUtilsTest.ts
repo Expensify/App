@@ -546,18 +546,16 @@ describe('ReportNameUtils', () => {
                 },
             } as OnyxCollection<PolicyTagLists>;
 
-            const name = computeReportNameOriginal(
-                thread,
-                emptyCollections.reports,
-                emptyCollections.policies,
-                undefined,
-                undefined,
-                participantsPersonalDetails,
-                reportActionsCollection,
+            const name = computeReportNameOriginal({
+                report: thread,
+                reports: emptyCollections.reports,
+                policies: emptyCollections.policies,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: reportActionsCollection,
                 currentUserAccountID,
-                undefined,
-                policyTagsCollection,
-            );
+                currentUserLogin: '',
+                allPolicyTags: policyTagsCollection,
+            });
 
             expect(name).toContain('Cost Center');
         });
