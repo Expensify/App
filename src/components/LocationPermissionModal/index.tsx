@@ -24,7 +24,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
-    const confirmModal = useConfirmModal();
+    const {showConfirmModal} = useConfirmModal();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -33,10 +33,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         if (isPermissionGranted(status) && !isGrantedExternallyRef.current) {
             // Prevent `onGrant` from being called twice when modal closes
             isGrantedExternallyRef.current = true;
-            confirmModal.closeModal();
             onGrant();
         }
-    }, [onGrant, confirmModal]);
+    }, [onGrant]);
 
     const handlePermissionResult = (status: string) => {
         if (isPermissionGranted(status)) {
@@ -92,49 +91,47 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 confirmText = translate('common.settings');
             }
 
-            confirmModal
-                .showConfirmModal({
-                    shouldShowCancelButton: !(isWeb && hasError),
-                    confirmText,
-                    cancelText: translate('common.notNow'),
-                    promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
-                    title: translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle'),
-                    titleContainerStyles: [styles.mt2, styles.mb0],
-                    titleStyles: [styles.textHeadline],
-                    iconSource: ReceiptLocationMarker,
-                    iconFill: false,
-                    iconWidth: 140,
-                    iconHeight: 120,
-                    shouldCenterIcon: true,
-                    shouldReverseStackedButtons: true,
-                    prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
-                })
-                .then(({action}) => {
-                    setShowModal(false);
-                    resetPermissionFlow();
+            showConfirmModal({
+                shouldShowCancelButton: !(isWeb && hasError),
+                confirmText,
+                cancelText: translate('common.notNow'),
+                promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
+                title: translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle'),
+                titleContainerStyles: [styles.mt2, styles.mb0],
+                titleStyles: [styles.textHeadline],
+                iconSource: ReceiptLocationMarker,
+                iconFill: false,
+                iconWidth: 140,
+                iconHeight: 120,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
+                prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+            }).then(({action}) => {
+                setShowModal(false);
+                resetPermissionFlow();
 
-                    if (isGrantedExternallyRef.current) {
-                        // Already handled by the visibility listener
-                        return;
+                if (isGrantedExternallyRef.current) {
+                    // Already handled by the visibility listener
+                    return;
+                }
+
+                if (action !== ModalActions.CONFIRM) {
+                    onDeny?.();
+                    return;
+                }
+
+                if (hasError) {
+                    if (Linking.openSettings) {
+                        Linking.openSettings();
+                    } else {
+                        // Check one more time in case user enabled location before continuing
+                        getLocationPermission().then(handlePermissionResult);
                     }
+                    return;
+                }
 
-                    if (action !== ModalActions.CONFIRM) {
-                        onDeny?.();
-                        return;
-                    }
-
-                    if (hasError) {
-                        if (Linking.openSettings) {
-                            Linking.openSettings();
-                        } else {
-                            // Check one more time in case user enabled location before continuing
-                            getLocationPermission().then(handlePermissionResult);
-                        }
-                        return;
-                    }
-
-                    requestLocationPermission().then(handlePermissionResult);
-                });
+                requestLocationPermission().then(handlePermissionResult);
+            });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
