@@ -157,6 +157,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     titleComponent()
                 )
             }
+            accessibilityLabel={isCancelled ? `${formattedDate} ${translate('iou.canceled')}` : undefined}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable

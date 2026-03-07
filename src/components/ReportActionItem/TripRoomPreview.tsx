@@ -120,6 +120,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             description={isCancelled ? undefined : description}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={fullTitleComponent}
+            accessibilityLabel={isCancelled ? `${description} ${translate('iou.canceled')}` : undefined}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}

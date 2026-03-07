@@ -115,6 +115,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             }
             title={isCancelled ? undefined : title}
             titleStyle={styles.textBold}
+            accessibilityLabel={isCancelled ? `${subtitle} ${translate('iou.canceled')} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
