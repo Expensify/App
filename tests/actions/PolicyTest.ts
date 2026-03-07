@@ -511,6 +511,73 @@ describe('actions/Policy', () => {
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
         });
 
+        it('duplicate workspace excludes coding rules marked for deletion', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(12, CONST.POLICY.TYPE.TEAM);
+            fakePolicy.rules = {
+                codingRules: {
+                    deletedRule: {
+                        filters: {
+                            left: 'merchant',
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            right: 'Uber',
+                        },
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                    activeRule: {
+                        filters: {
+                            left: 'merchant',
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                            right: 'Lyft',
+                        },
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.duplicateWorkspace(fakePolicy, {
+                policyName: 'Coding Rules Workspace',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                    codingRules: true,
+                },
+                localCurrency: 'USD',
+            });
+            await waitForBatchedUpdates();
+
+            const duplicatedPolicy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(duplicatedPolicy?.rules?.codingRules).toEqual({
+                activeRule: fakePolicy.rules?.codingRules?.activeRule,
+            });
+            expect(duplicatedPolicy?.rules?.codingRules?.deletedRule).toBeUndefined();
+        });
+
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM

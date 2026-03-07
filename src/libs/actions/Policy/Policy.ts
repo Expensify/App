@@ -3097,6 +3097,9 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const isOverviewOptionSelected = parts?.overview;
     const isTravelOptionSelected = parts?.travel;
     const isCodingRulesOptionSelected = parts?.codingRules;
+    const codingRulesToDuplicate = Object.fromEntries(
+        Object.entries(policy?.rules?.codingRules ?? {}).filter(([, codingRule]) => codingRule?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
@@ -3151,7 +3154,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
                 customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected, {distanceCustomUnitID, perDiemCustomUnitID}),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
-                rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
+                rules: isCodingRulesOptionSelected ? {codingRules: isEmptyObject(codingRulesToDuplicate) ? undefined : codingRulesToDuplicate} : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
