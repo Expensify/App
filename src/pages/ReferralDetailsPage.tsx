@@ -89,6 +89,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
                 iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
+                shouldShowContextMenuHint
                 onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
                 onSecondaryInteraction={(e) =>
                     showContextMenu({

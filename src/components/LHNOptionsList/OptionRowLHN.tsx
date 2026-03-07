@@ -11,6 +11,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import getContextMenuAccessibilityLabel from '@components/utils/getContextMenuAccessibilityLabel';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +23,6 @@ import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
@@ -228,7 +228,12 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-    const contextMenuAccessibilityLabel = getPlatform(true) === CONST.PLATFORM.WEB ? `. ${translate('accessibilityHints.contextMenuAvailable')}` : '';
+    const accessibilityLabel = getContextMenuAccessibilityLabel({
+        labelParts: [`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`, optionItem.isUnread ? translate('common.unread') : '', optionItem.alternateText ?? ''],
+        translate,
+        shouldShowReviewRequired: !!brickRoadIndicator,
+        shouldShowContextMenuHint: true,
+    });
 
     return (
         <OfflineWithFeedback
@@ -295,7 +300,7 @@ function OptionRowLHN({
                                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                     ]}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}${contextMenuAccessibilityLabel}`}
+                                    accessibilityLabel={accessibilityLabel}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}

@@ -16,7 +16,6 @@ import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
-import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -47,6 +46,7 @@ import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import getContextMenuAccessibilityLabel from './utils/getContextMenuAccessibilityLabel';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -228,9 +228,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Accessibility label for the menu item */
         accessibilityLabel?: string;
 
-        /** Accessibility hint for the menu item */
-        accessibilityHint?: string;
-
         /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular menu items. */
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
@@ -336,6 +333,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** The function that should be called when this component is LongPressed or right-clicked. */
         onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+
+        /** Whether the accessibility label should announce that a context menu is available on web. */
+        shouldShowContextMenuHint?: boolean;
 
         /** Array of objects that map display names to their corresponding tooltip */
         titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
@@ -513,7 +513,6 @@ function MenuItem({
     disabled = false,
     title,
     accessibilityLabel,
-    accessibilityHint,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -551,6 +550,7 @@ function MenuItem({
     excludedMarkdownRules = [],
     shouldCheckActionAllowedOnPress = true,
     onSecondaryInteraction,
+    shouldShowContextMenuHint = false,
     titleWithTooltips,
     displayInDefaultIconColor = false,
     contentFit = 'cover',
@@ -609,10 +609,12 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
-    const contextMenuAccessibilityLabel = getPlatform(true) === CONST.PLATFORM.WEB && !!onSecondaryInteraction ? translate('accessibilityHints.contextMenuAvailable') : '';
-    const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : '', contextMenuAccessibilityLabel]
-        .filter(Boolean)
-        .join('. ');
+    const combinedAccessibilityLabel = getContextMenuAccessibilityLabel({
+        labelParts: [enhancedAccessibilityLabel],
+        translate,
+        shouldShowReviewRequired: !!brickRoadIndicator,
+        shouldShowContextMenuHint,
+    });
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -801,7 +803,6 @@ function MenuItem({
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={combinedAccessibilityLabel}
-                                accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
