@@ -98,6 +98,7 @@ import {
 } from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
+    computeOptimisticReportName,
     formatReportLastMessageText,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -775,15 +776,11 @@ function computeReportName(
         // When the title is formula-managed, re-evaluate from the current policy formula
         // instead of returning the stale stored reportName
         const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-        const titleFormula = reportPolicy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue;
-        if (reportNameValuePair?.expensify_text_title?.type === CONST.REPORT_FIELD_TYPES.FORMULA && titleFormula) {
-            // We use dynamic require here to avoid a circular dependency between ReportNameUtils and Formula
-            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-            const Formula = require('./Formula') as {
-                compute: (formula?: string, context?: {report: Report; policy: OnyxEntry<Policy>; allTransactions?: Record<string, Transaction>}) => string;
-            };
-            const computedName = Formula.compute(titleFormula, {report, policy: reportPolicy});
-            return computedName || report.reportName;
+        if (reportNameValuePair?.expensify_text_title?.type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+            const computedName = computeOptimisticReportName(report, reportPolicy, report.policyID, (transactions ?? {}) as Record<string, Transaction>);
+            if (computedName) {
+                return computedName;
+            }
         }
         return report.reportName;
     }
