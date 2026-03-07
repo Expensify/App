@@ -558,9 +558,6 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
-        [FILTER_KEYS.DATE_AFTER]: string;
-        [FILTER_KEYS.DATE_BEFORE]: string;
-
         [FILTER_KEYS.DATE_ON]: string;
         [FILTER_KEYS.DATE_NOT]: string;
         [FILTER_KEYS.DATE_AFTER]: string;

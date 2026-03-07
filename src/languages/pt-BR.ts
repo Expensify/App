@@ -1570,7 +1570,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Escolha um workspace',
-        routedDueToDEW: (to: string) => `relatório encaminhado para ${to} devido ao fluxo de aprovação personalizado`,
+        routedDueToDEW: (to: string, reason?: string) => `relatório encaminhado para ${to}${reason ? ` porque ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hora' : 'horas'} @ ${rate} / hora`,
             hrs: 'h',
@@ -5264,6 +5264,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                         body: 'Você ainda tem um saldo de viagem pendente. Pague esse saldo primeiro.',
                         confirm: 'Entendi',
                     },
+                    exportToPDF: 'Exportar para PDF',
+                    exportToCSV: 'Exportar para CSV',
+                    selectDateRangeError: 'Selecione um intervalo de datas para exportar',
+                    invalidDateRangeError: 'A data de início deve ser anterior à data de término',
                     enabled: 'Faturamento centralizado ativado!',
                     enabledDescription: 'Todos os gastos de viagem neste workspace agora serão centralizados em uma fatura mensal.',
                 },
@@ -7738,6 +7742,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
         },
         fabGpsTripExplained: 'Ir para a tela de GPS (Ação flutuante)',
+        liveActivity: {subtitle: 'Rastreamento de distância', button: 'Ver progresso'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',
