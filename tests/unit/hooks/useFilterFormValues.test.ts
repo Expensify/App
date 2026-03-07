@@ -264,6 +264,7 @@ describe('useFilterFormValues selectors', () => {
 
             expect(result?.[POLICY_KEY]).toEqual({
                 id: '1',
+                name: 'Policy 1',
                 type: 'team',
                 role: 'admin',
                 employeeList,
@@ -273,7 +274,6 @@ describe('useFilterFormValues selectors', () => {
                 isJoinRequestPending: false,
                 owner: 'a@b.com',
             });
-            expect(result?.[POLICY_KEY]).not.toHaveProperty('name');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('connections');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('taxRates');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('customUnits');

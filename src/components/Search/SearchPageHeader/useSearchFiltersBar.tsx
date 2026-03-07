@@ -95,6 +95,7 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
         }
         result[key] = {
             id: policy.id,
+            name: policy.name,
             type: policy.type,
             role: policy.role,
             employeeList: policy.employeeList,
