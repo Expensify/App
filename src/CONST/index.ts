@@ -6262,6 +6262,7 @@ const CONST = {
             NORMAL: 8,
         },
         DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        OFFLINE_THRESHOLD: 7000,
     },
 
     INTRO_CHOICES: {
