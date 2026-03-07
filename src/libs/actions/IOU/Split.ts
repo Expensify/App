@@ -271,7 +271,7 @@ function splitBillAndOpenReport({
     quickAction,
     policyRecentlyUsedCurrencies,
     betas,
-    personalDetails
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
