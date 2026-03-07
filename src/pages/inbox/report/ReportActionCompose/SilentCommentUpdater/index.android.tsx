@@ -14,7 +14,7 @@ import type SilentCommentUpdaterProps from './types';
  * re-rendering a UI component for that. That's why the side effect was moved down to a separate component.
  */
 function SilentCommentUpdater({updateComment, reportID}: SilentCommentUpdaterProps) {
-    const [comment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [comment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
 
     useEffect(() => {
         updateComment(comment);

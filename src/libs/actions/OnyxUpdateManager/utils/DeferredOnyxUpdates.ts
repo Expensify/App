@@ -1,6 +1,6 @@
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import type {AnyDeferredUpdatesDictionary, DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
@@ -12,7 +12,7 @@ import {validateAndApplyDeferredUpdates} from '.';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;
-let deferredUpdates: DeferredUpdatesDictionary = {};
+let deferredUpdates: AnyDeferredUpdatesDictionary = {};
 
 /**
  * Returns the promise that fetches the missing onyx updates
@@ -43,7 +43,7 @@ function getUpdates(options?: GetDeferredOnyxUpdatesOptions) {
         return deferredUpdates;
     }
 
-    return Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
+    return Object.entries(deferredUpdates).reduce<AnyDeferredUpdatesDictionary>((acc, [lastUpdateID, update]) => {
         if (Number(lastUpdateID) > (options.minUpdateID ?? CONST.DEFAULT_NUMBER_ID)) {
             acc[Number(lastUpdateID)] = update;
         }
@@ -102,7 +102,7 @@ function enqueue<TKey extends OnyxKey>(updates: OnyxUpdatesFromServer<TKey> | De
                 continue;
             }
 
-            deferredUpdates[lastUpdateID] = update as OnyxUpdatesFromServer<OnyxKey>;
+            deferredUpdates[lastUpdateID] = update as OnyxUpdatesFromServer<TKey>;
         }
     }
 }

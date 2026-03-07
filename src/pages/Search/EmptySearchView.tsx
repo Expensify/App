@@ -1,23 +1,18 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useState} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
+import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
-import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
-import type {FeatureListItem} from '@components/FeatureList';
-import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -30,8 +25,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
@@ -44,8 +37,6 @@ import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,16 +64,13 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
 };
 
 type EmptySearchViewItem = {
-    headerMediaType: MediaTypes;
     headerMedia: HeaderMedia;
     title: string;
     subtitle?: string;
+    subtitleText?: React.ReactNode;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
-    lottieWebViewStyles?: React.CSSProperties | undefined;
     buttons?: EmptyStateButton[];
-    headerStyles?: ViewStyle;
     titleStyles?: TextStyle;
-    subtitleStyle?: TextStyle;
     children?: React.ReactNode;
 };
 
@@ -90,17 +78,16 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
-        canBeMissing: true,
     });
 
     const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
@@ -147,42 +134,30 @@ function EmptySearchViewContent({
     searchMenuCreateReportConfirmationModal,
     queryJSON,
 }: EmptySearchViewContentProps) {
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
-
-    const tripsFeatures: FeatureListItem[] = [
-        {
-            icon: illustrations.PiggyBank,
-            translationKey: 'travel.features.saveMoney',
-        },
-        {
-            icon: illustrations.TravelAlerts,
-            translationKey: 'travel.features.alerts',
-        },
-    ];
-    const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel'] as const);
     const {showConfirmModal} = useConfirmModal();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+    });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
         selector: hasTransactionsSelector,
     });
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
         selector: hasExpenseReportsSelector,
     });
 
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
+        selector: tryNewDotOnyxSelector,
+    });
 
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
@@ -191,7 +166,7 @@ function EmptySearchViewContent({
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
     const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const filteredPolicyID = queryJSON?.policyID;
@@ -217,7 +192,12 @@ function EmptySearchViewContent({
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                    reportID: createdReportID,
+                    backTo: Navigation.getActiveRoute(),
+                }),
+            );
         });
     };
 
@@ -260,74 +240,9 @@ function EmptySearchViewContent({
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+    const todoMenuItems = new Set(typeMenuSections.filter((section) => section.translationPath === 'common.todo').flatMap((section) => section.menuItems));
 
-    const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
-        if (!contextMenuAnchor) {
-            return;
-        }
-
-        showContextMenu({
-            type: CONST.CONTEXT_MENU_TYPES.LINK,
-            event,
-            selection: CONST.BOOK_TRAVEL_DEMO_URL,
-            contextMenuAnchor,
-        });
-    };
-
-    const tripViewChildren = (
-        <>
-            <Text style={[styles.textSupporting, styles.textNormal]}>
-                {translate('travel.subtitle')}{' '}
-                <PressableWithSecondaryInteraction
-                    inline
-                    onSecondaryInteraction={onLongPress}
-                    accessible
-                    accessibilityLabel={translate('travel.bookADemo')}
-                >
-                    <TextLink
-                        onLongPress={onLongPress}
-                        onPress={() => {
-                            Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
-                        }}
-                        ref={setContextMenuAnchor}
-                    >
-                        {translate('travel.bookADemo')}
-                    </TextLink>
-                </PressableWithSecondaryInteraction>
-                {translate('travel.toLearnMore')}
-            </Text>
-            <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
-                {tripsFeatures.map((tripsFeature) => (
-                    <View
-                        key={tripsFeature.translationKey}
-                        style={styles.w100}
-                    >
-                        <MenuItem
-                            title={translate(tripsFeature.translationKey)}
-                            icon={tripsFeature.icon}
-                            iconWidth={variables.menuIconSize}
-                            iconHeight={variables.menuIconSize}
-                            interactive={false}
-                            displayInDefaultIconColor
-                            wrapperStyle={[styles.p0, styles.cursorAuto]}
-                            containerStyle={[styles.m0, styles.wAuto]}
-                            numberOfLinesTitle={0}
-                        />
-                    </View>
-                ))}
-            </View>
-            {!!activePolicy?.isTravelEnabled && (
-                <SearchScopeProvider isOnSearch={false}>
-                    <BookTravelButton
-                        text={translate('search.searchResults.emptyTripResults.buttonText')}
-                        activePolicyID={activePolicy?.id}
-                    />
-                </SearchScopeProvider>
-            )}
-        </>
-    );
-
-    // Default 'Folder' lottie animation, along with its background styles
+    // Default 'Folder' illustration styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
     const startTestDriveAction = () => {
@@ -336,12 +251,13 @@ function EmptySearchViewContent({
 
     let content: EmptySearchViewItem | undefined;
 
-    // Begin by going through all of our To-do searches, and returning their empty state
-    // if it exists
+    // Begin by going through all of our searches, and returning their empty state
+    // if it exists. Use fireworks for celebratory items (To-do, Unapproved Cash), folder for everything else.
     for (const menuItem of typeMenuItems) {
         if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
+            const useFireworks = todoMenuItems.has(menuItem) || menuItem.key === CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH;
             content = {
-                ...defaultViewItemHeader.fireworks,
+                ...(useFireworks ? defaultViewItemHeader.fireworks : defaultViewItemHeader.folder),
                 title: translate(menuItem.emptyState.title),
                 subtitle: translate(menuItem.emptyState.subtitle),
                 buttons: menuItem.emptyState.buttons?.map((button) => ({
@@ -358,13 +274,32 @@ function EmptySearchViewContent({
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 content = {
-                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
-                    headerMedia: LottieAnimations.TripsEmptyState,
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
+                    headerMedia: illustrations.EmptyStateTravel,
+                    headerContentStyles: [styles.tripEmptyStateIllustration],
                     title: translate('travel.title'),
-                    titleStyles: {...styles.textAlignLeft},
-                    children: tripViewChildren,
-                    lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
+                    subtitleText: (
+                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                            {translate('travel.subtitle')}{' '}
+                            <TextLink
+                                onPress={() => {
+                                    Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
+                                }}
+                            >
+                                {translate('travel.bookADemo')}
+                            </TextLink>
+                            {translate('travel.toLearnMore')}
+                        </Text>
+                    ),
+                    children: activePolicy?.isTravelEnabled ? (
+                        <View style={[styles.mt6, styles.alignSelfCenter]}>
+                            <SearchScopeProvider isOnSearch={false}>
+                                <BookTravelButton
+                                    text={translate('search.searchResults.emptyTripResults.buttonText')}
+                                    activePolicyID={activePolicy?.id}
+                                />
+                            </SearchScopeProvider>
+                        </View>
+                    ) : undefined,
                 };
                 break;
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -465,10 +400,10 @@ function EmptySearchViewContent({
                 }
                 break;
             // We want to display the default nothing to show message if there is any filter applied.
-            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 if (!content && !hasResults) {
                     content = {
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -486,11 +421,9 @@ function EmptySearchViewContent({
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader.folder,
                     };
                 }
                 break;
-            // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {
@@ -521,16 +454,14 @@ function EmptySearchViewContent({
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
                 <GenericEmptyStateComponent
-                    SkeletonComponent={SearchRowSkeleton}
-                    headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
-                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
+                    headerStyles={styles.emptyStateCardIllustrationContainer}
                     title={content.title}
                     titleStyles={content.titleStyles}
                     subtitle={content.subtitle}
+                    subtitleText={content.subtitleText}
                     buttons={content.buttons}
                     headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles] as Array<ViewStyle & ImageStyle>}
-                    lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
                 </GenericEmptyStateComponent>

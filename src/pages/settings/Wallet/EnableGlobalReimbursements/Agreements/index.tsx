@@ -24,7 +24,7 @@ const inputIDs = {
 };
 
 function Agreements({onBackButtonPress, onSubmit, currency}: AgreementsProps) {
-    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {canBeMissing: true});
+    const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
         Object.keys(inputIDs).map((key) => {
             const typedKey = key as keyof typeof inputIDs;

@@ -22,8 +22,8 @@ function CardPreview({overlayImage, overlayContainerStyle}: CardPreviewProps) {
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
 
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const {legalFirstName, legalLastName} = privatePersonalDetails ?? {};
     const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : (session?.email ?? '');

@@ -40,7 +40,7 @@ type TextInputProps = {
     shouldShowTextInput?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -58,7 +58,7 @@ function TextInput({
     onSubmit,
     onKeyPress,
     onFocusChange,
-    showLoadingPlaceholder,
+    shouldShowLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
     focusTextInput,
@@ -67,7 +67,7 @@ function TextInput({
     const {translate} = useLocalize();
     const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
-    const noData = dataLength === 0 && !showLoadingPlaceholder;
+    const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);

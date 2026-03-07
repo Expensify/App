@@ -20,7 +20,7 @@ function SilentCommentUpdater({
     isTransitioningToPreExistingReport,
     onTransitionToPreExistingReportComplete,
 }: SilentCommentUpdaterProps) {
-    const [comment = '', commentResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [comment = '', commentResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const prevCommentProp = usePrevious(comment);
     const prevReportId = usePrevious(reportID);
     const {preferredLocale} = useLocalize();

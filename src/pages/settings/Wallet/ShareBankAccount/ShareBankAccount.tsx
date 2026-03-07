@@ -38,13 +38,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
 
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT, {canBeMissing: true});
+    const [sharedBankAccountData] = useOnyx(ONYXKEYS.SHARE_BANK_ACCOUNT);
     const shouldShowSuccess = sharedBankAccountData?.shouldShowSuccess ?? false;
     const isLoading = sharedBankAccountData?.isLoading ?? false;
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isAlertVisible, setIsAlertVisible] = useState<boolean>(false);

@@ -3,9 +3,7 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import todosReportCountsSelector from '@src/selectors/Todos';
 import type {NonPersonalAndWorkspaceCardListDerivedValue, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -25,6 +23,9 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         connections: policy.connections,
         outputCurrency: policy.outputCurrency,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        isJoinRequestPending: policy.isJoinRequestPending,
+        pendingAction: policy.pendingAction,
+        errors: policy.errors,
         reimburser: policy.reimburser,
         exporter: policy.exporter,
         approver: policy.approver,
@@ -42,24 +43,28 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
+type UseSearchTypeMenuSectionsParams = {
+    hash?: number;
+    similarSearchHash?: number;
+};
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
-const useSearchTypeMenuSections = () => {
+const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams) => {
+    const {hash, similarSearchHash} = queryParams ?? {};
     const {translate} = useLocalize();
-    const cardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate);
-    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {canBeMissing: true, selector: cardSelector}, [cardSelector]);
+    const cardSelector = useCallback((allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate), [translate]);
+    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: cardSelector}, [cardSelector]);
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
 
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']);
     const {isOffline} = useNetwork();
     const [allPolicies] = useMappedPolicies(policyMapper);
-    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {canBeMissing: true, selector: todosReportCountsSelector});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
@@ -108,8 +113,6 @@ const useSearchTypeMenuSections = () => {
                 isOffline,
                 defaultExpensifyCard,
                 shouldRedirectToExpensifyClassic,
-                allTransactionDrafts,
-                reportCounts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -121,16 +124,33 @@ const useSearchTypeMenuSections = () => {
             savedSearches,
             isOffline,
             shouldRedirectToExpensifyClassic,
-            allTransactionDrafts,
             icons,
-            reportCounts,
         ],
     );
+
+    const activeItemIndex = useMemo(() => {
+        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+
+        if (isSavedSearchActive) {
+            return -1;
+        }
+
+        let index = 0;
+        for (const section of typeMenuSections) {
+            const found = section.menuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
+            if (found !== -1) {
+                return index + found;
+            }
+            index += section.menuItems.length;
+        }
+        return -1;
+    }, [typeMenuSections, savedSearches, hash, similarSearchHash]);
 
     return {
         typeMenuSections,
         CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+        activeItemIndex,
     };
 };
 
