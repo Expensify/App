@@ -24,9 +24,9 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './ReportNameUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getReportName} from './ReportNameUtils';
 // eslint-disable-next-line import/no-cycle
-import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
+import {getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 
@@ -201,8 +201,7 @@ function getMovedFromOrToReportMessage(
     }
 
     if (movedFromReport) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const originReportName = getReportName({report: movedFromReport});
+        const originReportName = getReportName(movedFromReport);
         return translate('iou.movedFromReport', originReportName ?? '');
     }
 }

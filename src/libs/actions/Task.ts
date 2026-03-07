@@ -14,6 +14,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -1047,9 +1048,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, LocalePhoneNumber.formatPhoneNumber, personalDetails, Expensicons.FallbackAvatar),
-        // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        displayName: ReportUtils.getReportName({report}),
+        displayName: getReportName(report),
         subtitle,
         displayNamesWithTooltips,
         shouldUseFullTitleToDisplay: ReportUtils.shouldUseFullTitleToDisplay(report),

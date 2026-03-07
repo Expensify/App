@@ -15,6 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
+import * as ReportNameUtils from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -153,9 +154,7 @@ describe('MoneyRequestReportPreview', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        expect(screen.getByText(ReportUtils.getReportName({report: mockIOUReport}))).toBeOnTheScreen();
+        expect(screen.getByText(ReportNameUtils.getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
