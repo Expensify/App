@@ -42,7 +42,7 @@ If you reimburse through a separate system or payroll, Expensify can collect and
 
 Once [a business bank account is connected to Expensify](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-add-a-verified-business-bank-account), a Workspace Admin can enable **Global Reimbursement** by navigating to **Settings > Workspaces > [Workspace Name] > Workflows > Make or track payments > Direct** and selecting **Enable Global Reimbursements**.
 
-More information on setting up Global Reimbursement can be found **[here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement)**.
+More information on setting up Global Reimbursement can be found in the **[Enable Global Reimbursement guide](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement)**.
 
 ---
 
