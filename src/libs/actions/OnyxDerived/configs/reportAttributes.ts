@@ -175,8 +175,7 @@ export default createOnyxDerivedValueConfig({
                     if (updates.length === 0) {
                         dataToIterate = affectedPolicyReportKeys;
                     } else {
-                        dataToIterate.push(...affectedPolicyReportKeys);
-                        dataToIterate = prepareReportKeys(dataToIterate);
+                        dataToIterate.push(...prepareReportKeys(affectedPolicyReportKeys));
                     }
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
