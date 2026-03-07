@@ -26,6 +26,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -45,17 +46,8 @@ import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDot
 import Permissions from '@libs/Permissions';
 import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {
-    generateReportID,
-    getDisplayNameForParticipant,
-    getIcons,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
-    getWorkspaceChats,
-    hasViolations as hasViolationsReportUtils,
-    isPolicyExpenseChat,
-} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDisplayNameForParticipant, getIcons, getWorkspaceChats, hasViolations as hasViolationsReportUtils, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 import variables from '@styles/variables';
@@ -176,6 +168,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const isReportArchived = useReportIsArchived(quickActionReport?.reportID);
+    const reportAttributes = useReportAttributes();
     const {isOffline} = useNetwork();
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
@@ -312,10 +305,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return !hideQABSubtitle ? (getReportName({report: quickActionReport, policy: quickActionPolicy, personalDetails}) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName(quickActionReport, reportAttributes) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
+    }, [hideQABSubtitle, reportAttributes, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -528,8 +520,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     ...baseQuickAction,
                     icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    description: getReportName({report: policyChatForActivePolicy}),
+                    description: getReportName(policyChatForActivePolicy, reportAttributes),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -564,6 +555,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         reportID,
         allTransactionDrafts,
         allBetas,
+        reportAttributes,
     ]);
 
     const isTravelEnabled = useMemo(() => {

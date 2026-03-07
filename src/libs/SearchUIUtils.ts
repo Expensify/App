@@ -111,6 +111,7 @@ import {
     isResolvedActionableWhisper,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
+import {getReportName} from './ReportNameUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canDeleteMoneyRequestReport,
@@ -121,7 +122,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
@@ -491,6 +491,7 @@ type GetSectionsParams = {
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 };
 
 const GROUP_BY_TO_SORT_COLUMN: Partial<Record<ValueOf<typeof CONST.SEARCH.GROUP_BY>, string>> = {
@@ -2011,6 +2012,7 @@ function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     archivedReportsIDList?: ArchivedReportsIDSet,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
     const tasks = Object.keys(data)
@@ -2048,8 +2050,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived});
+                const parentReportName = getReportName(parentReport, reportAttributes);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2886,12 +2887,13 @@ function getSections({
     visibleReportActionsData,
     allReportMetadata,
     cardList,
+    reportAttributes,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
+        return getTaskSections(data, formatPhoneNumber, archivedReportsIDList, reportAttributes);
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

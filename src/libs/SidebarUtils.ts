@@ -128,6 +128,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
+import {getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -144,8 +145,6 @@ import {
     getReceiptUploadErrorReason,
     getReportDescription,
     getReportMetadata,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -443,8 +442,7 @@ function categorizeReportsForLHN(
         }
 
         const reportID = report.reportID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const displayName = getReportName({report, conciergeReportID});
+        const displayName = getReportName(report);
         const miniReport: MiniReport = {
             reportID,
             displayName,
@@ -916,8 +914,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportName(lastActionReport, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1163,8 +1160,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
+    const reportName = getReportName(report, reportAttributesDerived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1284,8 +1280,7 @@ function getRoomWelcomeMessage(
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report});
+    const reportName = getReportName(report);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
