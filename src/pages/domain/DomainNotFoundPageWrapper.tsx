@@ -37,6 +37,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
             return;
         }
