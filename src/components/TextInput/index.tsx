@@ -8,9 +8,6 @@ import BaseTextInput from './BaseTextInput';
 import type {BaseTextInputProps} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
-// Buffer to keep isRestoringKeyboardFocus true past FormProvider's VALIDATE_DELAY (200ms)
-const KEYBOARD_RESTORATION_FLAG_RESET_DELAY = 100;
-
 let isRestoringKeyboardFocus = false;
 
 function getIsRestoringKeyboardFocus() {
@@ -57,7 +54,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
                 inputElement.focus();
                 flagResetTimeoutId = setTimeout(() => {
                     isRestoringKeyboardFocus = false;
-                }, KEYBOARD_RESTORATION_FLAG_RESET_DELAY);
+                }, CONST.KEYBOARD_RESTORATION_FLAG_RESET_DELAY);
             }, CONST.ANIMATED_TRANSITION);
         };
 
