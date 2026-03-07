@@ -8,7 +8,8 @@ import useOnyx from '@hooks/useOnyx';
 import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {checkAndCleanGpsNotification, startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,10 +24,13 @@ function GPSTripStateChecker() {
 
     const {splashScreenState} = useSplashScreenState();
 
+    const reportID = gpsDraftDetails?.reportID ?? generateReportID();
+
     useUpdateGpsTripOnReconnect();
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
+            await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
             if (!gpsTrip?.isTracking) {
@@ -37,6 +41,7 @@ function GPSTripStateChecker() {
         }
 
         handleGpsTripInProgressOnAppRestart();
+        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
@@ -50,23 +55,33 @@ function GPSTripStateChecker() {
     }, []);
 
     const navigateToGpsScreen = () => {
-        const reportID = gpsDraftDetails?.reportID ?? generateReportID();
         Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     };
 
     const continueGpsTrip = async () => {
         const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
+        const unit = gpsDraftDetails?.unit;
+
         if (isBackgroundTaskRunning) {
+            if (unit) {
+                startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
+            }
             return;
         }
 
-        const notificationTitle = translate('gps.notification.title');
-        const notificationBody = translate('gps.notification.body');
+        try {
+            await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, BACKGROUND_LOCATION_TASK_OPTIONS);
+        } catch (error) {
+            console.error('[GPS distance request] Failed to restart location tracking', error);
+            return;
+        }
 
-        await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions(notificationTitle, notificationBody)).catch((error) =>
-            console.error('[GPS distance request] Failed to restart location tracking', error),
-        );
+        if (!unit) {
+            return;
+        }
+
+        startGpsTripNotification(translate, reportID, unit, gpsDraftDetails?.distanceInMeters);
     };
 
     const onContinueTrip = () => {
