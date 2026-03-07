@@ -19,6 +19,7 @@ import {
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
+    getFilteredReportActionsForReportView,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
@@ -32,6 +33,7 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasStaleDeletedTimestamp,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -1489,6 +1491,247 @@ describe('ReportActionsUtils', () => {
         it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('hasStaleDeletedTimestamp', () => {
+        it('should return false when action has no deleted timestamp', () => {
+            const action = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                    },
+                ],
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(false);
+        });
+
+        it('should return true when message.deleted precedes action.created', () => {
+            const action = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                    deleted: '2026-02-27 22:45:02.450',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        deleted: '2026-02-27 22:45:02.450',
+                    },
+                ],
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(true);
+        });
+
+        it('should return false when message.deleted is after action.created', () => {
+            const action = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                    deleted: '2026-03-04 10:00:00.000',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        deleted: '2026-03-04 10:00:00.000',
+                    },
+                ],
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(false);
+        });
+
+        it('should return true when only originalMessage.deleted precedes created', () => {
+            const action = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                    deleted: '2026-02-27 22:45:02.450',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                    },
+                ],
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(true);
+        });
+
+        it('should return false when action has no created timestamp', () => {
+            const action = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                    deleted: '2026-02-27 22:45:02.450',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        deleted: '2026-02-27 22:45:02.450',
+                    },
+                ],
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(false);
+        });
+
+        it('should detect stale deleted timestamp from non-array message', () => {
+            const action = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'test',
+                    whisperedTo: [],
+                },
+                message: {
+                    html: 'test',
+                    type: 'COMMENT',
+                    text: 'test',
+                    deleted: '2026-02-27 22:45:02.450',
+                },
+            } as unknown as ReportAction;
+            expect(hasStaleDeletedTimestamp(action)).toBe(true);
+        });
+    });
+
+    describe('getFilteredReportActionsForReportView', () => {
+        it('should filter out IOU actions with stale deleted timestamps while keeping valid actions', () => {
+            const validIOUAction = {
+                created: '2026-03-03 19:45:11.598',
+                reportActionID: '1001',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '6941620021268658438',
+                    IOUReportID: '5538363595478096',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            const staleDeletedIOUAction = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '1002',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '236611922261049483',
+                    IOUReportID: '5538363595478096',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 200,
+                    currency: 'USD',
+                    deleted: '2026-02-27 22:45:02.450',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        isDeletedParentAction: false,
+                        deleted: '2026-02-27 22:45:02.450',
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            const createdAction = {
+                created: '2026-03-03 19:45:10.892',
+                reportActionID: '1003',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                originalMessage: {},
+                message: [
+                    {
+                        html: '',
+                        type: 'TEXT',
+                        text: '',
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            const actions = [validIOUAction, staleDeletedIOUAction, createdAction];
+            const filtered = getFilteredReportActionsForReportView(actions);
+
+            expect(filtered).toHaveLength(2);
+            expect(filtered.find((a) => a.reportActionID === '1001')).toBeDefined();
+            expect(filtered.find((a) => a.reportActionID === '1002')).toBeUndefined();
+            expect(filtered.find((a) => a.reportActionID === '1003')).toBeDefined();
+        });
+
+        it('should keep IOU actions with valid deleted timestamps (deleted after created)', () => {
+            const validlyDeletedIOUAction = {
+                created: '2026-03-03 19:45:11.600',
+                reportActionID: '2001',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: '123',
+                    IOUReportID: '456',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 100,
+                    currency: 'USD',
+                    deleted: '2026-03-04 10:00:00.000',
+                },
+                message: [
+                    {
+                        html: 'test',
+                        type: 'COMMENT',
+                        text: 'test',
+                        isDeletedParentAction: false,
+                        deleted: '2026-03-04 10:00:00.000',
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            const filtered = getFilteredReportActionsForReportView([validlyDeletedIOUAction]);
+            expect(filtered).toHaveLength(1);
         });
     });
 

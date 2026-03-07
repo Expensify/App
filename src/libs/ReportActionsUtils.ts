@@ -1423,11 +1423,38 @@ function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
 }
 
 /**
+ * Checks whether an action has a `deleted` timestamp that precedes its own `created` timestamp,
+ * which indicates data corruption (an action cannot be deleted before it is created).
+ * These actions should be ignored by filtering logic to prevent them from incorrectly
+ * hiding their associated transactions.
+ */
+function hasStaleDeletedTimestamp(action: ReportAction): boolean {
+    const actionCreated = action.created;
+    if (!actionCreated) {
+        return false;
+    }
+
+    const message = action.message;
+    const messageDeleted = Array.isArray(message) ? message.at(0)?.deleted : message?.deleted;
+    const originalMessage = getOriginalMessage(action);
+    const originalDeleted = originalMessage && 'deleted' in originalMessage ? (originalMessage as {deleted?: string}).deleted : undefined;
+    const deletedTimestamp = messageDeleted ?? originalDeleted;
+
+    if (!deletedTimestamp) {
+        return false;
+    }
+
+    return deletedTimestamp < actionCreated;
+}
+
+/**
  * Helper for filtering out report actions that should not be displayed in the report view.
  * Delegates visibility logic to isVisiblePreviewOrMoneyRequest.
+ * Also filters out actions with stale deleted timestamps (deleted before created) which are
+ * corrupted data from backend transaction merge flows.
  */
 function getFilteredReportActionsForReportView(actions: ReportAction[]) {
-    return actions.filter(isVisiblePreviewOrMoneyRequest);
+    return actions.filter((action) => isVisiblePreviewOrMoneyRequest(action) && !hasStaleDeletedTimestamp(action));
 }
 
 function getDynamicExternalWorkflowRoutedAction(
@@ -4538,6 +4565,7 @@ export {
     getActionableJoinRequestPendingReportAction,
     findLastReportActions,
     getFilteredReportActionsForReportView,
+    hasStaleDeletedTimestamp,
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getActionableCardFraudAlertResolutionMessage,
