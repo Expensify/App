@@ -6,7 +6,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
@@ -195,13 +195,14 @@ function getMovedFromOrToReportMessage(
     movedFromReport: OnyxEntry<Report> | undefined,
     movedToReport: OnyxEntry<Report> | undefined,
     currentUserLogin: string,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): string | undefined {
     if (movedToReport) {
         return getForExpenseMovedFromSelfDM(translate, movedToReport, currentUserLogin);
     }
 
     if (movedFromReport) {
-        const originReportName = getReportName(movedFromReport);
+        const originReportName = getReportName(movedFromReport, reportAttributes);
         return translate('iou.movedFromReport', originReportName ?? '');
     }
 }
@@ -279,6 +280,7 @@ function getForReportAction({
     movedToReport,
     policyForMovingExpensesID,
     currentUserLogin: currentUserLoginParam,
+    reportAttributes,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     policyID: string | undefined;
@@ -286,6 +288,7 @@ function getForReportAction({
     movedToReport?: OnyxEntry<Report>;
     policyForMovingExpensesID?: string;
     currentUserLogin?: string;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
     // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
     // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
@@ -298,7 +301,7 @@ function getForReportAction({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport, currentUserLogin);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translateLocal, movedFromReport, movedToReport, currentUserLogin, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }
@@ -600,6 +603,7 @@ function getForReportActionTemp({
     movedToReport,
     policyTags,
     currentUserLogin: currentUserLoginParam,
+    reportAttributes,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction>;
@@ -608,6 +612,7 @@ function getForReportActionTemp({
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    reportAttributes?: ReportAttributesDerivedValue['reports'];
 }): string {
     // Temporary fallback to storedCurrentUserLogin since currentUserLogin can be empty string.
     // Remove once all callers pass currentUserLogin explicitly and the migration to getForReportActionTemp is complete.
@@ -619,7 +624,7 @@ function getForReportActionTemp({
         return '';
     }
 
-    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin);
+    const movedFromOrToReportMessage = getMovedFromOrToReportMessage(translate, movedFromReport, movedToReport, currentUserLogin, reportAttributes);
     if (movedFromOrToReportMessage) {
         return movedFromOrToReportMessage;
     }

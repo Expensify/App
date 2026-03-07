@@ -1079,17 +1079,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '99999',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '99999',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('+15551234567');
             expect(result).not.toContain('@expensify.sms');
@@ -1104,17 +1104,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '78901',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '78901',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('Jane Doe');
         });
@@ -1128,17 +1128,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '12345',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '12345',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe(CONST.SEARCH.ME);
         });
@@ -1146,17 +1146,17 @@ describe('SearchQueryUtils', () => {
         it('should return fallback value when personal details not found', () => {
             const personalDetails = {};
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '88888',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '88888',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('88888');
         });
@@ -1170,17 +1170,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '77777',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '77777',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('Custom Name');
             expect(result).not.toContain('@expensify.sms');
@@ -1195,17 +1195,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                '66666',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                filterValue: '66666',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -1228,7 +1228,17 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
+                const result = getFilterDisplayValue({
+                    filterName: filterKey,
+                    filterValue: '55555',
+                    personalDetails,
+                    reports: mockReports,
+                    cardList: mockCardList,
+                    cardFeeds: mockCardFeeds,
+                    policies: mockPolicies,
+                    currentUserAccountID,
+                    translate: translateLocal,
+                });
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');

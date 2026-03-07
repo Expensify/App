@@ -8,7 +8,7 @@ import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
 import SafeString from '@src/utils/SafeString';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
@@ -95,7 +95,13 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        usesIcon = false,
+        reportAttributes?: ReportAttributesDerivedValue['reports'],
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -114,7 +120,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = getReportName(report);
+            const roomName = getReportName(report, reportAttributes);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
