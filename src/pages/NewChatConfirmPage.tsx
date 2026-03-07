@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {getGroupChatName} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
-import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
+import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,26 +43,11 @@ function NewChatConfirmPage() {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
 
-    const participantAccountIDs = useMemo(() => (newGroupDraft?.participants ?? []).map((p) => p.accountID).filter((id): id is number => id !== undefined), [newGroupDraft?.participants]);
-    const personalDetailsSelector = useCallback(
-        (allDetails: OnyxEntry<PersonalDetailsList>) => {
-            if (!allDetails) {
-                return {};
-            }
-            const filtered: PersonalDetailsList = {};
-            for (const accountID of participantAccountIDs) {
-                if (!allDetails[accountID]) {
-                    continue;
-                }
-                filtered[accountID] = allDetails[accountID];
-            }
-            return filtered;
-        },
-        [participantAccountIDs],
-    );
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false, selector: personalDetailsSelector}, [personalDetailsSelector]);
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const selectedOptions = useMemo((): Participant[] => {
@@ -119,8 +104,8 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, allPersonalDetails, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile, allPersonalDetails]);
+        navigateToAndCreateGroupChat(logins, newGroupDraft.reportName ?? '', personalData.login ?? '', optimisticReportID.current, introSelected, newGroupDraft.avatarUri ?? '', avatarFile);
+    }, [newGroupDraft, avatarFile, personalData.login, introSelected]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

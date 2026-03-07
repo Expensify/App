@@ -10,7 +10,7 @@ import {updateQuickbooksOnlineSyncReimbursedReports} from '@src/libs/actions/con
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxData} from '@src/types/onyx/Request';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -23,7 +23,7 @@ const MOCK_ACCOUNT_ID = 'account-123';
 const MOCK_OLD_ACCOUNT_ID = 'account-456';
 const MOCK_ONYX_ERROR = {key: 'error'};
 
-function getQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig | undefined {
+function getQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig | undefined {
     if (!update || typeof update.value !== 'object' || update.value === null) {
         return undefined;
     }
@@ -33,7 +33,7 @@ function getQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig | undefin
     return connection?.config;
 }
 
-function getRequiredQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig {
+function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig {
     const config = getQuickBooksConfig(update);
     if (!config) {
         throw new Error('QuickBooks config is missing from the provided Onyx update');
@@ -41,7 +41,7 @@ function getRequiredQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig {
     return config;
 }
 
-function getFirstWriteCall(): {command: WriteCommand; onyxData?: OnyxData<OnyxKey>} {
+function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
     const call = writeSpy.mock.calls.at(0);
     if (!call) {
         throw new Error('API.write was not called');

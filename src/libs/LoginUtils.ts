@@ -87,7 +87,7 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
 }
 
 function postSAMLLogin(body: FormData): Promise<Response | void> {
-    return fetch(CONFIG.EXPENSIFY.SAML_URL, {
+    return fetch(`${CONFIG.EXPENSIFY.SAML_URL}/login`, {
         method: CONST.NETWORK.METHOD.POST,
         body,
         credentials: 'omit',

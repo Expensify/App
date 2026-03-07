@@ -31,12 +31,7 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
             iconType: CONST.ICON_TYPE_WORKSPACE,
-            description: date
-                ? translate('workspace.common.lastSyncDate', {
-                      connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
-                      formattedDate: date,
-                  })
-                : translate('workspace.accounting.netsuite'),
+            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite, date) : translate('workspace.accounting.netsuite'),
             onPress: () => {
                 copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
                 Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));

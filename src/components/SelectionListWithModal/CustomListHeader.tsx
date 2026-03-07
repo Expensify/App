@@ -44,7 +44,7 @@ function CustomListHeader({
     if (canSelectMultiple) {
         return header;
     }
-    return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    return <View style={[styles.flexRow, styles.baseListHeaderWrapperStyle]}>{header}</View>;
 }
 
 export default CustomListHeader;

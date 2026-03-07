@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -32,6 +33,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         login?: string;
         currentUserAccountID: number;
         personalDetails: OnyxEntry<PersonalDetailsList>;
+        introSelected: OnyxEntry<IntroSelected>;
     }) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
@@ -63,7 +65,7 @@ const PromotedActions = {
             joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login, currentUserAccountID, personalDetails}) => ({
+    message: ({reportID, accountID, login, currentUserAccountID, personalDetails, introSelected}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: 'CommentBubbles',
         translationKey: 'common.message',
@@ -75,7 +77,7 @@ const PromotedActions = {
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, false);
+                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, false);
                 return;
             }
             if (accountID) {

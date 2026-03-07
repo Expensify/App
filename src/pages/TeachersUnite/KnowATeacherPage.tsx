@@ -25,8 +25,8 @@ function KnowATeacherPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
@@ -103,6 +103,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -114,6 +115,7 @@ function KnowATeacherPage() {
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
+                        autoComplete="family-name"
                     />
                 </View>
                 <View>

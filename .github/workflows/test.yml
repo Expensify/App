@@ -55,7 +55,8 @@ jobs:
           flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
-          fail_ci_if_error: true
+          # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
+          fail_ci_if_error: false
 
       - name: Load Codecov token from 1Password
         id: load-codecov-token
@@ -79,7 +80,8 @@ jobs:
           flags: unit
           name: jest-${{ matrix.chunk }}
           disable_search: true
-          fail_ci_if_error: true
+          # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
+          fail_ci_if_error: false
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}

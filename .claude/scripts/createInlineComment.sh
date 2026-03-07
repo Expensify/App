@@ -25,7 +25,7 @@ validate_rule() {
 
     [[ -f "$ALLOWED_RULES_FILE" ]] || die "Comment rejected: allowed rules file missing at $ALLOWED_RULES_FILE"
 
-    rule=$(echo "$body" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)
+    rule=$(echo "$body" | grep -oE '[A-Z]+(-[A-Z]+)*-[0-9]+' | head -1 || true)
     [[ -n "$rule" ]] || die "Comment rejected: missing allowed rule reference (e.g. PERF-1)"
 
     if grep -qF "$rule" "$ALLOWED_RULES_FILE"; then

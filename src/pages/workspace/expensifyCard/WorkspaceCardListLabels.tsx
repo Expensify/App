@@ -7,7 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardSettings} from '@src/types/onyx';
+import type {ExpensifyCardSettingsBase} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListLabelsProps = {
@@ -15,7 +15,7 @@ type WorkspaceCardListLabelsProps = {
     policyID: string;
 
     /** Card settings */
-    cardSettings: ExpensifyCardSettings | undefined;
+    cardSettings: ExpensifyCardSettingsBase | undefined;
 };
 
 function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabelsProps) {
@@ -25,7 +25,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`, {canBeMissing: true});
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
