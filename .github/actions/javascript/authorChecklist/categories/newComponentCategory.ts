@@ -54,6 +54,7 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
             }
             if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
                 path.traverse({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     JSXElement() {
                         isReactComponent = true;
                         path.stop();
@@ -61,6 +62,7 @@ function detectReactComponent(code: string, filename: string): boolean | undefin
                 });
             }
         },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         ClassDeclaration(path) {
             const {superClass} = path.node as unknown as SuperClassType;
             if (

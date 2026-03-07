@@ -66,6 +66,7 @@ describe('ReportNameUtils', () => {
             pronouns: 'She/her',
         },
     ].reduce((acc, detail) => {
+        // eslint-disable-next-line no-param-reassign
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);

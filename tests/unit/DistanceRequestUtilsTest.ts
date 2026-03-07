@@ -1,9 +1,9 @@
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
+import type { MileageRate } from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
-import type {Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import type { Transaction } from '@src/types/onyx';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {translateLocal} from '../utils/TestHelper';
 
 const FAKE_POLICY: Policy = {

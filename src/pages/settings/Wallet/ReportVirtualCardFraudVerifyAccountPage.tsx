@@ -37,6 +37,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
     const prevIsLoading = usePrevious(formData?.isLoading);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
