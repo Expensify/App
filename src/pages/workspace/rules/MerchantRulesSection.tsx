@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import MenuItem from '@components/MenuItem';
@@ -107,6 +107,16 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
 
     const [merchantSearchInput, setMerchantSearchInput, filteredRules] = useSearchResults(sortedRules, filterMerchantRule);
 
+    useEffect(() => {
+        if (sortedRules.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT) {
+            return;
+        }
+        setMerchantSearchInput('');
+    }, [sortedRules.length, setMerchantSearchInput]);
+
+    const shouldShowSearchBar =
+        sortedRules.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT || merchantSearchInput.length > 0;
+
     const renderTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
@@ -127,20 +137,14 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
         >
             {hasRules && (
                 <View style={[styles.mt3]}>
-                    {sortedRules.length > CONST.APPROVAL_WORKFLOW_SEARCH_LIMIT && (
+                    {shouldShowSearchBar && (
                         <SearchBar
                             label={translate('workspace.rules.merchantRules.findRule')}
                             inputValue={merchantSearchInput}
                             onChangeText={setMerchantSearchInput}
+                            shouldShowEmptyState={filteredRules.length === 0}
                             style={[styles.mt6, styles.mb3, {marginHorizontal: 0}]}
                         />
-                    )}
-                    {filteredRules.length === 0 && merchantSearchInput.length > 0 && (
-                        <View style={[styles.pt3, styles.pb5]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>
-                                {translate('common.noResultsFoundMatching', merchantSearchInput)}
-                            </Text>
-                        </View>
                     )}
                     {filteredRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
