@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, LoginList, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -79,6 +79,12 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let reportAttributes: ReportAttributesDerivedValue | undefined;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => (reportAttributes = value),
 });
 
 type DomainOnyxUpdate =
@@ -713,7 +719,7 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes?.reports);
             }
         }
     }

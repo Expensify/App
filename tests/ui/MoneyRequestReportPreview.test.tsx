@@ -15,7 +15,7 @@ import DateUtils from '@libs/DateUtils';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
-import * as ReportNameUtils from '@src/libs/ReportNameUtils';
+import {getReportName} from '@src/libs/ReportNameUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -154,7 +154,7 @@ describe('MoneyRequestReportPreview', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(ReportNameUtils.getReportName(mockIOUReport))).toBeOnTheScreen();
+        expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
