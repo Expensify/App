@@ -854,6 +854,7 @@ describe('actions/Task', () => {
     describe('getNavigationUrlOnTaskDelete', () => {
         let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
         let getMostRecentReportIDSpy: jest.SpyInstance;
+        const archivedReportsIDSet = new Set<string>();
 
         beforeEach(() => {
             doesReportHaveVisibleActionsSpy = jest.spyOn(ReportActionsUtils, 'doesReportHaveVisibleActions');
@@ -866,14 +867,14 @@ describe('actions/Task', () => {
         });
 
         it('should return undefined when report is undefined', () => {
-            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123')).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123', archivedReportsIDSet)).toBeUndefined();
         });
 
         it('should return undefined when report has visible actions (should not delete)', () => {
             const taskReport = getFakeReport();
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', archivedReportsIDSet)).toBeUndefined();
         });
 
         it('should return parent report route when report has parentReportID and no visible actions', () => {
@@ -881,7 +882,7 @@ describe('actions/Task', () => {
             const taskReport = {...getFakeReport(), parentReportID};
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', archivedReportsIDSet);
             expect(result).toBe(`r/${parentReportID}`);
         });
 
@@ -891,9 +892,9 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', archivedReportsIDSet);
             expect(result).toBe(`r/${mostRecentReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123', archivedReportsIDSet);
         });
 
         it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
@@ -902,9 +903,9 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID);
+            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, archivedReportsIDSet);
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID, archivedReportsIDSet);
         });
 
         it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {
@@ -912,7 +913,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(undefined);
 
-            expect(getNavigationUrlOnTaskDelete(taskReport, undefined)).toBeUndefined();
+            expect(getNavigationUrlOnTaskDelete(taskReport, undefined, archivedReportsIDSet)).toBeUndefined();
         });
     });
 
@@ -920,6 +921,7 @@ describe('actions/Task', () => {
         let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
         let getMostRecentReportIDSpy: jest.SpyInstance;
         const mockCurrentUserAccountID = 123;
+        const archivedReportsIDSet = new Set<string>();
 
         beforeEach(async () => {
             jest.clearAllMocks();
@@ -946,7 +948,7 @@ describe('actions/Task', () => {
         });
 
         it('should return early when report is undefined', () => {
-            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, archivedReportsIDSet, 'concierge_123');
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).not.toHaveBeenCalled();
@@ -987,7 +989,7 @@ describe('actions/Task', () => {
 
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, 'concierge_123');
+            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, archivedReportsIDSet, 'concierge_123');
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             expect(API.write).toHaveBeenCalledWith(
@@ -1031,7 +1033,7 @@ describe('actions/Task', () => {
             // No visible actions means the task report should be deleted
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
 
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, archivedReportsIDSet, 'concierge_123');
 
             expect(result).toBe(`r/${parentReportID}`);
             expect(Navigation.goBack).toHaveBeenCalled();
@@ -1059,10 +1061,10 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
 
-            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID);
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, archivedReportsIDSet, conciergeReportID);
 
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID, archivedReportsIDSet);
             expect(Navigation.goBack).toHaveBeenCalled();
         });
 
@@ -1094,7 +1096,7 @@ describe('actions/Task', () => {
             // Has visible actions, so should not navigate away
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, archivedReportsIDSet, 'concierge_123');
 
             expect(result).toBeUndefined();
             expect(Navigation.goBack).not.toHaveBeenCalled();
@@ -1121,7 +1123,7 @@ describe('actions/Task', () => {
             doesReportHaveVisibleActionsSpy.mockReturnValue(false);
             getMostRecentReportIDSpy.mockReturnValue(undefined);
 
-            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined);
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, archivedReportsIDSet, undefined);
 
             // API.write should still be called
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
