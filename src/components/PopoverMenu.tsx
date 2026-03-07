@@ -2,7 +2,7 @@
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, InteractionManager, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, View as RNView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -558,13 +558,8 @@ function BasePopoverMenu({
             });
         };
 
-        if (isIOS) {
-            InteractionManager.runAfterInteractions(focusTarget);
-            return;
-        }
-
-        setTimeout(focusTarget, 0);
-    }, [focusFirstMenuItem, isIOS]);
+        setTimeout(focusTarget, isIOS ? (animationInDelay ?? 0) + animationInTiming : 0);
+    }, [animationInDelay, animationInTiming, focusFirstMenuItem, isIOS]);
 
     const scheduleFocusFirstMenuItem = useCallback(() => {
         if (isWeb) {

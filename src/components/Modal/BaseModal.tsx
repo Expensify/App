@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -272,6 +272,7 @@ function BaseModal({
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
     const shouldDelayBottomDockedDismissAccessibility = isNativeIOS && shouldShowBottomDockedDismissButton;
+    const dismissAccessibilityDelay = (animationInDelay ?? 0) + (animationInTiming ?? CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
 
     useEffect(() => {
         if (!shouldDelayBottomDockedDismissAccessibility) {
@@ -286,19 +287,19 @@ function BaseModal({
 
         setIsBottomDockedDismissAccessible(false);
         let animationFrameID = 0;
-        const interactionHandle = InteractionManager.runAfterInteractions(() => {
+        const timeoutID = setTimeout(() => {
             animationFrameID = requestAnimationFrame(() => {
                 setIsBottomDockedDismissAccessible(true);
             });
-        });
+        }, dismissAccessibilityDelay);
 
         return () => {
             if (animationFrameID) {
                 cancelAnimationFrame(animationFrameID);
             }
-            interactionHandle.cancel();
+            clearTimeout(timeoutID);
         };
-    }, [isVisible, shouldDelayBottomDockedDismissAccessibility]);
+    }, [dismissAccessibilityDelay, isVisible, shouldDelayBottomDockedDismissAccessibility]);
 
     const modalPaddingStyles = useMemo(() => {
         const paddings = StyleUtils.getModalPaddingStyles({
