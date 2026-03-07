@@ -3420,14 +3420,14 @@ describe('CardUtils', () => {
             expect(getCardSettings(null as unknown as undefined)).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is not provided and no nested keys exist', () => {
+        it('should return undefined when no nested keys exist and feedCountry is not provided', () => {
             const result = getCardSettings(flatSettings);
-            expect(result).toBe(flatSettings);
+            expect(result).toBeUndefined();
         });
 
-        it('should return flat root when feedCountry is undefined and no nested keys exist', () => {
+        it('should return undefined when no nested keys exist and feedCountry is undefined', () => {
             const result = getCardSettings(flatSettings, undefined);
-            expect(result).toBe(flatSettings);
+            expect(result).toBeUndefined();
         });
 
         it('should return merged root + nested when feedCountry matches a nested key', () => {
@@ -3438,9 +3438,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should fall back to root when feedCountry key does not exist', () => {
+        it('should return undefined when feedCountry key does not exist', () => {
             const result = getCardSettings(nestedSettings, 'CA');
-            expect(result).toBe(nestedSettings);
+            expect(result).toBeUndefined();
         });
 
         it('should return merged root + TRAVEL_US when feedCountry is TRAVEL_US', () => {
@@ -3450,9 +3450,9 @@ describe('CardUtils', () => {
             expect(result?.domainName).toBe('example.com');
         });
 
-        it('should not return primitive values as nested settings', () => {
+        it('should return undefined for primitive values as feedCountry', () => {
             const result = getCardSettings(nestedSettings, 'limit');
-            expect(result).toBe(nestedSettings);
+            expect(result).toBeUndefined();
         });
 
         it('should auto-detect US program when no feedCountry is provided', () => {

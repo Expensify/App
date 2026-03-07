@@ -1100,18 +1100,13 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
     };
 
     if (feedCountry) {
-        return getMergedProgramSettings(feedCountry) ?? cardSettings;
+        return getMergedProgramSettings(feedCountry);
     }
 
-    // Auto-detect: try known card programs in priority order so callers that
-    // don't pass feedCountry still get the right program sub-object when the
-    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
-    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
-    if (result) {
-        return result;
-    }
-
-    return cardSettings;
+    // Auto-detect: try known card programs in priority order.
+    // Phase 2 guarantees all settings are nested under program keys
+    // (CURRENT for legacy domains, US/GB for new ones).
+    return getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
 }
 
 function isCardPendingIssue(card?: Card) {
