@@ -165,6 +165,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const backTo = route.params.backTo;
 
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -451,18 +452,19 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    createDraftTransactionAndNavigateToParticipantSelector(
-                        iouTransactionID,
-                        actionReportID,
-                        CONST.IOU.ACTION.SUBMIT,
-                        actionableWhisperReportActionID,
+                    createDraftTransactionAndNavigateToParticipantSelector({
+                        transactionID: iouTransactionID,
+                        reportID: actionReportID,
+                        actionName: CONST.IOU.ACTION.SUBMIT,
+                        reportActionID: actionableWhisperReportActionID,
                         introSelected,
                         allTransactionDrafts,
                         activePolicy,
-                        undefined,
+                        userBillingGraceEndPeriodCollection,
+                        amountOwed,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
-                    );
+                    });
                 },
             });
             if (Permissions.canUseTrackFlows()) {
@@ -473,16 +475,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
-                            iouTransactionID,
-                            actionReportID,
-                            CONST.IOU.ACTION.CATEGORIZE,
-                            actionableWhisperReportActionID,
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            transactionID: iouTransactionID,
+                            reportID: actionReportID,
+                            actionName: CONST.IOU.ACTION.CATEGORIZE,
+                            reportActionID: actionableWhisperReportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
                             userBillingGraceEndPeriodCollection,
-                        );
+                            amountOwed,
+                        });
                     },
                 });
                 items.push({
@@ -492,16 +495,17 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(
-                            iouTransactionID,
-                            actionReportID,
-                            CONST.IOU.ACTION.SHARE,
-                            actionableWhisperReportActionID,
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            transactionID: iouTransactionID,
+                            reportID: actionReportID,
+                            actionName: CONST.IOU.ACTION.SHARE,
+                            reportActionID: actionableWhisperReportActionID,
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            undefined,
-                        );
+                            userBillingGraceEndPeriodCollection,
+                            amountOwed,
+                        });
                     },
                 });
             }
@@ -628,6 +632,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         parentReport,
         reportActionsForOriginalReportID,
         userBillingGraceEndPeriodCollection,
+        amountOwed,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

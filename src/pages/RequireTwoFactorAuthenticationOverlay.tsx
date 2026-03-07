@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -9,8 +10,9 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreenName, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +35,13 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
     };
 };
 
-function RequireTwoFactorAuthenticationPage() {
+function RequireTwoFactorAuthenticationOverlay() {
+    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
+    const isIn2FASetupFlow = useNavigationState((state) => {
+        const focusedScreenName = getDeepestFocusedScreenName(state);
+        return isTwoFactorSetupScreen(focusedScreenName);
+    });
+
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,11 +58,15 @@ function RequireTwoFactorAuthenticationPage() {
         Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
     }, [isUserValidated]);
 
+    if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
+        return null;
+    }
+
     return (
         <FocusTrapForModal active>
             <View
                 style={[StyleSheet.absoluteFill, styles.twoFARequiredOverlay]}
-                testID="RequireTwoFactorAuthenticationPage"
+                testID="RequireTwoFactorAuthenticationOverlay"
             >
                 <View style={[styles.flex1, styles.appBG]}>
                     <View style={styles.twoFARequiredContainer}>
@@ -87,4 +99,4 @@ function RequireTwoFactorAuthenticationPage() {
     );
 }
 
-export default RequireTwoFactorAuthenticationPage;
+export default RequireTwoFactorAuthenticationOverlay;
