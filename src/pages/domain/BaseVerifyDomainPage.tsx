@@ -56,12 +56,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
-    useEffect(() => {
-        if (!domain?.hasValidationSucceeded) {
-            return;
-        }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardToPath as Route, {forceReplace: true}));
-    }, [domain?.hasValidationSucceeded, forwardToPath] as React.DependencyList);
+    useEffect(
+        () => {
+            if (!domain?.hasValidationSucceeded) {
+                return;
+            }
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardToPath as Route, {forceReplace: true}));
+        },
+        [domain?.hasValidationSucceeded, forwardToPath] as React.DependencyList,
+    );
 
     useEffect(() => {
         if (!doesDomainExist) {

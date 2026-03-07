@@ -725,21 +725,24 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, !!reportNameValuePairs?.private_isArchived);
 
-    const promotedActions = useMemo(() => {
-        const result: PromotedAction[] = [];
+    const promotedActions = useMemo(
+        () => {
+            const result: PromotedAction[] = [];
 
-        if (canJoin) {
-            result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
-        }
+            if (canJoin) {
+                result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
+            }
 
-        if (report) {
-            result.push(PromotedActions.pin(report));
-        }
+            if (report) {
+                result.push(PromotedActions.pin(report));
+            }
 
-        result.push(PromotedActions.share(report, backTo));
+            result.push(PromotedActions.share(report, backTo));
 
-        return result;
-    }, [canJoin, report, backTo, currentUserPersonalDetails.accountID] as React.DependencyList);
+            return result;
+        },
+        [canJoin, report, backTo, currentUserPersonalDetails.accountID] as React.DependencyList,
+    );
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
