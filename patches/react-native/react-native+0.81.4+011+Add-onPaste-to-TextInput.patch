@@ -690,7 +690,7 @@ index 0000000..8195a84
 +  public void onPaste(java.util.List<kotlin.Pair<String, String>> items);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index 42f6e03..7c6531a 100644
+index 42f6e03..33dba85 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 @@ -8,13 +8,20 @@
@@ -730,7 +730,7 @@ index 42f6e03..7c6531a 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -356,9 +365,64 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -356,9 +365,66 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
@@ -784,11 +784,13 @@ index 42f6e03..7c6531a 100644
 +          }
 +      }
 +
-+      if (items.isNotEmpty()) {
-+        if (pasteWatcher != null) {
-+          pasteWatcher?.onPaste(items)
-+          return true
-+        }
++      // Only consume the paste when the clipboard has non-plain-text content (e.g. URI, HTML,
++      // intent). Plain-text-only paste is left to Android so it inserts the text; otherwise
++      // JS handlers that ignore text/plain would drop the paste.
++      val hasNonPlainText = items.any { it.first != ClipDescription.MIMETYPE_TEXT_PLAIN }
++      if (items.isNotEmpty() && hasNonPlainText && pasteWatcher != null) {
++        pasteWatcher?.onPaste(items)
++        return true
 +      }
 +
 +      return false
@@ -798,7 +800,7 @@ index 42f6e03..7c6531a 100644
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
-@@ -421,6 +485,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -421,6 +487,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
      this.scrollWatcher = scrollWatcher
    }
  
