@@ -828,6 +828,7 @@ function computeReportName({
             currentUserAccountID,
             currentUserLogin,
         });
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
     }
 
