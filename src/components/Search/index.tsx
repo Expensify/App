@@ -1050,8 +1050,12 @@ function Search({
             }
 
             if (isReportActionListItemType(item)) {
-                // For created-task rows, reportActionID may not exist offline yet; skipping it prevents the report RHP from loading forever.
-                const reportActionID = isCreatedTaskReportAction(reportActionItem) ? undefined : reportActionItem.reportActionID;
+                // Keep deep-linking for persisted actions, but avoid anchoring to optimistic created-task actions that may not be resolvable offline.
+                const isOptimisticCreatedTaskAction = reportActionItem.isOptimisticAction ?? false;
+                const shouldSkipReportActionID =
+                    isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
                 return;
             }
