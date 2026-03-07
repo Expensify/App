@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
+import AccessibilityLiveRegion from '@components/AccessibilityLiveRegion';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -12,7 +13,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useStatusMessageAccessibilityAnnouncement from '@components/utils/useStatusMessageAccessibilityAnnouncement';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -24,7 +25,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -37,8 +37,6 @@ import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
-
-const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 
 function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
@@ -1007,33 +1005,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
-    const shouldUsePersistentLiveRegion = getPlatform() === CONST.PLATFORM.WEB;
-    const [liveRegionMessage, setLiveRegionMessage] = useState('');
-    const liveRegionToggleRef = useRef(false);
-
-    useStatusMessageAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults);
-
-    useEffect(() => {
-        if (!shouldUsePersistentLiveRegion) {
-            return;
-        }
-
-        if (!shouldAnnounceNoResults) {
-            const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
-            return () => clearTimeout(clearTimeoutId);
-        }
-
-        const suffix = liveRegionToggleRef.current ? '\u200B' : '';
-        liveRegionToggleRef.current = !liveRegionToggleRef.current;
-
-        const clearTimeoutId = setTimeout(() => setLiveRegionMessage(''), 0);
-        const timeoutId = setTimeout(() => setLiveRegionMessage(`${headerMessage}${suffix}`), DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
-
-        return () => {
-            clearTimeout(clearTimeoutId);
-            clearTimeout(timeoutId);
-        };
-    }, [headerMessage, shouldAnnounceNoResults, shouldUsePersistentLiveRegion]);
+    const {liveRegionMessage, shouldUsePersistentLiveRegion} = useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, true);
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
@@ -1063,14 +1035,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
-            {shouldUsePersistentLiveRegion && (
-                <Text
-                    style={[styles.accessibilityLiveRegionSROnly]}
-                    accessibilityLiveRegion="polite"
-                >
-                    {liveRegionMessage}
-                </Text>
-            )}
+            {shouldUsePersistentLiveRegion && <AccessibilityLiveRegion message={liveRegionMessage} />}
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
