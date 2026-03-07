@@ -7,7 +7,6 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomReportAction from '../../utils/collections/reportActions';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -82,24 +81,13 @@ describe('SearchAutocompleteList', () => {
         });
     });
 
-    it('should not call Parser.htmlToText when parentReportAction is ADD_COMMENT', async () => {
+    it('should not call Parser.htmlToText when lastActionType is ADD_COMMENT', async () => {
         const reportID = '10';
-        const parentReportID = '20';
-        const parentActionID = '100';
-
-        const parentReportAction = {
-            ...createRandomReportAction(Number(parentActionID)),
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        };
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
-                [parentActionID]: parentReportAction,
+                lastActionType: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             });
         });
 
@@ -124,7 +112,7 @@ describe('SearchAutocompleteList', () => {
         expect(mockHtmlToText).not.toHaveBeenCalled();
     });
 
-    it('should call Parser.htmlToText when parentReportAction is not ADD_COMMENT', async () => {
+    it('should call Parser.htmlToText when lastActionType is not ADD_COMMENT', async () => {
         const reportID = '10';
 
         await act(async () => {

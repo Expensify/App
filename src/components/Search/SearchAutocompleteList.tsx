@@ -27,7 +27,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -350,8 +350,8 @@ function SearchAutocompleteList({
             ...option,
             keyForList,
             pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-            alternateText: shouldParseAlternateText ? option.alternateText : StringUtils.lineBreaksToSpaces(option.lastMessageText ?? ''),
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML && shouldParseAlternateText ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            alternateText: shouldParseAlternateText ? option.alternateText : StringUtils.lineBreaksToSpaces(getReportSubtitlePrefix(report) + (option.lastMessageText ?? '')),
             wrapperStyle: [styles.pr3, styles.pl3],
         } as AutocompleteListItem;
     });
