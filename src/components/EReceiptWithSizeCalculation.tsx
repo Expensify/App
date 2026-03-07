@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
+import type {OverrideThemeProps} from './EReceipt';
 import PerDiemEReceipt from './PerDiemEReceipt';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
 
@@ -23,6 +24,9 @@ type EReceiptWithSizeCalculationProps = {
 
     /** Determines which receipt component to render */
     receiptType?: 'default' | 'perDiem';
+
+    /** Overrides theme props set by default by useReceipt */
+    overrideTheme?: OverrideThemeProps;
 };
 
 const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
@@ -61,6 +65,7 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
                         transactionItem={props.transactionItem}
                         onLoad={props.onLoad}
                         isThumbnail
+                        overrideTheme={props.overrideTheme}
                     />
                 )}
             </View>

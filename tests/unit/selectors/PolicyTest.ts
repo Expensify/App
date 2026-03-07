@@ -1,4 +1,4 @@
-import {hasMultipleOutputCurrenciesSelector} from '@selectors/Policy';
+import {activeAdminPoliciesSelector, hasMultipleOutputCurrenciesSelector} from '@selectors/Policy';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -44,5 +44,63 @@ describe('hasMultipleOutputCurrenciesSelector', () => {
         };
 
         expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
+    });
+});
+
+const TEST_LOGIN = 'admin@expensify.com';
+
+function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
+    return {
+        ...createRandomPolicy(id, CONST.POLICY.TYPE.TEAM),
+        pendingAction: undefined,
+        ...overrides,
+    };
+}
+
+describe('activeAdminPoliciesSelector', () => {
+    it('returns only policies where the user is admin', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Admin Policy', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {name: 'User Policy', role: CONST.POLICY.ROLE.USER}),
+        };
+
+        const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Admin Policy');
+    });
+
+    it('excludes personal policies', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Personal Policy', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.PERSONAL}),
+            policy2: buildSelectorPolicy(2, {name: 'Team Policy', role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Team Policy');
+    });
+
+    it('excludes policies with pendingAction DELETE', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'Active Policy', role: CONST.POLICY.ROLE.ADMIN}),
+            policy2: buildSelectorPolicy(2, {name: 'Deleted Policy', role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.name).toBe('Active Policy');
+    });
+
+    it('returns empty array for empty collection', () => {
+        expect(activeAdminPoliciesSelector({}, TEST_LOGIN)).toEqual([]);
+    });
+
+    it('excludes policies where user has no role', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {name: 'No Role Policy', role: undefined}),
+        };
+
+        const result = activeAdminPoliciesSelector(policies, TEST_LOGIN);
+        expect(result).toHaveLength(0);
     });
 });

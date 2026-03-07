@@ -96,11 +96,9 @@ describe('PureReportActionItem', () => {
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                allReports={undefined}
                                 policies={undefined}
                                 personalPolicyID={undefined}
                                 report={undefined}
-                                reportActions={[]}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
@@ -113,6 +111,7 @@ describe('PureReportActionItem', () => {
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 allTransactionDrafts={undefined}
+                                userBillingGraceEndPeriodCollection={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -208,7 +207,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
 
         it('SUBMITTED action with memo', async () => {
@@ -218,7 +217,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {memo}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted', memo))).toBeOnTheScreen();
         });
 
         it('SUBMITTED_AND_CLOSED action', async () => {
@@ -227,7 +226,7 @@ describe('PureReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
         });
     });
 
@@ -239,6 +238,33 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CUSTOM_TAX_NAME action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME, {oldName: 'Sales Tax', newName: 'VAT'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the custom tax name to "VAT" (previously "Sales Tax")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX, {oldName: 'Standard Rate', newName: 'Reduced Rate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX, {oldName: 'Foreign Tax (15%)', newName: 'Foreign Tax (10%)'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")')).toBeOnTheScreen();
         });
     });
 
@@ -275,12 +301,10 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: dewPolicy as Policy}}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -294,6 +318,7 @@ describe('PureReportActionItem', () => {
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -335,12 +360,10 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     personalPolicyID={undefined}
                                     policies={{testPolicy: basicPolicy as Policy}}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -353,6 +376,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -363,7 +387,7 @@ describe('PureReportActionItem', () => {
 
             // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.submitted'))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
         });
     });
@@ -407,11 +431,9 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -424,6 +446,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -473,11 +496,9 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -490,6 +511,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -525,11 +547,9 @@ describe('PureReportActionItem', () => {
                         <ScreenWrapper testID="test">
                             <PortalProvider>
                                 <PureReportActionItem
-                                    allReports={undefined}
                                     policies={undefined}
                                     personalPolicyID={undefined}
                                     report={report}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -543,6 +563,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     allTransactionDrafts={undefined}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
+                                    userBillingGraceEndPeriodCollection={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

@@ -315,12 +315,16 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                     isColumnSortable: false,
                 },
                 {
-                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
-                    translationKey: 'common.bankAccount',
-                },
-                {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     translationKey: 'search.filters.withdrawn',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+                    translationKey: 'common.withdrawalStatus',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    translationKey: 'common.bankAccount',
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,

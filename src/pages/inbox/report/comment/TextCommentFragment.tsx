@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -13,7 +13,6 @@ import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
-import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -57,16 +56,18 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {adjustExpensifyLinksForEnv} = useEnvironment();
+    const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
     const processedTextArray = splitTextWithEmojis(message);
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
-        endSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
-    }, [text]);
+        if (!reportActionID) {
+            return;
+        }
+        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
+    }, [reportActionID]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html

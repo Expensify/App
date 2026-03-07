@@ -1,11 +1,10 @@
 import {format, parseISO} from 'date-fns';
 import React from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCardName} from '@libs/CardUtils';
@@ -54,12 +53,13 @@ function PersonalCardDetailsHeaderMenu({
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan'] as const);
 
     return (
         <>
             {!cardholder?.validated && (
                 <MenuItem
-                    icon={Expensicons.Hourglass}
+                    icon={icons.Hourglass}
                     iconStyles={styles.mln2}
                     description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
                     numberOfLinesDescription={0}
@@ -67,16 +67,6 @@ function PersonalCardDetailsHeaderMenu({
                 />
             )}
 
-            <MenuItem
-                label={translate('workspace.moreFeatures.companyCards.cardholder')}
-                title={displayName}
-                titleStyle={styles.mt1}
-                iconStyles={styles.mt1}
-                icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                description={cardholder?.login ?? ''}
-                interactive={false}
-            />
             <OfflineWithFeedback
                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                 errorRowStyles={[styles.ph5, styles.mb3]}
@@ -173,7 +163,7 @@ function PersonalCardDetailsHeaderMenu({
             )}
             {shouldShowBreakConnection && (
                 <MenuItem
-                    icon={Expensicons.Trashcan}
+                    icon={icons.Trashcan}
                     disabled={isOffline || card?.isLoadingLastUpdated}
                     title="Break connection (Testing)"
                     onPress={onBreakConnection}
@@ -181,7 +171,7 @@ function PersonalCardDetailsHeaderMenu({
             )}
             <MenuItem
                 icon={expensifyIcons.RemoveMembers}
-                title={translate('workspace.moreFeatures.companyCards.unassignCard')}
+                title={translate('workspace.moreFeatures.companyCards.removeCard')}
                 style={styles.mb1}
                 onPress={onUnassignCard}
             />

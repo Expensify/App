@@ -26,7 +26,7 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -122,11 +122,12 @@ function FormProvider({
     ref,
     ...rest
 }: FormProviderProps) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
-    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
+    const formWrapperRef = useRef<FormWrapperRef>(null);
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
@@ -314,11 +315,16 @@ function FormProvider({
         [errors, formID],
     );
 
+    const scrollToEnd = useCallback(() => {
+        formWrapperRef.current?.scrollToEnd();
+    }, []);
+
     useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
         submit,
+        scrollToEnd,
     }));
 
     const registerInput = useCallback<RegisterInput>(
@@ -468,6 +474,7 @@ function FormProvider({
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
+                ref={formWrapperRef}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>

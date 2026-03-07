@@ -28,7 +28,7 @@ type OnyxServerUpdate<TKey extends OnyxKey> = OnyxUpdate<TKey> & {
 };
 
 /** Model of a onyx update event */
-type OnyxUpdateEvent<TKey extends OnyxKey = OnyxKey> = {
+type OnyxUpdateEvent<TKey extends OnyxKey> = {
     /** Type of the update event received from the server */
     eventType: string;
 

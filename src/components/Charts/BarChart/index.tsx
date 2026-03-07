@@ -5,13 +5,14 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BarChartProps} from './BarChartContent';
 
+const getBarChartContent = () => import('./BarChartContent');
 function BarChart(props: BarChartProps) {
     const styles = useThemeStyles();
 
     return (
         <WithSkiaWeb
             opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={() => import('./BarChartContent')}
+            getComponent={getBarChartContent}
             componentProps={props}
             fallback={
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.highlightBG, styles.br4, styles.p5]}>

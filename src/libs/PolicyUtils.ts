@@ -48,7 +48,6 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
-import Log from './Log';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {formatMemberForList} from './OptionsListUtils';
@@ -305,29 +304,46 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
-function getCustomUnitsForDuplication(policy: Policy, isDistanceRatesOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
+function getCustomUnitsForDuplication(
+    policy: Policy,
+    isDistanceRatesOptionSelected: boolean,
+    isPerDiemOptionSelected: boolean,
+    customUnitIDs: {
+        distanceCustomUnitID: string;
+        perDiemCustomUnitID: string;
+    },
+): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
+    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
+
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
     if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        return customUnits;
+        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+
+        if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
+            return undefined;
+        }
+
+        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
     }
 
-    if (isDistanceRatesOptionSelected) {
+    if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
         const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnit.customUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: distanceCustomUnit};
     }
 
     const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-    if (!perDiemUnit) {
+    if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemUnit.customUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: perDiemUnit};
 }
 
 /**
@@ -1016,51 +1032,18 @@ function getManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry
     const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
     const defaultApprover = getDefaultApprover(policy);
-    const approvalWorkflow = getApprovalWorkflow(policy);
 
     // For policy using the optional or basic workflow, the manager is the policy default approver.
-    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(approvalWorkflow)) {
-        const managerAccountID = getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
-        Log.info('[getManagerAccountID] Using default approver for non-advanced workflow', false, {
-            policyID: policy?.id,
-            approvalWorkflow,
-            employeeAccountID,
-            employeeLogin,
-            defaultApprover,
-            policyApprover: policy?.approver,
-            policyOwner: policy?.owner,
-            managerAccountID,
-        });
-        return managerAccountID;
+    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
+        return getAccountIDsByLogins([defaultApprover]).at(0) ?? -1;
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
     if (!employee && !defaultApprover) {
-        Log.info('[getManagerAccountID] No employee found and no default approver', false, {
-            policyID: policy?.id,
-            employeeAccountID,
-            employeeLogin,
-            employeeListKeys: Object.keys(policy?.employeeList ?? {}),
-            hasPolicy: !!policy,
-        });
         return -1;
     }
 
-    const submitsTo = employee?.submitsTo ?? defaultApprover;
-    const managerAccountID = getAccountIDsByLogins([submitsTo]).at(0) ?? -1;
-    Log.info('[getManagerAccountID] Resolved manager for advanced workflow', false, {
-        policyID: policy?.id,
-        employeeAccountID,
-        employeeLogin,
-        employeeFound: !!employee,
-        employeeSubmitsTo: employee?.submitsTo,
-        defaultApprover,
-        policyApprover: policy?.approver,
-        policyOwner: policy?.owner,
-        resolvedSubmitsTo: submitsTo,
-        managerAccountID,
-    });
-    return managerAccountID;
+    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 /**
@@ -1074,26 +1057,9 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
         ruleApprovers.shift();
     }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
-        const ruleApproverAccountID = getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
-        Log.info('[getSubmitToAccountID] Using rule approver', false, {
-            policyID: policy?.id,
-            reportID: expenseReport?.reportID,
-            employeeLogin,
-            ruleApprovers,
-            selectedRuleApprover: ruleApprovers.at(0),
-            ruleApproverAccountID,
-        });
-        return ruleApproverAccountID;
+        return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
 
-    Log.info('[getSubmitToAccountID] No rule approvers, falling through to getManagerAccountID', false, {
-        policyID: policy?.id,
-        reportID: expenseReport?.reportID,
-        employeeLogin,
-        ruleApproversCount: ruleApprovers.length,
-        isSubmitAndClosePolicy: isSubmitAndClose(policy),
-        reportManagerID: expenseReport?.managerID,
-    });
     return getManagerAccountID(policy, expenseReport);
 }
 
@@ -1169,6 +1135,13 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
+ * Checks whether the current user has a policy with admin access
+ */
+function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
+    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+}
+
+/**
  * Given a list of admin policies for the current user, checks whether any of them
  * has a Xero accounting software integration configured.
  */
@@ -1200,10 +1173,10 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
-    if (!policy?.hasMultipleTagLists) {
+    if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).every((tagList) => Object.values(tagList.tags).every((tag) => !tag.rules?.parentTagsFilter && !tag.parentTagsFilter));
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -1608,6 +1581,30 @@ function getValidConnectedIntegration(policy: Policy | undefined, accountingInte
     );
 }
 
+/**
+ * Returns a set of connected integration names for the given policies.
+ * @param policies - Collection of policies to get connected integrations.
+ * @param policyIDs - Policy IDs to filter by. When provided, only integrations from these policies are included.
+ */
+function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy> | undefined, policyIDs?: string[]): Set<string> {
+    if (!policies) {
+        return new Set();
+    }
+
+    const connectedIntegrationNames = new Set<string>();
+    const hasWorkspaceFilter = policyIDs && policyIDs.length > 0;
+    const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
+
+    for (const policy of policiesToCheck) {
+        const connectedIntegration = getValidConnectedIntegration(policy);
+        if (connectedIntegration) {
+            connectedIntegrationNames.add(connectedIntegration);
+        }
+    }
+
+    return connectedIntegrationNames;
+}
+
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
     return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
@@ -1961,6 +1958,10 @@ function isPolicyTaxEnabled(policy: OnyxEntry<Policy>): boolean {
     return (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled;
 }
 
+function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: string) => number): Policy[] {
+    return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1969,6 +1970,7 @@ export {
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
+    getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
@@ -2031,6 +2033,7 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
+    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -2135,6 +2138,7 @@ export {
     getDefaultTimeTrackingRate,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
+    sortPoliciesByName,
 };
 
 export type {MemberEmailsToAccountIDs};
