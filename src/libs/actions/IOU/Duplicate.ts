@@ -383,24 +383,39 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         };
     });
 
-    const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
-    const orderedTransactionIDList = iouActionList
-        .map((action) => {
-            const message = getOriginalMessage(action);
-            return message?.IOUTransactionID;
-        })
-        .filter((id): id is string => !!id);
-
     const optimisticHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureHoldActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const reportActionIDList: string[] = [];
     const optimisticHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureHoldTransactionActions: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    for (const action of iouActionList) {
-        const transactionThreadReportID = action?.childReportID;
+    const allReportActions = getAllReportActionsFromIOU();
+
+    // For each duplicate transaction, find its IOU action and create hold actions
+    // This handles cross-report duplicates by searching across all reports
+    for (const transactionID of params.transactionIDList) {
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            continue;
+        }
+
+        // Find the IOU action for this transaction in its own report
+        const transactionReportID = transaction.reportID;
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`];
+        const iouAction = Object.values(reportActions ?? {}).find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!isMoneyRequestAction(action)) {
+                return false;
+            }
+            const message = getOriginalMessage(action);
+            return message?.IOUTransactionID === transactionID;
+        });
+
+        if (!iouAction) {
+            continue;
+        }
+
+        const transactionThreadReportID = iouAction.childReportID;
         const createdReportAction = buildOptimisticHoldReportAction();
         reportActionIDList.push(createdReportAction.reportActionID);
-        const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
         optimisticHoldTransactionActions.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -470,7 +485,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         ...otherParams,
         transactionID: params.transactionID,
         reportActionIDList,
-        transactionIDList: orderedTransactionIDList,
+        transactionIDList: params.transactionIDList,
         dismissedViolationReportActionID: optimisticReportAction.reportActionID,
     };
 
