@@ -3570,7 +3570,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+            Report.openReport({reportID: REPORT_ID, participants: [], introSelected: TEST_INTRO_SELECTED});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,7 +24,6 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 

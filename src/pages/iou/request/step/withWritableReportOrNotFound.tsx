@@ -84,7 +84,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport({reportID: route.params.reportID, introSelected});
+            openReport({reportID: route.params.reportID, participants: [], introSelected});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
