@@ -31,7 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -147,7 +147,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
     const isMouseInsideRef = useRef(false);
-    const isTouchScreen = canUseTouchScreen();
+    const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
     useEffect(() => {
@@ -494,7 +494,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                 onLoadFailure={() => setIsLoading(false)}
                             />
                             {canShowReceiptActions && (
-                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isTouchScreen && styles.opacity0]}>
+                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && deviceHasHoverSupport && styles.opacity0]}>
                                     <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
                                             <PressableWithoutFeedback
