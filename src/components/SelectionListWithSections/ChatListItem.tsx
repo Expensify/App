@@ -1,5 +1,6 @@
 import React from 'react';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
@@ -21,14 +22,13 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     policies,
-    allReports,
     userWalletTierName,
     isUserValidated,
     personalDetails,
     userBillingFundID,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`];
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -73,7 +73,6 @@ function ChatListItem<TItem extends ListItem>({
             forwardedFSClass={fsClass}
         >
             <ReportActionItem
-                allReports={allReports}
                 action={reportActionItem}
                 report={report}
                 onPress={() => onSelectRow(item)}

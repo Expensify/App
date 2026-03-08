@@ -19,8 +19,8 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const locales = useMemo(() => {
         const sortedLocales = SORTED_LOCALES;

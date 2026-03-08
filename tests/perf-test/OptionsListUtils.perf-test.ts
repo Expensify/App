@@ -1,8 +1,8 @@
 import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
-import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
+import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';

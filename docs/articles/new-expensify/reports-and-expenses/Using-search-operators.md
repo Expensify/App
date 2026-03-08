@@ -58,6 +58,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `tag:` – tag or multiple tags
 - `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
 - `status:` – unreported, draft, outstanding, approved, paid, done
+- `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
 - `reimbursable:` and `billable:` – yes or no
@@ -65,10 +66,6 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `posted:` – credit card posted date, e.g. `posted:last-statement`
 
 ## Available filters for Reports
-
-```
-type:expense-report status:paid exported:never
-```
 
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
@@ -114,11 +111,17 @@ group-by:merchant group-currency:USD
 
 Supported groupings include:
 
-- `group-by:report`
-- `group-by:from`
-- `group-by:card`
-- `group-by:withdrawal-id`
-- `group-by:category` 
+- `group-by:report` - Group by expense report
+- `group-by:from` - Group by expense submitter (employee)
+- `group-by:card` - Group by payment card
+- `group-by:withdrawal-id` - Group by withdrawal ID
+- `group-by:merchant` - Group by merchant or vendor
+- `group-by:category` - Group by expense category
+- `group-by:tag` - Group by expense tag
+- `group-by:month` - Group by calendar month
+- `group-by:week` - Group by calendar week
+- `group-by:quarter` - Group by fiscal quarter
+- `group-by:year` - Group by calendar year
 
 ---
 

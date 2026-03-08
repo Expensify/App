@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -63,21 +63,20 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
 
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const reportAttributesDerived = useReportAttributes();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
@@ -91,34 +90,23 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
               })
             : null;
 
-    // Reset loading state after options are computed
-    useEffect(() => {
-        if (!isLoadingMore || !options) {
-            return;
-        }
-        setIsLoadingMore(false);
-    }, [options, isLoadingMore]);
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {
-        if (!options || isLoadingMore) {
+        if (!hasMore) {
             return;
         }
-
-        const hasMoreToLoad = options.reports.length < totalReports;
-        if (hasMoreToLoad) {
-            setIsLoadingMore(true);
-            setReportsLimit((prev) => prev + batchSize);
-        }
+        setReportsLimit((prev) => prev + batchSize);
     };
-
-    const hasMore = options ? options.reports.length < totalReports : false;
 
     return {
         options,
         isLoading: !options,
         loadMore,
         hasMore,
-        isLoadingMore,
+        // Options are derived synchronously from reportsLimit, so there is no
+        // intermediate "loading" state between calling loadMore and the recomputed options.
+        isLoadingMore: false,
     };
 }
 
