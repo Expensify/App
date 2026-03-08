@@ -118,6 +118,17 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         return;
     }
 
+    // Determine if approvalMode should change based on updated employee state
+    const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
+    const effectiveDefaultApprover = newDefaultApprover ?? previousDefaultApprover ?? '';
+    const hasMultipleWorkflows = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
+    const defaultApproverEmployee = updatedEmployeeList[effectiveDefaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo;
+    const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
+    const previousApprovalMode = policy.approvalMode;
+
+    const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -129,6 +140,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
+                approvalMode: updatedApprovalMode,
                 ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
@@ -140,6 +152,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: previousEmployeeList,
+                approvalMode: previousApprovalMode,
                 pendingFields: {employeeList: null},
                 ...(newDefaultApprover ? {approver: previousDefaultApprover} : {}),
             },
@@ -176,6 +189,10 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const defaultApprover = getDefaultApprover(policy);
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
     const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
+    // The default workflow can still have a forwardsTo chain (multi-level approvers), which also requires advanced mode
+    const defaultApproverEmployee = updatedEmployeeList[defaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo;
+    const shouldKeepAdvancedMode = hasMoreThanOneWorkflow || hasForwardsToChain;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -188,7 +205,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
-                approvalMode: hasMoreThanOneWorkflow ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+                approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
             },
         },
     ];
