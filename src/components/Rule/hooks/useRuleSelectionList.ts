@@ -61,9 +61,26 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
             value: item.value,
         }));
 
-        const shouldReorderInitialSelection = !normalizedSearch && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldShowStaleSelectedItem =
+            !!initiallySelectedItem &&
+            !filteredItems.some((item) => item.value === initiallySelectedItem.value) &&
+            (!normalizedSearch || initiallySelectedItem.name.toLowerCase().includes(normalizedSearch));
 
-        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
+        const itemsForDisplay = shouldShowStaleSelectedItem
+            ? [
+                  {
+                      text: initiallySelectedItem.name,
+                      keyForList: initiallySelectedItem.value,
+                      isSelected: true,
+                      value: initiallySelectedItem.value,
+                  },
+                  ...mappedItems,
+              ]
+            : mappedItems;
+
+        const shouldReorderInitialSelection = !normalizedSearch && initialSelectedValues.length > 0 && itemsForDisplay.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+
+        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(itemsForDisplay, initialSelectedValues) : itemsForDisplay;
 
         const isEmpty = orderedItems.length === 0 && !!normalizedSearch;
 
@@ -77,7 +94,7 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
               ];
 
         return {sections: preparedSections, noResultsFound: isEmpty};
-    }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, initiallySelectedItem?.value]);
+    }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, initiallySelectedItem]);
 
     return {
         sections,
