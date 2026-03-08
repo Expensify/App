@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
@@ -13,11 +13,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Policy, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import ExportedIconCell from './ExportedIconCell';
@@ -30,7 +28,6 @@ import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
-    policy?: Policy;
     reportActions?: ReportAction[];
     showTooltip: boolean;
     canSelectMultiple?: boolean;
@@ -48,7 +45,6 @@ type ExpenseReportListItemRowProps = {
 
 function ExpenseReportListItemRow({
     item,
-    policy,
     reportActions,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
@@ -70,17 +66,7 @@ function ExpenseReportListItemRow({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
-    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
-
-    const isScanning = (() => {
-        if (!item.transactions || item.transactions.length === 0) {
-            return false;
-        }
-
-        const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
-
-        return allScanning;
-    })();
+    const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -295,12 +281,13 @@ function ExpenseReportListItemRow({
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
-                    <ReportActionAvatars
-                        report={item}
-                        reportID={item.reportID}
-                        policy={policy}
+                    <SearchReportAvatar
+                        primaryAvatar={item.primaryAvatar}
+                        secondaryAvatar={item.secondaryAvatar}
+                        avatarType={item.avatarType}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
+                        reportID={item.reportID}
                     />
                 </View>
 

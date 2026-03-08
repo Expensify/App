@@ -150,7 +150,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID, introSelected);
+        openReport({reportID, introSelected});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -289,8 +289,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         transactionID: transaction.transactionID,
                         file,
                         source: imageUriResult,
+                        state: transaction.receipt?.state,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        isSameReceipt: true,
                     });
                 }
                 setIsRotating(false);
@@ -298,7 +300,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories, transaction?.receipt, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -571,18 +573,18 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     ]);
 
     const customAttachmentContent = useMemo(() => {
-        if (!isCropping || !source) {
+        if (!isCropping || (!sourceUri && !source)) {
             return null;
         }
 
         return (
             <ReceiptCropView
-                imageUri={source as string}
+                imageUri={(sourceUri || source) as string}
                 onCropChange={handleCropChange}
-                isAuthTokenRequired={isAuthTokenRequired}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
         );
-    }, [isCropping, source, handleCropChange, isAuthTokenRequired]);
+    }, [isCropping, sourceUri, handleCropChange, isAuthTokenRequired, source]);
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
         () => ({

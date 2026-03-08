@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -36,7 +35,6 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
 
 function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = useMemo(() => {
@@ -62,18 +60,6 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
-    if (isDelegateAccessRestricted) {
-        return (
-            <ScreenWrapper
-                testID="TwoFactorAuthWrapper"
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-            >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
-            </ScreenWrapper>
-        );
-    }
-
     const defaultGoBack = () => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
 
     return (
@@ -83,18 +69,20 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
         >
-            <FullPageNotFoundView
-                shouldShow={shouldShowNotFound}
-                linkTranslationKey="securityPage.goToSecurity"
-                onLinkPress={defaultGoBack}
-            >
-                <HeaderWithBackButton
-                    title={title}
-                    stepCounter={stepCounter}
-                    onBackButtonPress={onBackButtonPress ?? defaultGoBack}
-                />
-                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
-            </FullPageNotFoundView>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <FullPageNotFoundView
+                    shouldShow={shouldShowNotFound}
+                    linkTranslationKey="securityPage.goToSecurity"
+                    onLinkPress={defaultGoBack}
+                >
+                    <HeaderWithBackButton
+                        title={title}
+                        stepCounter={stepCounter}
+                        onBackButtonPress={onBackButtonPress ?? defaultGoBack}
+                    />
+                    <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+                </FullPageNotFoundView>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

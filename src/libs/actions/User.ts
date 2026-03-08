@@ -57,6 +57,7 @@ import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
@@ -79,6 +80,20 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
 });
+
+type DomainOnyxUpdate =
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
+    | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>;
+
+type AccountOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.ACCOUNT>;
+
+type LockAccountOnyxUpdate = DomainOnyxUpdate | AccountOnyxUpdate;
+type LockAccountOnyxKey =
+    | typeof ONYXKEYS.ACCOUNT
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`
+    | `${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`;
 
 /**
  * Attempt to close the user's account
@@ -1031,45 +1046,18 @@ function joinScreenShare(accessToken: string, roomName: string) {
 }
 
 /**
- * Downloads the statement PDF for the provided period
+ * Downloads the statement PDF for the provided period.
+ *
  * @param period YYYYMM format
  */
 function generateStatementPDF(period: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: true,
-            },
-        },
-    ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: false,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_STATEMENT,
-            value: {
-                isGenerating: false,
-            },
-        },
-    ];
-
     const parameters: GetStatementPDFParams = {period};
 
-    API.read(READ_COMMANDS.GET_STATEMENT_PDF, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    // makeRequestWithSideEffects is used here because this function is only ever used to prepare another network request to download the prepared statement, and there's no optimistic data to show in the UI.
+    // There's a loading spinner that stays visible not only until the statement is generated, but also until the statement is downloaded.
+    // Therefore, it doesn't make sense to rely on the UI layer and unnecessary re-renders to trigger the subsequent network request.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF, parameters);
 }
 
 /**
@@ -1389,46 +1377,142 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
-function lockAccount() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                lockAccount: {
-                    errors: null,
+function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
+    let domainOptimisticData: DomainOnyxUpdate[] = [];
+    let domainFailureData: DomainOnyxUpdate[] = [];
+    let domainSuccessData: DomainOnyxUpdate[] = [];
+    if (accountID && domainAccountID) {
+        const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
+
+        domainOptimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    [userLockKey]: true,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, boolean>,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
                 },
             },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                lockAccount: {
-                    errors: null,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            lockAccountErrors: null,
+                        },
+                    },
                 },
             },
-        },
-    ];
+        ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+        domainFailureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {
+                    [userLockKey]: false,
+                } as PrefixedRecord<typeof CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX, boolean>,
             },
-        },
-    ];
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: null,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                value: {
+                    memberErrors: {
+                        [accountID]: {
+                            lockAccountErrors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccount'),
+                        },
+                    },
+                },
+            },
+        ];
+
+        domainSuccessData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                value: {
+                    member: {
+                        [accountID]: {
+                            lockAccount: null,
+                        },
+                    },
+                },
+            },
+        ];
+    }
+
+    let currentUserOptimisticData: AccountOnyxUpdate[] = [];
+    let currentUserFailureData: AccountOnyxUpdate[] = [];
+    let currentUserSuccessData: AccountOnyxUpdate[] = [];
+    if (!accountID || accountID === currentUserAccountID) {
+        currentUserOptimisticData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: true,
+                    lockAccount: {
+                        errors: null,
+                    },
+                },
+            },
+        ];
+        currentUserFailureData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+                },
+            },
+        ];
+        currentUserSuccessData = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    lockAccount: {
+                        errors: null,
+                    },
+                },
+            },
+        ];
+    }
+
+    const optimisticData: LockAccountOnyxUpdate[] = [...domainOptimisticData, ...currentUserOptimisticData];
+
+    const successData: LockAccountOnyxUpdate[] = [...domainSuccessData, ...currentUserSuccessData];
+
+    const failureData: LockAccountOnyxUpdate[] = [...domainFailureData, ...currentUserFailureData];
 
     const params: LockAccountParams = {
-        accountID: currentUserAccountID,
+        accountID: accountID ?? currentUserAccountID,
+        domainAccountID,
+        domainName,
     };
 
     // We need to know if this command fails so that we can navigate the user to a failure page.
@@ -1436,9 +1520,9 @@ function lockAccount() {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function requestUnlockAccount() {
+function requestUnlockAccount(accountID?: number) {
     const params: LockAccountParams = {
-        accountID: currentUserAccountID,
+        accountID: accountID ?? currentUserAccountID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
@@ -1834,3 +1918,5 @@ export {
     clearDraftMerchantRule,
     openTroubleshootSettingsPage,
 };
+
+export {type LockAccountOnyxKey};
