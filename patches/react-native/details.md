@@ -221,6 +221,6 @@
 ### [react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch](react-native+0.81.4+029+log-soft-exception-if-viewState-not-found.patch)
 
 - Reason: This patch prevents app crashes by soft-logging the exception when JS try to send events to native views even if they are removed from view hierarchy. The approach follows existing patterns in the same file where similar events are already handled this way and is based on suggestions from other developers in upstream discussions.
-- Upstream PR/issue: There is currently no official PR in the upstream library, but the issue is being discussed in several upstream GH issues.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
 - E/App issue: [#82611](https://github.com/Expensify/App/issues/82611)
 - PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303)
