@@ -7439,7 +7439,7 @@ ${reportName}
             title: '个人 Karma',
             description: '您每月每消费 500 美元，就向 Expensify.org 捐赠 1 美元',
             addPaymentCardPrompt: '请添加支付卡以启用个人 Karma 捐赠。',
-            stopDonationsPrompt: '你确定吗？你每月的 Karma 捐赠会带来巨大影响。',
+            stopDonationsPrompt: '您确定吗？您每月的 Karma 捐赠会带来巨大影响。',
         },
         getInTouch: '太好了！请分享他们的联系方式，以便我们与他们取得联系。',
         introSchoolPrincipal: '向你们学校校长的介绍',

@@ -36,9 +36,9 @@ function SaveTheWorldPage() {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
-    const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS, {canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [isDisablePersonalKarmaModalVisible, setIsDisablePersonalKarmaModalVisible] = useState(false);
     const [isAddPaymentCardModalVisible, setIsAddPaymentCardModalVisible] = useState(false);
     const shouldRevertPersonalKarmaOnAddCardModalHideRef = useRef(false);

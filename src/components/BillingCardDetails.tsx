@@ -32,7 +32,7 @@ function BillingCardDetails({card, rightComponent, wrapperStyle}: BillingCardDet
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1], [card?.accountData?.cardMonth]);
 
-    if (isEmptyObject(card?.accountData)) {
+    if (!card?.accountData || isEmptyObject(card?.accountData)) {
         return null;
     }
 
