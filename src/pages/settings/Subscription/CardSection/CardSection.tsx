@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import BillingCardDetails from '@components/BillingCardDetails';
 import ConfirmModal from '@components/ConfirmModal';
-import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
@@ -13,12 +13,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
-import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {hasCardAuthenticatedError, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner} from '@libs/SubscriptionUtils';
 import {verifySetupIntent} from '@userActions/PaymentMethods';
@@ -44,8 +41,7 @@ function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
@@ -62,7 +58,6 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
     const hasFailedLastBilling = useMemo(
         () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
@@ -204,26 +199,10 @@ function CardSection() {
             >
                 <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                     {!isEmptyObject(defaultCard?.accountData) && (
-                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <Icon
-                                src={expensifyIcons.CreditCard}
-                                additionalStyles={styles.subscriptionAddedCardIcon}
-                                fill={theme.icon}
-                                medium
-                            />
-                            <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
-                                <Text style={styles.mutedNormalTextLabel}>
-                                    {translate(
-                                        'subscription.cardSection.cardInfo',
-                                        defaultCard?.accountData?.addressName ?? '',
-                                        `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        defaultCard?.accountData?.currency ?? '',
-                                    )}
-                                </Text>
-                            </View>
-                            <CardSectionActions />
-                        </View>
+                        <BillingCardDetails
+                            card={defaultCard}
+                            rightComponent={<CardSectionActions />}
+                        />
                     )}
                 </View>
 
