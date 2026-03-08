@@ -1,7 +1,13 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {
+    CancelBillingSubscriptionParams,
+    UpdatePersonalKarmaParams,
+    UpdateSubscriptionAddNewUsersAutomaticallyParams,
+    UpdateSubscriptionAutoRenewParams,
+    UpdateSubscriptionTypeParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -171,6 +177,33 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY, parameters, {
         optimisticData,
         successData,
+        failureData,
+    });
+}
+
+function updatePersonalKarma(enabled: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: enabled,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: !enabled,
+        },
+    ];
+
+    const parameters: UpdatePersonalKarmaParams = {
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_KARMA, parameters, {
+        optimisticData,
         failureData,
     });
 }
@@ -356,6 +389,7 @@ export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,
+    updatePersonalKarma,
     updateSubscriptionSize,
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
