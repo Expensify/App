@@ -313,7 +313,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const quickActionSubtitle = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportName({report: quickActionReport, policy: quickActionPolicy, personalDetails}) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
 
@@ -529,7 +529,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    description: getReportName(policyChatForActivePolicy),
+                    description: getReportName({report: policyChatForActivePolicy}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,

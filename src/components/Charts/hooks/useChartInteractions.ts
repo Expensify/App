@@ -49,33 +49,8 @@ type CartesianActionsHandle = {
 };
 
 /**
- * Hook to manage complex chart interactions including hover gestures (web),
- * tap gestures (mobile/web), hit-testing, and animated tooltip positioning.
- *
- * It synchronizes high-frequency interaction data from the UI thread to React state
- * for metadata display (like tooltips) and navigation.
- *
- * @param props - Configuration including press handlers and hit-test logic.
- * @returns An object containing refs, gestures, and state for the chart component.
- *
- * @example
- * ```tsx
- * const { actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle } = useChartInteractions({
- * handlePress: (index) => console.log("Pressed index:", index),
- * checkIsOver: ({ cursorX, targetX, barWidth }) => {
- * 'worklet';
- * return Math.abs(cursorX - targetX) < barWidth / 2;
- * },
- * barGeometry: myBarSharedValue,
- * });
- *
- * return (
- * <View>
- * <CartesianChart customGestures={customGestures} actionsRef={actionsRef} ... />
- * {isTooltipActive && <Animated.View style={tooltipStyle}><Tooltip index={activeDataIndex} /></Animated.View>}
- * </View>
- * );
- * ```
+ * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
+ * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
 function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
@@ -225,5 +200,5 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
     };
 }
 
-export {useChartInteractions};
+export {useChartInteractions, TOOLTIP_BAR_GAP};
 export type {HitTestArgs};

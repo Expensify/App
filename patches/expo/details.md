@@ -1,6 +1,6 @@
 # `expo` patches
 
-### [expo+54.0.10+001+fix-missing-blob-variable-error.patch](expo+54.0.10+001+fix-missing-blob-variable-error.patch)
+### [expo+54.0.22+001+fix-missing-blob-variable-error.patch](expo+54.0.22+001+fix-missing-blob-variable-error.patch)
 
 - Reason:
 

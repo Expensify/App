@@ -115,10 +115,7 @@ function SingleSelectPopup<T extends string>({label, value, items, sections, clo
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
-            const newItem = allSelectableItems.find((i) => i.value === item.keyForList);
-            if (!newItem) {
-                return;
-            }
+            const newItem = allSelectableItems.find((i) => i.value === item.keyForList) ?? null;
             setSelectedItem(newItem);
         },
         [allSelectableItems],
@@ -149,7 +146,7 @@ function SingleSelectPopup<T extends string>({label, value, items, sections, clo
         1,
         sectionedOptions
             ? sectionedOptions.reduce((count, section) => {
-                  const hasHeader = section.data.length > 0 && (section.title ?? section.customHeader);
+                  const hasHeader = section.data.length > 0 && (!!section.title || !!section.customHeader);
                   return count + section.data.length + (hasHeader ? 1 : 0);
               }, 0)
             : options.length,
@@ -169,7 +166,7 @@ function SingleSelectPopup<T extends string>({label, value, items, sections, clo
                         textInputOptions={textInputOptions}
                         shouldUpdateFocusedIndex={isSearchable}
                         initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                        showLoadingPlaceholder={!noResultsFound}
+                        shouldShowLoadingPlaceholder={!noResultsFound}
                     />
                 ) : (
                     <SelectionList
@@ -180,7 +177,7 @@ function SingleSelectPopup<T extends string>({label, value, items, sections, clo
                         textInputOptions={textInputOptions}
                         shouldUpdateFocusedIndex={isSearchable}
                         initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
-                        showLoadingPlaceholder={!noResultsFound}
+                        shouldShowLoadingPlaceholder={!noResultsFound}
                     />
                 )}
             </View>

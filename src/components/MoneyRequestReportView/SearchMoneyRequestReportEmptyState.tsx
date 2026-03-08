@@ -1,10 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,7 +23,8 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
@@ -36,7 +34,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             text: translate('iou.createExpense'),
-            icon: Expensicons.Plus,
+            icon: expensifyIcons.Plus,
             onSelected: () => {
                 if (!reportId) {
                     return;
@@ -85,13 +83,11 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         <View style={styles.flex1}>
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
+                cardContentStyles={[styles.pb0]}
+                headerMedia={illustrations.FolderWithPapersAndWatch}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport

@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -17,7 +18,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -26,6 +27,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Report to which the transaction belongs */
     report: Report;
+
+    /** Policy to which the transaction belongs */
+    policy: OnyxEntry<Policy>;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -59,11 +63,15 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Callback function that navigates to the transaction thread */
     onArrowRightPress?: (transactionID: string) => void;
+
+    /** Whether this transaction should be highlighted as newly added */
+    shouldBeHighlighted: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
     transaction,
     report,
+    policy,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -75,6 +83,7 @@ function MoneyRequestReportTransactionItem({
     taxAmountColumnSize,
     scrollToNewTransaction,
     onArrowRightPress,
+    shouldBeHighlighted,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -91,17 +100,17 @@ function MoneyRequestReportTransactionItem({
 
     // This useEffect scrolls to this transaction when it is newly added to the report
     useEffect(() => {
-        if (!transaction.shouldBeHighlighted || !scrollToNewTransaction) {
+        if (!shouldBeHighlighted || !scrollToNewTransaction) {
             return;
         }
         viewRef?.current?.measure((x, y, width, height, pageX, pageY) => {
             scrollToNewTransaction?.(pageY);
         });
-    }, [scrollToNewTransaction, transaction.shouldBeHighlighted]);
+    }, [scrollToNewTransaction, shouldBeHighlighted]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
-        shouldHighlight: transaction.shouldBeHighlighted ?? false,
+        shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
@@ -135,6 +144,7 @@ function MoneyRequestReportTransactionItem({
                         transactionItem={transaction}
                         violations={filteredViolations}
                         report={report}
+                        policy={policy}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
