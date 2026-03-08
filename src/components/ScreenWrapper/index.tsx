@@ -35,6 +35,9 @@ import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIn
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 
+const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
+const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
+
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
@@ -138,7 +141,9 @@ function ScreenWrapper({
     // This context allows us to disable the safe area padding offsetting the offline indicator in scrollable components like 'ScrollView', 'SelectionList' or 'FormProvider'.
     // This is useful e.g. for the RightModalNavigator, where we want to avoid the safe area padding offsetting the offline indicator because we only show the offline indicator on small screens.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const shouldMoveAccessibilityFocus = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout && isInNarrowPane;
+    const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
+    const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
+    const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
     const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
@@ -184,8 +189,6 @@ function ScreenWrapper({
     });
 
     useEffect(() => {
-        const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
-
         if (!shouldMoveAccessibilityFocus || !didScreenTransitionEnd || !isFocused) {
             return;
         }
@@ -204,7 +207,7 @@ function ScreenWrapper({
             return;
         }
 
-        const focusTargets = element.querySelectorAll<HTMLElement>('button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])');
+        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR);
         for (const focusTarget of focusTargets) {
             const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled')?.toLowerCase() === 'true';
             if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
@@ -320,6 +323,7 @@ function ScreenWrapper({
                 includePaddingTop={includePaddingTop}
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
+                shouldHideFromAccessibility={shouldHideFromAccessibility}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
