@@ -532,6 +532,7 @@ type PerDiemExpenseInformation = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
 };
 
@@ -549,6 +550,7 @@ type PerDiemExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type RequestMoneyInformation = {
@@ -609,7 +611,7 @@ type MoneyRequestInformationParams = {
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1376,10 +1378,7 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-            isFromFloatingActionButton,
-            ...(requestType && {iouRequestType: requestType}),
-        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -3823,6 +3822,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -4052,6 +4052,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserEmailParam,
         hasViolations,
         quickAction,
+        personalDetails,
     });
 
     return {
@@ -6886,6 +6887,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         policyRecentlyUsedCurrencies,
         betas,
         customUnitPolicyID,
+        personalDetails,
         shouldHandleNavigation = true,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
@@ -6934,6 +6936,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;

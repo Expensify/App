@@ -38,9 +38,11 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     /**
      * Delete transactions by IDs
@@ -132,12 +134,17 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     return initSplitExpenseItemData(childTransaction, transactionReport);
                 });
 
+                const reportID = report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+                const parentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+                const expenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE ? report : parentTransactionReport;
+                const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+
                 updateSplitTransactions({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
-                        reportID: report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        reportID,
                         originalTransactionID: transactionID,
                         splitExpenses: remainingSplitExpenses,
                     },
@@ -156,6 +163,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     quickAction,
                     iouReportNextStep,
                     betas,
+                    policyTags,
+                    personalDetails,
                 });
             }
 
@@ -207,6 +216,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             reportActions,
             transactionViolations,
             betas,
+            allPolicyTags,
+            personalDetails,
         ],
     );
 
