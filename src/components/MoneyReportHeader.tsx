@@ -451,12 +451,12 @@ function MoneyReportHeader({
             return false;
         }
 
-        const transaction = transactions.at(0);
-        if (!transaction) {
+        const transactionToMove = transactions.at(0);
+        if (!transactionToMove) {
             return false;
         }
 
-        const iouReportAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        const iouReportAction = getIOUActionForTransactionID(reportActions, transactionToMove.transactionID);
         const canMoveExpense = canEditFieldOfMoneyRequest(iouReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID);
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
@@ -1617,14 +1617,13 @@ function MoneyReportHeader({
                 if (!moneyRequestReport || transactions.length !== 1) {
                     return;
                 }
-                const transaction = transactions.at(0);
-                if (!transaction?.transactionID) {
+                const transactionToMove = transactions.at(0);
+                if (!transactionToMove?.transactionID) {
                     return;
                 }
                 const iouType = isExpenseReport(moneyRequestReport) ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.REQUEST;
-                setSelectedTransactions([transaction.transactionID]);
-                const route = ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, moneyRequestReport.reportID, true, Navigation.getActiveRoute());
-                Navigation.navigate(route);
+                setSelectedTransactions([transactionToMove.transactionID]);
+                Navigation.navigate(ROUTES.MONEY_REQUEST_EDIT_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, moneyRequestReport.reportID, true, Navigation.getActiveRoute()));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER]: {
