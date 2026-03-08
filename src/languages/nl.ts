@@ -8180,6 +8180,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             title: 'Expensify-code',
             discountCode: 'Kortingscode',
             enterCode: 'Voer een Expensify-code in om toe te passen op je abonnement.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) => `Je ontvangt ${promoDiscount}% korting op je volgende ${validBillingCycles} factureringskosten.`,
             apply: 'Toepassen',
             error: {
                 invalid: 'Deze code is ongeldig',

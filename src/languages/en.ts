@@ -8179,6 +8179,7 @@ const translations = {
             title: 'Expensify code',
             discountCode: 'Discount code',
             enterCode: 'Enter an Expensify code to apply to your subscription.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) => `You will get a ${promoDiscount}% discount on your next ${validBillingCycles} billing charges.`,
             apply: 'Apply',
             error: {
                 invalid: 'This code is invalid',

@@ -8172,6 +8172,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             title: 'Código Expensify',
             discountCode: 'Código de desconto',
             enterCode: 'Insira um código Expensify para aplicar à sua assinatura.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) =>
+                `Você receberá ${promoDiscount}% de desconto nas próximas ${validBillingCycles} cobranças de faturamento.`,
             apply: 'Aplicar',
             error: {
                 invalid: 'Este código é inválido',

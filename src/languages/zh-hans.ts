@@ -7980,6 +7980,7 @@ ${reportName}
             title: 'Expensify代码',
             discountCode: '折扣代码',
             enterCode: '输入Expensify代码以应用于您的订阅。',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) => `在接下来的 ${validBillingCycles} 次账单中，你将获得 ${promoDiscount}% 的折扣。`,
             apply: '应用',
             error: {
                 invalid: '此代码无效',

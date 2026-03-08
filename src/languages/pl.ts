@@ -8168,6 +8168,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Kod Expensify',
             discountCode: 'Kod rabatowy',
             enterCode: 'Wprowadź kod Expensify, aby zastosować go do swojej subskrypcji.',
+            discountMessage: (promoDiscount: string, validBillingCycles: string) => `Otrzymasz ${promoDiscount}% zniżki na kolejne ${validBillingCycles} opłaty rozliczeniowe.`,
             apply: 'Zastosuj',
             error: {
                 invalid: 'Ten kod jest nieprawidłowy',
