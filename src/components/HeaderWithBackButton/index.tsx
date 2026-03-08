@@ -25,6 +25,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import getProgressBarA11yProps from './getProgressBarA11yProps';
 import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
@@ -104,6 +105,8 @@ function HeaderWithBackButton({
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
+            const progressBarA11yProps = getProgressBarA11yProps(progressBarLabel);
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -113,8 +116,8 @@ function HeaderWithBackButton({
                     <View style={styles.headerProgressBarContainer}>
                         <View
                             style={styles.headerProgressBar}
-                            accessible={!!stepCounter}
-                            accessibilityLabel={stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined}
+                            accessible={progressBarA11yProps.accessible}
+                            accessibilityLabel={progressBarA11yProps.accessibilityLabel}
                         >
                             <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
                         </View>
