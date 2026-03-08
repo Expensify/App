@@ -8,6 +8,8 @@ import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getAllTaxRatesNamesAndValues,
     getCustomUnitsForDuplication,
     getDefaultTimeTrackingRate,
@@ -1970,6 +1972,91 @@ describe('PolicyUtils', () => {
         it('should return undefined when the rate is not defined on the policy', () => {
             const policy = createRandomPolicy(1);
             expect(getDefaultTimeTrackingRate(policy)).toBeUndefined();
+        });
+    });
+
+    describe('per diem policy filters', () => {
+        const perDiemCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            customUnitID: 'ABCDEF',
+            enabled: true,
+            rates: {
+                London: {
+                    customUnitRateID: 'London',
+                    name: 'London',
+                },
+            },
+        };
+
+        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                collect: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporateWithRates: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                corporateWithoutRates: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: {
+                            ...perDiemCustomUnit,
+                            rates: {},
+                        },
+                    },
+                },
+                collectWithRates: {
+                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
         });
     });
 
