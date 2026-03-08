@@ -101,7 +101,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName({report: reportForTitle}) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
