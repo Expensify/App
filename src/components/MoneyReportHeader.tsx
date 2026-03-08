@@ -2193,9 +2193,7 @@ function MoneyReportHeader({
                     fullAmount={fullAmount}
                     onClose={() => {
                         setIsHoldMenuVisible(false);
-                        if (isSelectionModePaymentRef.current) {
-                            clearSelectedTransactions(true);
-                        }
+                        isSelectionModePaymentRef.current = false;
                     }}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}
@@ -2203,6 +2201,10 @@ function MoneyReportHeader({
                     moneyRequestReport={moneyRequestReport}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
                     startAnimation={() => {
+                        if (isSelectionModePaymentRef.current) {
+                            clearSelectedTransactions(true);
+                            return;
+                        }
                         if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                             startApprovedAnimation();
                         } else {
