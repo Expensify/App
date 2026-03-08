@@ -1,5 +1,5 @@
-import React from 'react';
 import {act, renderHook} from '@testing-library/react-native';
+import React from 'react';
 import type {PropsWithChildren} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import {
@@ -18,9 +18,9 @@ import type {CustomStatusBarAndBackgroundActionsContextType, CustomStatusBarAndB
 import {DragAndDropActionsContext, DragAndDropStateContext, useDragAndDropActions, useDragAndDropState} from '@components/DragAndDrop/Provider/DragAndDropContext';
 import type {DragAndDropActionsContextType, DragAndDropStateContextType} from '@components/DragAndDrop/Provider/types';
 import MultifactorAuthenticationStateProvider, {
+    DEFAULT_STATE,
     useMultifactorAuthenticationActions,
     useMultifactorAuthenticationState,
-    DEFAULT_STATE,
 } from '@components/MultifactorAuthentication/Context/State';
 
 /**

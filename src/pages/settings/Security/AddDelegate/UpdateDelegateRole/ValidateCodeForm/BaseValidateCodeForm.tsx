@@ -60,7 +60,7 @@ function BaseValidateCodeForm({autoComplete = CONST.AUTO_COMPLETE_VARIANTS.ONE_T
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const login = account?.primaryLogin;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);

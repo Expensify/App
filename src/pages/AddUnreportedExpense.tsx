@@ -3,13 +3,13 @@ import type {OnyxCollection} from 'react-native-onyx';
 import AddUnreportedExpenseFooter from '@components/AddUnreportedExpenseFooter';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -40,20 +40,21 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {reportID, backToReport} = route.params;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`, {canBeMissing: true});
-    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`);
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const policy = usePolicy(report?.policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
-    const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
-    const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS);
+    const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
@@ -106,7 +107,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: getUnreportedTransactions,
-            canBeMissing: true,
         },
         [getUnreportedTransactions],
     );
@@ -219,6 +219,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         [errorMessage],
     );
 
+    const onSelectAll = () => {
+        setSelectedIds((prevSelectedIDs) => {
+            const availableUnreportedExpenses = unreportedExpenses.filter(({isDisabled}) => !isDisabled);
+            if (availableUnreportedExpenses.some(({transactionID}) => prevSelectedIDs.has(transactionID))) {
+                return new Set();
+            }
+            if (errorMessage) {
+                setErrorMessage('');
+            }
+            return new Set(availableUnreportedExpenses.map(({transactionID}) => transactionID));
+        });
+    };
+
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
 
@@ -256,14 +269,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 />
                 <EmptyStateComponent
                     cardStyles={[styles.appBG]}
-                    cardContentStyles={[styles.pt5, styles.pb0]}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                    headerMedia={LottieAnimations.GenericEmptyState}
+                    cardContentStyles={[styles.pb0]}
+                    headerMedia={illustrations.FolderWithPapersAndWatch}
                     title={translate('iou.emptyStateUnreportedExpenseTitle')}
                     subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
                     headerStyles={[styles.emptyStateMoneyRequestReport]}
-                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                    headerContentStyles={styles.emptyStateFolderWebStyles}
+                    headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                     buttons={[
                         {
                             buttonText: translate('iou.createExpense'),
@@ -302,6 +313,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 data={unreportedExpenses}
                 ref={selectionListRef}
                 onSelectRow={onSelectRow}
+                onSelectAll={onSelectAll}
+                style={{listHeaderWrapperStyle: styles.ph8}}
                 textInputOptions={textInputOptions}
                 shouldShowTextInput={shouldShowTextInput}
                 canSelectMultiple

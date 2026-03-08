@@ -24,7 +24,7 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const domainAccountID = route.params.domainAccountID;
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: true});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
 
     if (isLoadingOnyxValue(isAdminResults)) {
         return <FullScreenLoadingIndicator />;

@@ -86,7 +86,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
-- [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`)
     - [ ] I verified that comments were added to code that is not self explanatory
