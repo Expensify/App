@@ -11,7 +11,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {translate} from '@libs/Localize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
+import type {OptionList, ReportAndPersonalDetailOptions, SearchOption} from '@libs/OptionsListUtils';
 import {
     canCreateOptimisticPersonalDetailOption,
     createFilteredOptionList,
@@ -985,7 +985,7 @@ describe('OptionsListUtils', () => {
         it('should sort options alphabetically and preserves reportID for personal details with existing reports', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions()
-            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions(
+            let results: ReportAndPersonalDetailOptions = getValidOptions(
                 {
                     reports: OPTIONS.reports,
                     personalDetails: OPTIONS.personalDetails,
@@ -1027,7 +1027,7 @@ describe('OptionsListUtils', () => {
 
         it('should sort personal details options alphabetically when only personal details are provided', () => {
             // Given a set of personalDetails and an empty reports array
-            let results: Pick<Options, 'personalDetails' | 'recentReports'> = getValidOptions(
+            let results: ReportAndPersonalDetailOptions = getValidOptions(
                 {personalDetails: OPTIONS.personalDetails, reports: []},
                 allPolicies,
                 {},

@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getEmptyOptions, getSearchOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
@@ -82,14 +82,6 @@ type SearchAutocompleteListProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
-};
-
-const defaultListOptions = {
-    userToInvite: null,
-    recentReports: [],
-    personalDetails: [],
-    currentUserOption: null,
-    categoryOptions: [],
 };
 
 const setPerformanceTimersEnd = () => {
@@ -199,7 +191,7 @@ function SearchAutocompleteList({
 
     const searchOptions = (() => {
         if (!areOptionsInitialized) {
-            return defaultListOptions;
+            return getEmptyOptions();
         }
         return getSearchOptions({
             options,

@@ -2621,7 +2621,13 @@ function getValidOptions(
     let userToInvite: SearchOptionData | null = null;
     if (includeUserToInvite) {
         userToInvite = filterUserToInvite(
-            {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
+            {
+                currentUserOption: currentUserRef.current,
+                recentReports: recentReportOptions,
+                personalDetails: personalDetailsOptions,
+                workspaceChats,
+                selfDMChat: selfDMChat ?? null,
+            },
             searchString ?? '',
             loginList,
             currentUserEmail,
@@ -2642,7 +2648,7 @@ function getValidOptions(
         currentUserOption: currentUserRef.current,
         userToInvite,
         workspaceChats,
-        selfDMChat,
+        selfDMChat: selfDMChat ?? null,
     };
 }
 
@@ -3184,6 +3190,8 @@ function filterOptions(
             recentReports,
             personalDetails,
             currentUserOption,
+            workspaceChats: options.workspaceChats,
+            selfDMChat: options.selfDMChat ?? null,
         },
         searchValue,
         loginList,
@@ -3206,7 +3214,7 @@ function filterOptions(
         userToInvite,
         currentUserOption,
         workspaceChats,
-        selfDMChat,
+        selfDMChat: selfDMChat ?? null,
     };
 }
 
@@ -3227,7 +3235,7 @@ function combineOrderingOfReportsAndPersonalDetails(
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
         const reportsAndPersonalDetails = options.recentReports.concat(personalDetailsWithoutDMs);
-        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
+        return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: [], workspaceChats: options.workspaceChats}, searchInputValue, orderReportOptionsConfig);
     }
 
     let orderedReports = orderReportOptionsWithSearch(options.recentReports, searchInputValue, orderReportOptionsConfig);
@@ -3241,6 +3249,7 @@ function combineOrderingOfReportsAndPersonalDetails(
     return {
         recentReports: orderedReports,
         personalDetails: orderedPersonalDetails,
+        workspaceChats: options.workspaceChats,
     };
 }
 

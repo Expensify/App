@@ -17,20 +17,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getEmptyOptions, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-const defaultListOptions = {
-    userToInvite: null,
-    recentReports: [],
-    personalDetails: [],
-    currentUserOption: null,
-    categoryOptions: [],
-};
 
 type ShareTabRef = {
     focus?: () => void;
@@ -88,7 +80,7 @@ function ShareTab({ref}: ShareTabProps) {
               policyCollection: allPolicies,
               personalDetails,
           })
-        : defaultListOptions;
+        : getEmptyOptions();
 
     let recentReportsOptions: OptionData[];
     if (textInputValue.trim() === '') {

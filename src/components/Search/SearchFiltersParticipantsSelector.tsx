@@ -10,7 +10,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
-import {filterAndOrderOptions, formatSectionsFromSearchTerm, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatSectionsFromSearchTerm, getEmptyOptions, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -21,14 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 import {getOptionSelectionKey, getSelectedOptionData, resolveInitialSelectedOptions} from './SearchFiltersParticipantsSelectorUtils';
-
-const defaultListOptions = {
-    userToInvite: null,
-    recentReports: [],
-    personalDetails: [],
-    currentUserOption: null,
-    headerMessage: '',
-};
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'SearchFiltersParticipantsSelector.getValidOptions'});
 
@@ -71,7 +63,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return defaultListOptions;
+            return getEmptyOptions();
         }
 
         return memoizedGetValidOptions(
@@ -152,8 +144,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             return defaultOptions;
         }
 
-        const isInitiallySelected = (option?: {accountID?: number; login?: string; reportID?: string; keyForList?: string | number | null; text?: string}) =>
-            !!option && initialSelectedKeySet.has(getOptionSelectionKey(option));
+        const isInitiallySelected = (option?: Partial<OptionData> | null) => !!option && initialSelectedKeySet.has(getOptionSelectionKey(option));
 
         return {
             ...defaultOptions,

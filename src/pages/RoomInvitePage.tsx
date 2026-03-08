@@ -31,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {filterAndOrderOptions, formatMemberForList, getEmptyOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -105,7 +105,7 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
+            return getEmptyOptions();
         }
 
         return getMemberInviteOptions(

@@ -1,4 +1,5 @@
 import {buildMemberInviteSections} from '@hooks/useMemberInviteSections';
+import {getEmptyOptions} from '@libs/OptionsListUtils';
 import type {Options} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 
@@ -22,10 +23,9 @@ function createOption(key: string, overrides: Partial<OptionData> = {}): OptionD
 
 function createSearchOptions(personalDetails: OptionData[], userToInvite: OptionData | null = null): Options {
     return {
+        ...getEmptyOptions(),
         personalDetails,
         userToInvite,
-        recentReports: [],
-        currentUserOption: null,
     };
 }
 

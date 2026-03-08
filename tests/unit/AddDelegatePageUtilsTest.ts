@@ -1,3 +1,4 @@
+import {getEmptyOptions} from '@libs/OptionsListUtils';
 import type {Options} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -35,10 +36,9 @@ describe('AddDelegatePageUtils', () => {
             }),
         );
         const searchOptions: Options = {
+            ...getEmptyOptions(),
             personalDetails: [selectedOption, contactOption, ...extraContactOptions],
             recentReports: [selectedOption, recentOption, ...extraRecentOptions],
-            userToInvite: null,
-            currentUserOption: null,
         };
 
         const sections = buildAddDelegateSections({
@@ -62,10 +62,7 @@ describe('AddDelegatePageUtils', () => {
     it('shows an invite-only email in the top section when it exists only in initial selection', () => {
         const inviteOnlyOption = buildOption({login: 'invite@test.com', keyForList: 'invite@test.com', text: 'invite@test.com'});
         const searchOptions: Options = {
-            personalDetails: [],
-            recentReports: [],
-            userToInvite: null,
-            currentUserOption: null,
+            ...getEmptyOptions(),
         };
 
         const sections = buildAddDelegateSections({
@@ -84,10 +81,8 @@ describe('AddDelegatePageUtils', () => {
     it('hides the top selected section while searching and keeps the matching selected row inline', () => {
         const selectedOption = buildOption({login: 'selected@test.com', keyForList: '1', text: 'Selected', accountID: 1, isSelected: true});
         const searchOptions: Options = {
+            ...getEmptyOptions(),
             personalDetails: [selectedOption],
-            recentReports: [],
-            userToInvite: null,
-            currentUserOption: null,
         };
 
         const sections = buildAddDelegateSections({
@@ -117,10 +112,8 @@ describe('AddDelegatePageUtils', () => {
         );
         recentOptions[0] = selectedOption;
         const searchOptions: Options = {
-            personalDetails: [],
+            ...getEmptyOptions(),
             recentReports: recentOptions,
-            userToInvite: null,
-            currentUserOption: null,
         };
 
         const sections = buildAddDelegateSections({

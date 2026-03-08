@@ -1,5 +1,7 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useContactImport from '@hooks/useContactImport';
@@ -11,11 +13,15 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
+import type {ContactState, UseSearchSelectorReturn} from '@hooks/useSearchSelector.base';
 import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+import {getEmptyOptions} from '@libs/OptionsListUtils';
+import type {Options, SearchOptionData} from '@libs/OptionsListUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 jest.mock('@components/Button', () => jest.fn(() => null));
 jest.mock('@components/ContactPermissionModal', () => jest.fn(() => null));
@@ -77,7 +83,7 @@ jest.mock('react-native-permissions', () => ({
 type MockedUseOnyx = jest.MockedFunction<typeof useOnyx>;
 type MockedUseSearchSelector = jest.MockedFunction<typeof useSearchSelector>;
 
-function buildOption(login: string, accountID: number, overrides: Record<string, unknown> = {}) {
+function buildOption(login: string, accountID: number, overrides: Partial<SearchOptionData> = {}): SearchOptionData {
     return {
         login,
         text: login,
@@ -89,11 +95,64 @@ function buildOption(login: string, accountID: number, overrides: Record<string,
         selected: false,
         icons: [],
         ...overrides,
-    };
+    } as SearchOptionData;
 }
 
 function getSectionByTitle(sections: Array<{title?: string; data: unknown[]}>, title: string) {
     return sections.find((section) => section.title === title);
+}
+
+function buildOnyxResult<T>(value: T): UseOnyxResult<T> {
+    return [value, jest.fn()] as unknown as UseOnyxResult<T>;
+}
+
+function buildLazyIconMap<const TName extends readonly string[]>(names: TName): Record<TName[number], IconAsset> {
+    return Object.fromEntries(names.map((name) => [name, 1 as IconAsset])) as Record<TName[number], IconAsset>;
+}
+
+function buildContactState(): ContactState {
+    return {
+        permissionStatus: RESULTS.GRANTED,
+        contactOptions: [],
+        showImportUI: false,
+        importContacts: jest.fn(),
+        initiateContactImportAndSetState: jest.fn(),
+        setContactPermissionState: jest.fn(),
+    };
+}
+
+function buildOptions(overrides: Partial<Options> = {}): Options {
+    return {
+        ...getEmptyOptions(),
+        ...overrides,
+    };
+}
+
+function buildSearchSelectorReturn(
+    config: Parameters<typeof useSearchSelector>[0],
+    overrides: Omit<Partial<UseSearchSelectorReturn>, 'searchOptions' | 'availableOptions' | 'contactState'> & {
+        searchOptions?: Partial<Options>;
+        availableOptions?: Partial<Options>;
+        contactState?: ContactState;
+    } = {},
+): UseSearchSelectorReturn {
+    const {searchOptions, availableOptions, contactState, ...rest} = overrides;
+
+    return {
+        searchTerm: '',
+        debouncedSearchTerm: '',
+        setSearchTerm: jest.fn(),
+        searchOptions: buildOptions(searchOptions),
+        availableOptions: buildOptions(availableOptions),
+        selectedOptions: config.initialSelected ?? [],
+        selectedOptionsForDisplay: config.initialSelected ?? [],
+        setSelectedOptions: jest.fn(),
+        toggleSelection: jest.fn(),
+        areOptionsInitialized: true,
+        contactState: contactState ?? buildContactState(),
+        onListEndReached: jest.fn(),
+        ...rest,
+    };
 }
 
 describe('MoneyRequestParticipantsSelector', () => {
@@ -126,13 +185,13 @@ describe('MoneyRequestParticipantsSelector', () => {
             email: 'current@test.com',
             login: 'current@test.com',
         } as ReturnType<typeof useCurrentUserPersonalDetails>);
-        jest.mocked(useMemoizedLazyExpensifyIcons).mockReturnValue({UserPlus: 'user-plus'} as ReturnType<typeof useMemoizedLazyExpensifyIcons>);
+        jest.mocked(useMemoizedLazyExpensifyIcons).mockImplementation((names) => buildLazyIconMap(names));
         jest.mocked(useContactImport).mockReturnValue({
-            contactPermissionState: undefined,
+            contactPermissionState: RESULTS.GRANTED,
             contacts: [],
             setContactPermissionState: jest.fn(),
             importAndSaveContacts: jest.fn(),
-        } as ReturnType<typeof useContactImport>);
+        });
         jest.mocked(useDismissedReferralBanners).mockReturnValue({isDismissed: true} as ReturnType<typeof useDismissedReferralBanners>);
         jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
@@ -146,34 +205,29 @@ describe('MoneyRequestParticipantsSelector', () => {
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.NVP_ACTIVE_POLICY_ID:
-                    return ['policyID', jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult('policyID');
                 case ONYXKEYS.COLLECTION.POLICY:
-                    return [{[`${ONYXKEYS.COLLECTION.POLICY}policyID`]: {id: 'policyID'}}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({[`${ONYXKEYS.COLLECTION.POLICY}policyID`]: {id: 'policyID'}});
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.LOGIN_LIST:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 case ONYXKEYS.NVP_TRY_NEW_DOT:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 case ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorReturn(config, {
                 searchOptions: {
-                    workspaceChats: [],
-                    selfDMChat: null,
                     recentReports: [
                         buildOption('selected@test.com', 1, {
                             text: 'Selected User',
@@ -186,30 +240,11 @@ describe('MoneyRequestParticipantsSelector', () => {
                         }),
                     ],
                     personalDetails: [buildOption('other@test.com', 2)],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
                 availableOptions: {
-                    workspaceChats: [],
-                    selfDMChat: null,
-                    recentReports: [],
                     personalDetails: [buildOption('other@test.com', 2)],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: {
-                    showImportUI: false,
-                    importContacts: jest.fn(),
-                    initiateContactImportAndSetState: jest.fn(),
-                    setContactPermissionState: jest.fn(),
-                },
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
     });
 
@@ -281,35 +316,9 @@ describe('MoneyRequestParticipantsSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
-                searchOptions: {
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
-                },
-                availableOptions: {
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
-                },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
+            return buildSearchSelectorReturn(config, {
                 areOptionsInitialized: false,
-                contactState: {
-                    showImportUI: false,
-                    importContacts: jest.fn(),
-                    initiateContactImportAndSetState: jest.fn(),
-                    setContactPermissionState: jest.fn(),
-                },
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         expect(() =>
@@ -347,39 +356,14 @@ describe('MoneyRequestParticipantsSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorReturn(config, {
                 searchOptions: {
-                    workspaceChats: [],
-                    selfDMChat: null,
-                    recentReports: [],
                     personalDetails: [buildOption('other@test.com', 2)],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
                 availableOptions: {
-                    workspaceChats: [],
-                    selfDMChat: null,
-                    recentReports: [],
                     personalDetails: [buildOption('other@test.com', 2)],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: {
-                    showImportUI: false,
-                    importContacts: jest.fn(),
-                    initiateContactImportAndSetState: jest.fn(),
-                    setContactPermissionState: jest.fn(),
-                },
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         render(
@@ -417,10 +401,7 @@ describe('MoneyRequestParticipantsSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorReturn(config, {
                 searchOptions: {
                     workspaceChats: [
                         buildOption('', 0, {
@@ -433,11 +414,6 @@ describe('MoneyRequestParticipantsSelector', () => {
                             selected: true,
                         }),
                     ],
-                    selfDMChat: null,
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
                 availableOptions: {
                     workspaceChats: [
@@ -458,25 +434,8 @@ describe('MoneyRequestParticipantsSelector', () => {
                             keyForList: 'workspace-2',
                         }),
                     ],
-                    selfDMChat: null,
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: {
-                    showImportUI: false,
-                    importContacts: jest.fn(),
-                    initiateContactImportAndSetState: jest.fn(),
-                    setContactPermissionState: jest.fn(),
-                },
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         render(
@@ -512,12 +471,8 @@ describe('MoneyRequestParticipantsSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorReturn(config, {
                 searchOptions: {
-                    workspaceChats: [],
                     selfDMChat: buildOption('selected@test.com', 1, {
                         text: 'Selected User',
                         displayName: 'Selected User',
@@ -528,13 +483,8 @@ describe('MoneyRequestParticipantsSelector', () => {
                         isSelected: true,
                         selected: true,
                     }),
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
                 availableOptions: {
-                    workspaceChats: [],
                     selfDMChat: buildOption('selected@test.com', 1, {
                         text: 'Selected User',
                         displayName: 'Selected User',
@@ -545,24 +495,8 @@ describe('MoneyRequestParticipantsSelector', () => {
                         isSelected: true,
                         selected: true,
                     }),
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: {
-                    showImportUI: false,
-                    importContacts: jest.fn(),
-                    initiateContactImportAndSetState: jest.fn(),
-                    setContactPermissionState: jest.fn(),
-                },
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         render(

@@ -11,7 +11,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
+import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getEmptyOptions, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
 import type {OptionData} from '@libs/ReportUtils';
@@ -21,14 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
-
-const defaultListOptions = {
-    recentReports: [],
-    personalDetails: [],
-    userToInvite: null,
-    currentUserOption: null,
-    headerMessage: '',
-};
 
 function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): OptionData {
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
@@ -79,7 +71,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const defaultOptions =
         !areOptionsInitialized || !isScreenTransitionEnd
-            ? defaultListOptions
+            ? getEmptyOptions()
             : getSearchOptions({
                   options,
                   draftComments,

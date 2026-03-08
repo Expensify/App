@@ -78,7 +78,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            getEmptyOptions();
+            return getEmptyOptions();
         }
 
         const optionList = memoizedGetValidOptions(
@@ -126,13 +126,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {
-                userToInvite: null,
-                recentReports: [],
-                personalDetails: [],
-                currentUserOption: null,
-                headerMessage: '',
-            };
+            return getEmptyOptions();
         }
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,

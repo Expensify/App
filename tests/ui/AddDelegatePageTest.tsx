@@ -1,10 +1,14 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
+import type {UseSearchSelectorReturn} from '@hooks/useSearchSelector.base';
 import Navigation from '@libs/Navigation/Navigation';
+import {getEmptyOptions} from '@libs/OptionsListUtils';
+import type {Options, SearchOptionData} from '@libs/OptionsListUtils';
 import {getUrlWithParams} from '@libs/Url';
 import {AddDelegatePage} from '@pages/settings/Security/AddDelegate/AddDelegatePage';
 import CONST from '@src/CONST';
@@ -48,6 +52,57 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 type MockedUseSearchSelector = jest.MockedFunction<typeof useSearchSelector>;
 type MockedUseOnyx = jest.MockedFunction<typeof useOnyx>;
 
+function buildOnyxResult<T>(value: T): UseOnyxResult<T> {
+    return [value, jest.fn()] as unknown as UseOnyxResult<T>;
+}
+
+function buildOption(login: string, text: string, keyForList: string, accountID: number, isSelected = false): SearchOptionData {
+    return {
+        login,
+        text,
+        alternateText: login,
+        displayName: text,
+        keyForList,
+        accountID,
+        reportID: '',
+        isSelected,
+        selected: isSelected,
+        icons: [],
+    };
+}
+
+function buildOptions(overrides: Partial<Options> = {}): Options {
+    return {
+        ...getEmptyOptions(),
+        ...overrides,
+    };
+}
+
+function buildSearchSelectorReturn(
+    config: Parameters<typeof useSearchSelector>[0],
+    overrides: Omit<Partial<UseSearchSelectorReturn>, 'searchOptions' | 'availableOptions'> & {
+        searchOptions?: Partial<Options>;
+        availableOptions?: Partial<Options>;
+    } = {},
+): UseSearchSelectorReturn {
+    const {searchOptions, availableOptions, ...rest} = overrides;
+
+    return {
+        searchTerm: '',
+        debouncedSearchTerm: '',
+        setSearchTerm: jest.fn(),
+        searchOptions: buildOptions(searchOptions),
+        availableOptions: buildOptions(availableOptions),
+        selectedOptions: config.initialSelected ?? [],
+        selectedOptionsForDisplay: config.initialSelected ?? [],
+        setSelectedOptions: jest.fn(),
+        toggleSelection: (option) => config.onSingleSelect?.(option),
+        areOptionsInitialized: true,
+        onListEndReached: jest.fn(),
+        ...rest,
+    };
+}
+
 describe('AddDelegatePage', () => {
     const mockedSelectionListWithSections = jest.mocked(SelectionListWithSections);
     const mockedUseSearchSelector = useSearchSelector as MockedUseSearchSelector;
@@ -59,117 +114,44 @@ describe('AddDelegatePage', () => {
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.ACCOUNT:
-                    return [{delegatedAccess: {delegates: []}}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({delegatedAccess: {delegates: []}});
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.PERSONAL_DETAILS_LIST:
-                    return [
-                        {
-                            selectedDelegate: {
-                                accountID: 1,
-                                login: 'selected@test.com',
-                                displayName: 'Selected User',
-                                avatar: 'avatar-url',
-                            },
+                    return buildOnyxResult({
+                        selectedDelegate: {
+                            accountID: 1,
+                            login: 'selected@test.com',
+                            displayName: 'Selected User',
+                            avatar: 'avatar-url',
                         },
-                        jest.fn(),
-                    ] as ReturnType<typeof useOnyx>;
+                    });
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
         mockedUseSearchSelector.mockImplementation((config) =>
-            ({
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            buildSearchSelectorReturn(config, {
                 searchOptions: {
                     recentReports: [
-                        {
-                            login: 'selected@test.com',
-                            text: 'Selected User',
-                            keyForList: 'selected',
-                            accountID: 1,
-                            isSelected: true,
-                        },
-                        {
-                            login: 'recent@test.com',
-                            text: 'Recent User',
-                            keyForList: 'recent',
-                            accountID: 2,
-                        },
-                        {
-                            login: 'recent2@test.com',
-                            text: 'Recent User 2',
-                            keyForList: 'recent2',
-                            accountID: 4,
-                        },
-                        {
-                            login: 'recent3@test.com',
-                            text: 'Recent User 3',
-                            keyForList: 'recent3',
-                            accountID: 5,
-                        },
-                        {
-                            login: 'recent4@test.com',
-                            text: 'Recent User 4',
-                            keyForList: 'recent4',
-                            accountID: 6,
-                        },
+                        buildOption('selected@test.com', 'Selected User', 'selected', 1, true),
+                        buildOption('recent@test.com', 'Recent User', 'recent', 2),
+                        buildOption('recent2@test.com', 'Recent User 2', 'recent2', 4),
+                        buildOption('recent3@test.com', 'Recent User 3', 'recent3', 5),
+                        buildOption('recent4@test.com', 'Recent User 4', 'recent4', 6),
                     ],
                     personalDetails: [
-                        {
-                            login: 'selected@test.com',
-                            text: 'Selected User',
-                            keyForList: 'selected-contact',
-                            accountID: 1,
-                            isSelected: true,
-                        },
-                        {
-                            login: 'contact@test.com',
-                            text: 'Contact User',
-                            keyForList: 'contact',
-                            accountID: 3,
-                        },
-                        {
-                            login: 'contact2@test.com',
-                            text: 'Contact User 2',
-                            keyForList: 'contact2',
-                            accountID: 7,
-                        },
-                        {
-                            login: 'contact3@test.com',
-                            text: 'Contact User 3',
-                            keyForList: 'contact3',
-                            accountID: 8,
-                        },
-                        {
-                            login: 'contact4@test.com',
-                            text: 'Contact User 4',
-                            keyForList: 'contact4',
-                            accountID: 9,
-                        },
+                        buildOption('selected@test.com', 'Selected User', 'selected-contact', 1, true),
+                        buildOption('contact@test.com', 'Contact User', 'contact', 3),
+                        buildOption('contact2@test.com', 'Contact User 2', 'contact2', 7),
+                        buildOption('contact3@test.com', 'Contact User 3', 'contact3', 8),
+                        buildOption('contact4@test.com', 'Contact User 4', 'contact4', 9),
                     ],
-                    userToInvite: null,
-                    currentUserOption: null,
                 },
-                availableOptions: {
-                    recentReports: [],
-                    personalDetails: [],
-                    userToInvite: null,
-                    currentUserOption: null,
-                },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: (option) => config.onSingleSelect?.(option),
-                areOptionsInitialized: true,
-                contactState: undefined,
-                onListEndReached: jest.fn(),
-            }) as ReturnType<typeof useSearchSelector>,
+            }),
         );
     });
 
