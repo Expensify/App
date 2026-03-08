@@ -70,13 +70,14 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             if (optionCollection.has(searchText)) {
                 continue;
             }
-
-            const decodedCategoryName = getDecodedCategoryName(optionName);
+            const leafName = getDecodedCategoryName(optionName.trim());
+            const decodedCategoryName = getDecodedCategoryName(option.name);
+            const tooltipText = isChild ? decodedCategoryName : getDecodedCategoryName(searchText);
             optionCollection.set(searchText, {
-                text: `${indents}${decodedCategoryName}`,
+                text: `${indents}${leafName}`,
                 keyForList: searchText,
                 searchText,
-                tooltipText: decodedCategoryName,
+                tooltipText,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
