@@ -1,19 +1,29 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import BillingCardDetails from '@components/BillingCardDetails';
+import ConfirmModal from '@components/ConfirmModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
+import {doesUserHavePaymentCardAdded, getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updatePersonalKarma} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
@@ -24,8 +34,28 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
+    const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [isDisablePersonalKarmaModalVisible, setIsDisablePersonalKarmaModalVisible] = useState(false);
+    const [isAddPaymentCardModalVisible, setIsAddPaymentCardModalVisible] = useState(false);
+    const shouldRevertPersonalKarmaOnAddCardModalHideRef = useRef(false);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
+    const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
+    const personalKarmaDescription = translate('teachersUnitePage.personalKarma.description');
+    const personalKarmaAddPaymentCardPrompt = translate('teachersUnitePage.personalKarma.addPaymentCardPrompt');
+    const personalKarmaStopDonationsPrompt = translate('teachersUnitePage.personalKarma.stopDonationsPrompt');
+    const billingCard = useMemo(() => {
+        const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
+        if (userBillingCard?.accountData) {
+            return userBillingCard;
+        }
+
+        return getCardForSubscriptionBilling(fundList);
+    }, [fundList, userBillingFundID, userBillingFundID]);
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -50,6 +80,47 @@ function SaveTheWorldPage() {
             sentryLabel: item.sentryLabel,
         }));
     }, [translate, waitForNavigate, styles]);
+
+    const handleDisablePersonalKarma = () => {
+        setIsDisablePersonalKarmaModalVisible(false);
+        updatePersonalKarma(false);
+    };
+
+    const openAddPaymentCardPage = () => {
+        shouldRevertPersonalKarmaOnAddCardModalHideRef.current = false;
+        setIsAddPaymentCardModalVisible(false);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+    };
+
+    const closeAddPaymentCardModal = () => {
+        setIsAddPaymentCardModalVisible(false);
+    };
+
+    const handleAddPaymentCardModalHide = () => {
+        if (!shouldRevertPersonalKarmaOnAddCardModalHideRef.current) {
+            return;
+        }
+        shouldRevertPersonalKarmaOnAddCardModalHideRef.current = false;
+        updatePersonalKarma(false);
+    };
+
+    const handlePersonalKarmaToggle = () => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        if (personalOffsetsEnabled) {
+            setIsDisablePersonalKarmaModalVisible(true);
+            return;
+        }
+
+        updatePersonalKarma(true);
+        if (!billingCard) {
+            shouldRevertPersonalKarmaOnAddCardModalHideRef.current = true;
+            setIsAddPaymentCardModalVisible(true);
+            return;
+        }
+    };
 
     return (
         <ScreenWrapper
@@ -85,8 +156,60 @@ function SaveTheWorldPage() {
                             shouldUseSingleExecution
                         />
                     </Section>
+                    <Section
+                        title={personalKarmaTitle}
+                        subtitleMuted
+                        renderSubtitle={() => (
+                            <SectionSubtitleHTML
+                                html={`${personalKarmaDescription} <a href="${CONST.PERSONAL_AND_CORPORATE_KARMA_HELP_URL}">${translate('common.learnMore')}</a>.`}
+                                subtitleMuted
+                            />
+                        )}
+                        isCentralPane
+                        titleStyles={styles.accountSettingsSectionTitle}
+                    >
+                        <ToggleSettingOptionRow
+                            title={personalKarmaTitle}
+                            switchAccessibilityLabel={personalKarmaTitle}
+                            onToggle={handlePersonalKarmaToggle}
+                            isActive={personalOffsetsEnabled}
+                            wrapperStyle={styles.mt5}
+                        />
+                        {personalOffsetsEnabled && (
+                            <View style={styles.mt4}>
+                                {billingCard?.accountData ? (
+                                    <BillingCardDetails
+                                        card={billingCard}
+                                        wrapperStyle={styles.mt2}
+                                    />
+                                ) : !billingCard ? (
+                                    <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('subscription.cardSection.cardNotFound')}</Text>
+                                ) : null}
+                            </View>
+                        )}
+                    </Section>
                 </View>
             </ScrollView>
+            <ConfirmModal
+                title={personalKarmaTitle}
+                isVisible={isAddPaymentCardModalVisible}
+                onConfirm={openAddPaymentCardPage}
+                onCancel={closeAddPaymentCardModal}
+                onModalHide={handleAddPaymentCardModalHide}
+                prompt={personalKarmaAddPaymentCardPrompt}
+                confirmText={translate('subscription.cardSection.addCardButton')}
+                cancelText={translate('common.cancel')}
+            />
+            <ConfirmModal
+                title={personalKarmaTitle}
+                isVisible={isDisablePersonalKarmaModalVisible}
+                onConfirm={handleDisablePersonalKarma}
+                onCancel={() => setIsDisablePersonalKarmaModalVisible(false)}
+                prompt={personalKarmaStopDonationsPrompt}
+                confirmText={translate('common.disable')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
         </ScreenWrapper>
     );
 }
