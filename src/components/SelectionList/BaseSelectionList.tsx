@@ -484,7 +484,6 @@ function BaseSelectionList<TItem extends ListItem>({
     useSelectedItemFocusSync({
         data,
         initiallyFocusedItemKey,
-        isItemSelected,
         focusedIndex,
         searchValue: textInputOptions?.value,
         setFocusedIndex,

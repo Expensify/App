@@ -241,7 +241,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     useSelectedItemFocusSync({
         data: flattenedData,
         initiallyFocusedItemKey,
-        isItemSelected,
         focusedIndex,
         searchValue: textInputOptions?.value,
         setFocusedIndex,
