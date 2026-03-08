@@ -1,18 +1,24 @@
 import {resolveInitialSelectedAccountOptions, resolveInitialSelectedOptions} from '@components/Search/SearchFiltersParticipantsSelectorUtils';
 import CONST from '@src/CONST';
 
+function buildSearchOption(accountID: number, login: string, text: string, keyForList: string) {
+    return {
+        reportID: '',
+        accountID,
+        login,
+        text,
+        displayName: text,
+        alternateText: login,
+        keyForList,
+        icons: [],
+    };
+}
+
 describe('SearchFiltersParticipantsSelectorUtils', () => {
     it('resolves account-based initial selections against live option rows with stable keys', () => {
         const result = resolveInitialSelectedOptions({
             initialAccountIDs: ['1'],
-            currentUserOption: {
-                accountID: 1,
-                login: 'current@test.com',
-                text: 'Current User',
-                alternateText: 'current@test.com',
-                keyForList: 'current-user',
-                icons: [{source: 'avatar-url', name: 'Current User', type: 'avatar'}],
-            },
+            currentUserOption: buildSearchOption(1, 'current@test.com', 'Current User', 'current-user'),
             recentReports: [],
             personalDetailsOptions: [],
             userToInvite: null,
@@ -37,6 +43,7 @@ describe('SearchFiltersParticipantsSelectorUtils', () => {
                 login: 'current@test.com',
                 text: 'Current User',
                 keyForList: 'current-user',
+                reportID: '',
                 isSelected: true,
                 selected: true,
             }),
@@ -69,6 +76,7 @@ describe('SearchFiltersParticipantsSelectorUtils', () => {
                 displayName: 'Name Only',
                 isSelected: true,
                 selected: true,
+                reportID: '',
                 accountID: CONST.DEFAULT_NUMBER_ID,
                 icons: [expect.objectContaining({source: 'avatar-url'})],
             }),
@@ -90,6 +98,7 @@ describe('SearchFiltersParticipantsSelectorUtils', () => {
                 text: '999',
                 accountID: 999,
                 keyForList: '999',
+                reportID: '',
                 isSelected: true,
                 selected: true,
             }),

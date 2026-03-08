@@ -11,9 +11,8 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {filterAndOrderOptions, formatSectionsFromSearchTerm, getEmptyOptions, getFilteredRecentAttendees, getValidOptions} from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
+import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
-import type {OptionData} from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -46,7 +45,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const [interactiveSelectedOptions, setInteractiveSelectedOptions] = useState<OptionData[]>([]);
+    const [interactiveSelectedOptions, setInteractiveSelectedOptions] = useState<SearchOptionData[]>([]);
     const [interactionSignature, setInteractionSignature] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -144,7 +143,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
             return defaultOptions;
         }
 
-        const isInitiallySelected = (option?: Partial<OptionData> | null) => !!option && initialSelectedKeySet.has(getOptionSelectionKey(option));
+        const isInitiallySelected = (option?: Partial<SearchOptionData> | null) => !!option && initialSelectedKeySet.has(getOptionSelectionKey(option));
 
         return {
             ...defaultOptions,
@@ -321,7 +320,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
         (option: Option) => {
             const baseSelectedOptions = interactionSignature === initialSelectionSignature ? interactiveSelectedOptions : initialSelectedOptions;
             const selectedOptionKey = getOptionSelectionKey(option);
-            const foundOptionIndex = baseSelectedOptions.findIndex((selectedOption: Option) => getOptionSelectionKey(selectedOption) === selectedOptionKey);
+            const foundOptionIndex = baseSelectedOptions.findIndex((selectedOption) => getOptionSelectionKey(selectedOption) === selectedOptionKey);
 
             if (foundOptionIndex < 0) {
                 setInteractionSignature(initialSelectionSignature);

@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersParticipantsSelector';
@@ -8,8 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import {getValidOptions} from '@libs/OptionsListUtils';
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -57,13 +57,42 @@ jest.mock('@libs/OptionsListUtils', () => {
     };
 });
 
+type Options = OptionsListUtils.Options;
+type SearchOptionData = OptionsListUtils.SearchOptionData;
+
+function buildOnyxResult<T>(value: T): UseOnyxResult<T> {
+    return [value, jest.fn()] as unknown as UseOnyxResult<T>;
+}
+
+function buildSearchOption(accountID: number, login: string, text: string, keyForList: string, avatar: string, isSelected = false): SearchOptionData {
+    return {
+        reportID: '',
+        accountID,
+        login,
+        text,
+        displayName: text,
+        alternateText: login,
+        keyForList,
+        icons: [{source: avatar, name: text, type: CONST.ICON_TYPE_AVATAR}],
+        isSelected,
+        selected: isSelected,
+    };
+}
+
+function buildOptions(overrides: Partial<Options> = {}): Options {
+    return {
+        ...OptionsListUtils.getEmptyOptions(),
+        ...overrides,
+    };
+}
+
 describe('SearchFiltersParticipantsSelector', () => {
     const mockedSelectionList = jest.mocked(SelectionListWithSections);
     const mockedUseOptionsList = jest.mocked(useOptionsList);
     const mockedUsePersonalDetails = jest.mocked(usePersonalDetails);
     const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
     const mockedUseOnyx = jest.mocked(useOnyx);
-    const mockedGetValidOptions = jest.mocked(getValidOptions);
+    const mockedGetValidOptions = jest.mocked(OptionsListUtils.getValidOptions);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -166,122 +195,47 @@ describe('SearchFiltersParticipantsSelector', () => {
                 reports: [],
                 personalDetails: [],
             },
+            initializeOptions: jest.fn(),
+            resetOptions: jest.fn(),
         } as ReturnType<typeof useOptionsList>);
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.LOGIN_LIST:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 case ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT:
                 case ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING:
                 case ONYXKEYS.COLLECTION.POLICY:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
                 case ONYXKEYS.NVP_RECENT_ATTENDEES:
-                    return [[], jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult([]);
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
-        mockedGetValidOptions.mockReturnValue({
-            currentUserOption: {
-                accountID: 1,
-                login: 'current@test.com',
-                text: 'Current User',
-                alternateText: 'current@test.com',
-                keyForList: 'current-user',
-                icons: [{source: 'avatar-url', name: 'Current User', type: CONST.ICON_TYPE_AVATAR}],
-            },
-            recentReports: [
-                {
-                    accountID: 1,
-                    login: 'current@test.com',
-                    text: 'Current User',
-                    alternateText: 'current@test.com',
-                    keyForList: 'recent-current',
-                    icons: [{source: 'avatar-url', name: 'Current User', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 2,
-                    login: 'recent@test.com',
-                    text: 'Recent User',
-                    alternateText: 'recent@test.com',
-                    keyForList: 'recent-2',
-                    icons: [{source: 'recent-avatar', name: 'Recent User', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 4,
-                    login: 'recent2@test.com',
-                    text: 'Recent User 2',
-                    alternateText: 'recent2@test.com',
-                    keyForList: 'recent-4',
-                    icons: [{source: 'recent2-avatar', name: 'Recent User 2', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 5,
-                    login: 'recent3@test.com',
-                    text: 'Recent User 3',
-                    alternateText: 'recent3@test.com',
-                    keyForList: 'recent-5',
-                    icons: [{source: 'recent3-avatar', name: 'Recent User 3', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 6,
-                    login: 'recent4@test.com',
-                    text: 'Recent User 4',
-                    alternateText: 'recent4@test.com',
-                    keyForList: 'recent-6',
-                    icons: [{source: 'recent4-avatar', name: 'Recent User 4', type: CONST.ICON_TYPE_AVATAR}],
-                },
-            ],
-            personalDetails: [
-                {
-                    accountID: 1,
-                    login: 'current@test.com',
-                    text: 'Current User',
-                    alternateText: 'current@test.com',
-                    keyForList: 'contact-current',
-                    icons: [{source: 'avatar-url', name: 'Current User', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 3,
-                    login: 'contact@test.com',
-                    text: 'Contact User',
-                    alternateText: 'contact@test.com',
-                    keyForList: 'contact-3',
-                    icons: [{source: 'contact-avatar', name: 'Contact User', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 7,
-                    login: 'contact2@test.com',
-                    text: 'Contact User 2',
-                    alternateText: 'contact2@test.com',
-                    keyForList: 'contact-7',
-                    icons: [{source: 'contact2-avatar', name: 'Contact User 2', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 8,
-                    login: 'contact3@test.com',
-                    text: 'Contact User 3',
-                    alternateText: 'contact3@test.com',
-                    keyForList: 'contact-8',
-                    icons: [{source: 'contact3-avatar', name: 'Contact User 3', type: CONST.ICON_TYPE_AVATAR}],
-                },
-                {
-                    accountID: 9,
-                    login: 'contact4@test.com',
-                    text: 'Contact User 4',
-                    alternateText: 'contact4@test.com',
-                    keyForList: 'contact-9',
-                    icons: [{source: 'contact4-avatar', name: 'Contact User 4', type: CONST.ICON_TYPE_AVATAR}],
-                },
-            ],
-            userToInvite: null,
-            headerMessage: '',
-        });
+        mockedGetValidOptions.mockReturnValue(
+            buildOptions({
+                currentUserOption: buildSearchOption(1, 'current@test.com', 'Current User', 'current-user', 'avatar-url'),
+                recentReports: [
+                    buildSearchOption(1, 'current@test.com', 'Current User', 'recent-current', 'avatar-url'),
+                    buildSearchOption(2, 'recent@test.com', 'Recent User', 'recent-2', 'recent-avatar'),
+                    buildSearchOption(4, 'recent2@test.com', 'Recent User 2', 'recent-4', 'recent2-avatar'),
+                    buildSearchOption(5, 'recent3@test.com', 'Recent User 3', 'recent-5', 'recent3-avatar'),
+                    buildSearchOption(6, 'recent4@test.com', 'Recent User 4', 'recent-6', 'recent4-avatar'),
+                ],
+                personalDetails: [
+                    buildSearchOption(1, 'current@test.com', 'Current User', 'contact-current', 'avatar-url'),
+                    buildSearchOption(3, 'contact@test.com', 'Contact User', 'contact-3', 'contact-avatar'),
+                    buildSearchOption(7, 'contact2@test.com', 'Contact User 2', 'contact-7', 'contact2-avatar'),
+                    buildSearchOption(8, 'contact3@test.com', 'Contact User 3', 'contact-8', 'contact3-avatar'),
+                    buildSearchOption(9, 'contact4@test.com', 'Contact User 4', 'contact-9', 'contact4-avatar'),
+                ],
+            }),
+        );
     });
 
     it('reopens with a visible selected section, removes duplicates from lower sections, and disables scroll-to-top on select', () => {
@@ -347,6 +301,9 @@ describe('SearchFiltersParticipantsSelector', () => {
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
         const currentUserRow = initialProps?.sections.at(0)?.data.at(0);
+        if (!currentUserRow) {
+            throw new Error('Expected current user row to exist');
+        }
 
         expect(currentUserRow).toEqual(
             expect.objectContaining({
@@ -372,7 +329,11 @@ describe('SearchFiltersParticipantsSelector', () => {
         );
 
         act(() => {
-            selectedProps?.onSelectRow(selectedProps?.sections.at(0)?.data.at(0));
+            const selectedCurrentUserRow = selectedProps?.sections.at(0)?.data.at(0);
+            if (!selectedCurrentUserRow) {
+                throw new Error('Expected selected current user row to exist');
+            }
+            selectedProps?.onSelectRow(selectedCurrentUserRow);
         });
 
         const deselectedProps = mockedSelectionList.mock.lastCall?.[0];
@@ -398,6 +359,7 @@ describe('SearchFiltersParticipantsSelector', () => {
 
         act(() => {
             initialProps?.onSelectRow({
+                reportID: '',
                 accountID: 1,
                 login: 'current@test.com',
                 text: 'Current User',

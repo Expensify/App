@@ -2,6 +2,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -9,6 +10,9 @@ import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchSelector from '@hooks/useSearchSelector';
+import type {UseSearchSelectorReturn} from '@hooks/useSearchSelector.base';
+import {getEmptyOptions} from '@libs/OptionsListUtils';
+import type {Options, SearchOptionData} from '@libs/OptionsListUtils';
 import {TaskAssigneeSelectorModal} from '@pages/tasks/TaskAssigneeSelectorModal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,6 +72,46 @@ jest.mock('@libs/ReportUtils', () => ({
     isTaskReport: jest.fn(() => false),
 }));
 
+function buildOnyxResult<T>(value: T): UseOnyxResult<T> {
+    return [value, jest.fn()] as unknown as UseOnyxResult<T>;
+}
+
+function buildSearchOption(accountID: number, login: string, text: string, keyForList: string): SearchOptionData {
+    return {
+        reportID: '',
+        accountID,
+        login,
+        text,
+        displayName: text,
+        alternateText: login,
+        keyForList,
+        icons: [],
+    };
+}
+
+function buildOptions(overrides: Partial<Options> = {}): Options {
+    return {
+        ...getEmptyOptions(),
+        ...overrides,
+    };
+}
+
+function buildSearchSelectorReturn(availableOptions: Partial<Options>): UseSearchSelectorReturn {
+    return {
+        searchTerm: '',
+        debouncedSearchTerm: '',
+        setSearchTerm: jest.fn(),
+        searchOptions: getEmptyOptions(),
+        availableOptions: buildOptions(availableOptions),
+        selectedOptions: [],
+        selectedOptionsForDisplay: [],
+        setSelectedOptions: jest.fn(),
+        toggleSelection: jest.fn(),
+        areOptionsInitialized: true,
+        onListEndReached: jest.fn(),
+    };
+}
+
 describe('TaskAssigneeSelectorModal', () => {
     const mockedSelectionList = jest.mocked(SelectionListWithSections);
     const mockedUseSearchSelector = jest.mocked(useSearchSelector);
@@ -87,25 +131,18 @@ describe('TaskAssigneeSelectorModal', () => {
     ]);
 
     const availableOptions = {
-        currentUserOption: {
-            accountID: 1,
-            login: 'current@test.com',
-            text: 'Current User',
-            keyForList: 'current-user',
-            alternateText: 'current@test.com',
-            icons: [],
-        },
+        currentUserOption: buildSearchOption(1, 'current@test.com', 'Current User', 'current-user'),
         recentReports: [
-            {accountID: 2, login: 'recent@test.com', text: 'Recent User', keyForList: 'recent-2', alternateText: 'recent@test.com', icons: []},
-            {accountID: 4, login: 'recent2@test.com', text: 'Recent User 2', keyForList: 'recent-4', alternateText: 'recent2@test.com', icons: []},
-            {accountID: 5, login: 'recent3@test.com', text: 'Recent User 3', keyForList: 'recent-5', alternateText: 'recent3@test.com', icons: []},
-            {accountID: 6, login: 'recent4@test.com', text: 'Recent User 4', keyForList: 'recent-6', alternateText: 'recent4@test.com', icons: []},
+            buildSearchOption(2, 'recent@test.com', 'Recent User', 'recent-2'),
+            buildSearchOption(4, 'recent2@test.com', 'Recent User 2', 'recent-4'),
+            buildSearchOption(5, 'recent3@test.com', 'Recent User 3', 'recent-5'),
+            buildSearchOption(6, 'recent4@test.com', 'Recent User 4', 'recent-6'),
         ],
         personalDetails: [
-            {accountID: 3, login: 'contact@test.com', text: 'Contact User', keyForList: 'contact-3', alternateText: 'contact@test.com', icons: []},
-            {accountID: 7, login: 'contact2@test.com', text: 'Contact User 2', keyForList: 'contact-7', alternateText: 'contact2@test.com', icons: []},
-            {accountID: 8, login: 'contact3@test.com', text: 'Contact User 3', keyForList: 'contact-8', alternateText: 'contact3@test.com', icons: []},
-            {accountID: 9, login: 'contact4@test.com', text: 'Contact User 4', keyForList: 'contact-9', alternateText: 'contact4@test.com', icons: []},
+            buildSearchOption(3, 'contact@test.com', 'Contact User', 'contact-3'),
+            buildSearchOption(7, 'contact2@test.com', 'Contact User 2', 'contact-7'),
+            buildSearchOption(8, 'contact3@test.com', 'Contact User 3', 'contact-8'),
+            buildSearchOption(9, 'contact4@test.com', 'Contact User 4', 'contact-9'),
         ],
         userToInvite: null,
     };
@@ -137,27 +174,21 @@ describe('TaskAssigneeSelectorModal', () => {
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.COLLECTION.REPORT:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
                 case ONYXKEYS.TASK:
-                    return [taskData, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(taskData);
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.LOGIN_LIST:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
-        mockedUseSearchSelector.mockReturnValue({
-            searchTerm: '',
-            debouncedSearchTerm: '',
-            setSearchTerm: jest.fn(),
-            availableOptions,
-            areOptionsInitialized: true,
-        } as ReturnType<typeof useSearchSelector>);
+        mockedUseSearchSelector.mockReturnValue(buildSearchSelectorReturn(availableOptions));
     });
 
     it('renders a selected-top section for a recent assignee and excludes it from lower sections', () => {

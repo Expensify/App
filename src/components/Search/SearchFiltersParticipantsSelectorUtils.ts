@@ -1,9 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
 type ResolveInitialSelectedOptionsParams = {
@@ -26,30 +25,50 @@ type SelectedPersonalDetail = {
     avatar?: string | null;
 };
 
-function hasValidAccountID(option?: Partial<OptionData>) {
+type SelectionIdentityInput = {
+    accountID?: number | null;
+    keyForList?: string | number | null;
+    login?: string | null;
+    reportID?: string | null;
+    text?: string | null;
+    displayName?: string | null;
+};
+
+function hasValidAccountID(option?: SelectionIdentityInput) {
     return !!option?.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID;
 }
 
-function getNormalizedLogin(option?: Partial<OptionData>) {
+function getNormalizedLogin(option?: SelectionIdentityInput) {
     return option?.login?.trim().toLowerCase() ?? '';
 }
 
-function getNormalizedText(option?: Partial<OptionData>) {
+function getNormalizedText(option?: SelectionIdentityInput) {
     return (option?.text ?? option?.displayName)?.trim().toLowerCase() ?? '';
 }
 
-function getSelectedOptionData(option: Option): OptionData {
-    const keyForList = option.keyForList?.toString() ?? (hasValidAccountID(option) ? option.accountID?.toString() : undefined) ?? option.reportID ?? option.login ?? option.text ?? '';
+function getResolvedKeyForList(option: SelectionIdentityInput) {
+    return (
+        option.keyForList?.toString() ?? (hasValidAccountID(option) ? option.accountID?.toString() : undefined) ?? option.reportID ?? option.login ?? option.text ?? option.displayName ?? ''
+    );
+}
 
+function toSelectedSearchOption(option: Partial<SearchOptionData> & SelectionIdentityInput): SearchOptionData {
     return {
         ...option,
-        keyForList,
+        accountID: option.accountID ?? undefined,
+        login: option.login ?? undefined,
+        reportID: option.reportID ?? '',
+        keyForList: getResolvedKeyForList(option),
         selected: true,
         isSelected: true,
     };
 }
 
-function getOptionSelectionKey(option?: Partial<OptionData>) {
+function getSelectedOptionData(option: Option): SearchOptionData {
+    return toSelectedSearchOption(option);
+}
+
+function getOptionSelectionKey(option?: SelectionIdentityInput) {
     if (!option) {
         return '';
     }
@@ -79,7 +98,7 @@ function getOptionSelectionKey(option?: Partial<OptionData>) {
     return '';
 }
 
-function areOptionSelectionsEqual(left: OptionData[], right: OptionData[]) {
+function areOptionSelectionsEqual(left: SearchOptionData[], right: SearchOptionData[]) {
     if (left.length !== right.length) {
         return false;
     }
@@ -87,9 +106,9 @@ function areOptionSelectionsEqual(left: OptionData[], right: OptionData[]) {
     return left.every((option, index) => getOptionSelectionKey(option) === getOptionSelectionKey(right.at(index)));
 }
 
-function createSelectedOptionFromPersonalDetail(personalDetail: SelectedPersonalDetail, personalDetails: OnyxEntry<PersonalDetailsList>): OptionData {
-    const participant = {
-        ...personalDetail,
+function createSelectedOptionFromPersonalDetail(personalDetail: SelectedPersonalDetail, personalDetails: OnyxEntry<PersonalDetailsList>): SearchOptionData {
+    const participant: Participant = {
+        accountID: personalDetail.accountID,
         login: personalDetail.login ?? '',
         displayName: personalDetail.displayName ?? personalDetail.login ?? '',
         text: personalDetail.displayName ?? personalDetail.login ?? '',
@@ -98,31 +117,28 @@ function createSelectedOptionFromPersonalDetail(personalDetail: SelectedPersonal
     };
     const participantOption = getParticipantsOption(participant, personalDetails);
 
-    return {
+    return toSelectedSearchOption({
         ...participantOption,
         displayName: personalDetail.displayName ?? participantOption.text ?? personalDetail.login ?? '',
         text: participantOption.text ?? personalDetail.displayName ?? personalDetail.login ?? '',
         alternateText: participantOption.alternateText ?? personalDetail.login ?? personalDetail.displayName ?? '',
         searchText: participantOption.searchText ?? personalDetail.displayName ?? personalDetail.login ?? '',
+        avatar: personalDetail.avatar ?? undefined,
         keyForList: participantOption.keyForList ?? personalDetail.accountID?.toString() ?? personalDetail.login ?? personalDetail.displayName ?? '',
-        selected: true,
-        isSelected: true,
-    };
+    });
 }
 
-function createSelectedOptionFromAttendee(attendee: Attendee): OptionData {
+function createSelectedOptionFromAttendee(attendee: Attendee): SearchOptionData {
     const login = attendee.email ?? attendee.login ?? attendee.displayName;
     const keyForList = login ?? attendee.displayName;
 
-    return {
+    return toSelectedSearchOption({
         text: attendee.displayName ?? login,
         alternateText: login ?? attendee.displayName,
-        login,
+        login: login ?? undefined,
         displayName: attendee.displayName ?? login,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
         keyForList,
-        selected: true,
-        isSelected: true,
         icons: attendee.avatarUrl
             ? [
                   {
@@ -133,47 +149,43 @@ function createSelectedOptionFromAttendee(attendee: Attendee): OptionData {
               ]
             : [],
         searchText: attendee.searchText ?? attendee.displayName ?? login ?? '',
-    };
+    });
 }
 
-function createFallbackSelectedOption(identifier: string): OptionData {
-    return {
+function createFallbackSelectedOption(identifier: string): SearchOptionData {
+    return toSelectedSearchOption({
         text: identifier,
         alternateText: identifier,
         login: identifier,
         displayName: identifier,
         accountID: CONST.DEFAULT_NUMBER_ID,
         keyForList: identifier,
-        selected: true,
-        isSelected: true,
         icons: [],
         searchText: identifier,
-    };
+    });
 }
 
-function createFallbackSelectedAccountOption(identifier: string): OptionData {
+function createFallbackSelectedAccountOption(identifier: string): SearchOptionData {
     const parsedAccountID = Number(identifier);
     const accountID =
         /^\d+$/.test(identifier) && Number.isSafeInteger(parsedAccountID) && parsedAccountID > 0 && parsedAccountID !== CONST.DEFAULT_NUMBER_ID ? parsedAccountID : CONST.DEFAULT_NUMBER_ID;
 
-    return {
+    return toSelectedSearchOption({
         text: identifier,
         alternateText: identifier,
         login: identifier,
         displayName: identifier,
         accountID,
         keyForList: identifier,
-        selected: true,
-        isSelected: true,
         icons: [],
         searchText: identifier,
-    };
+    });
 }
 
 function resolveInitialSelectedAccountOption(
     identifier: string,
     {currentUserOption, recentReports, personalDetailsOptions, userToInvite, personalDetails}: Omit<ResolveInitialSelectedAccountOptionsParams, 'initialAccountIDs'>,
-): OptionData | null {
+): SearchOptionData | null {
     const candidateOptions = [currentUserOption, ...recentReports, ...personalDetailsOptions, ...(userToInvite ? [userToInvite] : [])].filter((option): option is Option => !!option);
     const matchingOption = candidateOptions.find((option) => hasValidAccountID(option) && option.accountID?.toString() === identifier);
 
@@ -189,7 +201,7 @@ function resolveInitialSelectedAccountOption(
     return null;
 }
 
-function resolveInitialSelectedAccountOptions(params: ResolveInitialSelectedAccountOptionsParams): OptionData[] {
+function resolveInitialSelectedAccountOptions(params: ResolveInitialSelectedAccountOptionsParams): SearchOptionData[] {
     return params.initialAccountIDs.map((identifier) => resolveInitialSelectedAccountOption(identifier, params) ?? createFallbackSelectedAccountOption(identifier));
 }
 
@@ -214,7 +226,7 @@ function resolveInitialSelectedOptions({
     personalDetails,
     recentAttendees,
     shouldAllowNameOnlyOptions,
-}: ResolveInitialSelectedOptionsParams): OptionData[] {
+}: ResolveInitialSelectedOptionsParams): SearchOptionData[] {
     if (!shouldAllowNameOnlyOptions) {
         return resolveInitialSelectedAccountOptions({
             initialAccountIDs,
@@ -255,7 +267,7 @@ function resolveInitialSelectedOptions({
 
             return createFallbackSelectedOption(identifier);
         })
-        .filter((option): option is OptionData => !!option);
+        .filter((option): option is SearchOptionData => !!option);
 }
 
 export {areOptionSelectionsEqual, getOptionSelectionKey, getSelectedOptionData, resolveInitialSelectedAccountOptions, resolveInitialSelectedOptions};
