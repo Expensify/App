@@ -1,3 +1,4 @@
+/* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -24,6 +25,7 @@ function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> |
                 continue;
             }
             if (typeof ref === 'object') {
+                // eslint-disable-next-line no-param-reassign
                 ref.current = node;
                 continue;
             }

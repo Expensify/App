@@ -516,8 +516,6 @@ const translations: TranslationDeepObject<typeof en> = {
         headsUp: 'Attention !',
         submitTo: 'Soumettre à',
         forwardTo: 'Transférer à',
-        approvalLimit: "Limite d'approbation",
-        overLimitForwardTo: 'Transférer si dépassement de limite',
         merge: 'Fusionner',
         none: 'Aucun',
         unstableInternetConnection: 'Connexion Internet instable. Veuillez vérifier votre réseau et réessayer.',
@@ -547,6 +545,7 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
         duplicateReport: 'Note de frais en double',
+        approver: 'Approbateur',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1360,7 +1359,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: `approuvé`,
-        rejectedThisReport: 'a rejeté cette note de frais',
+        rejectedThisReport: 'rejeté',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1583,7 +1582,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisir un espace de travail',
-        routedDueToDEW: (to: string) => `note de frais transmise à ${to} en raison du flux d’approbation personnalisé`,
+        routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`,
             hrs: 'h',
@@ -2190,12 +2189,37 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     personalCard: {
+        addPersonalCard: 'Ajouter une carte personnelle',
+        addCompanyCard: "Ajouter une carte d'entreprise",
+        lookingForCompanyCards: "Vous devez ajouter des cartes d'entreprise ?",
+        lookingForCompanyCardsDescription: 'Connectez vos propres cartes auprès de plus de 10 000 banques dans le monde.',
+        personalCardAdded: 'Carte personnelle ajoutée!',
+        personalCardAddedDescription: 'Félicitations, nous allons commencer à importer les transactions de votre carte.',
+        isPersonalCard: "S'agit-il d'une carte personnelle?",
+        thisIsPersonalCard: "Il s'agit d'une carte personnelle",
+        thisIsCompanyCard: "Il s'agit d'une carte d'entreprise",
+        askAdmin: 'Demander à votre administrateur',
+        warningDescription: ({isAdmin}: {isAdmin?: boolean}) =>
+            `Si oui, parfait ! Mais si c'est une carte d'<strong>entreprise</strong>, veuillez ${isAdmin ? "l'assigner depuis votre espace de travail." : "demander à votre administrateur de vous l'assigner depuis l'espace de travail."}`,
+        bankConnectionError: 'Problème de connexion bancaire',
+        bankConnectionDescription: "Veuillez réessayer d'ajouter vos cartes. Sinon, vous pouvez",
+        connectWithPlaid: 'vous connecter via Plaid.',
         fixCard: 'Réparer la carte',
         brokenConnection: 'La connexion de votre carte est rompue.',
         conciergeBrokenConnection: ({cardName, connectionLink}: ConciergeBrokenCardConnectionParams) =>
             connectionLink
                 ? `La connexion de votre carte ${cardName} est rompue. <a href="${connectionLink}">Connectez-vous à votre banque</a> pour corriger la carte.`
                 : `La connexion de votre carte ${cardName} est rompue. Connectez-vous à votre banque pour corriger la carte.`,
+        addAdditionalCards: "Ajouter d'autres cartes",
+        upgradeDescription: "Vous devez ajouter plus de cartes ? Créez un espace de travail pour ajouter des cartes personnelles ou assigner des cartes d'entreprise à toute l'équipe.",
+        onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
+            `<muted-text>Disponible dans le forfait Collect, à <strong>${formattedPrice}</strong> par membre et par mois.</muted-text>`,
+        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+            `<muted-text>Créez un espace de travail pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos forfaits et tarifs.</muted-text>`,
+        workspaceCreated: 'Espace de travail créé',
+        newWorkspace: 'Vous avez créé un espace de travail !',
+        successMessage: ({subscriptionLink}: {subscriptionLink: string}) =>
+            `<centered-text>Vous pouvez maintenant ajouter d'autres cartes. <a href="${subscriptionLink}">Voir votre abonnement</a> pour plus de détails.</centered-text>`,
     },
     walletPage: {
         balance: 'Solde',
@@ -3008,8 +3032,6 @@ ${
                 '# Nous allons vous configurer tout ça\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour profiter pleinement de vos 30 jours d’essai gratuit, suivez simplement les dernières étapes de configuration ci-dessous !',
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
-            onboardingLookingAroundMessage:
-                'Expensify est surtout connu pour la gestion des dépenses, des voyages et des cartes d’entreprise, mais nous faisons bien plus que cela. Dites-moi ce qui vous intéresse et je vous aiderai à démarrer.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
         },
         workspace: {
@@ -5288,6 +5310,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
                     },
+                    exportToPDF: 'Exporter en PDF',
+                    exportToCSV: 'Exporter en CSV',
+                    selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
+                    invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
+                    enabled: 'Facturation centralisée activée !',
+                    enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
                 personalDetailsDescription: 'Pour pouvoir réserver un voyage, veuillez saisir votre nom légal tel qu’il apparaît sur votre pièce d’identité délivrée par le gouvernement.',
             },
@@ -7774,6 +7802,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'relevé de notes perdu ou endommagé',
