@@ -62,6 +62,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         if (policy.automaticJoiningEnabled) {
@@ -153,7 +154,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!!route.params?.backTo}
+                shouldShowBackButton={!shouldHideBackButton}
                 progressBarPercentage={60}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldDisplayHelpButton={false}
