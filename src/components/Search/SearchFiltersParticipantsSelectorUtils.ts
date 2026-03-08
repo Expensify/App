@@ -151,15 +151,28 @@ function createFallbackSelectedOption(identifier: string): OptionData {
     };
 }
 
+function createFallbackSelectedAccountOption(identifier: string): OptionData {
+    const parsedAccountID = Number(identifier);
+    const accountID =
+        /^\d+$/.test(identifier) && Number.isSafeInteger(parsedAccountID) && parsedAccountID > 0 && parsedAccountID !== CONST.DEFAULT_NUMBER_ID ? parsedAccountID : CONST.DEFAULT_NUMBER_ID;
+
+    return {
+        text: identifier,
+        alternateText: identifier,
+        login: identifier,
+        displayName: identifier,
+        accountID,
+        keyForList: identifier,
+        selected: true,
+        isSelected: true,
+        icons: [],
+        searchText: identifier,
+    };
+}
+
 function resolveInitialSelectedAccountOption(
     identifier: string,
-    {
-        currentUserOption,
-        recentReports,
-        personalDetailsOptions,
-        userToInvite,
-        personalDetails,
-    }: Omit<ResolveInitialSelectedAccountOptionsParams, 'initialAccountIDs'>,
+    {currentUserOption, recentReports, personalDetailsOptions, userToInvite, personalDetails}: Omit<ResolveInitialSelectedAccountOptionsParams, 'initialAccountIDs'>,
 ): OptionData | null {
     const candidateOptions = [currentUserOption, ...recentReports, ...personalDetailsOptions, ...(userToInvite ? [userToInvite] : [])].filter((option): option is Option => !!option);
     const matchingOption = candidateOptions.find((option) => hasValidAccountID(option) && option.accountID?.toString() === identifier);
@@ -177,7 +190,7 @@ function resolveInitialSelectedAccountOption(
 }
 
 function resolveInitialSelectedAccountOptions(params: ResolveInitialSelectedAccountOptionsParams): OptionData[] {
-    return params.initialAccountIDs.map((identifier) => resolveInitialSelectedAccountOption(identifier, params) ?? createFallbackSelectedOption(identifier));
+    return params.initialAccountIDs.map((identifier) => resolveInitialSelectedAccountOption(identifier, params) ?? createFallbackSelectedAccountOption(identifier));
 }
 
 function matchesIdentifier(option: Option, identifier: string, shouldAllowNameOnlyOptions: boolean) {

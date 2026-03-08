@@ -88,6 +88,7 @@ describe('SearchFiltersParticipantsSelectorUtils', () => {
         expect(result).toEqual([
             expect.objectContaining({
                 text: '999',
+                accountID: 999,
                 keyForList: '999',
                 isSelected: true,
                 selected: true,
