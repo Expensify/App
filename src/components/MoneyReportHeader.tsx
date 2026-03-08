@@ -1337,6 +1337,7 @@ function MoneyReportHeader({
         policies,
         isChatReportArchived,
         bankAccountList,
+        outstandingReportsByPolicyID,
     ]);
 
     const secondaryExportActions = useMemo(() => {
