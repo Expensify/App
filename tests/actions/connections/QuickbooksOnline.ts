@@ -10,7 +10,7 @@ import {updateQuickbooksOnlineSyncReimbursedReports} from '@src/libs/actions/con
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxData} from '@src/types/onyx/Request';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -41,7 +41,7 @@ function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<T
     return config;
 }
 
-function getFirstWriteCall(): {command: WriteCommand; onyxData?: OnyxData<OnyxKey>} {
+function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
     const call = writeSpy.mock.calls.at(0);
     if (!call) {
         throw new Error('API.write was not called');

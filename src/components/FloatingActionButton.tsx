@@ -124,6 +124,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                             <Svg
                                 width={fabSize}
                                 height={fabSize}
+                                pointerEvents="none"
                             >
                                 <AnimatedPath
                                     d={isLHBVisible ? SMALL_FAB_PATH : FAB_PATH}

@@ -16,6 +16,7 @@ function SaveWithExpensifyButton() {
             small
             text={translate('subscription.yourPlan.saveWithExpensifyButton')}
             onPress={onLinkPress}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SAVE_WITH_EXPENSIFY}
         />
     );
 }

@@ -14,7 +14,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 function HybridAppHandler() {
     const {splashScreenState} = useSplashScreenState();
     const {setSplashScreenState} = useSplashScreenActions();
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
 
     const finalizeTransitionFromOldDot = useCallback(

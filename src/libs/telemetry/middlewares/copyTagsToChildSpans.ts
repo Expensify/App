@@ -4,7 +4,14 @@ import type {TelemetryBeforeSend} from './index';
 /**
  * List of tags that should be copied from the transaction to all child spans
  */
-const TAGS_TO_COPY = [CONST.TELEMETRY.TAG_POLICIES_COUNT, CONST.TELEMETRY.TAG_REPORTS_COUNT, CONST.TELEMETRY.TAG_ACTIVE_POLICY, CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT] as const;
+const TAGS_TO_COPY = [
+    CONST.TELEMETRY.TAG_POLICIES_COUNT,
+    CONST.TELEMETRY.TAG_REPORTS_COUNT,
+    CONST.TELEMETRY.TAG_ACTIVE_POLICY,
+    CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT,
+    CONST.TELEMETRY.TAG_USER_ROLE,
+    CONST.TELEMETRY.TAG_PERSONAL_DETAILS_COUNT,
+] as const;
 
 /**
  * Middleware that copies specific tags from the transaction event to all child spans.

@@ -321,7 +321,11 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     }
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
+
+    // US territories share the +1 country calling code but have their own ISO region codes.
+    // We accept these as valid US phone numbers for wallet/bank account verification.
+    const validUSRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP];
+    return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
 function isValidPhoneNumber(phoneNumber: string): boolean {

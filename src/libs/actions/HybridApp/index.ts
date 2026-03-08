@@ -4,7 +4,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {HybridApp} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
 /*
@@ -81,22 +80,4 @@ function resetSignInFlow() {
     });
 }
 
-/*
- * Updates Onyx state after start of React Native runtime based on initial `useNewDotSignInPage` value
- */
-function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
-    if (hybridApp?.useNewDotSignInPage) {
-        return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-            ...hybridApp,
-            readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
-        });
-    }
-
-    // When we transition with useNewDotSignInPage === false, it means that we're already authenticated on NewDot side.
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        ...hybridApp,
-        readyToShowAuthScreens: true,
-    });
-}
-
-export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, prepareHybridAppAfterTransitionToNewDot, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, setClosingReactNativeApp, closeReactNativeApp};
