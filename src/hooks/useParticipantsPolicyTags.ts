@@ -16,7 +16,6 @@ type ParticipantWithPolicyID = {
  * @returns Record mapping policyID to PolicyTagLists
  */
 function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Record<string, PolicyTagLists> {
-
     const participantPolicyIDs = useMemo(() => {
         const ids = new Set<string>();
         for (const p of participants) {
