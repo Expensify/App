@@ -3084,11 +3084,11 @@ function canDeleteMoneyRequestReport(report: OnyxEntry<Report>, reportTransactio
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
     // So we check if the reportTransactions length is 1 which means they're viewing a single transaction and thus can delete it.
     if (isIOUReport(report)) {
-        return isSingleTransaction && isOwner && isReportOpenOrProcessing;
+        return isSingleTransaction && isOwner && isReportOpenOrProcessing && canCardTransactionBeDeleted;
     }
 
     if (isExpenseReport(report)) {
-        if (isSingleTransaction && !canCardTransactionBeDeleted) {
+        if (reportTransactions.some((t) => !canDeleteCardTransactionByLiabilityType(t))) {
             return false;
         }
 
@@ -3134,7 +3134,7 @@ function canDeleteReportAction(
             if (isTrackExpenseAction(reportAction)) {
                 return canCardTransactionBeDeleted;
             }
-            return true;
+            return canCardTransactionBeDeleted;
         }
     }
 
