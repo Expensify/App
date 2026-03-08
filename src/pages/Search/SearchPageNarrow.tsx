@@ -4,10 +4,8 @@ import {View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
@@ -18,9 +16,9 @@ import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,7 +44,6 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     metadata?: SearchResultsInfo;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
     isMobileSelectionModeEnabled: boolean;
     footerData: {
@@ -54,26 +51,10 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
-    currentSelectedPolicyID?: string | undefined;
-    currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
-    latestBankItems?: BankAccountMenuItem[] | undefined;
     shouldShowFooter: boolean;
 };
 
-function SearchPageNarrow({
-    queryJSON,
-    headerButtonsOptions,
-    searchResults,
-    isMobileSelectionModeEnabled,
-    metadata,
-    footerData,
-    currentSelectedPolicyID,
-    currentSelectedReportID,
-    latestBankItems,
-    confirmPayment,
-    shouldShowFooter,
-}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -82,6 +63,7 @@ function SearchPageNarrow({
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
     const triggerScrollEvent = useScrollEventEmitter();
@@ -194,9 +176,10 @@ function SearchPageNarrow({
                     <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
-                                shouldShowLoadingBar={shouldShowLoadingState}
+                                shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
+                                shouldDisplayHelpButton
                                 cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                             />
                         </View>
@@ -221,7 +204,6 @@ function SearchPageNarrow({
                                             topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                             setSearchRouterListVisible(true);
                                         }}
-                                        headerButtonsOptions={headerButtonsOptions}
                                         handleSearch={handleSearchAction}
                                         isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     />
@@ -230,7 +212,6 @@ function SearchPageNarrow({
                                     {!searchRouterListVisible && (
                                         <SearchFiltersBar
                                             queryJSON={queryJSON}
-                                            headerButtonsOptions={headerButtonsOptions}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         />
                                     )}
@@ -250,13 +231,8 @@ function SearchPageNarrow({
                         />
                         <SearchPageHeader
                             queryJSON={queryJSON}
-                            headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            currentSelectedPolicyID={currentSelectedPolicyID}
-                            currentSelectedReportID={currentSelectedReportID}
-                            latestBankItems={latestBankItems}
-                            confirmPayment={confirmPayment}
                         />
                     </>
                 )}

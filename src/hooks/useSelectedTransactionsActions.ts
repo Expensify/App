@@ -349,7 +349,7 @@ function useSelectedTransactionsActions({
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
+                text: translate('iou.moveExpenses'),
                 icon: expensifyIcons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {

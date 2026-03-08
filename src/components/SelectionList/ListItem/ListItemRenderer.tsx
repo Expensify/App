@@ -28,6 +28,7 @@ function ListItemRenderer<TItem extends ListItem>({
     isDisabled,
     showTooltip,
     canSelectMultiple,
+    canShowProductTrainingTooltip,
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
@@ -50,7 +51,6 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
     shouldShowRightCaret,
     errorRowStyles,
 }: ListItemRendererProps<TItem>) {
@@ -103,12 +103,12 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
+                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
                 shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}

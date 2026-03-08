@@ -2,7 +2,6 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import useOnyx from '@hooks/useOnyx';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,7 +20,6 @@ type WorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps &
 
 function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageRolePageProps) {
     const [role = CONST.POLICY.ROLE.USER, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
-    const viewportOffsetTop = useViewportOffsetTop();
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
 
     return (
@@ -34,7 +32,6 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                 testID="WorkspaceInviteMessageRolePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                style={{marginTop: viewportOffsetTop}}
             >
                 <WorkspaceMemberRoleList
                     role={role}

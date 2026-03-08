@@ -211,6 +211,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 
@@ -283,9 +286,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type ValidListItem =
@@ -316,7 +316,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
-    /** Errors that this user may contain */
+    /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
     /** Test ID of the component. Used to locate this view in end-to-end tests. */
     testID?: string;
@@ -329,9 +329,6 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 
     /**
      * Whether the pressable should be accessible as a single element.

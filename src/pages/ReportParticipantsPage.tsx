@@ -216,7 +216,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     // Build participants list
     let participants: MemberOption[] = [];
     for (const accountID of chatParticipants) {
-        const role = reportParticipants?.[accountID].role;
+        const role = reportParticipants?.[accountID]?.role;
         const details = personalDetails?.[accountID];
 
         if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {

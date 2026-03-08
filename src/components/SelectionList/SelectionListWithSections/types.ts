@@ -55,6 +55,9 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Whether to show the default right hand side component */
     shouldUseDefaultRightHandSideComponent?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {

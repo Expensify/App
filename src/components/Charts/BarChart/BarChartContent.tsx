@@ -1,13 +1,14 @@
 import {useFont} from '@shopify/react-native-skia';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
-import type {ChartBounds, PointsArray, Scale} from 'victory-native';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 import {Bar, CartesianChart} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {HitTestArgs} from '@components/Charts/hooks';
@@ -22,8 +23,10 @@ import variables from '@styles/variables';
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
 
-/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop) */
-const BASE_DOMAIN_PADDING = {top: 32, bottom: 0, left: 0, right: 0};
+/** Extra pixel spacing between the chart boundary and the data range, applied per side (Victory's `domainPadding` prop)
+ * We need bottom: 1 for proper display of the bottom label
+ */
+const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 
 type BarChartProps = CartesianChartProps & {
     /** Callback when a bar is pressed */
@@ -40,105 +43,92 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
     const [chartWidth, setChartWidth] = useState(0);
     const [barAreaWidth, setBarAreaWidth] = useState(0);
+    const [boundsLeft, setBoundsLeft] = useState(0);
+    const [boundsRight, setBoundsRight] = useState(0);
     const defaultBarColor = DEFAULT_CHART_COLOR;
 
-    // prepare data for display
-    const chartData = useMemo(() => {
-        return data.map((point, index) => ({
-            x: index,
-            y: point.total,
-        }));
-    }, [data]);
+    const chartData = data.map((point, index) => ({
+        x: index,
+        y: point.total,
+    }));
 
     const yAxisDomain = useDynamicYDomain(data);
 
-    // Handle bar press callback
-    const handleBarPress = useCallback(
-        (index: number) => {
-            if (index < 0 || index >= data.length) {
-                return;
-            }
-            const dataPoint = data.at(index);
-            if (dataPoint && onBarPress) {
-                onBarPress(dataPoint, index);
-            }
-        },
-        [data, onBarPress],
-    );
+    const handleBarPress = (index: number) => {
+        if (index < 0 || index >= data.length) {
+            return;
+        }
+        const dataPoint = data.at(index);
+        if (dataPoint && onBarPress) {
+            onBarPress(dataPoint, index);
+        }
+    };
 
-    const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const handleLayout = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
-    }, []);
+    };
+
+    const domainPadding = (() => {
+        if (chartWidth === 0) {
+            return BASE_DOMAIN_PADDING;
+        }
+        const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
+        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
+    })();
+
+    const totalDomainPadding = domainPadding.left + domainPadding.right;
+    const paddingScale = barAreaWidth > 0 ? barAreaWidth / (barAreaWidth + totalDomainPadding) : 0;
 
     const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
         font,
         tickSpacing: barAreaWidth > 0 ? barAreaWidth / data.length : 0,
         labelAreaWidth: barAreaWidth,
+        firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
+        lastTickRightSpace: chartWidth > 0 ? chartWidth - boundsRight + domainPadding.right * paddingScale : 0,
     });
 
-    const domainPadding = useMemo(() => {
-        if (chartWidth === 0) {
-            return BASE_DOMAIN_PADDING;
-        }
-        const horizontalPadding = calculateMinDomainPadding(chartWidth, data.length, BAR_INNER_PADDING);
-        return {...BASE_DOMAIN_PADDING, left: horizontalPadding, right: horizontalPadding};
-    }, [chartWidth, data.length]);
-
-    const {formatLabel, formatValue} = useChartLabelFormats({
+    const {formatValue} = useChartLabelFormats({
         data,
         font,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
-        labelSkipInterval,
-        labelRotation,
-        truncatedLabels,
     });
 
-    // Store bar geometry for hit-testing (only constants, no arrays)
     const barWidth = useSharedValue(0);
     const chartBottom = useSharedValue(0);
     const yZero = useSharedValue(0);
 
-    const handleChartBoundsChange = useCallback(
-        (bounds: ChartBounds) => {
-            const domainWidth = bounds.right - bounds.left;
-            const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
-            barWidth.set(calculatedBarWidth);
-            chartBottom.set(bounds.bottom);
-            yZero.set(0);
-            setBarAreaWidth(domainWidth);
-        },
-        [data.length, barWidth, chartBottom, yZero],
-    );
+    const handleChartBoundsChange = (bounds: ChartBounds) => {
+        const domainWidth = bounds.right - bounds.left;
+        const calculatedBarWidth = ((1 - BAR_INNER_PADDING) * domainWidth) / data.length;
+        barWidth.set(calculatedBarWidth);
+        chartBottom.set(bounds.bottom);
+        yZero.set(0);
+        setBarAreaWidth(domainWidth);
+        setBoundsLeft(bounds.left);
+        setBoundsRight(bounds.right);
+    };
 
-    const handleScaleChange = useCallback(
-        (_xScale: Scale, yScale: Scale) => {
-            yZero.set(yScale(0));
-        },
-        [yZero],
-    );
+    const handleScaleChange = (_xScale: Scale, yScale: Scale) => {
+        yZero.set(yScale(0));
+    };
 
-    const checkIsOverBar = useCallback(
-        (args: HitTestArgs) => {
-            'worklet';
+    const checkIsOverBar = (args: HitTestArgs) => {
+        'worklet';
 
-            const currentBarWidth = barWidth.get();
-            const currentYZero = yZero.get();
-            if (currentBarWidth === 0) {
-                return false;
-            }
-            const barLeft = args.targetX - currentBarWidth / 2;
-            const barRight = args.targetX + currentBarWidth / 2;
-            // For positive bars: targetY < yZero, bar goes from targetY (top) to yZero (bottom)
-            // For negative bars: targetY > yZero, bar goes from yZero (top) to targetY (bottom)
-            const barTop = Math.min(args.targetY, currentYZero);
-            const barBottom = Math.max(args.targetY, currentYZero);
+        const currentBarWidth = barWidth.get();
+        const currentYZero = yZero.get();
+        if (currentBarWidth === 0) {
+            return false;
+        }
+        const barLeft = args.targetX - currentBarWidth / 2;
+        const barRight = args.targetX + currentBarWidth / 2;
+        const barTop = Math.min(args.targetY, currentYZero);
+        const barBottom = Math.max(args.targetY, currentYZero);
 
-            return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
-        },
-        [barWidth, yZero],
-    );
+        return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
+    };
 
     const {actionsRef, customGestures, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
@@ -149,35 +139,45 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
-    const renderBar = useCallback(
-        (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
-            const dataIndex = point.xValue as number;
-            const dataPoint = data.at(dataIndex);
-            const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
+    const renderBar = (point: PointsArray[number], chartBounds: ChartBounds, barCount: number) => {
+        const dataIndex = point.xValue as number;
+        const dataPoint = data.at(dataIndex);
+        const barColor = useSingleColor ? defaultBarColor : getChartColor(dataIndex);
 
-            return (
-                <Bar
-                    key={`bar-${dataPoint?.label}`}
-                    points={[point]}
-                    chartBounds={chartBounds}
-                    color={barColor}
-                    barCount={barCount}
-                    innerPadding={BAR_INNER_PADDING}
-                    roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
-                />
-            );
-        },
-        [data, useSingleColor, defaultBarColor],
-    );
+        return (
+            <Bar
+                key={`bar-${dataPoint?.label}`}
+                points={[point]}
+                chartBounds={chartBounds}
+                color={barColor}
+                barCount={barCount}
+                innerPadding={BAR_INNER_PADDING}
+                roundedCorners={{topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8}}
+            />
+        );
+    };
 
-    // When labels are rotated 90°, add measured label height to container
-    // This keeps bar area at ~250px while giving labels their needed vertical space
-    const dynamicChartStyle = useMemo(
-        () => ({
-            height: CHART_CONTENT_MIN_HEIGHT + (xAxisLabelHeight ?? 0),
-        }),
-        [xAxisLabelHeight],
-    );
+    const renderOutside = (args: CartesianChartRenderArg<{x: number; y: number}, 'y'>) => {
+        if (!font || xAxisLabelHeight === undefined) {
+            return null;
+        }
+        return (
+            <ChartXAxisLabels
+                labels={truncatedLabels}
+                labelRotation={labelRotation}
+                labelSkipInterval={labelSkipInterval}
+                font={font}
+                labelColor={theme.textSupporting}
+                xScale={args.xScale}
+                chartBoundsBottom={args.chartBounds.bottom}
+                centerRotatedLabels
+            />
+        );
+    };
+
+    const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
+    const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom};
 
     if (isLoading || !font) {
         return (
@@ -204,24 +204,17 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 {chartWidth > 0 && (
                     <CartesianChart
                         xKey="x"
-                        padding={CHART_PADDING}
+                        padding={chartPadding}
                         yKeys={['y']}
                         domainPadding={domainPadding}
                         actionsRef={actionsRef}
                         customGestures={customGestures}
                         onChartBoundsChange={handleChartBoundsChange}
                         onScaleChange={handleScaleChange}
+                        renderOutside={renderOutside}
                         xAxis={{
-                            font,
                             tickCount: data.length,
-                            labelColor: theme.textSupporting,
                             lineWidth: X_AXIS_LINE_WIDTH,
-                            // Victory-native positions x-axis labels at: chartBounds.bottom + labelOffset + fontSize.
-                            // We subtract descent (fontSize - ascent) so the gap from chart to the ascent line equals AXIS_LABEL_GAP.
-                            labelOffset: AXIS_LABEL_GAP - Math.abs(font?.getMetrics().descent ?? 0),
-                            formatXLabel: formatLabel,
-                            labelRotate: labelRotation,
-                            labelOverflow: 'visible',
                         }}
                         yAxis={[
                             {
