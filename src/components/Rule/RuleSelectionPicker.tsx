@@ -50,7 +50,7 @@ function RuleSelectionPicker({items, initiallySelectedItem, onSaveSelection, bac
             onSelectRow={onSelectRow}
             shouldShowTextInput
             textInputOptions={textInputOptions}
-            shouldShowLoadingPlaceholder={!noResultsFound}
+            shouldShowLoadingPlaceholder={false}
             initiallyFocusedItemKey={initiallyFocusedItemKey}
             shouldStopPropagation
             shouldScrollToTopOnSelect={false}

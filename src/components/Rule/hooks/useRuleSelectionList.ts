@@ -82,9 +82,10 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
 
         const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(itemsForDisplay, initialSelectedValues) : itemsForDisplay;
 
-        const isEmpty = orderedItems.length === 0 && !!normalizedSearch;
+        const hasNoItems = orderedItems.length === 0;
+        const isSearchMiss = !!normalizedSearch && hasNoItems;
 
-        const preparedSections: Array<Section<RuleSelectionListItem>> = isEmpty
+        const preparedSections: Array<Section<RuleSelectionListItem>> = hasNoItems
             ? []
             : [
                   {
@@ -93,7 +94,7 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
                   },
               ];
 
-        return {sections: preparedSections, noResultsFound: isEmpty};
+        return {sections: preparedSections, noResultsFound: isSearchMiss};
     }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, initiallySelectedItem]);
 
     return {
