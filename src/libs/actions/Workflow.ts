@@ -119,11 +119,12 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
     }
 
     // Determine if approvalMode should change based on updated employee state
-    const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
+    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
+    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
     const effectiveDefaultApprover = newDefaultApprover ?? previousDefaultApprover ?? '';
-    const hasMultipleWorkflows = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
-    const defaultApproverEmployee = updatedEmployeeList[effectiveDefaultApprover];
-    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo;
+    const hasMultipleWorkflows = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== effectiveDefaultApprover);
+    const defaultApproverEmployee = mergedEmployeeList[effectiveDefaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
     const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
     const previousApprovalMode = policy.approvalMode;
 
@@ -184,14 +185,15 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
 
     const previousEmployeeList = Object.fromEntries(Object.entries(policy.employeeList ?? {}).map(([key, value]) => [key, {...value, pendingAction: null}]));
     const updatedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: CONST.APPROVAL_WORKFLOW.TYPE.REMOVE});
-    const updatedEmployeeList = {...previousEmployeeList, ...updatedEmployees};
+    // Deep merge at the employee level to preserve fields not included in updatedEmployees (e.g., overLimitForwardsTo)
+    const mergedEmployeeList = Object.fromEntries(Object.keys({...previousEmployeeList, ...updatedEmployees}).map((key) => [key, {...previousEmployeeList[key], ...updatedEmployees[key]}]));
 
     const defaultApprover = getDefaultApprover(policy);
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
-    const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
+    const hasMoreThanOneWorkflow = Object.values(mergedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
     // The default workflow can still have a forwardsTo chain (multi-level approvers), which also requires advanced mode
-    const defaultApproverEmployee = updatedEmployeeList[defaultApprover];
-    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo;
+    const defaultApproverEmployee = mergedEmployeeList[defaultApprover];
+    const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
     const shouldKeepAdvancedMode = hasMoreThanOneWorkflow || hasForwardsToChain;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
