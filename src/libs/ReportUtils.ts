@@ -11380,23 +11380,55 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName);
 }
 
-/**
- * Check if a report has any forwarded actions
- */
 function hasForwardedAction(reportID: string): boolean {
     const reportActions = getAllReportActions(reportID);
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+const MOVE_FORWARDING_WORKFLOW_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
+    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+    CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+]);
+
+const MOVE_FORWARDING_RESET_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
+    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+]);
+
+/**
+ * Returns true when the latest workflow action for the current processing cycle indicates the report
+ * has already been advanced away from the original submit-to approver.
+ */
+function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
+    const reportActions = getSortedReportActions(
+        Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && !isDeletedAction(action) && !isPendingRemove(action)),
+        true,
+    );
+    const latestWorkflowAction = reportActions.find((action) => MOVE_FORWARDING_WORKFLOW_ACTIONS.has(action.actionName) || MOVE_FORWARDING_RESET_ACTIONS.has(action.actionName));
+
+    if (!latestWorkflowAction) {
+        return false;
+    }
+
+    return MOVE_FORWARDING_WORKFLOW_ACTIONS.has(latestWorkflowAction.actionName);
+}
+
 /**
  * Fallback for when forwarded actions are unavailable in local Onyx.
- * A processing report is considered forwarded when managerID no longer matches the first approver.
+ * A processing report is only considered forwarded when the current submit-to no longer matches
+ * managerID and the report's workflow history shows it has already advanced past submission.
  */
 function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
     const reportMetadata = getReportMetadata(iouReport?.reportID);
 
-    if (!iouReport || !policy || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
+    if (!iouReport || !policy || !iouReport.reportID || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
         return false;
     }
 
@@ -11407,7 +11439,13 @@ function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boole
         return false;
     }
 
-    return getSubmitToAccountID(policy, iouReport) !== iouReport.managerID;
+    const submitToAccountID = getSubmitToAccountID(policy, iouReport);
+
+    if (submitToAccountID === iouReport.managerID) {
+        return false;
+    }
+
+    return hasCurrentForwardingWorkflowAction(iouReport.reportID);
 }
 
 function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>): boolean {
