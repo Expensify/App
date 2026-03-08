@@ -8197,7 +8197,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             changesBasedOn: 'To się zmienia w zależności od korzystania z Karty Expensify i poniższych opcji subskrypcji.',
         },
         requestEarlyCancellation: {
-            title: 'Poproś o wcześniejsze anulowanie',
+            title: 'Anuluj subskrypcję',
             subtitle: 'Jaki jest główny powód, dla którego prosisz o wcześniejsze anulowanie?',
             subscriptionCanceled: {
                 title: 'Subskrypcja anulowana',

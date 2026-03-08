@@ -8140,7 +8140,7 @@ ${reportName}
             changesBasedOn: 'これは、お客様の Expensify カードの利用状況と、以下のサブスクリプションオプションによって変わります。',
         },
         requestEarlyCancellation: {
-            title: '早期解約をリクエスト',
+            title: 'サブスクリプションをキャンセル',
             subtitle: '早期解約を申請する主な理由を教えてください。',
             subscriptionCanceled: {
                 title: 'サブスクリプションを解約しました',

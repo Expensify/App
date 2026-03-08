@@ -8247,7 +8247,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Nutzung der Expensify Karte und den untenstehenden Abooptionen.',
         },
         requestEarlyCancellation: {
-            title: 'Frühzeitige Kündigung anfordern',
+            title: 'Abonnement kündigen',
             subtitle: 'Was ist der Hauptgrund, warum du eine vorzeitige Kündigung beantragst?',
             subscriptionCanceled: {
                 title: 'Abonnement gekündigt',

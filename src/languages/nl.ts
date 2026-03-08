@@ -8209,7 +8209,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Kaart en de abonnementsopties hieronder.',
         },
         requestEarlyCancellation: {
-            title: 'Vroegtijdige annulering aanvragen',
+            title: 'Abonnement opzeggen',
             subtitle: 'Wat is de belangrijkste reden dat je om vervroegde annulering vraagt?',
             subscriptionCanceled: {
                 title: 'Abonnement geannuleerd',

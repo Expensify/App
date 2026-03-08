@@ -8008,7 +8008,7 @@ ${reportName}
             changesBasedOn: '这会根据你使用 Expensify 卡的情况以及下方的订阅选项而变化。',
         },
         requestEarlyCancellation: {
-            title: '请求提前取消',
+            title: '取消订阅',
             subtitle: '您申请提前取消的主要原因是什么？',
             subscriptionCanceled: {
                 title: '订阅已取消',

@@ -33,11 +33,11 @@ import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
+import CancelSubscriptionMenuItem from './CancelSubscriptionMenuItem';
 import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import getSectionSubtitle from './CardSectionSubtitle';
-import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
@@ -299,7 +299,7 @@ function CardSection() {
                 />
             )}
 
-            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
+            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) && <CancelSubscriptionMenuItem />}
         </Section>
     );
 }

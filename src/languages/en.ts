@@ -8208,7 +8208,7 @@ const translations = {
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },
         requestEarlyCancellation: {
-            title: 'Request early cancellation',
+            title: 'Cancel subscription',
             subtitle: 'What’s the main reason you’re requesting early cancellation?',
             subscriptionCanceled: {
                 title: 'Subscription canceled',

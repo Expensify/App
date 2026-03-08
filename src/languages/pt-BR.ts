@@ -8201,7 +8201,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
         },
         requestEarlyCancellation: {
-            title: 'Solicitar cancelamento antecipado',
+            title: 'Cancelar assinatura',
             subtitle: 'Qual é o principal motivo pelo qual você está solicitando o cancelamento antecipado?',
             subscriptionCanceled: {
                 title: 'Assinatura cancelada',

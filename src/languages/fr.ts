@@ -8268,7 +8268,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             changesBasedOn: 'Cela varie en fonction de votre utilisation de la Carte Expensify et des options d’abonnement ci-dessous.',
         },
         requestEarlyCancellation: {
-            title: 'Demander une résiliation anticipée',
+            title: "Annuler l'abonnement",
             subtitle: 'Quelle est la principale raison pour laquelle vous demandez une résiliation anticipée ?',
             subscriptionCanceled: {
                 title: 'Abonnement annulé',

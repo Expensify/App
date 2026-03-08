@@ -8232,7 +8232,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             changesBasedOn: "Questo cambia in base all'utilizzo della tua Carta Expensify e alle opzioni di abbonamento qui sotto.",
         },
         requestEarlyCancellation: {
-            title: 'Richiedi annullamento anticipato',
+            title: 'Annulla abbonamento',
             subtitle: 'Qual è il motivo principale per cui stai richiedendo l’annullamento anticipato?',
             subscriptionCanceled: {
                 title: 'Abbonamento annullato',

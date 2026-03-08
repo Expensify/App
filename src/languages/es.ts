@@ -8455,7 +8455,7 @@ ${amount} para ${merchant} - ${date}`,
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
         requestEarlyCancellation: {
-            title: 'Solicitar cancelación anticipada',
+            title: 'Cancelar suscripción',
             subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
             subscriptionCanceled: {
                 title: 'Suscripción cancelada',
