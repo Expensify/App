@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -70,6 +71,7 @@ function DebugReportPage({
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -162,7 +164,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -223,6 +225,8 @@ function DebugReportPage({
             transactionID,
             translate,
             icons.Eye,
+            currentUserAccountID,
+            conciergeReportID,
         ],
     );
 

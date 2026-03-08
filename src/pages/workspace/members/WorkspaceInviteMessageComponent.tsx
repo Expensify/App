@@ -142,7 +142,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if ((backTo as string)?.endsWith('members')) {
-            Navigation.dismissModal();
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
 
@@ -151,8 +151,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)),
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
         });
     };
 

@@ -43,7 +43,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankName, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
+import {convertAmountToDisplayString, convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithExplicitCurrency, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -184,7 +184,6 @@ const deprecatedOldDotReportActions = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
 ]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -568,6 +567,10 @@ function isRetractedAction(reportAction: OnyxEntry<ReportAction>): reportAction 
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED);
 }
 
+function isRejectedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER);
+}
+
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
     return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
@@ -885,6 +888,8 @@ function getReportActionActorAccountID(
             return reportAction?.actorAccountID;
         }
 
+        case CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED:
+        case CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
@@ -1428,6 +1433,7 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
 function getDynamicExternalWorkflowRoutedAction(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
+    const originalMessage = getOriginalMessage(reportAction);
     return {
         reportActionID: `${reportAction.reportActionID}DEW`,
         created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
@@ -1435,7 +1441,8 @@ function getDynamicExternalWorkflowRoutedAction(
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
         message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
         originalMessage: {
-            to: getOriginalMessage(reportAction)?.to ?? '',
+            to: originalMessage?.to ?? '',
+            message: originalMessage?.message ?? '',
         },
     };
 }
@@ -2299,6 +2306,22 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         const message = getDynamicExternalWorkflowRoutedMessage(action, translate);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+        const originalMessage = getOriginalMessage(action);
+        const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+        const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+        return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isDynamicExternalWorkflowApproveFailedAction(action)) {
+        const originalMessage = getOriginalMessage(action);
+        const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
+        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+        const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+        return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     const actionMessage = action.previousMessage ?? action.message;
@@ -4091,16 +4114,28 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
 }
 
-function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+/**
+ * Check if the original report referenced by a report action is deleted.
+ */
+function isOriginalReportDeleted(action: OnyxEntry<ReportAction>, originalReport: OnyxEntry<Report>): boolean {
+    // isOriginalReportDeleted is set to true when the original report is deleted from the backend. We can fall back to check if the report is optimistically deleted on the frontend side.
+    return !!action?.isOriginalReportDeleted || originalReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, isReportDeleted: boolean, translate: LocalizedTranslate): string {
+    if (reportID === undefined) {
+        return '';
+    }
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName, reportID, isReportDeleted});
 }
 
 function getDynamicExternalWorkflowRoutedMessage(
     action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
     translate: LocaleContextProps['translate'],
 ) {
-    return translate('iou.routedDueToDEW', getOriginalMessage(action)?.to ?? '');
+    const originalMessage = getOriginalMessage(action);
+    return translate('iou.routedDueToDEW', originalMessage?.to ?? '', originalMessage?.message ?? '');
 }
 
 function getSettlementAccountLockedMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
@@ -4217,6 +4252,20 @@ function getRoomChangeLogMessage(translate: LocalizedTranslate, reportAction: Re
             : translate('workspace.invite.removed');
     const userText = (targetAccountIDs.length === 1 ? translate('common.member') : translate('common.members')).toLowerCase();
     return `${actionText} ${targetAccountIDs.length} ${userText}`;
+}
+
+// Renders content of ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL reportActions
+function getActionableCard3DSTransactionApprovalMessage(
+    translate: LocalizedTranslate,
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL>,
+) {
+    const originalMessage = getOriginalMessage(reportAction);
+    if (!originalMessage) {
+        return undefined;
+    }
+    const {amount, currency, merchant} = originalMessage;
+    const formattedAmount = amount ? convertToDisplayStringWithExplicitCurrency(amount, currency) : '';
+    return translate('report.actions.type.actionableCard3DSTransactionApproval', formattedAmount, merchant);
 }
 
 /**
@@ -4547,7 +4596,9 @@ export {
     getTagListUpdatedRequiredMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
+    getActionableCard3DSTransactionApprovalMessage,
     shouldShowActivateCard,
+    isRejectedAction,
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
@@ -4572,6 +4623,7 @@ export {
     getWorkspaceCategoriesUpdatedMessage,
     getHarvestCreatedExpenseReportMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    isOriginalReportDeleted,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,

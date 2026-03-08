@@ -7,6 +7,7 @@ import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
 import type {Reservation} from './Transaction';
+import type TransactionPending3DSReview from './TransactionPending3DSReview';
 
 /** Types of join workspace resolutions */
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
@@ -1043,6 +1044,9 @@ type OriginalMessageDismissedViolation = {
 type OriginalMessageDynamicExternalWorkflowRouted = {
     /** The approver of the report is submitted to */
     to: string;
+
+    /** Explanation for why the report was routed that way */
+    message?: string;
 };
 
 /** Model of `marked reimbursed` report action */
@@ -1109,6 +1113,9 @@ type OriginalMessageForwarded = {
 
     /** The workflow the report is approved on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Optional message explaining why the report was forwarded that way */
+    message?: string;
 };
 
 /**
@@ -1237,6 +1244,9 @@ type OriginalMessageDEWFailed = {
 
     /** Whether the action was automatic */
     automaticAction?: boolean;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /**
@@ -1289,6 +1299,11 @@ type OriginalMessageTakeControl = {
 };
 
 /**
+ * Minimal transaction data needed to render the MFA authorize transaction preview.
+ */
+type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
+
+/**
  * Model of settlement account locked report action
  */
 type OriginalMessageSettlementAccountLocked = {
@@ -1335,6 +1350,7 @@ type OriginalMessageReimbursementDirectorInformationRequired = {
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL]: OriginalMessageActionableCard3DSTransactionApproval;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT]: OriginalMessageCardFraudAlert;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
@@ -1362,6 +1378,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;

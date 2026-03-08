@@ -7,7 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardSettings} from '@src/types/onyx';
+import type {ExpensifyCardSettingsBase} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListLabelsProps = {
@@ -15,7 +15,7 @@ type WorkspaceCardListLabelsProps = {
     policyID: string;
 
     /** Card settings */
-    cardSettings: ExpensifyCardSettings | undefined;
+    cardSettings: ExpensifyCardSettingsBase | undefined;
 };
 
 function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabelsProps) {
