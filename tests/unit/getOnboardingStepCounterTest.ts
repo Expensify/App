@@ -102,6 +102,25 @@ describe('getOnboardingFlow', () => {
         ]);
     });
 
+    it('returns 4-step flow for public + skipped + individual + PERSONAL_SPEND', () => {
+        expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND})).toEqual([
+            O.WORK_EMAIL,
+            O.PURPOSE,
+            O.PERSONAL_DETAILS,
+            O.WORKSPACE_OPTIONAL,
+        ]);
+    });
+
+    it('returns 5-step flow for public + skipped + individual + MANAGE_TEAM', () => {
+        expect(getOnboardingFlow({signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM})).toEqual([
+            O.WORK_EMAIL,
+            O.PURPOSE,
+            O.EMPLOYEES,
+            O.ACCOUNTING,
+            O.INTERESTED_FEATURES,
+        ]);
+    });
+
     it('returns 5-step flow for private domain + VSB', () => {
         expect(getOnboardingFlow({signupQualifier: 'vsb', hasAccessibleDomainPolicies: true})).toEqual([
             O.PERSONAL_DETAILS,
@@ -211,6 +230,23 @@ describe('getOnboardingStepCounter', () => {
         expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 7, total: 7}, progressBarPercentage: 100});
     });
 
+    it('returns correct step/total/percentage for public + skipped + individual + MANAGE_TEAM (no gaps)', () => {
+        const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 5}, progressBarPercentage: 20});
+        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 5}, progressBarPercentage: 40});
+        expect(getOnboardingStepCounter(O.EMPLOYEES, ctx)).toEqual({stepCounter: {step: 3, total: 5}, progressBarPercentage: 60});
+        expect(getOnboardingStepCounter(O.ACCOUNTING, ctx)).toEqual({stepCounter: {step: 4, total: 5}, progressBarPercentage: 80});
+        expect(getOnboardingStepCounter(O.INTERESTED_FEATURES, ctx)).toEqual({stepCounter: {step: 5, total: 5}, progressBarPercentage: 100});
+    });
+
+    it('returns correct step/total/percentage for public + skipped + individual + PERSONAL_SPEND (no gaps)', () => {
+        const ctx: OnboardingFlowContext = {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true, purposeSelected: ONBOARDING_CHOICES.PERSONAL_SPEND};
+        expect(getOnboardingStepCounter(O.WORK_EMAIL, ctx)).toEqual({stepCounter: {step: 1, total: 4}, progressBarPercentage: 25});
+        expect(getOnboardingStepCounter(O.PURPOSE, ctx)).toEqual({stepCounter: {step: 2, total: 4}, progressBarPercentage: 50});
+        expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 3, total: 4}, progressBarPercentage: 75});
+        expect(getOnboardingStepCounter(O.WORKSPACE_OPTIONAL, ctx)).toEqual({stepCounter: {step: 4, total: 4}, progressBarPercentage: 100});
+    });
+
     it('returns correct step/total/percentage for private domain + individual + MANAGE_TEAM (7-step flow)', () => {
         const ctx: OnboardingFlowContext = {signupQualifier: 'individual', hasAccessibleDomainPolicies: true, purposeSelected: ONBOARDING_CHOICES.MANAGE_TEAM};
         expect(getOnboardingStepCounter(O.PERSONAL_DETAILS, ctx)).toEqual({stepCounter: {step: 1, total: 7}, progressBarPercentage: 14});
@@ -270,6 +306,13 @@ describe('getOnboardingStepCounter', () => {
                 ],
             },
             {
+                label: 'public-skipped',
+                ctx: {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: true},
+                expectedPurposeStep: 2,
+                expectedPurposePct: 40,
+                prefixPages: [{page: O.WORK_EMAIL, step: 1, pct: 20}],
+            },
+            {
                 label: 'public-merge',
                 ctx: {signupQualifier: 'individual', isFromPublicDomain: true, isMergeAccountStepSkipped: false},
                 expectedPurposeStep: 4,
@@ -315,6 +358,7 @@ describe('getOnboardingStepCounter', () => {
         const domainVariants: Array<{label: string; ctx: Partial<OnboardingFlowContext>}> = [
             {label: 'no-domain', ctx: {}},
             {label: 'public', ctx: {isFromPublicDomain: true}},
+            {label: 'public-skipped', ctx: {isFromPublicDomain: true, isMergeAccountStepSkipped: true}},
             {label: 'public-merge', ctx: {isFromPublicDomain: true, isMergeAccountStepSkipped: false}},
             {label: 'private', ctx: {hasAccessibleDomainPolicies: true}},
         ];
@@ -349,7 +393,13 @@ describe('getOnboardingStepCounter', () => {
     });
 
     describe('every purpose/qualifier combination produces a defined flow', () => {
-        const domainVariants: OnboardingFlowContext[] = [{}, {isFromPublicDomain: true}, {isFromPublicDomain: true, isMergeAccountStepSkipped: false}, {hasAccessibleDomainPolicies: true}];
+        const domainVariants: OnboardingFlowContext[] = [
+            {},
+            {isFromPublicDomain: true},
+            {isFromPublicDomain: true, isMergeAccountStepSkipped: true},
+            {isFromPublicDomain: true, isMergeAccountStepSkipped: false},
+            {hasAccessibleDomainPolicies: true},
+        ];
 
         it.each(Object.values(ONBOARDING_CHOICES))('individual + %s returns a defined flow across all domain variants', (purpose) => {
             for (const domain of domainVariants) {

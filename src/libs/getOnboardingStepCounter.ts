@@ -73,6 +73,10 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
         }
+        // User skipped the work email step — they never see WORK_EMAIL_VALIDATION
+        if (context.isMergeAccountStepSkipped === true) {
+            return [ONBOARDING.WORK_EMAIL];
+        }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
