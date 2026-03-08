@@ -209,14 +209,14 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
     let isAttendeeTrackingEnabled = false;
     let hasReportFields = false;
     let hasAnyTaxRates = false;
-    const nonPersonalPolicyCategoryIds: string[] = [];
+    let hasNonPersonalPolicies = false;
 
     for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
         }
-        if (policy.type !== CONST.POLICY.TYPE.PERSONAL) {
-            nonPersonalPolicyCategoryIds.push(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+        if (!hasNonPersonalPolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL) {
+            hasNonPersonalPolicies = true;
         }
         if (!areCategoriesEnabled) {
             areCategoriesEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED);
@@ -238,7 +238,7 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
         }
     }
 
-    return {areCategoriesEnabled, areTagsEnabled, areTaxEnabled, isAttendeeTrackingEnabled, hasReportFields, hasAnyTaxRates, nonPersonalPolicyCategoryIds};
+    return {areCategoriesEnabled, areTagsEnabled, areTaxEnabled, isAttendeeTrackingEnabled, hasReportFields, hasAnyTaxRates, hasNonPersonalPolicies};
 };
 
 /**
@@ -275,7 +275,7 @@ function useAdvancedSearchFilters() {
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availablePolicyCategoriesSelector,
     });
-    const [taxRates = {} as Record<string, string[]>] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesSelector});
+    const [taxRates = getEmptyObject<Record<string, string[]>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesSelector});
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
@@ -293,8 +293,11 @@ function useAdvancedSearchFilters() {
     });
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
-    const nonPersonalPolicyCategoryIdSet = new Set(policyDerived?.nonPersonalPolicyCategoryIds);
-    const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => nonPersonalPolicyCategoryIdSet.has(policyCategoryId));
+    const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => {
+        const categoryPolicyID = policyCategoryId.replace(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, '');
+        const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${categoryPolicyID}`];
+        return policy?.type !== CONST.POLICY.TYPE.PERSONAL;
+    });
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
     const shouldDisplayTagFilter = shouldDisplayFilter(hasTags ? 1 : 0, policyDerived?.areTagsEnabled ?? false, !!selectedPolicyTagLists);
