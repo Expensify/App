@@ -3168,10 +3168,14 @@ function getWorkspaceCustomUnitSubRateDeletedMessage(translate: LocalizedTransla
 }
 
 function getWorkspaceReportFieldAddMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {fieldName, fieldType, defaultValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (fieldName && fieldType) {
-        return translate('workspaceActions.addedReportField', {fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName});
+        return translate('workspaceActions.addedReportField', {
+            fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
+            fieldName,
+            defaultValue,
+        });
     }
 
     return getReportActionText(action);
