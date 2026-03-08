@@ -242,12 +242,6 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
 };
 
 /**
- * Selector that computes all tax rates in a single pass.
- * Returns the same reference via deepEqual when tax rates haven't changed.
- */
-const taxRatesSelector = (policies: OnyxCollection<Policy>) => getAllTaxRates(policies ?? {});
-
-/**
  * Selector that checks if any tags exist across all policy tag lists.
  * Returns a boolean with early exit on first tag found.
  */
@@ -275,7 +269,7 @@ function useAdvancedSearchFilters() {
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availablePolicyCategoriesSelector,
     });
-    const [taxRates = getEmptyObject<Record<string, string[]>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: taxRatesSelector});
+    const taxRates = getAllTaxRates(policies);
     const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
