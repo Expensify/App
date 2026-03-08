@@ -46,7 +46,7 @@ type UserSelectPopupProps = {
 function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible = false}: UserSelectPopupProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {options, currentOption} = usePersonalDetailOptions();
+    const {options, currentOption, isLoading} = usePersonalDetailOptions();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -64,11 +64,15 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible
     const incomingSelectedAccountIDs = value.filter((accountID) => availableAccountIDs.has(accountID));
 
     const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(() => new Set(incomingSelectedAccountIDs));
-    const initialSelectedAccountIDs = useInitialSelectionRef(incomingSelectedAccountIDs, {resetDeps: [isVisible]});
+    const initialSelectedAccountIDs = useInitialSelectionRef(incomingSelectedAccountIDs, {resetDeps: [isVisible, isLoading]});
 
     useEffect(() => {
         if (!isVisible) {
             hasBeenVisibleRef.current = false;
+            return;
+        }
+
+        if (isLoading) {
             return;
         }
 
@@ -79,7 +83,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible
         hasBeenVisibleRef.current = true;
         setSelectedAccountIDs(new Set(incomingSelectedAccountIDs));
         setSearchTerm('');
-    }, [incomingSelectedAccountIDs, isVisible]);
+    }, [incomingSelectedAccountIDs, isLoading, isVisible]);
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -158,6 +162,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowSearchInput = isSearchable ?? transformedOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowLoadingPlaceholder = isLoading;
 
     const textInputOptions = useMemo(
         () =>
@@ -183,6 +188,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible
                 style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldScrollToTopOnSelect={false}
             />
 

@@ -85,6 +85,7 @@ describe('UserSelectPopup', () => {
         mockedSelectionList.mockClear();
         mockedUsePersonalDetailOptions.mockReturnValue({
             currentOption: undefined,
+            isLoading: false,
             options: Array.from({length: 10}, (_, index) => buildOption(index + 1)),
         });
     });
@@ -118,7 +119,11 @@ describe('UserSelectPopup', () => {
         expect(targetIndex).toBeGreaterThanOrEqual(0);
 
         act(() => {
-            initialProps?.onSelectRow?.(initialProps.data.at(targetIndex));
+            const targetRow = initialProps?.data.at(targetIndex);
+            if (!targetRow) {
+                throw new Error('Expected target row to exist');
+            }
+            initialProps?.onSelectRow?.(targetRow);
         });
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];
@@ -136,7 +141,11 @@ describe('UserSelectPopup', () => {
         expect(initialProps?.data.at(0)?.isSelected).toBe(true);
 
         act(() => {
-            initialProps?.onSelectRow?.(initialProps.data.at(0));
+            const selectedRow = initialProps?.data.at(0);
+            if (!selectedRow) {
+                throw new Error('Expected initially selected row to exist');
+            }
+            initialProps?.onSelectRow?.(selectedRow);
         });
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];
@@ -156,5 +165,46 @@ describe('UserSelectPopup', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         expect(searchedProps?.data.at(0)?.accountID).toBe(1);
         expect(searchedProps?.data.findIndex((item) => item.accountID === 2)).toBeGreaterThan(0);
+    });
+
+    it('keeps preselected users when options hydrate after the popup becomes visible', () => {
+        mockedUsePersonalDetailOptions.mockReturnValueOnce({
+            currentOption: undefined,
+            isLoading: true,
+            options: undefined,
+        });
+
+        const {rerender} = render(
+            <UserSelectPopup
+                value={['2', '5']}
+                closeOverlay={jest.fn()}
+                onChange={jest.fn()}
+                isVisible
+            />,
+        );
+
+        const loadingProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(loadingProps?.shouldShowLoadingPlaceholder).toBe(true);
+
+        mockedUsePersonalDetailOptions.mockReturnValue({
+            currentOption: undefined,
+            isLoading: false,
+            options: Array.from({length: 10}, (_, index) => buildOption(index + 1)),
+        });
+
+        rerender(
+            <UserSelectPopup
+                value={['2', '5']}
+                closeOverlay={jest.fn()}
+                onChange={jest.fn()}
+                isVisible
+            />,
+        );
+
+        const hydratedProps = mockedSelectionList.mock.lastCall?.[0];
+        expect(hydratedProps?.shouldShowLoadingPlaceholder).toBe(false);
+        expect(hydratedProps?.data.slice(0, 2).map((item) => item.accountID)).toEqual([2, 5]);
+        expect(hydratedProps?.data.find((item) => item.accountID === 2)?.isSelected).toBe(true);
+        expect(hydratedProps?.data.find((item) => item.accountID === 5)?.isSelected).toBe(true);
     });
 });
