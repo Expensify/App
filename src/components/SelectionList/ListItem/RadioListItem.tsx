@@ -35,6 +35,7 @@ function RadioListItem<TItem extends ListItem>({
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
+    const CIRCULAR_BORDER_RADIUS = 999;
 
     const handleCheckboxPress = useCallback(() => {
         onSelectRow(item);
@@ -43,7 +44,7 @@ function RadioListItem<TItem extends ListItem>({
     const defaultRightHandSideComponent = (
         <Checkbox
             shouldSelectOnPressEnter
-            containerBorderRadius={999}
+            containerBorderRadius={CIRCULAR_BORDER_RADIUS}
             accessibilityLabel={item.text ?? ''}
             isChecked={!!item.isSelected}
             onPress={handleCheckboxPress}
@@ -72,7 +73,7 @@ function RadioListItem<TItem extends ListItem>({
         >
             <>
                 {!!item.leftElement && item.leftElement}
-                <View style={[styles.flex1, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.alignItemsStart, styles.pr3]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={fullTitle ?? ''}
