@@ -7,11 +7,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
@@ -186,11 +186,7 @@ function TroubleshootPage() {
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
-                        renderSubtitle={() => (
-                            <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
-                            </View>
-                        )}
+                        renderSubtitle={() => <SectionSubtitleHTML html={translate('initialSettingsPage.troubleshoot.description')} />}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...troubleshootIllustration}
                     >

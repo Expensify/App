@@ -10,10 +10,10 @@ import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSo
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -165,9 +165,10 @@ function WorkspaceReportFieldsPage({
 
     const renderReportSubtitle = () => (
         <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-            <View style={[[styles.renderHTML, styles.mt1]]}>
-                <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-            </View>
+            <SectionSubtitleHTML
+                html={translate('workspace.reports.customReportNamesSubtitle')}
+                wrapperStyle={styles.mt1}
+            />
         </OfflineWithFeedback>
     );
 

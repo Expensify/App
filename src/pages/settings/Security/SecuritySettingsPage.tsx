@@ -18,8 +18,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -412,17 +412,10 @@ function SecuritySettingsPage() {
                                 <Section
                                     title={translate('delegate.copilotDelegatedAccess')}
                                     renderSubtitle={() => (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
-                                            <TextLink
-                                                style={[styles.link]}
-                                                href={CONST.COPILOT_HELP_URL}
-                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
-                                            >
-                                                {translate('common.learnMore')}
-                                            </TextLink>
-                                            .
-                                        </Text>
+                                        <SectionSubtitleHTML
+                                            html={`${translate('delegate.copilotDelegatedAccessDescription')} <a href="${CONST.COPILOT_HELP_URL}" accessibilityLabel="${translate('delegate.copilotDelegatedAccess')}">${translate('common.learnMore')}</a>.`}
+                                            subtitleMuted
+                                        />
                                     )}
                                     isCentralPane
                                     subtitleMuted

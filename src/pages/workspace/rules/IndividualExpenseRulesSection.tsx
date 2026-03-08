@@ -1,10 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +31,6 @@ type IndividualExpenseRulesSectionProps = {
 type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
     translate: LocaleContextProps['translate'];
-    styles: ThemeStyles;
     environmentURL: string;
 };
 
@@ -43,7 +41,7 @@ type IndividualExpenseRulesMenuItem = {
     pendingAction?: PendingAction;
 };
 
-function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
+function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
     const policyID = policy?.id;
 
     const categoriesPageLink = useMemo(() => {
@@ -62,11 +60,7 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
         return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
     }, [policy?.areTagsEnabled, policyID, environmentURL]);
 
-    return (
-        <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
-            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />
-        </View>
-    );
+    return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
@@ -225,7 +219,6 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 <IndividualExpenseRulesSectionSubtitle
                     policy={policy}
                     translate={translate}
-                    styles={styles}
                     environmentURL={environmentURL}
                 />
             )}
