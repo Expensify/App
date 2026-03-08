@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
@@ -25,7 +26,8 @@ function MigratedUserWelcomeModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles']);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'PlanetWithMobileApp']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
@@ -62,12 +64,13 @@ function MigratedUserWelcomeModal() {
                 openExternalLink(helpUrl);
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
-            animation={LottieAnimations.WorkspacePlanet}
+            {...(isReduceMotionEnabled
+                ? {image: illustrations.PlanetWithMobileApp}
+                : {animation: LottieAnimations.WorkspacePlanet, animationStyle: [styles.emptyWorkspaceIllustrationStyle]})}
             onClose={() => {
                 Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
                 dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
-            animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
             illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
