@@ -406,6 +406,7 @@ function BaseReportActionContextMenu({
                             currentUserAccountID: currentUserPersonalDetails?.accountID,
                             currentUserPersonalDetails,
                             encryptedAuthToken,
+                            iouTransaction,
                         };
 
                         if ('renderContent' in contextAction) {

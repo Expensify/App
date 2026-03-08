@@ -340,7 +340,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         return;
                     }
 
-                    changeMoneyRequestHoldStatus(parentReportAction);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction);
                 }}
             />
         ),
@@ -411,7 +411,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
-            changeMoneyRequestHoldStatus(parentReportAction);
+            changeMoneyRequestHoldStatus(parentReportAction, transaction);
         }
     };
 
@@ -419,7 +419,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (parentReportAction) {
-                changeMoneyRequestHoldStatus(parentReportAction);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction);
             }
         } else {
             dismissRejectUseExplanation();
@@ -449,7 +449,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
                 if (isDismissed || isParentChatReportDM) {
-                    changeMoneyRequestHoldStatus(parentReportAction);
+                    changeMoneyRequestHoldStatus(parentReportAction, transaction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -471,7 +471,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(parentReportAction);
+                changeMoneyRequestHoldStatus(parentReportAction, transaction);
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {

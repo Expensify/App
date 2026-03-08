@@ -896,7 +896,7 @@ function MoneyReportHeader({
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction);
+            changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
         }
     };
 
@@ -904,7 +904,7 @@ function MoneyReportHeader({
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1204,7 +1204,7 @@ function MoneyReportHeader({
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action);
+                            changeMoneyRequestHoldStatus(action, transaction);
                         }
                         return;
                     }
@@ -1214,7 +1214,7 @@ function MoneyReportHeader({
                         return;
                     }
 
-                    changeMoneyRequestHoldStatus(moneyRequestAction);
+                    changeMoneyRequestHoldStatus(moneyRequestAction, transaction);
                 }}
             />
         ),
@@ -1464,7 +1464,7 @@ function MoneyReportHeader({
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1487,7 +1487,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
