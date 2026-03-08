@@ -4,11 +4,13 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
+import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -63,8 +65,16 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWApprove, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, sortPoliciesByName} from '@libs/PolicyUtils';
+import {
+    getIOUActionForReportID,
+    getOriginalMessage,
+    getReportAction,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
+    hasRequestFromCurrentAccount,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -88,6 +98,7 @@ import {
     isDM,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
+    isIOUReport as isIOUReportUtil,
     isOpenExpenseReport,
     isProcessingReport,
     isReportOwner,
@@ -244,6 +255,7 @@ function MoneyReportHeader({
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Building',
         'Buildings',
         'Plus',
         'Hourglass',
@@ -1093,6 +1105,49 @@ function MoneyReportHeader({
         onlyShowPayElsewhere,
     });
 
+    const activeAdminPolicies = useActiveAdminPolicies();
+
+    const workspacePolicyOptions = useMemo(() => {
+        if (!isIOUReportUtil(moneyRequestReport)) {
+            return [];
+        }
+
+        const hasPersonalPaymentOption = paymentButtonOptions.some((opt) => opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+        if (!hasPersonalPaymentOption || !activeAdminPolicies.length) {
+            return [];
+        }
+
+        const canUseBusinessBankAccount =
+            moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+        if (!canUseBusinessBankAccount) {
+            return [];
+        }
+
+        return sortPoliciesByName(activeAdminPolicies, localeCompare);
+    }, [moneyRequestReport, paymentButtonOptions, activeAdminPolicies, accountID, localeCompare]);
+
+    const buildPaymentSubMenuItems = (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
+        if (!workspacePolicyOptions.length) {
+            return Object.values(paymentButtonOptions);
+        }
+
+        const result: PopoverMenuItem[] = [];
+        for (const opt of Object.values(paymentButtonOptions)) {
+            result.push(opt);
+            if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                for (const wp of workspacePolicyOptions) {
+                    result.push({
+                        text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
+                        icon: expensifyIcons.Building,
+                        onSelected: () => onWorkspaceSelected(wp),
+                    });
+                }
+            }
+        }
+
+        return result;
+    };
+
     const addExpenseDropdownOptions = useMemo(
         () =>
             getAddExpenseDropdownOptions(
@@ -1398,6 +1453,22 @@ function MoneyReportHeader({
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
+    const checkForNecessaryAction = () => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return true;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return true;
+        }
+        if (!isUserValidated) {
+            handleUnvalidatedAccount(moneyRequestReport);
+            return true;
+        }
+        return false;
+    };
+
     const selectionModeReportLevelActions = (() => {
         if (isProduction) {
             return [];
@@ -1429,7 +1500,13 @@ function MoneyReportHeader({
                 value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
                 rightIcon: expensifyIcons.ArrowRight,
                 backButtonText: translate('iou.settlePayment', totalAmount),
-                subMenuItems: Object.values(paymentButtonOptions),
+                subMenuItems: buildPaymentSubMenuItems((wp) => {
+                    isSelectionModePaymentRef.current = true;
+                    if (checkForNecessaryAction()) {
+                        return;
+                    }
+                    kycWallRef.current?.continueAction?.({policy: wp});
+                }),
                 onSelected: () => {
                     isSelectionModePaymentRef.current = true;
                 },
@@ -1863,7 +1940,9 @@ function MoneyReportHeader({
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             backButtonText: translate('iou.settlePayment', totalAmount),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,
-            subMenuItems: Object.values(paymentButtonOptions),
+            subMenuItems: buildPaymentSubMenuItems((wp) => {
+                kycWallRef.current?.continueAction?.({policy: wp});
+            }),
         },
     };
     const applicableSecondaryActions = secondaryActions
@@ -2003,22 +2082,6 @@ function MoneyReportHeader({
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
-
-    const checkForNecessaryAction = () => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return true;
-        }
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return true;
-        }
-        if (!isUserValidated) {
-            handleUnvalidatedAccount(moneyRequestReport);
-            return true;
-        }
-        return false;
-    };
 
     const makePaymentSelectHandler = (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (fromSelectionMode) {
