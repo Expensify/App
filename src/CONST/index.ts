@@ -2648,6 +2648,8 @@ const CONST = {
                 NAME: 'name',
                 INTERNAL_ID: 'internal-id',
                 SCRIPT_ID: 'script-id',
+                MAPPING_TITLE: 'mapping-title',
+                CONFIRM: 'confirm',
             },
         },
         NETSUITE_ADD_CUSTOM_LIST: {
