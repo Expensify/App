@@ -8,6 +8,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,14 +28,18 @@ function SearchFiltersGroupByPage() {
         return getGroupBySections(translate).map((section, sectionIndex) => ({
             title: section.title,
             sectionIndex,
+            customHeader: (
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionIndex > 0 && styles.mt4]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                </View>
+            ),
             data: section.options.map((groupOption) => ({
                 text: groupOption.text,
                 keyForList: groupOption.value,
                 isSelected: selectedItem === groupOption.value,
             })),
         }));
-    }, [translate, selectedItem]);
-
+    }, [selectedItem, styles.justifyContentCenter, styles.mt4, styles.optionsListSectionHeader, styles.ph5, styles.textLabelSupporting, translate]);
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
     }, []);
