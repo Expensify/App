@@ -14,7 +14,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
-import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport, isReportInGroupPolicy} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -227,6 +227,11 @@ function getMergeableDataAndConflictFields(
 
         const isTargetValueEmpty = isEmptyMergeValue(targetValue);
         const isSourceValueEmpty = isEmptyMergeValue(sourceValue);
+
+        // Temporarily skip merging tax value if either policy has tax tracking disabled until we handle in https://github.com/Expensify/App/issues/83157
+        if (field === 'taxValue' && (!targetTransactionPolicy?.tax?.trackingEnabled || !sourceTransactionPolicy?.tax?.trackingEnabled)) {
+            continue;
+        }
 
         if (field === 'amount') {
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
