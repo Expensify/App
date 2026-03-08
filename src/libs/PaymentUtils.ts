@@ -155,6 +155,8 @@ const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
         Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
+    } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else {
         Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     }
