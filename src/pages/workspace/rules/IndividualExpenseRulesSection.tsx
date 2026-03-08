@@ -15,7 +15,6 @@ import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPol
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {View} from 'react-native';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;

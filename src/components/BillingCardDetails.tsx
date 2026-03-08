@@ -2,8 +2,6 @@ import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Icon from '@components/Icon';
-import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -11,6 +9,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import type Fund from '@src/types/onyx/Fund';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Text from './Text';
+import Icon from './Icon';
 
 type BillingCardDetailsProps = {
     /** The billing card data */
@@ -31,7 +32,7 @@ function BillingCardDetails({card, rightComponent, wrapperStyle}: BillingCardDet
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1], [card?.accountData?.cardMonth]);
 
-    if (!card?.accountData) {
+    if (isEmptyObject(card?.accountData)) {
         return null;
     }
 

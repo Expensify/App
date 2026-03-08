@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
-import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
-import {doesUserHavePaymentCardAdded, getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {updatePersonalKarma} from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -37,9 +36,9 @@ function SaveTheWorldPage() {
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
-    const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const [isDisablePersonalKarmaModalVisible, setIsDisablePersonalKarmaModalVisible] = useState(false);
     const [isAddPaymentCardModalVisible, setIsAddPaymentCardModalVisible] = useState(false);
     const shouldRevertPersonalKarmaOnAddCardModalHideRef = useRef(false);
@@ -55,7 +54,7 @@ function SaveTheWorldPage() {
         }
 
         return getCardForSubscriptionBilling(fundList);
-    }, [fundList, userBillingFundID, userBillingFundID]);
+    }, [fundList, userBillingFundID]);
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -118,7 +117,6 @@ function SaveTheWorldPage() {
         if (!billingCard) {
             shouldRevertPersonalKarmaOnAddCardModalHideRef.current = true;
             setIsAddPaymentCardModalVisible(true);
-            return;
         }
     };
 
@@ -173,19 +171,13 @@ function SaveTheWorldPage() {
                             switchAccessibilityLabel={personalKarmaTitle}
                             onToggle={handlePersonalKarmaToggle}
                             isActive={personalOffsetsEnabled}
-                            wrapperStyle={styles.mt5}
+                            wrapperStyle={styles.mt8}
                         />
                         {personalOffsetsEnabled && (
-                            <View style={styles.mt4}>
-                                {billingCard?.accountData ? (
-                                    <BillingCardDetails
-                                        card={billingCard}
-                                        wrapperStyle={styles.mt2}
-                                    />
-                                ) : !billingCard ? (
-                                    <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('subscription.cardSection.cardNotFound')}</Text>
-                                ) : null}
-                            </View>
+                            <BillingCardDetails
+                                card={billingCard}
+                                wrapperStyle={styles.mt8}
+                            />
                         )}
                     </Section>
                 </View>

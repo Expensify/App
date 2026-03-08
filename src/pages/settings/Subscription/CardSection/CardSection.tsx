@@ -5,7 +5,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import MenuItem from '@components/MenuItem';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
-import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
