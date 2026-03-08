@@ -161,6 +161,7 @@ Onyx.connectWithoutView({
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
 
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
             openApp();
         });
     },
@@ -308,6 +309,16 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
+    let commandName: string;
+    if (isOpenApp) {
+        commandName = 'OpenApp';
+    } else if (isFullReconnect) {
+        commandName = 'ReconnectApp (full)';
+    } else {
+        commandName = 'ReconnectApp (partial)';
+    }
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
+
     const result: OnyxData<
         | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
@@ -609,6 +620,42 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     });
 }
 
+function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftParams) {
+    const {
+        introSelected,
+        policyOwnerEmail = '',
+        policyName = '',
+        makeMeAdmin = false,
+        policyID = '',
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        shouldCreateControlPolicy,
+        isSelfTourViewed,
+    } = params;
+
+    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
+    savePolicyDraftByNewWorkspace({
+        policyID,
+        policyName,
+        policyOwnerEmail,
+        makeMeAdmin,
+        currency,
+        file,
+        lastUsedPaymentMethod,
+        introSelected,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam: allReports,
+        shouldCreateControlPolicy,
+        isSelfTourViewed,
+    });
+}
+
 type SavePolicyDraftByNewWorkspaceParams = {
     isSelfTourViewed: boolean | undefined;
     policyID?: string;
@@ -835,6 +882,7 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    createWorkspaceWithPolicyDraft,
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,

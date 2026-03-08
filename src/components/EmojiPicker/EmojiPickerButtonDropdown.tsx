@@ -34,6 +34,7 @@ type EmojiPickerButtonDropdownProps = {
 function EmojiPickerButtonDropdown(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ref, ...otherProps}: EmojiPickerButtonDropdownProps,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
