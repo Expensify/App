@@ -161,16 +161,16 @@ describe('WorkspaceInviteMessageApproverPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(adminEmail)).toBeOnTheScreen();
+            expect(screen.getByText('Owner')).toBeOnTheScreen();
         });
 
-        const adminOption = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${adminEmail}`);
-        fireEvent.press(adminOption);
+        const ownerOption = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${ownerEmail}`);
+        fireEvent.press(ownerOption);
 
         await waitForBatchedUpdatesWithAct();
 
         const approverDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policy.id}`);
-        expect(approverDraft).toBe(adminEmail);
+        expect(approverDraft).toBe(ownerEmail);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
