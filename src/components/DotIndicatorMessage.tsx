@@ -103,6 +103,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 // eslint-disable-next-line react/no-array-index-key
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
+                role={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityRole={isErrorMessage ? CONST.ROLE.ALERT : undefined}
                 accessibilityLiveRegion={isErrorMessage ? 'assertive' : undefined}
             >

@@ -139,6 +139,7 @@ function FormProvider({
         setInputValues({...draftValues});
     }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
+    const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
 
@@ -254,6 +255,7 @@ function FormProvider({
 
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                setErrorAnnouncementKey((prev) => prev + 1);
                 return;
             }
 
@@ -458,7 +460,14 @@ function FormProvider({
         },
         [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
-    const value = useMemo(() => ({registerInput}), [registerInput]);
+    const value = useMemo(() => ({registerInput, errorAnnouncementKey}), [registerInput, errorAnnouncementKey]);
+
+    const submitAndAnnounce = useCallback(() => {
+        if (!isEmptyObject(errors)) {
+            setErrorAnnouncementKey((prev) => prev + 1);
+        }
+        submit();
+    }, [errors, submit]);
 
     return (
         <FormContext.Provider value={value}>
@@ -466,7 +475,7 @@ function FormProvider({
             <FormWrapper
                 {...rest}
                 formID={formID}
-                onSubmit={submit}
+                onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
                 isLoading={isLoading}

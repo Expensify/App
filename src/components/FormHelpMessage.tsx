@@ -1,13 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
+import FormContext from './Form/FormContext';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -52,8 +52,34 @@ function FormHelpMessage({
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-    const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
+    const {errorAnnouncementKey} = useContext(FormContext);
+
+    const errorAnnouncementText = useMemo(() => {
+        if (!isError || typeof message !== 'string') {
+            return '';
+        }
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) {
+            return '';
+        }
+        return shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
+    }, [isError, message, shouldRenderMessageAsHTML]);
+
+    const shouldAnnounceError = errorAnnouncementText.length > 0;
+
+    // Two-phase DOM update: remove the alert element, then re-add after a delay.
+    // Screen readers ignore same-frame unmount+remount (React key changes),
+    // but detect a real gap where the element is absent from the DOM.
+    const [isAnnouncementMounted, setIsAnnouncementMounted] = useState(false);
+    useEffect(() => {
+        if (!shouldAnnounceError) {
+            setIsAnnouncementMounted(false);
+            return;
+        }
+        setIsAnnouncementMounted(false);
+        const timer = setTimeout(() => setIsAnnouncementMounted(true), 100);
+        return () => clearTimeout(timer);
+    }, [shouldAnnounceError, errorAnnouncementKey]);
 
     const HTMLMessage = useMemo(() => {
         if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
@@ -103,21 +129,17 @@ function FormHelpMessage({
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ??
-                    (shouldRenderMessageAsHTML ? (
-                        <RenderHTML html={HTMLMessage} />
-                    ) : (
-                        <Text
-                            style={[isError ? styles.formError : styles.formHelp, styles.mb0]}
-                            role={shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
-                            // TalkBack on some Android versions skips role-only alert announcements,
-                            // so keep native accessibilityRole/live-region as a platform fallback.
-                            accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
-                            accessibilityLiveRegion={shouldAnnounceError ? 'assertive' : undefined}
-                        >
-                            {message}
-                        </Text>
-                    ))}
+                {isAnnouncementMounted && (
+                    <Text
+                        role={CONST.ROLE.ALERT}
+                        accessibilityRole={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
+                        style={[styles.opacity0, styles.pAbsolute, {width: 1, height: 1, overflow: 'hidden'}]}
+                    >
+                        {errorAnnouncementText}
+                    </Text>
+                )}
+                {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
             </View>
         </View>
     );
