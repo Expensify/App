@@ -164,7 +164,7 @@ describe('WorkspaceInviteMessageApproverPage', () => {
             expect(screen.getByText(adminEmail)).toBeOnTheScreen();
         });
 
-        const adminOption = screen.getByText(adminEmail);
+        const adminOption = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}${adminEmail}`);
         fireEvent.press(adminOption);
 
         await waitForBatchedUpdatesWithAct();
