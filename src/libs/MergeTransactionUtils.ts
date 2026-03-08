@@ -14,7 +14,7 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
 import {getReportName} from './ReportNameUtils';
-import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport, isReportInGroupPolicy} from './ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
