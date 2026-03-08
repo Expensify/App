@@ -40,7 +40,7 @@ Select the date and time that works best for you. Admins are encouraged to atten
 
 **Wednesdays – 14:00 UTC**
 
-(10am Wednesday EDT / 2pm GMT / 3pm CEST)
+(10am Wednesday EDT / 2pm GMT / 3pm CET)
 
 👉 **[Register here](https://events.zoom.us/ev/AhellaELKyULHHdDH1glXh7-1ELREHiDMq7lG-kvZHmgPU0Anwk0~Arf5hJl8n2CLr8mCBuQZlqWLBq_eJyKa3jXqRLM6E93zjTT7okWqXZA2Gw)**
 
