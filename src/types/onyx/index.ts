@@ -112,6 +112,7 @@ import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivatePromoDiscount from './PrivatePromoDiscount';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
@@ -326,6 +327,7 @@ export type {
     SearchResults,
     ReviewDuplicates,
     PrivateSubscription,
+    PrivatePromoDiscount,
     BillingGraceEndPeriod,
     StripeCustomerID,
     BillingStatus,

@@ -42,6 +42,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.PRIVATE_PROMO_DISCOUNT);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
@@ -130,7 +131,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const subscriptionType = isAnnual ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
     const subscriptionSize = `${privateSubscription?.userCount ?? translate('subscription.subscriptionSettings.none')}`;
     const autoRenew = privateSubscription?.autoRenew ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');
-    const expensifyCode = privateSubscription?.isSecretPromoCode ? '' : (privateSubscription?.promoCode ?? '');
+    const expensifyCode = privatePromoDiscount?.isSecretPromoCode ? '' : (privatePromoDiscount?.promoCode ?? '');
 
     return (
         <MenuItemWithTopDescription

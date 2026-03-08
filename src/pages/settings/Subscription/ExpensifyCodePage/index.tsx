@@ -27,8 +27,8 @@ function ExpensifyCodePage() {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const isExpensifyCodeApplied = !!subscription?.promoCode;
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.PRIVATE_PROMO_DISCOUNT);
+    const isExpensifyCodeApplied = !!privatePromoDiscount?.promoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -60,7 +60,7 @@ function ExpensifyCodePage() {
         Navigation.goBack();
     }, [hasSubmitted, isExpensifyCodeApplied]);
 
-    if ((isExpensifyCodeApplied && !hasSubmitted) || subscription?.isSecretPromoCode) {
+    if ((isExpensifyCodeApplied && !hasSubmitted) || privatePromoDiscount?.isSecretPromoCode) {
         return <NotFoundPage />;
     }
 

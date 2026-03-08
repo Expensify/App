@@ -52,6 +52,7 @@ function SubscriptionSettings() {
     const {environmentURL} = useEnvironment();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
+    const [privatePromoDiscount] = useOnyx(ONYXKEYS.PRIVATE_PROMO_DISCOUNT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
@@ -68,8 +69,9 @@ function SubscriptionSettings() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
-    const isExpensifyCodeApplied = !!privateSubscription?.promoCode;
-    const shouldShowExpensifyCodeSection = !privateSubscription?.isSecretPromoCode;
+    const isExpensifyCodeApplied = !!privatePromoDiscount?.promoCode;
+    const shouldShowExpensifyCodeSection = !privatePromoDiscount?.isSecretPromoCode;
+    const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && !!privatePromoDiscount?.promoDiscount && !!privatePromoDiscount?.validBillingCycles;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
@@ -309,7 +311,12 @@ function SubscriptionSettings() {
                         interactive={!isExpensifyCodeApplied}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         style={styles.mt5}
-                        title={privateSubscription?.promoCode}
+                        title={privatePromoDiscount?.promoCode}
+                        hintText={
+                            shouldShowExpensifyCodeHintText
+                                ? translate('subscription.expensifyCode.discountMessage', privatePromoDiscount.promoDiscount ?? '', privatePromoDiscount.validBillingCycles ?? '')
+                                : undefined
+                        }
                     />
                 )}
                 <MenuItemWithTopDescription
