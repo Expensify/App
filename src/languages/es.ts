@@ -7767,6 +7767,13 @@ ${amount} para ${merchant} - ${date}`,
         joinExpensifyOrg: 'Únete a Expensify.org para eliminar la injusticia en todo el mundo y ayuda a los profesores a dividir sus gastos para las aulas más necesitadas.',
         iKnowATeacher: 'Yo conozco a un profesor',
         iAmATeacher: 'Soy profesor',
+        personalKarma: {
+            title: 'Karma personal',
+            description: 'Dona $1 a Expensify.org por cada $500 que gastes cada mes',
+            addPaymentCardPrompt: 'Agrega una tarjeta de pago para habilitar las donaciones de Karma personal.',
+            stopDonationsPrompt: '¿Estás seguro? Tu donación mensual de Karma tiene un gran impacto.',
+            donationCardTitle: 'Tarjeta usada para donaciones',
+        },
         getInTouch: '¡Excelente! Por favor, comparte tu información para que podamos ponernos en contacto con ellos.',
         introSchoolPrincipal: 'Introducción al director del colegio',
         schoolPrincipalVerifyExpense:

@@ -7451,6 +7451,13 @@ const translations = {
             'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
+        personalKarma: {
+            title: 'Personal Karma',
+            description: 'Donate $1 to Expensify.org for every $500 you spend each month',
+            addPaymentCardPrompt: 'Add a payment card to enable Personal Karma donations.',
+            stopDonationsPrompt: 'Are you sure? Your monthly Karma donation makes a huge impact.',
+            donationCardTitle: 'Card used for donations',
+        },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',
         schoolPrincipalVerifyExpense:

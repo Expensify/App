@@ -7454,6 +7454,13 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             'Dołącz do Expensify.org w eliminowaniu niesprawiedliwości na całym świecie. Obecna kampania „Teachers Unite” wspiera nauczycieli wszędzie, dzieląc koszty niezbędnych przyborów szkolnych.',
         iKnowATeacher: 'Znam nauczyciela',
         iAmATeacher: 'Jestem nauczycielem',
+        personalKarma: {
+            title: 'Karma osobista',
+            description: 'Przekaż 1 USD na Expensify.org za każde 500 USD wydane w miesiącu',
+            addPaymentCardPrompt: 'Dodaj kartę płatniczą, aby włączyć darowizny w ramach Osobistej Karmy.',
+            stopDonationsPrompt: 'Czy na pewno? Twoja comiesięczna darowizna Karma ma ogromny wpływ.',
+            donationCardTitle: 'Karta używana do darowizn',
+        },
         getInTouch: 'Świetnie! Udostępnij ich dane kontaktowe, abyśmy mogli się z nimi skontaktować.',
         introSchoolPrincipal: 'Wprowadzenie dla dyrektora szkoły',
         schoolPrincipalVerifyExpense:

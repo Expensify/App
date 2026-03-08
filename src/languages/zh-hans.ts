@@ -7296,6 +7296,13 @@ ${reportName}
         joinExpensifyOrg: '加入 Expensify.org，一起消除世界各地的不公现象。当前的“教师联合”活动通过分担基本学习用品的费用来支持全世界的教育工作者。',
         iKnowATeacher: '我认识一位老师',
         iAmATeacher: '我是老师',
+        personalKarma: {
+            title: '个人 Karma',
+            description: '您每月每消费 500 美元，就向 Expensify.org 捐赠 1 美元',
+            addPaymentCardPrompt: '请添加支付卡以启用个人 Karma 捐赠。',
+            stopDonationsPrompt: '你确定吗？你每月的 Karma 捐赠会带来巨大影响。',
+            donationCardTitle: '用于捐赠的卡片',
+        },
         getInTouch: '太好了！请分享他们的联系方式，以便我们与他们取得联系。',
         introSchoolPrincipal: '向你们学校校长的介绍',
         schoolPrincipalVerifyExpense: 'Expensify.org 会分摊基本学习用品的费用，让来自低收入家庭的学生能够拥有更好的学习体验。我们会请你的校长核实你的报销。',

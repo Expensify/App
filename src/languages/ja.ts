@@ -7414,6 +7414,13 @@ ${reportName}
             'Expensify.org に参加して、世界中の不公正の解消に取り組みましょう。現在実施中の「Teachers Unite」キャンペーンでは、必需の学用品の費用を分担することで、すべての教育者を支援しています。',
         iKnowATeacher: '私は先生を知っています',
         iAmATeacher: '私は教師です',
+        personalKarma: {
+            title: 'パーソナルカルマ',
+            description: '毎月の支出500ドルごとに1ドルをExpensify.orgに寄付します',
+            addPaymentCardPrompt: 'パーソナルカルマの寄付を有効にするには、支払いカードを追加してください。',
+            stopDonationsPrompt: '本当によろしいですか？毎月のKarma寄付は大きな影響をもたらします。',
+            donationCardTitle: '寄付に使用するカード',
+        },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',
         schoolPrincipalVerifyExpense: 'Expensify.org は、低所得世帯の生徒がより良い学習体験を得られるよう、必要な学用品の費用を分担します。あなたの経費は、校長により確認されます。',

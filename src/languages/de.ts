@@ -7502,6 +7502,13 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             'Schließ dich Expensify.org an, um Ungerechtigkeit auf der ganzen Welt zu beseitigen. Die aktuelle „Teachers Unite“-Kampagne unterstützt Lehrkräfte überall, indem sie die Kosten für grundlegende Schulmaterialien teilt.',
         iKnowATeacher: 'Ich kenne eine Lehrkraft',
         iAmATeacher: 'Ich bin Lehrer',
+        personalKarma: {
+            title: 'Persönliches Karma',
+            description: 'Spende 1 $ an Expensify.org für jeweils 500 $, die du pro Monat ausgibst',
+            addPaymentCardPrompt: 'Füge eine Zahlungskarte hinzu, um persönliche Karma-Spenden zu aktivieren.',
+            stopDonationsPrompt: 'Bist du sicher? Deine monatliche Karma-Spende bewirkt viel.',
+            donationCardTitle: 'Für Spenden verwendete Karte',
+        },
         getInTouch: 'Ausgezeichnet! Bitte teile ihre Kontaktdaten, damit wir sie erreichen können.',
         introSchoolPrincipal: 'Einführung für Ihre Schulleitung',
         schoolPrincipalVerifyExpense:
