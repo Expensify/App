@@ -296,7 +296,7 @@ function useAdvancedSearchFilters() {
     const hasNonPersonalPolicyCategories = Object.keys(allPolicyCategories).some((policyCategoryId) => {
         const categoryPolicyID = policyCategoryId.replace(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, '');
         const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${categoryPolicyID}`];
-        return policy?.type !== CONST.POLICY.TYPE.PERSONAL;
+        return !!policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
     });
 
     const shouldDisplayCategoryFilter = shouldDisplayFilter(hasNonPersonalPolicyCategories ? 1 : 0, policyDerived?.areCategoriesEnabled ?? false, selectedPolicyCategories?.length > 0);
