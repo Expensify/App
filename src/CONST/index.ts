@@ -1223,6 +1223,7 @@ const CONST = {
             MERGE: 'merge',
             DUPLICATE: 'duplicate',
             DUPLICATE_REPORT: 'duplicateReport',
+            MOVE_EXPENSE: 'moveExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -8595,6 +8596,7 @@ const CONST = {
             ADD_EXPENSE_UNREPORTED: 'MoreMenu-AddExpenseUnreported',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
+            MOVE_EXPENSE: 'MoreMenu-MoveExpense',
         },
         REPORT_PREVIEW: {
             CARD: 'ReportPreview-Card',
