@@ -7,8 +7,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type WorkspacesListPageHeaderButtonProps = {
     /** Whether the button to add a new workspace should be shown. */

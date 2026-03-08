@@ -17,7 +17,6 @@
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
-- [ ] I verified there are no new alerts related to the `canBeMissing` param for `useOnyx`
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
     - [ ] I verified that comments were added to code that is not self explanatory

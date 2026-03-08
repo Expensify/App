@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 function ImportTransactionsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const cardDisplayName = importedSpreadsheet?.importTransactionSettings?.cardDisplayName ?? '';
     const currency = importedSpreadsheet?.importTransactionSettings?.currency ?? 'USD';

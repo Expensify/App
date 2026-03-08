@@ -8,7 +8,7 @@ import useOnyx from './useOnyx';
  * Returns true if the user's auth token type is ANONYMOUS, false otherwise
  */
 function useIsAnonymousUser() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const isAnonymousUser = useMemo(() => {
         return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;

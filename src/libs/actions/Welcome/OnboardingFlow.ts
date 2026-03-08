@@ -83,7 +83,7 @@ Onyx.connectWithoutView({
  */
 function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -366,7 +366,7 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
+        message: '',
         tasks: [],
     };
 

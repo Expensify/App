@@ -10,7 +10,6 @@ import type {CardFeedWithDomainID, CardFeedWithNumber} from '@src/types/onyx/Car
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
     sourceValues: undefined,
-    areAllConnectionsSet: false,
 };
 
 const CARD_FEEDS = {

@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function CountrySelection() {
-    const [country] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
+    const [country] = useOnyx(ONYXKEYS.COUNTRY);
     const personalPolicy = usePersonalPolicy();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
