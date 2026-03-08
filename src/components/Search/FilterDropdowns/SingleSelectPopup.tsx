@@ -48,17 +48,7 @@ type SingleSelectPopupProps<T> = {
     isVisible?: boolean;
 };
 
-function SingleSelectPopup<T extends string>({
-    label,
-    value,
-    items,
-    closeOverlay,
-    onChange,
-    isSearchable,
-    searchPlaceholder,
-    defaultValue,
-    isVisible = false,
-}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue, isVisible = false}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -67,6 +57,7 @@ function SingleSelectPopup<T extends string>({
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const initialSelectedValues = useInitialSelectionRef(value ? [value.value] : [], {resetDeps: [isVisible]});
+    const initialFocusedItemKey = initialSelectedValues.at(0);
 
     const {options, noResultsFound} = useMemo(() => {
         const filteredItems = items.filter((item) => {
@@ -137,8 +128,10 @@ function SingleSelectPopup<T extends string>({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    shouldUpdateFocusedIndex={isSearchable}
-                    initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
+                    shouldUpdateFocusedIndex={false}
+                    initiallyFocusedItemKey={isSearchable ? initialFocusedItemKey : undefined}
+                    shouldScrollToFocusedIndex={false}
+                    shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!noResultsFound}
                 />
             </View>

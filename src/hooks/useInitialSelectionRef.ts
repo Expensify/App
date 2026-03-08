@@ -1,6 +1,6 @@
-import type {DependencyList} from 'react';
-import {useCallback, useEffect, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
+import type {DependencyList} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 
 type UseInitialSelectionRefOptions = {
     /** Dependencies that should trigger refreshing the snapshot (e.g., when a modal opens) */
@@ -16,6 +16,11 @@ type UseInitialSelectionRefOptions = {
 function useInitialSelectionRef<T>(selection: T, options: UseInitialSelectionRefOptions = {}) {
     const {resetDeps = [], resetOnFocus = false} = options;
     const [initialSelection, setInitialSelection] = useState(selection);
+    const latestSelectionRef = useRef(selection);
+
+    useEffect(() => {
+        latestSelectionRef.current = selection;
+    }, [selection]);
 
     useEffect(() => {
         setInitialSelection(selection);
@@ -27,8 +32,8 @@ function useInitialSelectionRef<T>(selection: T, options: UseInitialSelectionRef
             if (!resetOnFocus) {
                 return;
             }
-            setInitialSelection(selection);
-        }, [resetOnFocus, selection]),
+            setInitialSelection(latestSelectionRef.current);
+        }, [resetOnFocus]),
     );
 
     return initialSelection;

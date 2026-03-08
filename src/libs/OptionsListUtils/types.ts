@@ -262,8 +262,8 @@ type Options = {
     personalDetails: SearchOptionData[];
     userToInvite: SearchOptionData | null;
     currentUserOption: SearchOptionData | null | undefined;
-    workspaceChats?: SearchOptionData[];
-    selfDMChat?: SearchOptionData | undefined;
+    workspaceChats: SearchOptionData[];
+    selfDMChat: SearchOptionData | null;
 };
 
 type PreviewConfig = {

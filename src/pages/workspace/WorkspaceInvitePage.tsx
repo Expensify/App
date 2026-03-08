@@ -8,6 +8,7 @@ import type {Section} from '@components/SelectionList/SelectionListWithSections/
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useLocalize from '@hooks/useLocalize';
+import useMemberInviteSections from '@hooks/useMemberInviteSections';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -21,7 +22,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, getSoftExclusionsForGuideAndAccountManager, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -36,6 +37,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import buildInitialWorkspaceInviteOptions from './WorkspaceInvitePageUtils';
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
@@ -80,35 +82,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 
     const initiallySelectedOptions = useMemo(() => {
-        if (!invitedEmailsToAccountIDsDraft || !personalDetails) {
-            return [];
-        }
-
-        // Convert InvitedEmailsToAccountIDs to OptionData[]
-        // The draft stores login -> accountID mappings
-        // Use getParticipantsOption to enrich with full user details
-        return Object.entries(invitedEmailsToAccountIDsDraft).map(([login, accountID]) => {
-            const participant = {
-                login,
-                accountID,
-                selected: true,
-            };
-            return getParticipantsOption(participant, personalDetails) as OptionData;
-        });
+        return buildInitialWorkspaceInviteOptions(invitedEmailsToAccountIDsDraft, personalDetails);
     }, [invitedEmailsToAccountIDsDraft, personalDetails]);
 
-    const {
-        searchTerm,
-        debouncedSearchTerm,
-        setSearchTerm,
-        availableOptions,
-        selectedOptions,
-        selectedOptionsForDisplay,
-        toggleSelection,
-        areOptionsInitialized,
-        onListEndReached,
-        searchOptions,
-    } = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, searchOptions} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeUserToInvite: true,
@@ -117,44 +94,17 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
         initialSelected: initiallySelectedOptions,
+        prioritizeSelectedOnToggle: false,
     });
 
-    const sections: Array<Section<OptionData>> = useMemo(() => {
-        const sectionsArr = [];
-
-        if (!areOptionsInitialized) {
-            return [];
-        }
-
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-                sectionIndex: 0,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: translate('common.contacts'),
-                data: availableOptions.personalDetails,
-                sectionIndex: 1,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-                sectionIndex: 2,
-            });
-        }
-
-        return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
+    const sections: Array<Section<OptionData>> = useMemberInviteSections({
+        searchTerm: debouncedSearchTerm,
+        searchOptions,
+        selectedOptions,
+        initialSelectedOptions: initiallySelectedOptions,
+        areOptionsInitialized,
+        translate,
+    });
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -285,6 +235,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
                     onEndReached={onListEndReached}
+                    shouldScrollToTopOnSelect={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

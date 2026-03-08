@@ -1,9 +1,11 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,74 +37,94 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const [selectedMemberEmails, setSelectedMemberEmails] = useState<string[]>([]);
+    const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    const workflowMembers = approvalWorkflow?.members ?? [];
+    const workflowMemberEmails = useMemo(() => workflowMembers.map((member) => member.email).filter(Boolean), [workflowMembers]);
+    const initialSelectedMemberEmails = useInitialSelectionRef(workflowMemberEmails, {resetDeps: [workflowMemberEmails.join(',')], resetOnFocus: true});
+    const activeSelectedMemberEmails = hasUserInteracted ? selectedMemberEmails : initialSelectedMemberEmails;
+    const activeSelectedMemberEmailSet = useMemo(() => new Set(activeSelectedMemberEmails), [activeSelectedMemberEmails]);
+    const approverEmails = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email).filter(Boolean) ?? [], [approvalWorkflow?.approvers]);
+    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
 
-    useEffect(() => {
-        if (!approvalWorkflow?.members) {
-            return;
+    useFocusEffect(
+        useCallback(() => {
+            setHasUserInteracted(false);
+        }, []),
+    );
+
+    const createApproverOption = useCallback(
+        (member: Member): SelectionListApprover => {
+            const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+            const displayName = Str.removeSMSDomain(member.displayName);
+
+            return {
+                text: displayName,
+                alternateText: member.email,
+                keyForList: member.email,
+                isSelected: false,
+                login: member.email,
+                icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                rightElement: (
+                    <MemberRightIcon
+                        role={policy?.employeeList?.[member.email]?.role}
+                        owner={policy?.owner}
+                        login={member.email}
+                    />
+                ),
+            };
+        },
+        [icons.FallbackAvatar, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs],
+    );
+
+    const baseApprovers = useMemo(() => {
+        const approvers: SelectionListApprover[] = [];
+        const seenEmails = new Set<string>();
+
+        for (const member of workflowMembers) {
+            if (!member.email || seenEmails.has(member.email)) {
+                continue;
+            }
+
+            approvers.push(createApproverOption(member));
+            seenEmails.add(member.email);
         }
 
-        setSelectedMembers(
-            approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+        for (const member of approvalWorkflow?.availableMembers ?? []) {
+            if (!member.email || seenEmails.has(member.email)) {
+                continue;
+            }
 
-                return {
-                    text: Str.removeSMSDomain(member.displayName),
-                    alternateText: member.email,
-                    keyForList: member.email,
-                    isSelected: true,
-                    login: member.email,
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
-                    rightElement: (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={member.email}
-                        />
-                    ),
-                };
-            }),
-        );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, translate, icons.FallbackAvatar]);
+            if (policy?.preventSelfApproval && approverEmails.includes(member.email)) {
+                continue;
+            }
 
-    const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
-    const allApprovers: SelectionListApprover[] = [...selectedMembers];
+            approvers.push(createApproverOption(member));
+            seenEmails.add(member.email);
+        }
 
-    if (approvalWorkflow?.availableMembers) {
-        const availableMembers = approvalWorkflow.availableMembers
-            .map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+        return approvers;
+    }, [approvalWorkflow?.availableMembers, approverEmails, createApproverOption, policy?.preventSelfApproval, workflowMembers]);
 
-                return {
-                    text: Str.removeSMSDomain(member.displayName),
-                    alternateText: member.email,
-                    keyForList: member.email,
-                    isSelected: false,
-                    login: member.email,
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
-                    rightElement: (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={member.email}
-                        />
-                    ),
-                };
-            })
-            .filter(
-                (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
-            );
+    const allApprovers = useMemo(
+        () =>
+            baseApprovers.map((member) => ({
+                ...member,
+                isSelected: activeSelectedMemberEmailSet.has(member.login ?? ''),
+            })),
+        [activeSelectedMemberEmailSet, baseApprovers],
+    );
 
-        allApprovers.push(...availableMembers);
-    }
+    const selectedApproversForSave = useMemo(
+        () => baseApprovers.filter((member) => activeSelectedMemberEmailSet.has(member.login ?? '')),
+        [activeSelectedMemberEmailSet, baseApprovers],
+    );
 
     const goBack = () => {
         let backTo;
@@ -115,7 +137,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     };
 
     const nextStep = () => {
-        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
+        const members: Member[] = selectedApproversForSave.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
 
         if (isInitialCreationFlow) {
@@ -132,7 +154,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const button = (
         <FormAlertWithSubmitButton
-            isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+            isDisabled={!shouldShowListEmptyContent && !activeSelectedMemberEmails.length}
             buttonText={buttonText}
             onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
@@ -140,7 +162,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         />
     );
 
-    const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
+    const toggleMember = useCallback((members: SelectionListApprover[]) => {
+        setSelectedMemberEmails(members.map((member) => member.login ?? '').filter(Boolean));
+        setHasUserInteracted(true);
+    }, []);
 
     return (
         <AccessOrNotFoundWrapper
@@ -173,4 +198,5 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     );
 }
 
+export {WorkspaceWorkflowsApprovalsExpensesFromPage};
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsExpensesFromPage);

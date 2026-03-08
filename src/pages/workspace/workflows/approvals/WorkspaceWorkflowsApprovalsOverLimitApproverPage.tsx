@@ -160,6 +160,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 allowMultipleSelection={false}
                 onSelectApprover={selectApprover}
+                shouldUpdateFocusedIndex={false}
             />
         </AccessOrNotFoundWrapper>
     );
@@ -167,4 +168,5 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
 WorkspaceWorkflowsApprovalsOverLimitApproverPage.displayName = 'WorkspaceWorkflowsApprovalsOverLimitApproverPage';
 
+export {WorkspaceWorkflowsApprovalsOverLimitApproverPage};
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsOverLimitApproverPage);

@@ -40,8 +40,8 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import KeyboardUtils from '@src/utils/keyboard';
+import getUISelectedParticipants from './IOURequestStepParticipantsUtils';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -68,6 +68,7 @@ function IOURequestStepParticipants({
         params: {iouType, reportID, transactionID: initialTransactionID, action, backTo},
     },
     transaction: initialTransaction,
+    report,
 }: IOURequestStepParticipantsProps) {
     const participants = initialTransaction?.participants;
     const {translate} = useLocalize();
@@ -82,10 +83,11 @@ function IOURequestStepParticipants({
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
+    const uiSelectedParticipants = useMemo(() => getUISelectedParticipants(participants, iouType, report?.invoiceReceiver), [participants, iouType, report?.invoiceReceiver]);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
-    const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
-    const numberOfParticipants = useRef(participants?.length ?? 0);
+    const selectedReportID = useRef<string>(uiSelectedParticipants.length === 1 ? (uiSelectedParticipants.at(0)?.reportID ?? reportID) : reportID);
+    const numberOfParticipants = useRef(uiSelectedParticipants.length);
     const iouRequestType = getRequestType(initialTransaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
@@ -449,7 +451,7 @@ function IOURequestStepParticipants({
                 />
             )}
             <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : getEmptyArray()}
+                participants={uiSelectedParticipants}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}

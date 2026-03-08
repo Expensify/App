@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 type BaseSelectionListSections<TItem extends ListItem> = {
     data: TItem[];
     canSelectMultiple?: boolean;
+    initiallyFocusedItemKey?: string;
 };
 
 const mockSections = Array.from({length: 10}, (_, index) => ({
@@ -50,8 +51,8 @@ describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
-        const {data, canSelectMultiple} = props;
-        const focusedKey = data.find((item) => item.isSelected)?.keyForList ?? undefined;
+        const {data, canSelectMultiple, initiallyFocusedItemKey} = props;
+        const focusedKey = initiallyFocusedItemKey ?? data.find((item) => item.isSelected)?.keyForList ?? undefined;
         return (
             <OnyxListItemProvider>
                 <BaseSelectionList
@@ -135,5 +136,41 @@ describe('BaseSelectionList', () => {
             preventDefault,
         });
         expect(preventDefault).toHaveBeenCalled();
+    });
+
+    it('should not move focus when selection changes but initiallyFocusedItemKey stays the same', async () => {
+        const initialData = Array.from({length: 5}, (_, index) => ({
+            text: `Item ${index}`,
+            keyForList: `${index}`,
+            isSelected: index === 0,
+        }));
+        const updatedData = initialData.map((item, index) => ({
+            ...item,
+            isSelected: index === 2,
+        }));
+
+        const {rerender} = render(
+            <BaseListItemRenderer
+                data={initialData}
+                canSelectMultiple={false}
+                initiallyFocusedItemKey="0"
+            />,
+        );
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark400});
+
+        rerender(
+            <BaseListItemRenderer
+                data={updatedData}
+                canSelectMultiple={false}
+                initiallyFocusedItemKey="0"
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark300});
+        });
+
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).not.toHaveStyle({backgroundColor: colors.productDark300});
     });
 });

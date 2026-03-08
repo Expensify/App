@@ -19,7 +19,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
-import useInitialSelectionSnapshot from '@hooks/useInitialSelectionSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +32,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
-    filterSelectedOptions,
     formatSectionsFromSearchTerm,
     getFirstKeyForList,
     getHeaderMessage,
@@ -42,7 +40,6 @@ import {
     getValidOptions,
 } from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +54,10 @@ type SelectedOption = ListItem &
     Omit<OptionData, 'reportID'> & {
         reportID?: string;
     };
+
+function getSelectedOptionKey(option: Partial<OptionData>) {
+    return option.keyForList?.toString() ?? option.login ?? option.reportID ?? option.accountID?.toString() ?? option.text ?? '';
+}
 
 function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined) {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -116,11 +117,9 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         },
     );
 
-    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
-
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+    const options = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -246,6 +245,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const isFocused = useIsFocused();
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
+    const [initialSelectedOptions, setInitialSelectedOptions] = useState<SelectedOption[]>([]);
+    const previousIsFocusedRef = useRef(false);
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -269,85 +270,111 @@ function NewChatPage({ref}: NewChatPageProps) {
     } = useOptions(reportAttributesDerived);
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = previousIsFocusedRef.current;
+
+        if (isFocused && !wasFocused) {
+            setHasUserInteracted(false);
+            setInitialSelectedOptions(selectedOptions);
+        }
+
+        previousIsFocusedRef.current = isFocused;
+    }, [isFocused, selectedOptions]);
+
+    useEffect(() => {
+        if (!isFocused || hasUserInteracted) {
             return;
         }
-        setHasUserInteracted(false);
-    }, [isFocused]);
 
-    const selectedKeys = useMemo(
-        () =>
-            selectedOptions
-                .map((option) => option.keyForList?.toString() ?? '')
-                .filter(Boolean),
-        [selectedOptions],
-    );
-    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteracted);
-    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0 && !hasUserInteracted;
+        setInitialSelectedOptions(selectedOptions);
+    }, [hasUserInteracted, isFocused, selectedOptions]);
+
+    const selectedOptionKeySet = useMemo(() => new Set(selectedOptions.map(getSelectedOptionKey).filter(Boolean)), [selectedOptions]);
+    const initialSelectedKeySet = useMemo(() => new Set(initialSelectedOptions.map(getSelectedOptionKey).filter(Boolean)), [initialSelectedOptions]);
+    const totalOptionsCount = recentReports.length + personalDetails.length + (userToInvite ? 1 : 0);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeySet.size > 0 && totalOptionsCount > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
     const sections: Section[] = [];
     let firstKeyForList = '';
 
-    const formatResults = formatSectionsFromSearchTerm(
-        debouncedSearchTerm,
-        selectedOptions as OptionData[],
-        recentReports,
-        personalDetails,
-        currentUserAccountID,
-        allPersonalDetails,
-        undefined,
-        undefined,
-        reportAttributesDerived,
-    );
-    // Just a temporary fix to satisfy the type checker
-    // Will be fixed when migrating to use new SelectionListWithSections
-    sections.push({...formatResults.section, title: undefined, shouldShow: true});
+    let selectedSectionData: Section['data'] = [];
 
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(formatResults.section.data);
+    if (shouldReorderInitialSelection) {
+        selectedSectionData = initialSelectedOptions.map((option) => ({
+            ...option,
+            isSelected: selectedOptionKeySet.has(getSelectedOptionKey(option)),
+        }));
+    } else if (debouncedSearchTerm.trim()) {
+        selectedSectionData = formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            selectedOptions as OptionData[],
+            recentReports,
+            personalDetails,
+            currentUserAccountID,
+            allPersonalDetails,
+            undefined,
+            undefined,
+            reportAttributesDerived,
+        ).section.data;
     }
 
-    sections.push({
-        title: translate('common.recents'),
-        data: selectedOptions.length ? recentReports.filter((option) => !option.isSelfDM) : recentReports,
-        shouldShow: !isEmpty(recentReports),
-    });
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(recentReports);
-    }
-
-    sections.push({
-        title: translate('common.contacts'),
-        data: personalDetails,
-        shouldShow: !isEmpty(personalDetails),
-    });
-    if (!firstKeyForList) {
-        firstKeyForList = getFirstKeyForList(personalDetails);
-    }
-
-    if (userToInvite) {
-        sections.push({
-            title: undefined,
-            data: [userToInvite],
-            shouldShow: true,
-        });
+    if (selectedSectionData.length > 0) {
+        sections.push({title: undefined, data: selectedSectionData, shouldShow: true});
         if (!firstKeyForList) {
-            firstKeyForList = getFirstKeyForList([userToInvite]);
+            firstKeyForList = getFirstKeyForList(selectedSectionData);
         }
     }
 
-    const totalOptionsCount = sections.reduce((count, section) => count + (section.data?.length ?? 0), 0);
+    const visibleRecentReports = recentReports
+        .filter((option) => !shouldReorderInitialSelection || !initialSelectedKeySet.has(getSelectedOptionKey(option)))
+        .filter((option) => !selectedOptions.length || !option.isSelfDM)
+        .map((option) => ({
+            ...option,
+            isSelected: selectedOptionKeySet.has(getSelectedOptionKey(option)),
+        }));
 
-    const orderedSections = useMemo(
-        () =>
-            shouldReorderInitialSelection
-                ? sections.map((section) => ({
-                      ...section,
-                      data: reorderItemsByInitialSelection(section.data, initialSelectedKeys, totalOptionsCount),
-                  }))
-                : sections,
-        [initialSelectedKeys, sections, shouldReorderInitialSelection, snapshotVersion, totalOptionsCount],
-    );
+    sections.push({
+        title: translate('common.recents'),
+        data: visibleRecentReports,
+        shouldShow: !isEmpty(visibleRecentReports),
+    });
+    if (!firstKeyForList) {
+        firstKeyForList = getFirstKeyForList(visibleRecentReports);
+    }
+
+    const visiblePersonalDetails = personalDetails
+        .filter((option) => !shouldReorderInitialSelection || !initialSelectedKeySet.has(getSelectedOptionKey(option)))
+        .map((option) => ({
+            ...option,
+            isSelected: selectedOptionKeySet.has(getSelectedOptionKey(option)),
+        }));
+
+    sections.push({
+        title: translate('common.contacts'),
+        data: visiblePersonalDetails,
+        shouldShow: !isEmpty(visiblePersonalDetails),
+    });
+    if (!firstKeyForList) {
+        firstKeyForList = getFirstKeyForList(visiblePersonalDetails);
+    }
+
+    const visibleUserToInvite =
+        userToInvite && (!shouldReorderInitialSelection || !initialSelectedKeySet.has(getSelectedOptionKey(userToInvite)))
+            ? {
+                  ...userToInvite,
+                  isSelected: selectedOptionKeySet.has(getSelectedOptionKey(userToInvite)),
+              }
+            : undefined;
+
+    if (visibleUserToInvite) {
+        sections.push({
+            title: undefined,
+            data: [visibleUserToInvite],
+            shouldShow: true,
+        });
+        if (!firstKeyForList) {
+            firstKeyForList = getFirstKeyForList([visibleUserToInvite]);
+        }
+    }
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -434,7 +461,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         });
     };
 
-    const itemRightSideComponent = (item: ListItem & Option, isFocused?: boolean) => {
+    const itemRightSideComponent = (item: ListItem & Option, itemIsFocused?: boolean) => {
         if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
             return null;
         }
@@ -456,7 +483,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 </PressableWithFeedback>
             );
         }
-        const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
+        const buttonInnerStyles = itemIsFocused ? styles.buttonDefaultHovered : {};
         return (
             <Button
                 onPress={() => toggleOption(item)}
@@ -518,7 +545,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
                 ListItem={UserListItem}
-                sections={areOptionsInitialized ? orderedSections : CONST.EMPTY_ARRAY}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                 textInputValue={searchTerm}
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 onChangeText={setSearchTerm}

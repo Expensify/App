@@ -538,6 +538,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             sections.length,
             isItemSelected,
             isSmallScreenWidth,
+            shouldScrollToTopOnSelect,
             scrollToIndex,
             clearInputAfterSelect,
             onCheckboxPress,

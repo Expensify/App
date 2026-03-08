@@ -1,12 +1,13 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {getOptionSelectionKey, resolveInitialSelectedAccountOptions} from '@components/Search/SearchFiltersParticipantsSelectorUtils';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
@@ -14,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -26,7 +28,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
-import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {getDisplayNameForParticipant, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,7 +39,7 @@ import type {Report} from '@src/types/onyx';
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
@@ -95,52 +97,118 @@ function TaskAssigneeSelectorModal() {
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
 
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+    const selectedAssigneeAccountID = task?.assigneeAccountID ?? task?.report?.managerID ?? report?.managerID;
+    const initialSelectedAccountIDs = useInitialSelectionRef(selectedAssigneeAccountID ? [String(selectedAssigneeAccountID)] : [], {resetOnFocus: true});
+    const initialSelectedOptions = useMemo(
+        () =>
+            resolveInitialSelectedAccountOptions({
+                initialAccountIDs: initialSelectedAccountIDs,
+                currentUserOption: optionsWithoutCurrentUser.currentUserOption,
+                recentReports: optionsWithoutCurrentUser.recentReports,
+                personalDetailsOptions: optionsWithoutCurrentUser.personalDetails,
+                userToInvite: optionsWithoutCurrentUser.userToInvite,
+                personalDetails: allPersonalDetails,
+            }),
+        [
+            allPersonalDetails,
+            initialSelectedAccountIDs,
+            optionsWithoutCurrentUser.currentUserOption,
+            optionsWithoutCurrentUser.personalDetails,
+            optionsWithoutCurrentUser.recentReports,
+            optionsWithoutCurrentUser.userToInvite,
+        ],
+    );
+    const totalOptionsCount =
+        optionsWithoutCurrentUser.recentReports.length +
+        optionsWithoutCurrentUser.personalDetails.length +
+        (optionsWithoutCurrentUser.currentUserOption ? 1 : 0) +
+        (optionsWithoutCurrentUser.userToInvite ? 1 : 0);
+    const shouldPinInitialSelection = searchTerm.trim().length === 0 && initialSelectedOptions.length > 0 && totalOptionsCount > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
-    const sectionsList = [];
-
-    if (optionsWithoutCurrentUser.currentUserOption) {
-        sectionsList.push({
-            title: translate('newTaskPage.assignMe'),
-            data: [optionsWithoutCurrentUser.currentUserOption],
-            sectionIndex: 0,
-        });
-    }
-
-    sectionsList.push({
-        title: translate('common.recents'),
-        data: optionsWithoutCurrentUser.recentReports,
-        sectionIndex: 1,
-    });
-
-    sectionsList.push({
-        title: translate('common.contacts'),
-        data: optionsWithoutCurrentUser.personalDetails,
-        sectionIndex: 2,
-    });
-
-    if (optionsWithoutCurrentUser.userToInvite) {
-        sectionsList.push({
-            title: '',
-            data: [optionsWithoutCurrentUser.userToInvite],
-            sectionIndex: 3,
-        });
-    }
-
-    const sections = sectionsList.map((section) => ({
-        ...section,
-        data: section.data.map((option) => ({
+    const decorateOption = useCallback(
+        (option: ListItem, shouldAddCurrentUserPostfix = false) => ({
             ...option,
-            text: option.text ?? '',
+            text:
+                shouldAddCurrentUserPostfix && option.accountID
+                    ? getDisplayNameForParticipant({
+                          accountID: option.accountID,
+                          shouldAddCurrentUserPostfix: true,
+                          personalDetailsData: allPersonalDetails,
+                          formatPhoneNumber,
+                      })
+                    : (option.text ?? ''),
             alternateText: option.alternateText ?? undefined,
             keyForList: option.keyForList ?? '',
             isDisabled: option.isDisabled ?? undefined,
             login: option.login ?? undefined,
             shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
-        })),
-    }));
+            isSelected: selectedAssigneeAccountID === option.accountID,
+        }),
+        [allPersonalDetails, formatPhoneNumber, selectedAssigneeAccountID],
+    );
 
-    const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    const selectedSectionData = useMemo(
+        () => (shouldPinInitialSelection ? initialSelectedOptions.map((option) => decorateOption(option, option.accountID === currentUserPersonalDetails.accountID)) : []),
+        [currentUserPersonalDetails.accountID, decorateOption, initialSelectedOptions, shouldPinInitialSelection],
+    );
+    const selectedSectionKeySet = useMemo(() => new Set(selectedSectionData.map(getOptionSelectionKey).filter(Boolean)), [selectedSectionData]);
+    const initiallyFocusedOptionKey = initialSelectedOptions.at(0)?.keyForList?.toString();
+
+    const sections = useMemo(() => {
+        const nextSections = [];
+        let sectionIndex = 0;
+
+        if (selectedSectionData.length > 0) {
+            nextSections.push({
+                title: undefined,
+                data: selectedSectionData,
+                sectionIndex,
+            });
+            sectionIndex += 1;
+        }
+
+        if (optionsWithoutCurrentUser.currentUserOption && !selectedSectionKeySet.has(getOptionSelectionKey(optionsWithoutCurrentUser.currentUserOption))) {
+            nextSections.push({
+                title: translate('newTaskPage.assignMe'),
+                data: [decorateOption(optionsWithoutCurrentUser.currentUserOption, true)],
+                sectionIndex,
+            });
+            sectionIndex += 1;
+        }
+
+        nextSections.push({
+            title: translate('common.recents'),
+            data: optionsWithoutCurrentUser.recentReports.filter((option) => !selectedSectionKeySet.has(getOptionSelectionKey(option))).map((option) => decorateOption(option)),
+            sectionIndex,
+        });
+        sectionIndex += 1;
+
+        nextSections.push({
+            title: translate('common.contacts'),
+            data: optionsWithoutCurrentUser.personalDetails.filter((option) => !selectedSectionKeySet.has(getOptionSelectionKey(option))).map((option) => decorateOption(option)),
+            sectionIndex,
+        });
+        sectionIndex += 1;
+
+        if (optionsWithoutCurrentUser.userToInvite && !selectedSectionKeySet.has(getOptionSelectionKey(optionsWithoutCurrentUser.userToInvite))) {
+            nextSections.push({
+                title: '',
+                data: [decorateOption(optionsWithoutCurrentUser.userToInvite)],
+                sectionIndex,
+            });
+        }
+
+        return nextSections;
+    }, [
+        decorateOption,
+        optionsWithoutCurrentUser.currentUserOption,
+        optionsWithoutCurrentUser.personalDetails,
+        optionsWithoutCurrentUser.recentReports,
+        optionsWithoutCurrentUser.userToInvite,
+        selectedSectionData,
+        selectedSectionKeySet,
+        translate,
+    ]);
 
     const selectReport = (option: ListItem) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
@@ -236,7 +304,10 @@ function TaskAssigneeSelectorModal() {
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
-                        shouldUpdateFocusedIndex
+                        shouldUpdateFocusedIndex={false}
+                        shouldScrollToFocusedIndex={false}
+                        shouldScrollToFocusedIndexOnMount={false}
+                        shouldScrollToTopOnSelect={false}
                         shouldShowTextInput
                     />
                 </View>
@@ -244,5 +315,7 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
+
+export {TaskAssigneeSelectorModal};
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

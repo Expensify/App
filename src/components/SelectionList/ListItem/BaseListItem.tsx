@@ -131,7 +131,7 @@ function BaseListItem<TItem extends ListItem>({
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    (isFocused || item.isSelected) &&
+                    (!!isFocused || !!item.isSelected) &&
                         shouldHighlightSelectedItem &&
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
@@ -148,7 +148,7 @@ function BaseListItem<TItem extends ListItem>({
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
-                        (isFocused || item.isSelected) &&
+                        (!!isFocused || !!item.isSelected) &&
                             shouldHighlightSelectedItem &&
                             StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}

@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMemberInviteSections from '@hooks/useMemberInviteSections';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -37,7 +38,6 @@ import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {BaseOnboardingWorkspaceInviteProps} from './types';
 
 type Sections = Array<Section<OptionData>>;
-
 function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWorkspaceInviteProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -70,16 +70,16 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
 
     const softExclusions = getSoftExclusionsForGuideAndAccountManager(policy, account?.accountManagerAccountID, personalDetails);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
-        useSearchSelector({
-            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-            includeUserToInvite: true,
-            excludeLogins: excludedUsers,
-            excludeFromSuggestionsOnly: softExclusions,
-            includeRecentReports: false,
-            shouldInitialize: didScreenTransitionEnd,
-        });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, searchOptions} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
+        includeRecentReports: false,
+        shouldInitialize: didScreenTransitionEnd,
+        prioritizeSelectedOnToggle: false,
+    });
 
     const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
@@ -89,33 +89,14 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         searchUserInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    const sections: Sections = [];
-    if (areOptionsInitialized) {
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sections.push({
-                data: selectedOptionsForDisplay,
-                sectionIndex: 0,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sections.push({
-                title: translate('common.contacts'),
-                data: availableOptions.personalDetails,
-                sectionIndex: 1,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sections.push({
-                data: [availableOptions.userToInvite],
-                sectionIndex: 2,
-            });
-        }
-    }
+    const sections: Sections = useMemberInviteSections({
+        searchTerm: debouncedSearchTerm,
+        searchOptions,
+        selectedOptions,
+        initialSelectedOptions: CONST.EMPTY_ARRAY as OptionData[],
+        areOptionsInitialized,
+        translate,
+    });
 
     const completeOnboarding = (isInvitedAccountant: boolean) => {
         completeOnboardingReport({
@@ -264,6 +245,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
                 footerContent={footerContent}
                 isLoadingNewOptions={!!isSearchingForReports}
                 addBottomSafeAreaPadding={isSmallScreenWidth}
+                shouldScrollToTopOnSelect={false}
             />
         </ScreenWrapper>
     );

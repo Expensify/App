@@ -16,7 +16,7 @@ type RuleSelectionPickerProps = {
 
 function RuleSelectionPicker({items, initiallySelectedItem, onSaveSelection, backToRoute}: RuleSelectionPickerProps) {
     const {translate} = useLocalize();
-    const {sections, noResultsFound, searchTerm, setSearchTerm, setSelectedItem, initiallyFocusedItemKey} = useRuleSelectionList({
+    const {sections, noResultsFound, searchTerm, setSearchTerm, initiallyFocusedItemKey} = useRuleSelectionList({
         items,
         initiallySelectedItem,
     });
@@ -32,11 +32,8 @@ function RuleSelectionPicker({items, initiallySelectedItem, onSaveSelection, bac
 
             onSaveSelection(newValue);
             Navigation.goBack(backToRoute);
-
-            // Keep local state in sync when the user stays on the screen (e.g., web focus scenarios)
-            setSelectedItem(isRemovingSelection ? undefined : {name: item.text, value: item.value});
         },
-        [backToRoute, onSaveSelection, setSelectedItem],
+        [backToRoute, onSaveSelection],
     );
 
     const textInputOptions = {
@@ -55,7 +52,6 @@ function RuleSelectionPicker({items, initiallySelectedItem, onSaveSelection, bac
             textInputOptions={textInputOptions}
             shouldShowLoadingPlaceholder={!noResultsFound}
             initiallyFocusedItemKey={initiallyFocusedItemKey}
-            shouldUpdateFocusedIndex
             shouldStopPropagation
             shouldScrollToTopOnSelect={false}
         />

@@ -101,6 +101,103 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
+        const smallSelectedResultList: Array<Section<TagOption>> = [
+            {
+                title: '',
+                sectionIndex: 2,
+                data: [
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: true,
+                        isSelected: false,
+                        pendingAction: 'delete',
+                    },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                        isSelected: true,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+        const smallSelectedOutsideListResult: Array<Section<TagOption>> = [
+            {
+                title: '',
+                sectionIndex: 2,
+                data: [
+                    {
+                        text: 'Archived Tag',
+                        keyForList: 'Archived Tag',
+                        searchText: 'Archived Tag',
+                        tooltipText: 'Archived Tag',
+                        isDisabled: true,
+                        isSelected: true,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Accounting',
+                        keyForList: 'Accounting',
+                        searchText: 'Accounting',
+                        tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
+                        isDisabled: true,
+                        isSelected: false,
+                        pendingAction: 'delete',
+                    },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
         const smallSearchResultList: Array<Section<TagOption>> = [
             {
                 title: '',
@@ -403,6 +500,24 @@ describe('TagsOptionsListUtils', () => {
 
         const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallResult).toStrictEqual(smallResultList);
+
+        const smallSelectedResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: smallTagsList, localeCompare, translate: translateLocal});
+        expect(smallSelectedResult).toStrictEqual(smallSelectedResultList);
+
+        const smallSelectedOutsideList = getTagListSections({
+            searchValue: emptySearch,
+            selectedOptions: [
+                {
+                    name: 'Archived Tag',
+                    enabled: true,
+                    accountID: undefined,
+                },
+            ],
+            tags: smallTagsList,
+            localeCompare,
+            translate: translateLocal,
+        });
+        expect(smallSelectedOutsideList).toStrictEqual(smallSelectedOutsideListResult);
 
         const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);

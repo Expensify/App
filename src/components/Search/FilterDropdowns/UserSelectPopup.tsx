@@ -1,12 +1,11 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
@@ -17,6 +16,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -38,14 +38,15 @@ type UserSelectPopupProps = {
      * Set to true to always show search, or false to never show search regardless of user count.
      */
     isSearchable?: boolean;
+
+    /** Whether the popup content is currently visible */
+    isVisible?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
-    const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable, isVisible = false}: UserSelectPopupProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {options, currentOption} = usePersonalDetailOptions();
-    const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -55,19 +56,30 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const hasBeenVisibleRef = useRef(false);
+    const availableAccountIDs = new Set(options?.map((option) => option.accountID.toString()) ?? []);
+    if (currentOption?.accountID) {
+        availableAccountIDs.add(currentOption.accountID.toString());
+    }
+    const incomingSelectedAccountIDs = value.filter((accountID) => availableAccountIDs.has(accountID));
 
-    const getInitialSelectedIDs = useCallback(() => {
-        return value.reduce<Set<string>>((acc, id) => {
-            const participant = personalDetails?.[id];
-            if (!participant) {
-                return acc;
-            }
-            acc.add(id);
-            return acc;
-        }, new Set<string>());
-    }, [value, personalDetails]);
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(() => new Set(incomingSelectedAccountIDs));
+    const initialSelectedAccountIDs = useInitialSelectionRef(incomingSelectedAccountIDs, {resetDeps: [isVisible]});
 
-    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(() => getInitialSelectedIDs());
+    useEffect(() => {
+        if (!isVisible) {
+            hasBeenVisibleRef.current = false;
+            return;
+        }
+
+        if (hasBeenVisibleRef.current) {
+            return;
+        }
+
+        hasBeenVisibleRef.current = true;
+        setSelectedAccountIDs(new Set(incomingSelectedAccountIDs));
+        setSearchTerm('');
+    }, [incomingSelectedAccountIDs, isVisible]);
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -85,6 +97,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeCurrentUser: false,
             includeRecentReports: false,
+            includeSelectedOptions: true,
             searchString: cleanSearchTerm,
         });
     }, [transformedOptions, currentUserEmail, cleanSearchTerm, formatPhoneNumber, countryCode, loginList]);
@@ -102,16 +115,21 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         return newOption;
     }, [currentOption, cleanSearchTerm, selectedAccountIDs, currentUserSearchTerms]);
 
-    const listData = useMemo(() => {
+    const baseVisibleOptions = useMemo(() => {
         if (!filteredCurrentUserOption) {
-            return [...optionsList.selectedOptions, ...optionsList.personalDetails];
+            return optionsList.personalDetails;
         }
-        const isCurrentOptionSelected = filteredCurrentUserOption.isSelected;
-        if (isCurrentOptionSelected) {
-            return [filteredCurrentUserOption, ...optionsList.selectedOptions, ...optionsList.personalDetails];
+
+        return [filteredCurrentUserOption, ...optionsList.personalDetails];
+    }, [filteredCurrentUserOption, optionsList.personalDetails]);
+
+    const listData = useMemo(() => {
+        if (cleanSearchTerm) {
+            return baseVisibleOptions;
         }
-        return [...optionsList.selectedOptions, filteredCurrentUserOption, ...optionsList.personalDetails];
-    }, [filteredCurrentUserOption, optionsList.selectedOptions, optionsList.personalDetails]);
+
+        return reorderItemsByInitialSelection(baseVisibleOptions, initialSelectedAccountIDs, baseVisibleOptions.length);
+    }, [baseVisibleOptions, cleanSearchTerm, initialSelectedAccountIDs]);
 
     const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
@@ -123,7 +141,6 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             const isSelected = selectedAccountIDs.has(option.accountID.toString());
 
             setSelectedAccountIDs((prev) => (isSelected ? new Set([...prev].filter((id) => id !== option.accountID.toString())) : new Set([...prev, option.accountID.toString()])));
-            selectionListRef?.current?.scrollToIndex(0);
         },
         [selectedAccountIDs],
     );
@@ -160,13 +177,13 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
-                ref={selectionListRef}
                 textInputOptions={textInputOptions}
                 canSelectMultiple
                 ListItem={UserSelectionListItem}
                 style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
+                shouldScrollToTopOnSelect={false}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>

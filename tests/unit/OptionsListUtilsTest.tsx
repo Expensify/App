@@ -24,6 +24,7 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     getCurrentUserSearchTerms,
+    getEmptyOptions,
     getFilteredRecentAttendees,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
@@ -132,6 +133,17 @@ describe('OptionsListUtils', () => {
     };
 
     const COUNTRY_CODE = 1;
+
+    it('returns the full empty options shape', () => {
+        expect(getEmptyOptions()).toEqual({
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            workspaceChats: [],
+            selfDMChat: null,
+        });
+    });
 
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS: OnyxCollection<Report> = {

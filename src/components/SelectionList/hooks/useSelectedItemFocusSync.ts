@@ -8,9 +8,6 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
     /** Key of the item to focus initially */
     initiallyFocusedItemKey: string | null | undefined;
 
-    /** Function to check if an item is selected */
-    isItemSelected: (item: TData) => boolean;
-
     /** Current focused index */
     focusedIndex: number;
 
@@ -28,24 +25,29 @@ type UseSelectedItemFocusSyncParams<TItem extends ListItem, TData = TItem> = {
 function useSelectedItemFocusSync<TItem extends ListItem, TData = TItem>({
     data,
     initiallyFocusedItemKey,
-    isItemSelected,
     focusedIndex,
     searchValue,
     setFocusedIndex,
 }: UseSelectedItemFocusSyncParams<TItem, TData>) {
-    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
+    const focusedItemIndex = useMemo(() => {
+        if (!initiallyFocusedItemKey) {
+            return -1;
+        }
+
+        return data.findIndex((item) => item.keyForList === initiallyFocusedItemKey);
+    }, [data, initiallyFocusedItemKey]);
 
     useEffect(() => {
-        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || searchValue) {
+        if (focusedItemIndex === -1 || focusedItemIndex === focusedIndex || searchValue) {
             return;
         }
-        setFocusedIndex(selectedItemIndex);
+        setFocusedIndex(focusedItemIndex);
 
-        // Only sync focus when selectedItemIndex changes, not when other dependencies update
+        // Only sync focus when focusedItemIndex changes, not when other dependencies update
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedItemIndex]);
+    }, [focusedItemIndex]);
 
-    return selectedItemIndex;
+    return focusedItemIndex;
 }
 
 export default useSelectedItemFocusSync;

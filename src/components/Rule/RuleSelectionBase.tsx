@@ -2,12 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import RuleSelectionPicker from '@components/Rule/RuleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
+import RuleSelectionPicker from './RuleSelectionPicker';
 
 type SelectionItem = {
     name: string;

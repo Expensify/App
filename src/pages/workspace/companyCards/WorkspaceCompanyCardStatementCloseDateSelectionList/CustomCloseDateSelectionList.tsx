@@ -4,8 +4,10 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 
 type CustomCloseDateListItem = ListItem & {
@@ -24,9 +26,11 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const [selectedDay, setSelectedDay] = useState(initiallySelectedDay);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [error, setError] = useState<string | undefined>(undefined);
+    const initialSelectedValues = useInitialSelectionRef(initiallySelectedDay ? [initiallySelectedDay.toString()] : [], {resetOnFocus: true});
+    const initiallyFocusedDay = initialSelectedValues.at(0);
 
     const data = useMemo(() => {
-        return CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
+        const mappedDays = CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
             const day = {
                 value: dayValue,
                 text: dayValue.toString(),
@@ -44,7 +48,16 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
 
             return days;
         }, []);
-    }, [selectedDay, debouncedSearchValue]);
+
+        if (debouncedSearchValue || initialSelectedValues.length === 0) {
+            return mappedDays;
+        }
+
+        return moveInitialSelectionToTopByValue(
+            mappedDays.map((day) => ({...day, value: day.value.toString()})),
+            initialSelectedValues,
+        ).map((day) => ({...day, value: Number(day.value)}));
+    }, [debouncedSearchValue, initialSelectedValues, selectedDay]);
 
     const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);
@@ -85,13 +98,14 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             data={data}
             ListItem={SingleSelectListItem}
             onSelectRow={selectDayAndClearError}
-            initiallyFocusedItemKey={initiallySelectedDay?.toString()}
+            initiallyFocusedItemKey={initiallyFocusedDay}
             confirmButtonOptions={confirmButtonOptions}
             textInputOptions={textInputOptions}
             shouldShowListEmptyContent={false}
             disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
+            shouldScrollToFocusedIndex={false}
+            shouldScrollToFocusedIndexOnMount={false}
             addBottomSafeAreaPadding
         >
             {!!error && (

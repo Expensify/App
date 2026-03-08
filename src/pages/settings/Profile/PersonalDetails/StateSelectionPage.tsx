@@ -1,18 +1,19 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import {appendParam} from '@libs/Url';
-import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
@@ -26,25 +27,13 @@ type RouteParams = {
 
 function StateSelectionPage() {
     const route = useRoute();
-    const isFocused = useIsFocused();
     const {translate} = useLocalize();
 
     const [searchValue, setSearchValue] = useState('');
     const params = route.params as RouteParams | undefined;
     const currentState = params?.state;
     const label = params?.label;
-    const initialSelectedValuesRef = useRef<string[]>([]);
-    const prevIsFocusedRef = useRef(false);
-    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
-
-    useEffect(() => {
-        const wasFocused = prevIsFocusedRef.current;
-        if (isFocused && !wasFocused) {
-            initialSelectedValuesRef.current = currentState ? [currentState] : [];
-            setSelectionSnapshotVersion((version) => version + 1);
-        }
-        prevIsFocusedRef.current = isFocused;
-    }, [currentState, isFocused]);
+    const initialSelectedValues = useInitialSelectionRef(currentState ? [currentState] : [], {resetOnFocus: true});
 
     const countryStates = useMemo(
         () =>
@@ -64,15 +53,14 @@ function StateSelectionPage() {
     );
 
     const orderedCountryStates = useMemo(() => {
-        const shouldReorderInitialSelection =
-            !searchValue && initialSelectedValuesRef.current.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = !searchValue && initialSelectedValues.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return countryStates;
         }
 
-        return moveInitialSelectionToTopByValue(countryStates, initialSelectedValuesRef.current);
-    }, [countryStates, searchValue, selectionSnapshotVersion]);
+        return moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
+    }, [countryStates, initialSelectedValues, searchValue]);
 
     const searchResults = useMemo(() => searchOptions(searchValue, orderedCountryStates), [orderedCountryStates, searchValue]);
     const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';

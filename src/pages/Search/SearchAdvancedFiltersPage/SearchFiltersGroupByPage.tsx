@@ -8,12 +8,15 @@ import type {SearchGroupBy} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getGroupByOptions} from '@libs/SearchUIUtils';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -22,14 +25,22 @@ function SearchFiltersGroupByPage() {
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
+    const initialSelectedValues = useInitialSelectionRef(selectedItem ? [selectedItem] : [], {resetOnFocus: true});
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions(translate).map((groupOption) => ({
+        const mappedItems = getGroupByOptions(translate).map((groupOption) => ({
             text: groupOption.text,
             keyForList: groupOption.value,
+            value: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [translate, selectedItem]);
+
+        if (initialSelectedValues.length === 0 || mappedItems.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+            return mappedItems;
+        }
+
+        return moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues);
+    }, [translate, selectedItem, initialSelectedValues]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
@@ -88,3 +99,4 @@ function SearchFiltersGroupByPage() {
 }
 
 export default SearchFiltersGroupByPage;
+export {SearchFiltersGroupByPage};

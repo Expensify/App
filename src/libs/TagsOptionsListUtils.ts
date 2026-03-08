@@ -116,12 +116,21 @@ function getTagListSections({
         return tagSections;
     }
 
-    if (numberOfTags < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    const enabledTagNames = new Set(enabledTags.map((tag) => tag.name));
+    const selectedTagsOutsideEnabledTags = selectedTagsWithDisabledState.filter((tag) => !enabledTagNames.has(tag.name));
+    const totalVisibleTags = enabledTags.length + selectedTagsOutsideEnabledTags.length;
+
+    if (totalVisibleTags <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+        const enabledTagsWithSelectionState = enabledTags.map((tag) => ({
+            ...tag,
+            isSelected: selectedOptionNames.has(tag.name),
+        }));
+
         tagSections.push({
-            // "All" section when items amount less than the threshold
+            // Keep the natural sorted order for small lists and only preserve unmatched selected items outside the list.
             title: '',
             sectionIndex: 2,
-            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
+            data: getTagsOptions([...selectedTagsOutsideEnabledTags, ...enabledTagsWithSelectionState], selectedOptions),
         });
 
         return tagSections;

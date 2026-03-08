@@ -1,8 +1,8 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +17,6 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useInitialSelectionSnapshot from '@hooks/useInitialSelectionSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -40,7 +39,6 @@ import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import {getReportName, isHiddenForCurrentUser, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -50,10 +48,16 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import {areRoomInviteSelectionsEqual, rehydrateRoomInviteSelectedOptions} from './RoomInvitePageUtils';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
 type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
+
+function getMemberSelectionKey(option: Partial<OptionData>) {
+    return option.keyForList?.toString() ?? option.login ?? option.reportID ?? option.accountID?.toString() ?? '';
+}
+
 function RoomInvitePage({
     betas,
     report,
@@ -74,6 +78,8 @@ function RoomInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const isFocused = useIsFocused();
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
+    const [initialSelectedOptions, setInitialSelectedOptions] = useState<OptionData[]>([]);
+    const previousIsFocusedRef = useRef(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
@@ -82,23 +88,27 @@ function RoomInvitePage({
     const allPersonalDetails = usePersonalDetails();
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers: Record<string, boolean> = {
-        ...CONST.EXPENSIFY_EMAILS_OBJECT,
-    };
-    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-        .filter(([, participant]) => participant && !isHiddenForCurrentUser(participant.notificationPreference))
-        .map(([accountID]) => Number(accountID));
-    for (const participant of getLoginsByAccountIDs(visibleParticipantAccountIDs)) {
-        const smsDomain = addSMSDomainIfPhoneNumber(participant);
-        excludedUsers[smsDomain] = true;
-    }
+    const excludedUsers = useMemo(() => {
+        const nextExcludedUsers: Record<string, boolean> = {
+            ...CONST.EXPENSIFY_EMAILS_OBJECT,
+        };
+        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+            .filter(([, participant]) => participant && !isHiddenForCurrentUser(participant.notificationPreference))
+            .map(([accountID]) => Number(accountID));
+        for (const participant of getLoginsByAccountIDs(visibleParticipantAccountIDs)) {
+            const smsDomain = addSMSDomainIfPhoneNumber(participant);
+            nextExcludedUsers[smsDomain] = true;
+        }
 
-    const getDefaultOptions = () => {
+        return nextExcludedUsers;
+    }, [report.participants]);
+
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(
+        return getMemberInviteOptions(
             options.personalDetails,
             nvpDismissedProductTraining,
             loginList,
@@ -110,60 +120,68 @@ function RoomInvitePage({
             false,
             countryCode,
         );
-        // Update selectedOptions with the latest personalDetails information
-        const detailsMap: Record<string, MemberForList> = {};
-        for (const detail of inviteOptions.personalDetails) {
-            if (!detail.login) {
-                continue;
-            }
-            detailsMap[detail.login] = formatMemberForList(detail);
-        }
-        const newSelectedOptions: OptionData[] = [];
-        for (const option of selectedOptions) {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
-        }
+    }, [
+        allPersonalDetails,
+        areOptionsInitialized,
+        betas,
+        countryCode,
+        currentUserAccountID,
+        currentUserEmail,
+        excludedUsers,
+        loginList,
+        nvpDismissedProductTraining,
+        options.personalDetails,
+    ]);
 
-        return {
-            userToInvite: inviteOptions.userToInvite,
-            personalDetails: inviteOptions.personalDetails,
-            selectedOptions: newSelectedOptions,
-            recentReports: [],
-            currentUserOption: null,
-        };
-    };
-    const defaultOptions = getDefaultOptions();
+    const selectedOptionsForDisplay = useMemo(() => rehydrateRoomInviteSelectedOptions(selectedOptions, defaultOptions.personalDetails), [defaultOptions.personalDetails, selectedOptions]);
 
-    const inviteOptions =
-        debouncedSearchTerm.trim() === ''
-            ? defaultOptions
-            : filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
-                  excludeLogins: excludedUsers,
-              });
-
-    const selectedKeys = useMemo(
+    const inviteOptions = useMemo(
         () =>
-            selectedOptions
-                .map((option) => option.keyForList?.toString() ?? option.login ?? '')
-                .filter(Boolean),
-        [selectedOptions],
+            debouncedSearchTerm.trim() === ''
+                ? defaultOptions
+                : filterAndOrderOptions(defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserEmail, currentUserAccountID, allPersonalDetails, {
+                      excludeLogins: excludedUsers,
+                  }),
+        [allPersonalDetails, countryCode, currentUserAccountID, currentUserEmail, debouncedSearchTerm, defaultOptions, excludedUsers, loginList],
     );
-    const {initialSelectedKeys, snapshotVersion} = useInitialSelectionSnapshot(selectedKeys, hasUserInteracted);
-    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeys.length > 0 && !hasUserInteracted;
 
     useEffect(() => {
-        if (!isFocused) {
+        const wasFocused = previousIsFocusedRef.current;
+
+        if (isFocused && !wasFocused) {
+            setHasUserInteracted(false);
+            setInitialSelectedOptions((previousInitialSelection) =>
+                areRoomInviteSelectionsEqual(previousInitialSelection, selectedOptionsForDisplay) ? previousInitialSelection : selectedOptionsForDisplay,
+            );
+        }
+
+        previousIsFocusedRef.current = isFocused;
+    }, [isFocused, selectedOptionsForDisplay]);
+
+    useEffect(() => {
+        if (!isFocused || hasUserInteracted) {
             return;
         }
-        setHasUserInteracted(false);
-    }, [isFocused]);
+
+        setInitialSelectedOptions((previousInitialSelection) =>
+            areRoomInviteSelectionsEqual(previousInitialSelection, selectedOptionsForDisplay) ? previousInitialSelection : selectedOptionsForDisplay,
+        );
+    }, [hasUserInteracted, isFocused, selectedOptionsForDisplay]);
+
+    const selectedOptionKeySet = useMemo(() => new Set(selectedOptions.map(getMemberSelectionKey).filter(Boolean)), [selectedOptions]);
+    const initialSelectedKeySet = useMemo(() => new Set(initialSelectedOptions.map(getMemberSelectionKey).filter(Boolean)), [initialSelectedOptions]);
+    const totalOptionsCount = inviteOptions.personalDetails.length + (inviteOptions.userToInvite ? 1 : 0);
+    const shouldReorderInitialSelection = debouncedSearchTerm.trim().length === 0 && initialSelectedKeySet.size > 0 && totalOptionsCount > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
     const {personalDetails, userToInvite} = inviteOptions;
-    const sections: Sections = [];
-    if (areOptionsInitialized) {
-        // Filter all options that is a part of the search term or in the personal details
-        let filterSelectedOptions = selectedOptions;
+    const sections: Sections = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return [];
+        }
+
+        let filterSelectedOptions = selectedOptionsForDisplay;
         if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
+            filterSelectedOptions = selectedOptionsForDisplay.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
                 const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm), countryCode));
@@ -172,47 +190,77 @@ function RoomInvitePage({
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
 
-        sections.push({
-            title: undefined,
-            data: filterSelectedOptionsFormatted,
-            sectionIndex: 0,
-        });
+        let filterSelectedOptionsFormatted: MemberForList[] = [];
 
-        // Filtering out selected users from the search results
-        const selectedLogins = new Set(selectedOptions.map(({login}) => login));
-        const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.has(login)) : [];
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
-        const hasUnselectedUserToInvite = userToInvite && !selectedLogins.has(userToInvite.login);
+        if (shouldReorderInitialSelection) {
+            filterSelectedOptionsFormatted = initialSelectedOptions.map((selectedOption) => ({
+                ...formatMemberForList(selectedOption),
+                isSelected: selectedOptionKeySet.has(getMemberSelectionKey(selectedOption)),
+            }));
+        } else if (debouncedSearchTerm !== '') {
+            filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => ({
+                ...formatMemberForList(selectedOption),
+                isSelected: selectedOptionKeySet.has(getMemberSelectionKey(selectedOption)),
+            }));
+        }
 
-        sections.push({
+        const nextSections: Sections = [];
+        if (filterSelectedOptionsFormatted.length > 0) {
+            nextSections.push({
+                title: undefined,
+                data: filterSelectedOptionsFormatted,
+                sectionIndex: 0,
+            });
+        }
+
+        const visiblePersonalDetails = personalDetails
+            ? personalDetails
+                  .filter((personalDetail) => !shouldReorderInitialSelection || !initialSelectedKeySet.has(getMemberSelectionKey(personalDetail)))
+                  .map((personalDetail) => {
+                      const member = formatMemberForList(personalDetail);
+                      return {
+                          ...member,
+                          isSelected: selectedOptionKeySet.has(getMemberSelectionKey(member)),
+                      };
+                  })
+            : [];
+        const visibleUserToInvite =
+            userToInvite && (!shouldReorderInitialSelection || !initialSelectedKeySet.has(getMemberSelectionKey(userToInvite)))
+                ? {
+                      ...formatMemberForList(userToInvite),
+                      isSelected: selectedOptionKeySet.has(getMemberSelectionKey(userToInvite)),
+                  }
+                : undefined;
+
+        nextSections.push({
             title: translate('common.contacts'),
-            data: personalDetailsFormatted,
+            data: visiblePersonalDetails,
             sectionIndex: 1,
         });
 
-        if (hasUnselectedUserToInvite) {
-            sections.push({
+        if (visibleUserToInvite) {
+            nextSections.push({
                 title: undefined,
-                data: [formatMemberForList(userToInvite)],
+                data: [visibleUserToInvite],
                 sectionIndex: 2,
             });
         }
-    }
 
-    const totalOptionsCount = sections.reduce((count, section) => count + (section.data?.length ?? 0), 0);
-
-    const orderedSections = useMemo(
-        () =>
-            shouldReorderInitialSelection
-                ? sections.map((section) => ({
-                      ...section,
-                      data: reorderItemsByInitialSelection(section.data, initialSelectedKeys, totalOptionsCount),
-                  }))
-                : sections,
-        [initialSelectedKeys, sections, shouldReorderInitialSelection, snapshotVersion, totalOptionsCount],
-    );
+        return nextSections;
+    }, [
+        areOptionsInitialized,
+        countryCode,
+        debouncedSearchTerm,
+        initialSelectedKeySet,
+        initialSelectedOptions,
+        personalDetails,
+        selectedOptionKeySet,
+        selectedOptionsForDisplay,
+        shouldReorderInitialSelection,
+        translate,
+        userToInvite,
+    ]);
 
     const toggleOption = (option: MemberForList) => {
         setHasUserInteracted(true);
@@ -319,7 +367,7 @@ function RoomInvitePage({
                     onBackButtonPress={() => Navigation.goBack(backRoute)}
                 />
                 <SelectionListWithSections
-                    sections={orderedSections}
+                    sections={sections}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
                     onSelectRow={toggleOption}
@@ -349,3 +397,4 @@ function RoomInvitePage({
 }
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));
+export {RoomInvitePage};

@@ -203,9 +203,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
                 allowMultipleSelection={false}
                 onSelectApprover={toggleApprover}
+                shouldUpdateFocusedIndex={false}
             />
         </AccessOrNotFoundWrapper>
     );
 }
 
+export {WorkspaceWorkflowsApprovalsApproverPage};
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);

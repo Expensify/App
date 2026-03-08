@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,9 +6,9 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
-import {useIsFocused} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import {updateSelectedTimezone} from '@userActions/PersonalDetails';
@@ -29,7 +29,6 @@ const getUserTimezone = (currentUserPersonalDetails: ValueOf<WithCurrentUserPers
 
 function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProps) {
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const timezone = getUserTimezone(currentUserPersonalDetails);
     const allTimezones = useInitialValue(() =>
         TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
@@ -40,9 +39,8 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     );
     const [timezoneInputText, setTimezoneInputText] = useState('');
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
-    const initialSelectedValuesRef = useRef<string[]>([]);
-    const prevIsFocusedRef = useRef(false);
-    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
+    const initialSelectedValues = useInitialSelectionRef(timezone.selected ? [timezone.selected] : [], {resetOnFocus: true});
+    const initiallyFocusedTimezone = initialSelectedValues.at(0);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
         updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
@@ -76,34 +74,24 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
     );
 
-    useEffect(() => {
-        const wasFocused = prevIsFocusedRef.current;
-        if (isFocused && !wasFocused) {
-            initialSelectedValuesRef.current = timezone.selected ? [timezone.selected] : [];
-            setSelectionSnapshotVersion((version) => version + 1);
-        }
-        prevIsFocusedRef.current = isFocused;
-    }, [isFocused, timezone.selected]);
-
     const orderedTimezoneOptions = useMemo(() => {
         const mappedOptions = timezoneOptions.map((option) => ({
             ...option,
             isSelected: option.value === timezone.selected,
         }));
 
-        const shouldReorderInitialSelection =
-            !timezoneInputText && initialSelectedValuesRef.current.length > 0 && mappedOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = !timezoneInputText && initialSelectedValues.length > 0 && mappedOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return mappedOptions;
         }
 
-        return moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValuesRef.current);
-    }, [timezoneInputText, timezoneOptions, selectionSnapshotVersion, timezone.selected]);
+        return moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues);
+    }, [initialSelectedValues, timezone.selected, timezoneInputText, timezoneOptions]);
 
     const initiallyFocusedItemKey = useMemo(
-        () => orderedTimezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList,
-        [orderedTimezoneOptions, timezone.selected],
+        () => orderedTimezoneOptions.find((tz) => tz.value === initiallyFocusedTimezone)?.keyForList,
+        [initiallyFocusedTimezone, orderedTimezoneOptions],
     );
 
     return (
@@ -130,4 +118,5 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     );
 }
 
+export {TimezoneSelectPage};
 export default withCurrentUserPersonalDetails(TimezoneSelectPage);

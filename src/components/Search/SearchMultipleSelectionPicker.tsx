@@ -2,10 +2,13 @@ import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
@@ -28,37 +31,54 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const [selectedItemIDs, setSelectedItemIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
+    const initialSelectedValues = useInitialSelectionRef(
+        (initiallySelectedItems ?? []).map((item) => item.value.toString()),
+        {resetOnFocus: true},
+    );
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]; leftElement?: React.ReactNode}> = [];
-    const remainingSectionData: typeof selectedSectionData = [];
-    for (const item of items) {
-        if (!item.name.toLowerCase().includes(searchLower)) {
-            continue;
-        }
-        const isSelected = selectedItemIDs.has(item.value.toString());
-        (isSelected ? selectedSectionData : remainingSectionData).push({text: item.name, keyForList: item.name, isSelected, value: item.value, leftElement: item.leftElement});
-    }
-
     const sortByValue = (a: {value: string | string[]}, b: {value: string | string[]}) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare);
-    selectedSectionData.sort(sortByValue);
-    remainingSectionData.sort(sortByValue);
+    const mappedItems: Array<{text: string; keyForList: string; isSelected: boolean; value: string | string[]; leftElement?: React.ReactNode}> = items
+        .filter((item) => item.name.toLowerCase().includes(searchLower))
+        .map((item) => ({
+            text: item.name,
+            keyForList: item.value.toString(),
+            isSelected: selectedItemIDs.has(item.value.toString()),
+            value: item.value,
+            leftElement: item.leftElement,
+        }))
+        .sort(sortByValue);
 
-    const noResultsFound = !selectedSectionData.length && !remainingSectionData.length;
-    const sections = noResultsFound
-        ? []
-        : [
-              {
-                  title: undefined,
-                  data: selectedSectionData,
-                  sectionIndex: 0,
-              },
-              {
-                  title: pickerTitle,
-                  data: remainingSectionData,
-                  sectionIndex: 1,
-              },
-          ];
+    const shouldReorderInitialSelection =
+        !searchLower && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+    const orderedItems = shouldReorderInitialSelection ? reorderItemsByInitialSelection(mappedItems, initialSelectedValues) : mappedItems;
+    const initialSelectedSet = new Set(initialSelectedValues);
+    const initiallySelectedSectionData = orderedItems.filter((item) => initialSelectedSet.has(item.keyForList));
+    const remainingSectionData = orderedItems.filter((item) => !initialSelectedSet.has(item.keyForList));
+    const noResultsFound = orderedItems.length === 0;
+    const sections =
+        noResultsFound || !shouldReorderInitialSelection
+            ? noResultsFound
+                ? []
+                : [
+                      {
+                          title: pickerTitle,
+                          data: orderedItems,
+                          sectionIndex: 0,
+                      },
+                  ]
+            : [
+                  {
+                      title: undefined,
+                      data: initiallySelectedSectionData,
+                      sectionIndex: 0,
+                  },
+                  {
+                      title: pickerTitle,
+                      data: remainingSectionData,
+                      sectionIndex: 1,
+                  },
+              ];
 
     const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
         if (!item.text || !item.keyForList || !item.value) {
@@ -108,6 +128,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                     resetChanges={resetChanges}
                 />
             }
+            shouldScrollToTopOnSelect={false}
         />
     );
 }

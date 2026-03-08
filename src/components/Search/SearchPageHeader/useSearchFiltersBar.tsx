@@ -393,7 +393,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const userPickerComponent = ({closeOverlay}: PopoverComponentProps) => {
+    const userPickerComponent = ({closeOverlay, isVisible}: PopoverComponentProps) => {
         const value = searchAdvancedFiltersForm.from ?? [];
 
         return (
@@ -401,6 +401,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 value={value}
                 closeOverlay={closeOverlay}
                 onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
+                isVisible={isVisible}
             />
         );
     };
@@ -417,6 +418,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             closeOverlay={closeOverlay}
             onChange={handleWorkspaceChange}
             isSearchable={shouldShowWorkspaceSearchInput}
+            shouldMoveSelectedItemsToTopOnOpen
             isVisible={isVisible}
         />
     );

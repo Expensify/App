@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,16 +13,26 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getUrlWithParams} from '@libs/Url';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import {areSameDelegateOption, buildAddDelegateSections, buildInitialDelegateOption} from './AddDelegatePageUtils';
 
-function AddDelegatePage() {
+type AddDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE>;
+
+function AddDelegatePage({route}: AddDelegatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const selectedDelegateLogin = route.params?.login;
     const existingDelegates =
         account?.delegatedAccess?.delegates?.reduce(
             (prev, {email}) => {
@@ -31,59 +42,55 @@ function AddDelegatePage() {
             },
             {} as Record<string, boolean>,
         ) ?? {};
+    const initiallySelectedOptions = useMemo(() => buildInitialDelegateOption(selectedDelegateLogin, personalDetails), [personalDetails, selectedDelegateLogin]);
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, toggleSelection, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, searchOptions, selectedOptions, areOptionsInitialized, toggleSelection, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
         excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        initialSelected: initiallySelectedOptions,
         prioritizeSelectedOnToggle: false,
         onSingleSelect: (option) => {
-            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
+            const login = option.login ?? '';
+            if (!login) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, undefined, getUrlWithParams(ROUTES.SETTINGS_ADD_DELEGATE, {login})));
         },
     });
 
-    const headerMessage = getHeaderMessage(
-        (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
-        !!availableOptions.userToInvite,
-        debouncedSearchTerm,
-        countryCode,
+    const sections: Array<Section<OptionData>> = useMemo(
+        () =>
+            buildAddDelegateSections({
+                searchTerm: debouncedSearchTerm,
+                searchOptions,
+                selectedOptions,
+                initialSelectedOptions: initiallySelectedOptions,
+                areOptionsInitialized,
+                translate,
+            }).map((section, sectionIndex) => ({
+                ...section,
+                sectionIndex,
+                data: section.data.map((option) => ({
+                    ...option,
+                    text: option.text ?? '',
+                    alternateText: option.alternateText ?? undefined,
+                    keyForList: option.keyForList?.toString() ?? option.login ?? option.accountID?.toString() ?? option.text ?? '',
+                    isDisabled: option.isDisabled ?? undefined,
+                    login: option.login ?? undefined,
+                    shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                })),
+            })),
+        [areOptionsInitialized, debouncedSearchTerm, initiallySelectedOptions, searchOptions, selectedOptions, translate],
     );
-    const sectionsList = [
-        {
-            title: translate('common.recents'),
-            sectionIndex: 0,
-            data: availableOptions.recentReports,
-        },
-        {
-            title: translate('common.contacts'),
-            sectionIndex: 1,
-            data: availableOptions.personalDetails,
-        },
-    ];
 
-    if (availableOptions.userToInvite) {
-        sectionsList.push({
-            sectionIndex: 2,
-            title: '',
-            data: [availableOptions.userToInvite],
-        });
-    }
-
-    const sections = sectionsList.map((section) => ({
-        ...section,
-        data: section.data.map((option, index) => ({
-            ...option,
-            text: option.text ?? '',
-            alternateText: option.alternateText ?? undefined,
-            keyForList: `${option.keyForList}-${index}`,
-            isDisabled: option.isDisabled ?? undefined,
-            login: option.login ?? undefined,
-            shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-        })),
-    }));
+    const hasVisibleOptions = sections.some((section) => section.data.length > 0);
+    const visibleUserToInvite = !!searchOptions.userToInvite && sections.some((section) => section.data.some((option) => areSameDelegateOption(option, searchOptions.userToInvite ?? undefined)));
+    const headerMessage = getHeaderMessage(hasVisibleOptions, visibleUserToInvite, debouncedSearchTerm, countryCode);
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm);
@@ -105,6 +112,7 @@ function AddDelegatePage() {
                         ListItem={UserListItem}
                         onSelectRow={toggleSelection}
                         shouldSingleExecuteRowSelect
+                        shouldScrollToTopOnSelect={false}
                         textInputOptions={{
                             value: searchTerm,
                             onChangeText: setSearchTerm,
@@ -122,4 +130,5 @@ function AddDelegatePage() {
     );
 }
 
+export {AddDelegatePage};
 export default AddDelegatePage;

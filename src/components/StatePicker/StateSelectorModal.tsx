@@ -1,17 +1,18 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
-import StringUtils from '@libs/StringUtils';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
 type State = keyof typeof COMMON_CONST.STATES;
@@ -40,18 +41,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const styles = useThemeStyles();
-    const initialSelectedValuesRef = useRef<string[]>([]);
-    const prevIsVisibleRef = useRef(false);
-    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
-
-    useEffect(() => {
-        const wasVisible = prevIsVisibleRef.current;
-        if (isVisible && !wasVisible) {
-            initialSelectedValuesRef.current = currentState ? [currentState] : [];
-            setSelectionSnapshotVersion((version) => version + 1);
-        }
-        prevIsVisibleRef.current = isVisible;
-    }, [currentState, isVisible]);
+    const initialSelectedValues = useInitialSelectionRef(currentState ? [currentState] : [], {resetDeps: [isVisible]});
 
     const countryStates = useMemo(
         () =>
@@ -71,15 +61,14 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     );
 
     const orderedCountryStates = useMemo(() => {
-        const shouldReorderInitialSelection =
-            !debouncedSearchValue && initialSelectedValuesRef.current.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = !debouncedSearchValue && initialSelectedValues.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return countryStates;
         }
 
-        return moveInitialSelectionToTopByValue(countryStates, initialSelectedValuesRef.current);
-    }, [countryStates, debouncedSearchValue, selectionSnapshotVersion]);
+        return moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
+    }, [countryStates, debouncedSearchValue, initialSelectedValues]);
 
     const searchResults = useMemo(() => searchOptions(debouncedSearchValue, orderedCountryStates), [orderedCountryStates, debouncedSearchValue]);
 

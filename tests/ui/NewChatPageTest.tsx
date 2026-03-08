@@ -68,7 +68,7 @@ describe('NewChatPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should scroll to top when adding a user to the group selection', async () => {
+    it('should not scroll to top when adding a user to the group selection', async () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
         });
@@ -81,7 +81,7 @@ describe('NewChatPage', () => {
         const addButton = await waitFor(() => screen.getAllByText(translateLocal('newChatPage.addToGroup')).at(0));
         if (addButton) {
             fireEvent.press(addButton);
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
+            expect(spy).not.toHaveBeenCalled();
         }
     });
 

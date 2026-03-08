@@ -37,7 +37,7 @@ function useWorkspaceList({
     initialSelectedPolicyIDs,
 }: UseWorkspaceListParams) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
-    const prioritySelection = prioritizeSelectedOnToggle ? selectedPolicyIDs : initialSelectedPolicyIDs ?? selectedPolicyIDs;
+    const prioritySelection = prioritizeSelectedOnToggle ? selectedPolicyIDs : (initialSelectedPolicyIDs ?? selectedPolicyIDs);
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];

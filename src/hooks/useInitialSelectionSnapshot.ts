@@ -7,7 +7,7 @@ import {useEffect, useRef, useState} from 'react';
  */
 function useInitialSelectionSnapshot(selectedKeys: string[], hasUserInteracted = false) {
     const isFocused = useIsFocused();
-    const initialSelectedKeysRef = useRef<string[]>([]);
+    const [initialSelectedKeys, setInitialSelectedKeys] = useState<string[]>(selectedKeys);
     const hasCapturedSnapshotRef = useRef(false);
     const previousIsFocusedRef = useRef(false);
     const [snapshotVersion, setSnapshotVersion] = useState(0);
@@ -16,7 +16,7 @@ function useInitialSelectionSnapshot(selectedKeys: string[], hasUserInteracted =
     useEffect(() => {
         const wasFocused = previousIsFocusedRef.current;
         if (isFocused && !wasFocused) {
-            initialSelectedKeysRef.current = selectedKeys;
+            setInitialSelectedKeys(selectedKeys);
             hasCapturedSnapshotRef.current = selectedKeys.length > 0;
             setSnapshotVersion((version) => version + 1);
         } else if (!isFocused && wasFocused) {
@@ -30,13 +30,13 @@ function useInitialSelectionSnapshot(selectedKeys: string[], hasUserInteracted =
         if (!isFocused || hasCapturedSnapshotRef.current || selectedKeys.length === 0 || hasUserInteracted) {
             return;
         }
-        initialSelectedKeysRef.current = selectedKeys;
+        setInitialSelectedKeys(selectedKeys);
         hasCapturedSnapshotRef.current = true;
         setSnapshotVersion((version) => version + 1);
     }, [hasUserInteracted, isFocused, selectedKeys]);
 
     return {
-        initialSelectedKeys: initialSelectedKeysRef.current,
+        initialSelectedKeys,
         snapshotVersion,
     };
 }

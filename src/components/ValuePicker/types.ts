@@ -53,7 +53,7 @@ type ValueSelectorModalProps = {
 
 type ValueSelectionListProps = Pick<
     ValueSelectorModalProps,
-    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
+    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines' | 'isVisible'
 >;
 
 type ValuePickerProps = ForwardedFSClassProps & {

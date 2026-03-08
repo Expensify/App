@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -179,15 +179,6 @@ function useSearchSelectorBase({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>(initialSelected ?? []);
-    const [initialSelectedKeysSnapshot, setInitialSelectedKeysSnapshot] = useState<string[]>(() =>
-        initialSelectedKeys ??
-        (initialSelected ?? []).map((option) => {
-            if (getKeyForOption) {
-                return getKeyForOption(option);
-            }
-            return option.login ?? option.reportID ?? option.accountID?.toString() ?? option.text ?? '';
-        }),
-    );
     const [maxResults, setMaxResults] = useState(maxResultsPerPage);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
@@ -221,28 +212,23 @@ function useSearchSelectorBase({
         },
         [getKeyForOption],
     );
+    const initialSelectedKeysSnapshot = useMemo(
+        () =>
+            initialSelectedKeys ??
+            (initialSelected ?? []).map((option) => {
+                const key = optionKeyExtractor(option);
+                return key;
+            }),
+        [initialSelectedKeys, initialSelected, optionKeyExtractor],
+    );
 
     const selectedOptionKeys = useMemo(() => selectedOptions.map(optionKeyExtractor), [selectedOptions, optionKeyExtractor]);
-
-    useEffect(() => {
-        setInitialSelectedKeysSnapshot(
-            initialSelectedKeys ??
-                (initialSelected ?? []).map((option) => {
-                    const key = optionKeyExtractor(option);
-                    return key;
-                }),
-        );
-    }, [initialSelectedKeys, initialSelected, optionKeyExtractor]);
 
     const keysForPrioritization = prioritizeSelectedOnToggle ? selectedOptionKeys : initialSelectedKeysSnapshot;
 
     const reorderOptions = useCallback(
         (optionsList: OptionData[]) => {
-            if (
-                debouncedSearchTerm ||
-                !keysForPrioritization.length ||
-                optionsList.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD
-            ) {
+            if (debouncedSearchTerm || !keysForPrioritization.length || optionsList.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
                 return optionsList;
             }
 
@@ -250,24 +236,24 @@ function useSearchSelectorBase({
             const orderedKeys = moveInitialSelectionToTopByKey(optionKeys, keysForPrioritization);
             const optionsByKey = new Map<string, OptionData[]>();
 
-            optionsList.forEach((option) => {
+            for (const option of optionsList) {
                 const key = optionKeyExtractor(option);
                 const bucket = optionsByKey.get(key) ?? [];
                 bucket.push(option);
                 optionsByKey.set(key, bucket);
-            });
+            }
 
             const reordered: OptionData[] = [];
-            orderedKeys.forEach((key) => {
+            for (const key of orderedKeys) {
                 const bucket = optionsByKey.get(key);
                 if (!bucket || bucket.length === 0) {
-                    return;
+                    continue;
                 }
                 const nextOption = bucket.shift();
                 if (nextOption) {
                     reordered.push(nextOption);
                 }
-            });
+            }
 
             return reordered;
         },

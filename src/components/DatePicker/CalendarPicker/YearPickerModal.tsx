@@ -5,8 +5,10 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import type CalendarPickerListItem from './types';
 
@@ -31,13 +33,20 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
+    const initialSelectedValues = useInitialSelectionRef([currentYear.toString()], {resetDeps: [isVisible]});
+    const initiallyFocusedYear = initialSelectedValues.at(0);
     const {data, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
+        const sortedYears = [...yearsList].sort((a, b) => b.value - a.value);
+        const orderedYears =
+            searchText || sortedYears.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD
+                ? sortedYears
+                : reorderItemsByInitialSelection(sortedYears, initialSelectedValues);
         return {
-            headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
-            data: yearsList.sort((a, b) => b.value - a.value),
+            headerMessage: !orderedYears.length ? translate('common.noResultsFound') : '',
+            data: orderedYears,
         };
-    }, [years, searchText, translate]);
+    }, [initialSelectedValues, searchText, translate, years]);
 
     useEffect(() => {
         if (isVisible) {
@@ -87,8 +96,10 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                         onYearChange?.(option.value);
                     }}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={currentYear.toString()}
+                    initiallyFocusedItemKey={initiallyFocusedYear}
                     disableMaintainingScrollPosition
+                    shouldScrollToFocusedIndex={false}
+                    shouldScrollToFocusedIndexOnMount={false}
                     addBottomSafeAreaPadding
                     shouldStopPropagation
                     showScrollIndicator

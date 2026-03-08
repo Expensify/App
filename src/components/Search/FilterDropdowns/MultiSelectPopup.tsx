@@ -11,8 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
+import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type MultiSelectItem<T> = {

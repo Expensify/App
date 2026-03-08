@@ -44,6 +44,7 @@ function ValueSelectorModal({
                     selectedItem={selectedItem}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
+                    isVisible={isVisible}
                     disableKeyboardShortcuts={disableKeyboardShortcuts}
                     alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />

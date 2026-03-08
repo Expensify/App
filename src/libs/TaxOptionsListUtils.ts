@@ -69,12 +69,13 @@ function getTaxRatesSection({
     const taxes = transformedTaxRates(policy, transaction);
 
     const sortedTaxRates = sortTaxRates(taxes, localeCompare);
+    const sortedTaxRateNames = new Set(sortedTaxRates.map((taxRate) => taxRate.modifiedName));
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
     const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
-    const numberOfTaxRates = enabledTaxRates.length;
+    const numberOfEnabledTaxRates = enabledTaxRates.length;
 
     for (const tax of selectedOptions) {
         if (enabledTaxRatesNames.has(tax.modifiedName)) {
@@ -85,7 +86,7 @@ function getTaxRatesSection({
     }
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
-    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+    if (numberOfEnabledTaxRates === 0 && selectedOptions.length > 0) {
         policyRatesSections.push({
             // "Selected" section
             title: '',
@@ -112,12 +113,20 @@ function getTaxRatesSection({
         return policyRatesSections;
     }
 
-    if (numberOfTaxRates < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    const selectedTaxRatesOutsideSortedTaxRates = selectedTaxRateWithDisabledState.filter((taxRate) => !sortedTaxRateNames.has(taxRate.modifiedName));
+    const totalVisibleTaxRates = sortedTaxRates.length + selectedTaxRatesOutsideSortedTaxRates.length;
+
+    if (totalVisibleTaxRates <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+        const sortedTaxRatesWithSelectionState = sortedTaxRates.map((taxRate) => ({
+            ...taxRate,
+            isSelected: selectedOptionNames.has(taxRate.modifiedName),
+        }));
+
         policyRatesSections.push({
-            // "All" section when items amount less than the threshold
+            // Keep the natural sorted order for small lists and only preserve unmatched selected items outside the list.
             title: '',
             sectionIndex: 2,
-            data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
+            data: getTaxRatesOptions([...selectedTaxRatesOutsideSortedTaxRates, ...sortedTaxRatesWithSelectionState]),
         });
 
         return policyRatesSections;

@@ -1,9 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
-import {useIsFocused} from '@react-navigation/native';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
@@ -38,26 +38,13 @@ function SearchSingleSelectionPicker({
     shouldShowTextInput = true,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
-    const isFocused = useIsFocused();
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItem, setSelectedItem] = useState<SearchSingleSelectionPickerItem | undefined>(initiallySelectedItem);
-    const initialSelectedValuesRef = useRef<string[]>([]);
-    const prevIsFocusedRef = useRef(false);
-    const [selectionSnapshotVersion, setSelectionSnapshotVersion] = useState(0);
+    const initialSelectedValues = useInitialSelectionRef(initiallySelectedItem ? [initiallySelectedItem.value] : [], {resetOnFocus: true});
 
     useEffect(() => {
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
-
-    useEffect(() => {
-        const wasFocused = prevIsFocusedRef.current;
-        if (isFocused && !wasFocused) {
-            initialSelectedValuesRef.current = initiallySelectedItem ? [initiallySelectedItem.value] : [];
-            setSelectionSnapshotVersion((version) => version + 1);
-        }
-        prevIsFocusedRef.current = isFocused;
-    }, [initiallySelectedItem, isFocused]);
 
     const {listData, noResultsFound} = useMemo(() => {
         const filteredItems = items.filter((item) => item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()));
@@ -70,16 +57,13 @@ function SearchSingleSelectionPicker({
             value: item.value,
         }));
 
-        const shouldReorderInitialSelection =
-            !debouncedSearchTerm &&
-            initialSelectedValuesRef.current.length > 0 &&
-            mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = !debouncedSearchTerm && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
-        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValuesRef.current) : mappedItems;
+        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
         const isEmpty = orderedItems.length === 0 && !!debouncedSearchTerm;
 
         return {listData: orderedItems, noResultsFound: isEmpty};
-    }, [debouncedSearchTerm, initialSelectedValuesRef, items, localeCompare, selectedItem?.value, selectionSnapshotVersion]);
+    }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, selectedItem?.value]);
 
     const sections = noResultsFound
         ? []

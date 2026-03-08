@@ -50,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ImportContactButton from './ImportContactButton';
+import {filterLowerParticipantSectionOptions, getMoneyRequestParticipantSelectionKey, resolveInitialSelectedParticipantOptions} from './MoneyRequestParticipantsSelectorUtils';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -142,6 +143,10 @@ function MoneyRequestParticipantsSelector({
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
     const hasMultipleTransactions = optimisticTransactions.length > 1;
     const canShowManagerMcTest = useMemo(() => !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT, [hasBeenAddedToNudgeMigration, action]) && !hasMultipleTransactions;
+    const selectableParticipants = useMemo(
+        () => participants.filter((participant) => participant.selected !== false && !(iouType === CONST.IOU.TYPE.INVOICE && participant.isSender)),
+        [participants, iouType],
+    );
 
     /**
      * Adds a single participant to the expense
@@ -174,7 +179,8 @@ function MoneyRequestParticipantsSelector({
 
     const getValidOptionsConfig = useMemo(
         () => ({
-            selectedOptions: participants as Participant[],
+            selectedOptions: selectableParticipants,
+            includeSelectedOptions: iouType === CONST.IOU.TYPE.INVOICE,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
@@ -193,7 +199,7 @@ function MoneyRequestParticipantsSelector({
             preferredPolicyID,
         }),
         [
-            participants,
+            selectableParticipants,
             iouType,
             action,
             isCategorizeOrShareAction,
@@ -217,7 +223,19 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, iouType, onParticipantsAdded],
     );
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
+    const {
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        searchOptions,
+        availableOptions,
+        selectedOptions,
+        setSelectedOptions,
+        toggleSelection,
+        areOptionsInitialized,
+        onListEndReached,
+        contactState,
+    } = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
@@ -228,7 +246,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
         enablePhoneContacts: isNative,
         contactOptions: contacts,
-        initialSelected: participants as OptionData[],
+        initialSelected: selectableParticipants as OptionData[],
         onSelectionChange: handleSelectionChange,
         onSingleSelect: (option: OptionData) => {
             if (isIOUSplit) {
@@ -238,9 +256,24 @@ function MoneyRequestParticipantsSelector({
         },
     });
 
+    useEffect(() => {
+        if (iouType !== CONST.IOU.TYPE.INVOICE) {
+            return;
+        }
+
+        const currentSelectedKeys = selectedOptions.map(getMoneyRequestParticipantSelectionKey).filter(Boolean);
+        const nextSelectedKeys = selectableParticipants.map(getMoneyRequestParticipantSelectionKey).filter(Boolean);
+
+        if (deepEqual(currentSelectedKeys, nextSelectedKeys)) {
+            return;
+        }
+
+        setSelectedOptions(selectableParticipants as OptionData[]);
+    }, [iouType, selectableParticipants, selectedOptions, setSelectedOptions]);
+
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(availableOptions?.userToInvite);
+    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(searchOptions?.userToInvite);
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -254,7 +287,7 @@ function MoneyRequestParticipantsSelector({
                 !!availableOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 countryCode,
-                participants.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                selectableParticipants.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
@@ -265,7 +298,7 @@ function MoneyRequestParticipantsSelector({
             availableOptions.workspaceChats,
             cleanSearchTerm,
             debouncedSearchTerm,
-            participants,
+            selectableParticipants,
             countryCode,
             currentUserAccountID,
         ],
@@ -276,6 +309,45 @@ function MoneyRequestParticipantsSelector({
         !isCategorizeOrShareAction &&
         !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
         inputHelperText === translate('common.noResultsFound');
+
+    const resolvedUserToInviteOption = useMemo(() => {
+        const userToInvite = searchOptions.userToInvite;
+
+        if (!userToInvite) {
+            return null;
+        }
+
+        const isPolicyExpenseChat = userToInvite.isPolicyExpenseChat ?? false;
+        return isPolicyExpenseChat
+            ? getPolicyExpenseReportOption(userToInvite, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
+            : getParticipantsOption(userToInvite, personalDetails);
+    }, [searchOptions.userToInvite, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived]);
+
+    const initialSelectedOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return [];
+        }
+
+        return resolveInitialSelectedParticipantOptions({
+            initialSelectedParticipants: selectableParticipants,
+            workspaceChats: searchOptions.workspaceChats,
+            selfDMChat: searchOptions.selfDMChat,
+            recentReports: searchOptions.recentReports,
+            personalDetailsOptions: searchOptions.personalDetails,
+            userToInvite: resolvedUserToInviteOption,
+            personalDetails,
+        });
+    }, [
+        areOptionsInitialized,
+        selectableParticipants,
+        searchOptions.workspaceChats,
+        searchOptions.selfDMChat,
+        searchOptions.recentReports,
+        searchOptions.personalDetails,
+        resolvedUserToInviteOption,
+        personalDetails,
+    ]);
+    const selectedOptionKeySet = useMemo(() => new Set(selectedOptions.map(getMoneyRequestParticipantSelectionKey).filter(Boolean)), [selectedOptions]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -289,7 +361,7 @@ function MoneyRequestParticipantsSelector({
 
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
+            selectableParticipants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
             [],
             [],
             currentUserAccountID,
@@ -298,39 +370,64 @@ function MoneyRequestParticipantsSelector({
             undefined,
             reportAttributesDerived,
         );
+        const selectedSectionBaseData = searchTerm.trim().length === 0 && initialSelectedOptions.length > 0 ? initialSelectedOptions : formatResults.section.data;
+        const selectedSectionData =
+            searchTerm.trim().length === 0
+                ? selectedSectionBaseData.map((option) => {
+                      const isSelected = selectedOptionKeySet.has(getMoneyRequestParticipantSelectionKey(option));
+
+                      return {
+                          ...option,
+                          isSelected,
+                          selected: isSelected,
+                      };
+                  })
+                : formatResults.section.data;
+        const filteredLowerOptions = filterLowerParticipantSectionOptions({
+            selectedSectionData,
+            workspaceChats: availableOptions.workspaceChats,
+            selfDMChat: availableOptions.selfDMChat,
+            recentReports: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+            personalDetailsOptions: availableOptions.personalDetails,
+            userToInvite: availableOptions.userToInvite,
+        });
         // Just a temporary fix to satisfy the type checker
         // Will be fixed when migrating to use new SelectionListWithSections
-        newSections.push({...formatResults.section, sectionIndex: 0});
+        newSections.push({
+            ...formatResults.section,
+            data: selectedSectionData,
+            sectionIndex: 0,
+        });
 
-        if ((availableOptions.workspaceChats ?? []).length > 0) {
+        if (filteredLowerOptions.workspaceChats.length > 0) {
             newSections.push({
                 title: translate('workspace.common.workspace'),
-                data: availableOptions.workspaceChats ?? [],
+                data: filteredLowerOptions.workspaceChats,
                 sectionIndex: 1,
             });
         }
 
-        if (availableOptions.selfDMChat) {
+        if (filteredLowerOptions.selfDMChat) {
             newSections.push({
                 title: translate('workspace.invoices.paymentMethods.personal'),
-                data: availableOptions.selfDMChat ? [availableOptions.selfDMChat] : [],
+                data: [filteredLowerOptions.selfDMChat],
                 sectionIndex: 2,
             });
         }
 
         if (!isWorkspacesOnly) {
-            if ((isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
+            if (filteredLowerOptions.recentReports.length > 0) {
                 newSections.push({
                     title: translate('common.recents'),
-                    data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                    data: filteredLowerOptions.recentReports,
                     sectionIndex: 3,
                 });
             }
 
-            if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest) {
+            if (filteredLowerOptions.personalDetails.length > 0 && !isPerDiemRequest) {
                 newSections.push({
                     title: translate('common.contacts'),
-                    data: availableOptions.personalDetails,
+                    data: filteredLowerOptions.personalDetails,
                     sectionIndex: 4,
                 });
             }
@@ -338,12 +435,12 @@ function MoneyRequestParticipantsSelector({
 
         if (
             !isWorkspacesOnly &&
-            availableOptions.userToInvite &&
+            filteredLowerOptions.userToInvite &&
             !isCurrentUser(
                 {
-                    ...availableOptions.userToInvite,
-                    accountID: availableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    status: availableOptions.userToInvite?.status ?? undefined,
+                    ...filteredLowerOptions.userToInvite,
+                    accountID: filteredLowerOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    status: filteredLowerOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
                 currentUserEmail,
@@ -352,7 +449,7 @@ function MoneyRequestParticipantsSelector({
         ) {
             newSections.push({
                 title: undefined,
-                data: [availableOptions.userToInvite].map((participant) => {
+                data: [filteredLowerOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
@@ -372,10 +469,12 @@ function MoneyRequestParticipantsSelector({
         areOptionsInitialized,
         didScreenTransitionEnd,
         searchTerm,
-        participants,
+        selectableParticipants,
         personalDetails,
         reportAttributesDerived,
         translate,
+        selectedOptionKeySet,
+        initialSelectedOptions,
         availableOptions.workspaceChats,
         availableOptions.selfDMChat,
         availableOptions.userToInvite,

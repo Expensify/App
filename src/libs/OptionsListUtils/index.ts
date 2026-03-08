@@ -3307,6 +3307,8 @@ function getEmptyOptions(): Options {
         personalDetails: [],
         userToInvite: null,
         currentUserOption: null,
+        workspaceChats: [],
+        selfDMChat: null,
     };
 }
 
