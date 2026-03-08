@@ -7459,7 +7459,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             description: 'Przekaż 1 USD na Expensify.org za każde 500 USD wydane w miesiącu',
             addPaymentCardPrompt: 'Dodaj kartę płatniczą, aby włączyć darowizny w ramach Osobistej Karmy.',
             stopDonationsPrompt: 'Czy na pewno? Twoja comiesięczna darowizna Karma ma ogromny wpływ.',
-            donationCardTitle: 'Karta używana do darowizn',
         },
         getInTouch: 'Świetnie! Udostępnij ich dane kontaktowe, abyśmy mogli się z nimi skontaktować.',
         introSchoolPrincipal: 'Wprowadzenie dla dyrektora szkoły',

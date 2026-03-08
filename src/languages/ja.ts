@@ -7419,7 +7419,6 @@ ${reportName}
             description: '毎月の支出500ドルごとに1ドルをExpensify.orgに寄付します',
             addPaymentCardPrompt: 'パーソナルカルマの寄付を有効にするには、支払いカードを追加してください。',
             stopDonationsPrompt: '本当によろしいですか？毎月のKarma寄付は大きな影響をもたらします。',
-            donationCardTitle: '寄付に使用するカード',
         },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',

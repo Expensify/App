@@ -7456,7 +7456,6 @@ const translations = {
             description: 'Donate $1 to Expensify.org for every $500 you spend each month',
             addPaymentCardPrompt: 'Add a payment card to enable Personal Karma donations.',
             stopDonationsPrompt: 'Are you sure? Your monthly Karma donation makes a huge impact.',
-            donationCardTitle: 'Card used for donations',
         },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',

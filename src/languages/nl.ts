@@ -7472,7 +7472,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             description: 'Doneer $1 aan Expensify.org voor elke $500 die je elke maand uitgeeft',
             addPaymentCardPrompt: 'Voeg een betaalkaart toe om persoonlijke karma-donaties in te schakelen.',
             stopDonationsPrompt: 'Weet je het zeker? Je maandelijkse Karma-donatie heeft een grote impact.',
-            donationCardTitle: 'Kaart gebruikt voor donaties',
         },
         getInTouch: 'Uitstekend! Deel hun gegevens zodat we contact met hen kunnen opnemen.',
         introSchoolPrincipal: 'Introductie bij je schooldirecteur',

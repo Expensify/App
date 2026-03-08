@@ -7528,7 +7528,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             description: 'Faites un don de 1 $ à Expensify.org pour chaque tranche de 500 $ dépensée chaque mois',
             addPaymentCardPrompt: 'Ajoutez une carte de paiement pour activer les dons de Karma personnel.',
             stopDonationsPrompt: 'Êtes-vous sûr ? Votre don mensuel Karma a un impact considérable.',
-            donationCardTitle: 'Carte utilisée pour les dons',
         },
         getInTouch: 'Excellent ! Veuillez partager leurs coordonnées afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Présentation de la direction de votre école',

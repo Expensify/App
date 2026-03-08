@@ -7507,7 +7507,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             description: 'Spende 1 $ an Expensify.org für jeweils 500 $, die du pro Monat ausgibst',
             addPaymentCardPrompt: 'Füge eine Zahlungskarte hinzu, um persönliche Karma-Spenden zu aktivieren.',
             stopDonationsPrompt: 'Bist du sicher? Deine monatliche Karma-Spende bewirkt viel.',
-            donationCardTitle: 'Für Spenden verwendete Karte',
         },
         getInTouch: 'Ausgezeichnet! Bitte teile ihre Kontaktdaten, damit wir sie erreichen können.',
         introSchoolPrincipal: 'Einführung für Ihre Schulleitung',

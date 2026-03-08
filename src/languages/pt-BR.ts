@@ -7464,7 +7464,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             description: 'Doe US$ 1 para o Expensify.org a cada US$ 500 que você gastar por mês',
             addPaymentCardPrompt: 'Adicione um cartão de pagamento para ativar as doações do Karma pessoal.',
             stopDonationsPrompt: 'Tem certeza? Sua doação mensal de Karma causa um grande impacto.',
-            donationCardTitle: 'Cartão usado para doações',
         },
         getInTouch: 'Excelente! Compartilhe as informações deles para que possamos entrar em contato.',
         introSchoolPrincipal: 'Apresentação ao diretor da sua escola',
