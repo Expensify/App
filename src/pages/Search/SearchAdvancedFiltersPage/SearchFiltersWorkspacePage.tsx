@@ -118,7 +118,7 @@ function SearchFiltersWorkspacePage() {
                             textInputOptions={textInputOptions}
                             canSelectMultiple
                             shouldUseDefaultRightHandSideCheckmark
-                            showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             footerContent={
                                 <SearchFilterPageFooterButtons
