@@ -1510,15 +1510,11 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Sort by lastVisibleActionCreated (most recent first)
+    // Step 2: Sort by lastVisibleActionCreated (most recent first) and limit to top N
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
     const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports);
 
-    // Step 3: Limit to top N reports
-    // In search mode, we will return all reports so downstream getSearchOptions will handle the actual term matching
-    const limitedReports = isSearching ? sortedReports : sortedReports.slice(0, maxRecentReports);
-
-    // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
+    // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
     // Users without 1:1 DMs will have no report mapped, causing getIcons to fall back to personal avatar
     if (isSearching) {
@@ -1544,9 +1540,9 @@ function createFilteredOptionList(
         }
     }
 
-    // Step 5: Process the limited set of reports (performance optimization)
+    // Step 4: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
-    for (const report of limitedReports) {
+    for (const report of sortedReports) {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
         const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, chatReport, reportAttributesDerived, visibleReportActionsData);
@@ -1572,7 +1568,7 @@ function createFilteredOptionList(
         }
     }
 
-    // Step 6: Process personal details (all of them - needed for search functionality)
+    // Step 5: Process personal details (all of them - needed for search functionality)
     const personalDetailsOptions = includeP2P
         ? Object.values(personalDetails ?? {}).map((personalDetail) => {
               const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
