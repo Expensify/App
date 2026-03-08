@@ -39,6 +39,9 @@ jest.mock('@components/OptionListContextProvider', () => ({
         options: {},
         areOptionsInitialized: true,
     })),
+    OptionsListStateContext: require('react').createContext({
+        areOptionsInitialized: true,
+    }),
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({
