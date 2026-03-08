@@ -3,12 +3,19 @@ import type {RefObject} from 'react';
 import type Text from '@components/Text';
 import useDialogTitleFocus from '@hooks/useDialogTitleFocus';
 
-// Capture the callback passed to useFocusEffect so we can invoke it manually
-let focusEffectCallback: (() => (() => void) | undefined) | undefined;
+type TransitionEndCallback = (event: {data: {closing: boolean}}) => void;
+
+let transitionEndCallback: TransitionEndCallback | undefined;
+const mockUnsubscribe = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: jest.fn((callback: () => (() => void) | undefined) => {
-        focusEffectCallback = callback;
+    useNavigation: () => ({
+        addListener: jest.fn((event: string, callback: TransitionEndCallback) => {
+            if (event === 'transitionEnd') {
+                transitionEndCallback = callback;
+            }
+            return mockUnsubscribe;
+        }),
     }),
 }));
 
@@ -17,7 +24,8 @@ jest.mock('@hooks/useDialogTitleFocus', () => jest.requireActual<{default: typeo
 
 beforeEach(() => {
     jest.useFakeTimers();
-    focusEffectCallback = undefined;
+    transitionEndCallback = undefined;
+    mockUnsubscribe.mockClear();
 });
 
 afterEach(() => {
@@ -25,75 +33,79 @@ afterEach(() => {
 });
 
 describe('useDialogTitleFocus (web)', () => {
-    it('does not set up focus timer when isInsideDialog is false', () => {
-        const titleRef = {current: null};
+    it('does not focus when isInsideDialog is false', () => {
+        const mockFocus = jest.fn();
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
+
         renderHook(() => useDialogTitleFocus(titleRef, false));
 
-        expect(focusEffectCallback).toBeDefined();
-        const cleanup = focusEffectCallback?.();
-        expect(cleanup).toBeUndefined();
+        // Neither transitionEnd nor fallback timeout should trigger focus
+        transitionEndCallback?.({data: {closing: false}});
+        jest.advanceTimersByTime(1000);
+
+        expect(mockFocus).not.toHaveBeenCalled();
     });
 
-    it('focuses the title ref after ANIMATED_TRANSITION delay when isInsideDialog is true', () => {
+    it('focuses the title ref when transitionEnd fires', () => {
         const mockFocus = jest.fn();
         const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
 
-        expect(focusEffectCallback).toBeDefined();
-        focusEffectCallback?.();
-
-        // Focus should not be called immediately
+        // Focus should not be called before transitionEnd
         expect(mockFocus).not.toHaveBeenCalled();
 
-        // Advance past ANIMATED_TRANSITION (500ms)
-        jest.advanceTimersByTime(500);
+        // Simulate transitionEnd
+        transitionEndCallback?.({data: {closing: false}});
 
         expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
-    it('only focuses once (hasInitiallyFocusedRef prevents repeated focus)', () => {
+    it('ignores transitionEnd with closing=true', () => {
         const mockFocus = jest.fn();
         const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
 
-        // First focus effect invocation
-        focusEffectCallback?.();
-        jest.advanceTimersByTime(500);
-        expect(mockFocus).toHaveBeenCalledTimes(1);
+        // Simulate closing transitionEnd — should be ignored
+        transitionEndCallback?.({data: {closing: true}});
 
-        // Second invocation should be a no-op
-        const cleanup = focusEffectCallback?.();
-        jest.advanceTimersByTime(500);
-        expect(mockFocus).toHaveBeenCalledTimes(1);
-        expect(cleanup).toBeUndefined();
-    });
-
-    it('returns a cleanup function that clears the timeout', () => {
-        const mockFocus = jest.fn();
-        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
-
-        renderHook(() => useDialogTitleFocus(titleRef, true));
-
-        const cleanup = focusEffectCallback?.();
-        expect(cleanup).toBeDefined();
-
-        // Call cleanup before timer fires
-        cleanup?.();
-        jest.advanceTimersByTime(500);
-
-        // Focus should not have been called because we cleaned up
         expect(mockFocus).not.toHaveBeenCalled();
+    });
+
+    it('falls back to timeout if transitionEnd does not fire', () => {
+        const mockFocus = jest.fn();
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
+
+        renderHook(() => useDialogTitleFocus(titleRef, true));
+
+        // Advance past SCREEN_TRANSITION_END_TIMEOUT (1000ms)
+        jest.advanceTimersByTime(1000);
+
+        expect(mockFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('only focuses once even if both transitionEnd and timeout fire', () => {
+        const mockFocus = jest.fn();
+        const titleRef = {current: {focus: mockFocus}} as unknown as RefObject<React.ComponentRef<typeof Text> | null>;
+
+        renderHook(() => useDialogTitleFocus(titleRef, true));
+
+        // transitionEnd fires first
+        transitionEndCallback?.({data: {closing: false}});
+        expect(mockFocus).toHaveBeenCalledTimes(1);
+
+        // Timeout fires later — should not focus again
+        jest.advanceTimersByTime(1000);
+        expect(mockFocus).toHaveBeenCalledTimes(1);
     });
 
     it('handles null ref gracefully', () => {
         const titleRef = {current: null};
 
         renderHook(() => useDialogTitleFocus(titleRef, true));
-        focusEffectCallback?.();
 
-        // Should not throw when advancing timers with null ref
-        expect(() => jest.advanceTimersByTime(500)).not.toThrow();
+        // Should not throw when transitionEnd fires with null ref
+        expect(() => transitionEndCallback?.({data: {closing: false}})).not.toThrow();
     });
 });

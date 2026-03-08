@@ -1,28 +1,47 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import type {RefObject} from 'react';
-import {useCallback, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import type Text from '@components/Text';
 import CONST from '@src/CONST';
 
 /**
  * Focuses the dialog title element after the RHP transition completes (web only).
- * Mirrors the useDelayedAutoFocus pattern: useFocusEffect + ANIMATED_TRANSITION delay.
+ * Uses the transitionEnd navigation event with a fallback timeout to ensure
+ * VoiceOver captures the correct element position after animation settles.
  */
 function useDialogTitleFocus(titleRef: RefObject<React.ComponentRef<typeof Text> | null>, isInsideDialog: boolean) {
     const hasInitiallyFocusedRef = useRef(false);
+    const navigation = useNavigation();
 
-    useFocusEffect(
-        useCallback(() => {
-            if (!isInsideDialog || hasInitiallyFocusedRef.current) {
-                return undefined;
+    useEffect(() => {
+        if (!isInsideDialog || hasInitiallyFocusedRef.current) {
+            return;
+        }
+
+        const focusTitle = () => {
+            if (hasInitiallyFocusedRef.current) {
+                return;
             }
             hasInitiallyFocusedRef.current = true;
-            const timer = setTimeout(() => {
-                (titleRef.current as unknown as HTMLElement)?.focus();
-            }, CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(timer);
-        }, [isInsideDialog, titleRef]),
-    );
+            (titleRef.current as unknown as HTMLElement)?.focus();
+        };
+
+        // Fallback timeout in case transitionEnd doesn't fire
+        const timeout = setTimeout(focusTitle, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+        const unsubscribe = navigation.addListener('transitionEnd', (event) => {
+            if (event?.data?.closing) {
+                return;
+            }
+            clearTimeout(timeout);
+            focusTitle();
+        });
+
+        return () => {
+            clearTimeout(timeout);
+            unsubscribe();
+        };
+    }, [isInsideDialog, titleRef, navigation]);
 }
 
 export default useDialogTitleFocus;
