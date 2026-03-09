@@ -1219,6 +1219,7 @@ function updateSplitTransactions({
                 distance: splitExpense.customUnit?.quantity ?? undefined,
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
+                commentType: originalTransaction?.comment?.type,
             };
             requestMoneyInformation.existingTransaction = undefined;
         }

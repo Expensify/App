@@ -501,7 +501,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const isMapDistanceTransaction = !!pendingFields?.waypoints || existingTransaction?.comment?.waypoints?.waypoint0;
     const isManualDistanceTransaction = isManualDistanceRequest(existingTransaction);
     const isOdometerDistanceTransaction = isOdometerDistanceRequest(existingTransaction);
-    if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction) {
+    if (isMapDistanceTransaction || isManualDistanceTransaction || isOdometerDistanceTransaction || customUnit) {
         // If customUnit is provided (e.g., for split expenses), use it directly
         // Otherwise, build customUnit from distance parameter
         if (customUnit) {

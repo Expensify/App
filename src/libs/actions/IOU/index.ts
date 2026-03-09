@@ -496,6 +496,9 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 
     /** Unit for time tracking (e.g., 'h' for hours) */
     unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+
+    /** Comment type (e.g., CUSTOM_UNIT for distance requests) */
+    commentType?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -3400,6 +3403,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         waypoints,
         odometerStart,
         odometerEnd,
+        commentType,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3562,6 +3566,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             waypoints,
             odometerStart,
             odometerEnd,
+            commentType,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
