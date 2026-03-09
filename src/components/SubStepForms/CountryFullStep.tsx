@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -66,8 +66,8 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    const [userSelectedCountry, setUserSelectedCountry] = useState<string>(countryDefaultValue);
-    const selectedCountry = shouldAllowChange ? userSelectedCountry : currencyMappedToCountry;
+    const [userSelectedCountry, setUserSelectedCountry] = useState<string>('');
+    const selectedCountry = shouldAllowChange ? userSelectedCountry || countryDefaultValue : currencyMappedToCountry;
     const disableSubmit = !(currency in CONST.CURRENCY);
 
     const handleSettingsPress = () => {
@@ -86,29 +86,19 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         onSubmit();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [COUNTRY], translate);
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, [COUNTRY], translate);
+    };
 
+    // Clear any stale errors on mount
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
-    });
+    }, []);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         onBackButtonPress();
     };
-
-    useEffect(() => {
-        if (selectedCountry || !countryDefaultValue) {
-            return;
-        }
-
-        setUserSelectedCountry(countryDefaultValue);
-    }, [selectedCountry, countryDefaultValue]);
 
     return (
         <InteractiveStepWrapper
