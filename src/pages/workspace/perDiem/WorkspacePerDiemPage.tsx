@@ -425,6 +425,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
                     icon={!selectionModeHeader ? illustrations.PerDiem : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedPerDiem([]);

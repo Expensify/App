@@ -5,7 +5,7 @@ import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {useMouseContext} from '@hooks/useMouseContext';
+import {useMouseActions} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -177,7 +177,7 @@ function NumberWithSymbolForm({
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewNumber
     const willSelectionBeUpdatedManually = useRef(false);
 
-    const {setMouseDown, setMouseUp} = useMouseContext();
+    const {setMouseDown, setMouseUp} = useMouseActions();
     const handleMouseDown = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseDown();

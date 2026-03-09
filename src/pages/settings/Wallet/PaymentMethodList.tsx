@@ -6,10 +6,9 @@ import type {ReactElement} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
@@ -41,7 +40,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, CardList, Policy} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -168,7 +167,7 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots'] as const);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
@@ -181,13 +180,19 @@ function PaymentMethodList({
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
-    const cardDomains = shouldShowAssignedCards
-        ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
-              .filter((card) => !!card.domainName)
-              .map((card) => card.domainName)
-        : [];
+    const cardDomains = useMemo(
+        () =>
+            shouldShowAssignedCards
+                ? Object.values(isLoadingCardList ? {} : (cardList ?? {}))
+                      .filter((card) => !!card.domainName)
+                      .map((card) => card.domainName)
+                : [],
+        [shouldShowAssignedCards, isLoadingCardList, cardList],
+    );
+    const policiesForDomainCardsSelectorFactory = useMemo(() => createPoliciesForDomainCardsSelector(cardDomains), [cardDomains]);
+    const policiesForDomainCardsSelector = useCallback((policies: OnyxCollection<Policy>) => policiesForDomainCardsSelectorFactory(policies), [policiesForDomainCardsSelectorFactory]);
     const [policiesForAssignedCards] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createPoliciesForDomainCardsSelector(cardDomains),
+        selector: policiesForDomainCardsSelector,
     });
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -476,13 +481,13 @@ function PaymentMethodList({
             <MenuItem
                 onPress={onPressItem}
                 title={translate('bankAccount.addBankAccount')}
-                icon={Expensicons.Plus}
+                icon={expensifyIcons.Plus}
                 wrapperStyle={[styles.paymentMethod, listItemStyle]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT}
             />
         ),
 
-        [onPressItem, translate, styles.paymentMethod, listItemStyle],
+        [onPressItem, translate, expensifyIcons.Plus, styles.paymentMethod, listItemStyle],
     );
 
     const itemsToRender = useMemo(() => {

@@ -1,7 +1,7 @@
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import {getEarlyDiscountInfo, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import {doesUserHavePaymentCardAdded, getEarlyDiscountInfo, hasUserFreeTrialEnded, shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useTimeSensitiveOffers() {
@@ -19,9 +19,13 @@ function useTimeSensitiveOffers() {
     const shouldShow50off = shouldShowDiscount && discountInfo?.discountType === 50;
     const shouldShow25off = shouldShowDiscount && discountInfo?.discountType === 25;
 
+    // Show add payment card for users whose trial ended and haven't added a payment card
+    const shouldShowAddPaymentCard = hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID);
+
     return {
         shouldShow50off,
         shouldShow25off,
+        shouldShowAddPaymentCard,
         firstDayFreeTrial,
         discountInfo,
     };

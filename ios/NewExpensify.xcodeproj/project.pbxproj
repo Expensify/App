@@ -375,6 +375,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				498240F82C49553900C15857 /* Run Fullstory Asset Uploader */,
 				5124824122A346BD617AD428 /* [CP] Embed Pods Frameworks */,
+				87174A5CC3CF40CC94B76870 /* Strip Debug Symbols */,
 				D687A4E020266C9380167930 /* [CP] Copy Pods Resources */,
 				072FAC2AE1685E6A5862C00A /* [CP-User] [RNFB] Core Configuration */,
 			);
@@ -584,6 +585,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"$CONFIGURATION\" != \"DebugDevelopment\" ]; then\n  \"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\nelse\n  echo \"Skipping FullStory Asset Uploader phase for DebugDevelopment scheme.\"\nfi\n";
+		};
+		87174A5CC3CF40CC94B76870 /* Strip Debug Symbols */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Debug Symbols";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bash \"${PROJECT_DIR}/../scripts/strip-ios-debug-symbols.sh\"\n";
 		};
 		5124824122A346BD617AD428 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;

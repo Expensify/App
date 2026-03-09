@@ -3710,24 +3710,30 @@ const staticStyles = (theme: ThemeColors) =>
         forYouEmptyStateContainer: {
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 20,
             marginTop: 20,
             marginBottom: 52,
         },
 
+        forYouEmptyStateTextContainer: {
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            paddingHorizontal: 20,
+        },
+
         forYouEmptyStateTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-            marginTop: 20,
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             textAlign: 'center',
             color: theme.text,
         },
 
-        forYouEmptyStateSubtitle: {
+        forYouEmptyStateDescription: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
-            fontSize: variables.fontSizeLabel,
-            lineHeight: 16,
-            marginTop: 2,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
             textAlign: 'center',
             color: theme.textSupporting,
         },
@@ -4374,6 +4380,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
+        },
+
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -4818,6 +4828,11 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        searchFiltersBarCreateButton: {
+            marginLeft: 'auto',
+            alignSelf: 'flex-start',
         },
 
         walletStaticIllustration: {
@@ -5631,6 +5646,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        wideRHPDropZoneContainer: {
+            width: animatedReceiptPaneRHPWidth,
+            height: '100%',
+        },
+
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
             ...spacing.pt3,
             ...spacing.pb2,
@@ -5790,6 +5810,9 @@ const staticStyles = (theme: ThemeColors) =>
         paymentMethodErrorRow: {
             paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
         },
+        transactionReceiptButton: {
+            width: variables.transactionReceiptButtonWidth,
+        },
         chartHeader: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -5867,6 +5890,13 @@ const staticStyles = (theme: ThemeColors) =>
         dateIconSize: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
+        },
+        homeWidgetIconContainer: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
     }) satisfies StaticStyles;
 
@@ -6415,7 +6445,7 @@ const plainStyles = (theme: ThemeColors) =>
         homePageRightColumn: (shouldUseNarrowLayout: boolean) =>
             shouldUseNarrowLayout
                 ? ({width: '100%', flexDirection: 'column', gap: 20} satisfies ViewStyle)
-                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, gap: 20} satisfies ViewStyle),
+                : ({flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle),
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

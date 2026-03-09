@@ -19,6 +19,7 @@ const VIDEO_ASPECT_RATIO = 400 / 225;
 
 function EmptyStateComponent({
     SkeletonComponent,
+    skeletonReasonAttributes,
     headerMediaType,
     headerMedia,
     buttons,
@@ -93,6 +94,7 @@ function EmptyStateComponent({
                     <SkeletonComponent
                         gradientOpacityEnabled
                         shouldAnimate={false}
+                        reasonAttributes={skeletonReasonAttributes}
                     />
                 </View>
             )}

@@ -360,7 +360,7 @@ function Button({
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles]}>
+                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles, isLoading && styles.opacity0]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}

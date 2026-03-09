@@ -127,8 +127,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                 recentAttendees: recentAttendeeLists,
                 includeRecentReports: !shouldAllowNameOnlyOptions,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
     }, [
         areOptionsInitialized,

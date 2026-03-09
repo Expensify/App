@@ -4,10 +4,10 @@ import {View} from 'react-native';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +39,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
     const {isAttachmentHidden} = useContext(AttachmentModalContext);
     const [isHidden, setIsHidden] = useState(() => (item.reportActionID && isAttachmentHidden(item.reportActionID)) ?? item.hasBeenFlagged);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const icons = useMemoizedLazyExpensifyIcons(['AttachmentNotFound'] as const);
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
@@ -95,7 +96,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                     isHovered={isModalHovered}
                     isFocused={isFocused}
                     duration={item.duration}
-                    fallbackSource={Expensicons.AttachmentNotFound}
+                    fallbackSource={icons.AttachmentNotFound}
                     reportID={reportID}
                     isUploaded={!isEmptyObject(report)}
                 />

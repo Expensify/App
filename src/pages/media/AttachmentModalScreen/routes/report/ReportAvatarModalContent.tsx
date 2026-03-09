@@ -23,7 +23,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             return {
                 source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }
@@ -31,7 +31,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }
@@ -39,7 +39,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
             return {
                 source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                headerTitle: getReportName(report),
+                headerTitle: getReportName({report}),
                 isWorkspaceAvatar: false,
             };
         }

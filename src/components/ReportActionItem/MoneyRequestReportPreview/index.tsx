@@ -1,8 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ListRenderItem} from '@shopify/flash-list';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -18,6 +20,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasOnceLoadedReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -115,6 +118,13 @@ function MoneyRequestReportPreview({
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
         }
     }, [iouReportID, isSmallScreenWidth]);
+    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {
+        selector: hasOnceLoadedReportActionsSelector,
+    });
+    const newTransactions = useNewTransactions(hasOnceLoadedReportActions, transactions);
+    const isFocused = useIsFocused();
+    // We only want to highlight the new expenses if the screen is focused.
+    const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -135,11 +145,13 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
+            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
+            newTransactionIDs={newTransactionIDs}
             iouReportID={iouReportID}
             chatReportID={chatReportID}
             iouReport={iouReport}

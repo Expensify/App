@@ -5,13 +5,13 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +37,7 @@ function VerifyPage({route}: VerifyPageProps) {
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -124,7 +125,7 @@ function VerifyPage({route}: VerifyPageProps) {
                             textChecked={translate('common.copied')}
                             tooltipText=""
                             tooltipTextChecked=""
-                            icon={Expensicons.Copy}
+                            icon={icons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}

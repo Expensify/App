@@ -166,10 +166,17 @@ type SearchContextData = {
     shouldResetSearchQuery: boolean;
 };
 
-type SearchContextProps = SearchContextData & {
+type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
+    shouldShowFiltersBarLoading: boolean;
+    lastSearchType: string | undefined;
+    shouldShowSelectAllMatchingItems: boolean;
+    areAllMatchingItemsSelected: boolean;
+};
+
+type SearchActionsContextValue = {
     setCurrentSearchHashAndKey: (hash: number, recentHash: number, key: SearchKey | undefined) => void;
     setCurrentSearchQueryJSON: (searchQueryJSON: SearchQueryJSON | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
@@ -183,13 +190,9 @@ type SearchContextProps = SearchContextData & {
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    shouldShowFiltersBarLoading: boolean;
     setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
-    lastSearchType: string | undefined;
-    showSelectAllMatchingItems: boolean;
-    shouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
-    areAllMatchingItemsSelected: boolean;
+    setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
     setShouldResetSearchQuery: (shouldReset: boolean) => void;
 };
@@ -381,7 +384,8 @@ export type {
     ReportFieldDateKey,
     ReportFieldNegatedKey,
     SortOrder,
-    SearchContextProps,
+    SearchStateContextValue,
+    SearchActionsContextValue,
     SearchContextData,
     ASTNode,
     QueryFilter,

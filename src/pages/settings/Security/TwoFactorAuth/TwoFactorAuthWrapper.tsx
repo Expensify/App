@@ -7,7 +7,6 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
@@ -31,23 +30,11 @@ type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;
 
-    /** Flag to indicate if the viewport offset top should be enabled */
-    shouldEnableViewportOffsetTop?: boolean;
-
     /** Flag to indicate if max height should be enabled */
     shouldEnableMaxHeight?: boolean;
 };
 
-function TwoFactorAuthWrapper({
-    stepName,
-    title,
-    stepCounter,
-    onBackButtonPress,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableViewportOffsetTop = false,
-    shouldEnableMaxHeight = true,
-    children,
-}: TwoFactorAuthWrapperProps) {
+function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, shouldEnableMaxHeight = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
@@ -75,8 +62,6 @@ function TwoFactorAuthWrapper({
         }
     }, [account, stepName]);
 
-    const viewportOffsetTop = useViewportOffsetTop();
-
     if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
@@ -97,7 +82,6 @@ function TwoFactorAuthWrapper({
             shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
-            style={shouldEnableViewportOffsetTop ? {marginTop: viewportOffsetTop} : undefined}
         >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFound}

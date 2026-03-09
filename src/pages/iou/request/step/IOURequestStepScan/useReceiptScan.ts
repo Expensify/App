@@ -20,11 +20,13 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import DateUtils from '@libs/DateUtils';
 import HapticFeedback from '@libs/HapticFeedback';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {ReceiptFile, UseReceiptScanParams} from './types';
@@ -80,6 +82,7 @@ function useReceiptScan({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
@@ -117,14 +120,22 @@ function useReceiptScan({
 
     function showBlink() {
         blinkOpacity.set(
-            withTiming(0.4, {duration: 10}, () => {
-                blinkOpacity.set(withTiming(0, {duration: 50}));
+            withTiming(1, {duration: 50}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 150}));
             }),
         );
         HapticFeedback.press();
     }
 
+    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+
     function navigateToConfirmationStep(files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) {
+        startSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE, {
+            name: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
+            op: CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_IS_MULTI_SCAN]: isMultiScanEnabled},
+        });
         handleMoneyRequestStepScanParticipants({
             iouType,
             policy,
@@ -165,6 +176,8 @@ function useReceiptScan({
             policyForMovingExpenses,
             isSelfTourViewed,
             betas,
+            recentWaypoints,
+            allTransactionDrafts,
         });
     }
 

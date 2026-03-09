@@ -49,7 +49,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  */
 const useSearchTypeMenuSections = () => {
     const {translate} = useLocalize();
-    const cardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate);
+    const cardSelector = useCallback((allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => defaultExpensifyCardSelector(allCards, translate), [translate]);
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: cardSelector}, [cardSelector]);
 
     const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();

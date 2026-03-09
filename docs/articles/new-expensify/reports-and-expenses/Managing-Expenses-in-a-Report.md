@@ -40,14 +40,14 @@ You can move expenses to a different report or remove them entirely.
 
 1. Open the draft report. 
 2. Click the checkbox next to the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
+3. Choose the green **selected** button > **Move to report**.
 4. Choose a destination report or select **Remove from report**.
 
 **To move or remove all expenses from a report**
 
 1. In the left side tabs, choose **Reports** > **Reports**
-2. Click the report with the expense(s) you want to move. 
-3. Choose the green **selected** button > **Move expense(s)**.
+2. Click the report with the expense(s) you want to move.
+3. Choose the green **selected** button > **Move to report**.
 4. Choose a destination report or select **Remove from report**.
 
 ## How to Delete Expenses on a Report

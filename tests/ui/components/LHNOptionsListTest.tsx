@@ -14,6 +14,36 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
+// Mock dynamic imports that break without --experimental-vm-modules
+jest.mock('@src/languages/IntlStore', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const en: Record<string, unknown> = require('@src/languages/en').default;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const flattenObject: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
+
+    const cache = new Map<string, Record<string, unknown>>([['en', flattenObject(en)]]);
+
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: {
+            getCurrentLocale: () => 'en',
+            load: () => Promise.resolve(),
+            get: (key: string, locale?: string) => {
+                const translations = cache.get(locale ?? 'en');
+                return translations?.[key] ?? null;
+            },
+        },
+    };
+});
+jest.mock('@assets/emojis', () => ({
+    importEmojiLocale: jest.fn(() => Promise.resolve()),
+    getEmojiCodeWithSkinColor: jest.fn(),
+}));
+jest.mock('@libs/EmojiTrie', () => ({
+    buildEmojisTrie: jest.fn(),
+}));
+
 // Mock the context menu
 jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     showContextMenu: jest.fn(),
@@ -210,11 +240,17 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [submittedAction.reportActionID]: submittedAction,
-                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [reportID]: {
+                        [submittedAction.reportActionID]: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [submittedAction.reportActionID]: submittedAction,
                 });
             });
 
@@ -261,11 +297,17 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [commentAction.reportActionID]: commentAction,
-                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+
+                await Onyx.merge(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+                    [reportID]: {
+                        [commentAction.reportActionID]: true,
+                    },
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [commentAction.reportActionID]: commentAction,
                 });
             });
 
