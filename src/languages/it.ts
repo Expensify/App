@@ -7247,6 +7247,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         topMerchants: 'Commercianti principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
+            editMultiple: 'Modifica multipli',
+            editMultipleTitle: 'Modifica più spese',
+            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sostituiranno i valori precedentemente impostati.',
             approve: 'Approva',
             pay: 'Paga',
             delete: 'Elimina',
@@ -7663,6 +7666,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         notActivated: 'Non attivato',
         outOfPocket: 'Rimborsabile',
         companySpend: 'Non rimborsabile',
+        personalCard: 'Carta personale',
+        companyCard: 'Carta aziendale',
+        expensifyCard: 'Carta Expensify',
     },
     distance: {
         addStop: 'Aggiungi fermata',

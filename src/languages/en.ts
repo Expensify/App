@@ -7225,6 +7225,10 @@ const translations = {
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
+            editMultiple: 'Edit multiple',
+            editMultipleTitle: 'Edit multiple expenses',
+            // cspell:disable
+            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
@@ -7637,6 +7641,9 @@ const translations = {
         notActivated: 'Not activated',
         outOfPocket: 'Reimbursable',
         companySpend: 'Non-reimbursable',
+        personalCard: 'Personal card',
+        companyCard: 'Company card',
+        expensifyCard: 'Expensify Card',
     },
     distance: {
         addStop: 'Add stop',

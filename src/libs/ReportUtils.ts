@@ -1201,18 +1201,6 @@ Onyx.connect({
     },
 });
 
-let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportsViolations = value;
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -4467,7 +4455,7 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
  * 1. The user is not admin of the report
- * 2. Report is settled or it is closed
+ * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
     if (isInvoiceReport(report)) {
@@ -4478,7 +4466,8 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    if (!isAdmin && (isReportSettled || isReportClosed || isApproved)) {
+    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report);
+    if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
 
@@ -4830,6 +4819,67 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
+ * Checks if the user can edit multiple transactions
+ */
+function canEditMultipleTransactions(
+    selectedTransactions: Transaction[],
+    reportActions: OnyxCollection<ReportActions>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+    areReportsSelected = false,
+): boolean {
+    if (areReportsSelected) {
+        return false;
+    }
+
+    if (selectedTransactions.length < 2) {
+        return false;
+    }
+
+    for (const transaction of selectedTransactions) {
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (isUnreportedExpense) {
+            return true;
+        }
+
+        // Do not allow editing split expenses in bulk
+        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
+            return false;
+        }
+
+        const reportAction = getIOUActionForTransactionID(Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
+        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        const isApproved = isReportApproved({report});
+
+        if (isApproved || isSettled(report)) {
+            return false;
+        }
+
+        const fieldsToCheck = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            CONST.EDIT_REQUEST_FIELD.CATEGORY,
+            CONST.EDIT_REQUEST_FIELD.TAG,
+            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.BILLABLE,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
+        ];
+
+        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy));
+
+        if (!isTransactionEditable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4854,6 +4904,7 @@ function canEditFieldOfMoneyRequest(
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
+        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, linkedTransaction)) {
@@ -4868,6 +4919,10 @@ function canEditFieldOfMoneyRequest(
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
     const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
+        return false;
+    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -9196,11 +9251,10 @@ function hasAnyViolations(
     );
 }
 
-function hasReportViolations(reportID: string | undefined) {
-    if (!reportID) {
+function hasReportViolations(reportViolations: OnyxEntry<ReportViolations>) {
+    if (!reportViolations) {
         return false;
     }
-    const reportViolations = allReportsViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
     return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
@@ -12314,17 +12368,6 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
     }
 }
 
-/**
- * Returns all violations for report
- */
-function getReportViolations(reportID: string): ReportViolations | undefined {
-    if (!allReportsViolations) {
-        return undefined;
-    }
-
-    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
-}
-
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
@@ -12685,11 +12728,8 @@ function generateReportAttributes({
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-    const isReportSettled = isSettled(report);
-    const isCurrentUserReportOwner = isReportOwner(report);
-    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-    const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
+    const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
@@ -12697,7 +12737,6 @@ function generateReportAttributes({
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
-        doesReportHasViolations,
         hasViolationsToDisplayInLHN,
         hasAnyViolations: hasAnyTypeOfViolations,
         reportErrors,
@@ -13112,6 +13151,7 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
@@ -13374,7 +13414,6 @@ export {
     getChatUsedForOnboarding,
     getFieldViolationTranslation,
     getFieldViolation,
-    getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
     canBeExported,
