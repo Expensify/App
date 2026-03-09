@@ -71,7 +71,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
             Navigation.goBack();
             return;
         }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? '', page: pages.at(nextIndex)?.pageName}));
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: pages.at(nextIndex)?.pageName}));
     }, [currentPageIndex, pages, policyID]);
 
     const onBackButtonPress = useCallback(() => {
