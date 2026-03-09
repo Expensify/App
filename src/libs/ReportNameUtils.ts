@@ -101,6 +101,7 @@ import {
 } from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
+    chatIncludesChronos,
     formatReportLastMessageText,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -121,7 +122,6 @@ import {
     isChatRoom,
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
-    chatIncludesChronos,
     isConciergeChatReport,
     isExpenseReport,
     isGroupChat,
