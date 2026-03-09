@@ -22,9 +22,9 @@ import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
-    getCurrentTaxID,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
+    resolveCurrentTaxCode,
     getTaxByID,
     isInstantSubmitEnabled,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
@@ -2122,7 +2122,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
-    const resolvedTaxCode = getCurrentTaxID(policy, taxCode) ?? taxCode;
+    const resolvedTaxCode = resolveCurrentTaxCode(policy, taxCode);
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === resolvedTaxCode)?.value;
 }
 
@@ -2142,7 +2142,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     // transaction?.taxCode may be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const taxCodeToMatch = transaction?.taxCode || defaultTaxCode;
-    const resolvedTaxCode = taxCodeToMatch ? (getCurrentTaxID(policy, taxCodeToMatch) ?? taxCodeToMatch) : taxCodeToMatch;
+    const resolvedTaxCode = taxCodeToMatch ? resolveCurrentTaxCode(policy, taxCodeToMatch) : taxCodeToMatch;
     const taxRate = Object.values(transformedTaxRates(policy, transaction)).find((rate) => rate.code === resolvedTaxCode);
 
     if (shouldFallbackToValue && transaction?.taxValue !== undefined && taxRate?.value !== transaction?.taxValue) {

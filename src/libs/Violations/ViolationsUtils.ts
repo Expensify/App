@@ -12,7 +12,7 @@ import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import {getCurrentTaxID, getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
@@ -286,7 +286,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             if (!taxCode || !policyTaxRates) {
                 return !taxCode;
             }
-            const currentTaxCode = getCurrentTaxID({taxRates: {taxes: policyTaxRates}} as Policy, taxCode) ?? taxCode;
+            const currentTaxCode = resolveCurrentTaxCode({taxRates: {taxes: policyTaxRates}} as Policy, taxCode);
             const matchingTaxRate = policyTaxRates[currentTaxCode];
             if (!matchingTaxRate) {
                 return false;
@@ -428,9 +428,9 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const resolvedTaxCode = updatedTransaction.taxCode ? getCurrentTaxID(policy, updatedTransaction.taxCode) : undefined;
+        const resolvedTaxCode = updatedTransaction.taxCode ? resolveCurrentTaxCode(policy, updatedTransaction.taxCode) : undefined;
         const transactionForTaxCheck = resolvedTaxCode && resolvedTaxCode !== updatedTransaction.taxCode ? {...updatedTransaction, taxCode: resolvedTaxCode} : updatedTransaction;
-        const isTaxInPolicy = !!resolvedTaxCode && TransactionUtils.hasTaxRateWithMatchingValue(policy, transactionForTaxCheck);
+        const isTaxInPolicy = !!updatedTransaction.taxCode && TransactionUtils.hasTaxRateWithMatchingValue(policy, transactionForTaxCheck);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
