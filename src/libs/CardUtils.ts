@@ -41,6 +41,7 @@ import type {
 } from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -389,7 +390,10 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
-    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
+    );
 }
 
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
@@ -400,6 +404,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
+            !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
             (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
     );
@@ -1084,11 +1089,26 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         return undefined;
     }
 
-    if (feedCountry) {
-        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
-        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
-            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
+        const programSettings = cardSettings[programKey as keyof typeof cardSettings];
+        if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
+            // Nested program values take precedence — they are the authoritative source for
+            // program-specific fields once the backend sends the full nested format (Phase 2).
+            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
         }
+        return undefined;
+    };
+
+    if (feedCountry) {
+        return getMergedProgramSettings(feedCountry) ?? cardSettings;
+    }
+
+    // Auto-detect: try known card programs in priority order so callers that
+    // don't pass feedCountry still get the right program sub-object when the
+    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
+    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    if (result) {
+        return result;
     }
 
     return cardSettings;
@@ -1191,7 +1211,7 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
 type SplitMaskedCardNumberResult = {
