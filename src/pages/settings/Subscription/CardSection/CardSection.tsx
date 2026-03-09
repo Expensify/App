@@ -299,7 +299,7 @@ function CardSection() {
                 />
             )}
 
-            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) && <CancelSubscriptionMenuItem />}
+            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) && <CancelSubscriptionMenuItem />}
         </Section>
     );
 }
