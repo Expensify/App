@@ -1391,7 +1391,8 @@ function updateSplitTransactions({
 
             // For new split transactions, set the reportID once the transaction and associated report are created
         } else if (currentSplit) {
-            currentSplit.reportID = splitExpense?.reportID;
+            // For selfDM reports, use UNREPORTED_REPORT_ID (0) for the API params
+            currentSplit.reportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : splitExpense?.reportID;
         }
 
         if (currentSplit) {

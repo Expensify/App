@@ -3650,7 +3650,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // For selfDM split, use UNREPORTED_REPORT_ID for the transaction
     const transactionReportID = isSelfDMSplit ? CONST.REPORT.UNREPORTED_REPORT_ID : iouReport.reportID;
     // For selfDM split, preserve the sign from original transaction (don't negate)
-    const shouldNegateAmount = isSelfDMSplit || isExpenseReport(iouReport);
+    const shouldNegateAmount = !!isSelfDMSplit || isExpenseReport(iouReport);
 
     // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);

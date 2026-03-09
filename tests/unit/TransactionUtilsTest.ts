@@ -1673,26 +1673,6 @@ describe('TransactionUtils', () => {
             expect(result.at(0)?.transactionID).toBe('child-2');
         });
 
-        it('should exclude orphaned transactions with reportID "0" from processing', () => {
-            const orphanedTransaction = generateTransaction({
-                transactionID: 'orphaned-1',
-                reportID: '0',
-                comment: {
-                    originalTransactionID,
-                    source: CONST.IOU.TYPE.SPLIT,
-                },
-            });
-
-            const transactions = {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
-            };
-
-            // Orphaned split children should be excluded from getChildTransactions for processing
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
-
-            expect(result).toHaveLength(0);
-        });
-
         it('should exclude transactions with pendingAction DELETE', () => {
             const deletingTransaction = generateTransaction({
                 transactionID: 'deleting-1',
@@ -1757,7 +1737,7 @@ describe('TransactionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}orphaned-1`]: orphanedTransaction,
             };
 
-            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID, true);
+            const result = TransactionUtils.getChildTransactions(transactions, originalTransactionID);
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.transactionID).toBe('orphaned-1');
