@@ -1,4 +1,4 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
@@ -16,31 +16,20 @@ type ParticipantWithPolicyID = {
  * @returns Record mapping policyID to PolicyTagLists
  */
 function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Record<string, PolicyTagLists> {
-    const participantPolicyIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const p of participants) {
-            if (p.policyID) {
-                ids.add(p.policyID);
-            }
-        }
-        return Array.from(ids).sort().join(',');
-    }, [participants]);
-
     const policyTagsSelector = useCallback(
         (allTags: OnyxCollection<PolicyTagLists>) => {
-            if (!participantPolicyIDs) {
+            if (!participants) {
                 return {};
             }
-            const policyIDs = participantPolicyIDs.split(',');
-            return policyIDs.reduce<Record<string, PolicyTagLists>>((acc, participantPolicyID) => {
-                const key = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${participantPolicyID}`;
-                if (allTags?.[key]) {
-                    acc[participantPolicyID] = allTags[key];
+            return participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                const key = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`;
+                if (allTags?.[key] && participant.policyID) {
+                    acc[participant.policyID] = allTags[key];
                 }
                 return acc;
             }, {});
         },
-        [participantPolicyIDs],
+        [participants],
     );
 
     const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
