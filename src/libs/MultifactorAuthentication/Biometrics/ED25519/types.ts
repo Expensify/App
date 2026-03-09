@@ -32,7 +32,7 @@ type RegistrationChallenge = {
         displayName: string;
     };
     pubKeyCredParams: Array<{
-        type: string;
+        type: PublicKeyCredentialType;
         alg: number;
     }>;
     timeout: number;
@@ -56,7 +56,7 @@ type AuthenticationChallenge = {
         type: string;
         id: string;
     }>;
-    userVerification: string;
+    userVerification: UserVerificationRequirement;
     timeout: number;
     expires?: string;
 };

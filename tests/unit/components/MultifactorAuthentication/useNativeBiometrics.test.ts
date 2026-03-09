@@ -1,6 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
 import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
@@ -299,7 +300,7 @@ describe('useNativeBiometrics hook', () => {
         // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
         // These tests verify the authorize function with challenge passed as a parameter
 
-        const mockChallenge = {
+        const mockChallenge: AuthenticationChallenge = {
             allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
             rpId: 'expensify.com',
             challenge: 'test-challenge',
@@ -339,7 +340,7 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should verify public key is in allowCredentials', async () => {
-            const challengeWithOtherKey = {
+            const challengeWithOtherKey: AuthenticationChallenge = {
                 allowCredentials: [{id: 'other-public-key', type: 'public-key'}],
                 rpId: 'expensify.com',
                 challenge: 'test-challenge',
