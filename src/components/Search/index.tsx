@@ -269,6 +269,7 @@ function Search({
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -467,6 +468,7 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -491,6 +493,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        onyxPersonalDetailsList,
     ]);
 
     // For group-by views, each grouped item has a transactionsQueryJSON with a hash pointing to a separate snapshot
@@ -1326,9 +1329,9 @@ function Search({
             </View>
         );
     }
-
+    const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
