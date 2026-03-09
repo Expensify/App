@@ -9,6 +9,7 @@ import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -29,6 +30,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {IntroSelected, Report} from '@src/types/onyx';
+import {closeReactNativeApp} from './HybridApp';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -232,7 +234,34 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
+/**
+ * Checks whether a URL points to an Old Dot domain (e.g. www.expensify.com)
+ * rather than a New Dot domain (e.g. new.expensify.com).
+ */
+function isOldDotURL(url: string): boolean {
+    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(url, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(url, CONFIG.EXPENSIFY.STAGING_API_ROOT);
+    if (!hasExpensifyOrigin) {
+        return false;
+    }
+
+    // Ensure it doesn't match any New Dot prefix — if it does, it's a ND URL served from the same origin
+    const hasNewDotOrigin =
+        Url.hasSameExpensifyOrigin(url, CONST.NEW_EXPENSIFY_URL) ||
+        Url.hasSameExpensifyOrigin(url, CONST.STAGING_NEW_EXPENSIFY_URL) ||
+        url.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+    return !hasNewDotOrigin;
+}
+
 function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
+    // In HybridApp, if the URL is an Old Dot URL (e.g. https://www.expensify.com/report?reportID=...),
+    // it should be handled by Old Dot, not New Dot. Close the React Native app to return to Old Dot.
+    if (CONFIG.IS_HYBRID_APP && isOldDotURL(url)) {
+        Log.info('[Deep link] OD URL received in HybridApp, closing React Native app to return to OD', false, {url});
+        doneCheckingPublicRoom();
+        closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+        return;
+    }
+
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {

@@ -2,6 +2,7 @@ import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPa
 import {findFocusedRoute} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import Log from '@libs/Log';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -341,8 +342,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
  * @param path - The path to generate state from
  * @param options - Extra options kept for react-navigation compatibility
  * @param shouldReplacePathInNestedState - Whether to replace the path in nested state (if passing this arg, pass `undefined` for `options`, otherwise omit both)
- * @returns The adapted navigation state
- * @throws Error if unable to get state from path
+ * @returns The adapted navigation state (returns NOT_FOUND state if path cannot be parsed)
  */
 // We keep `options` in the signature for `linkingConfig` compatibility with react-navigation.
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
@@ -355,13 +355,19 @@ const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldR
         normalizedPath = '/';
     }
 
-    const state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
-    if (shouldReplacePathInNestedState) {
-        replacePathInNestedState(state, normalizedPath);
+    let state: PartialState<NavigationState<RootNavigatorParamList>> | undefined;
+    try {
+        state = getStateFromPath(normalizedPath as RoutePath) as PartialState<NavigationState<RootNavigatorParamList>>;
+    } catch (error) {
+        Log.hmmm('[getAdaptedStateFromPath] Failed to parse path, navigating to NOT_FOUND', {path, error: error instanceof Error ? error.message : String(error)});
     }
 
     if (state === undefined) {
-        throw new Error(`[getAdaptedStateFromPath] Unable to get state from path: ${path}`);
+        return getRoutesWithIndex([{name: SCREENS.NOT_FOUND, path: normalizedPath}]);
+    }
+
+    if (shouldReplacePathInNestedState) {
+        replacePathInNestedState(state, normalizedPath);
     }
 
     return getAdaptedState(state);
