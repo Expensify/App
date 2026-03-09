@@ -23,9 +23,10 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {orderedReports, currentReportID} = useSidebarOrderedReportsState('SidebarLinksData');
+    const {orderedReports, currentReportID, firstReportIDWithGBRorRBR} = useSidebarOrderedReportsState('SidebarLinksData');
 
     const currentReportIDRef = useRef(currentReportID);
+    // eslint-disable-next-line react-hooks/refs -- intentional ref sync pattern to avoid stale closures
     currentReportIDRef.current = currentReportID;
     const isActiveReport = useCallback((reportID: string): boolean => currentReportIDRef.current === reportID, []);
 
@@ -62,6 +63,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 // Data props:
                 isActiveReport={isActiveReport}
                 optionListItems={orderedReports}
+                firstReportIDWithGBRorRBR={firstReportIDWithGBRorRBR}
             />
         </View>
     );
