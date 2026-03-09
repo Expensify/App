@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from './CONST';
