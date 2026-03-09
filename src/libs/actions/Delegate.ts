@@ -335,30 +335,29 @@ function requestValidationCode() {
 }
 
 function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
-    if (!delegatedAccess?.delegates) {
+    if (!delegatedAccess) {
         return;
     }
 
-    const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
+    const delegates = delegatedAccess.delegates ?? [];
+    const existingDelegate = delegates.find((delegate) => delegate.email === email);
 
     const optimisticDelegateData = (): Delegate[] => {
         if (existingDelegate) {
-            return (
-                delegatedAccess.delegates?.map((delegate) =>
-                    delegate.email !== email
-                        ? delegate
-                        : {
-                              ...delegate,
-                              isLoading: true,
-                              pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                          },
-                ) ?? []
+            return delegates.map((delegate) =>
+                delegate.email !== email
+                    ? delegate
+                    : {
+                          ...delegate,
+                          isLoading: true,
+                          pendingFields: {email: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                          pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                      },
             );
         }
 
         return [
-            ...(delegatedAccess.delegates ?? []),
+            ...delegates,
             {
                 email,
                 role,
@@ -387,43 +386,12 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
         },
     ];
 
-    const successDelegateData = (): Delegate[] => {
-        if (existingDelegate) {
-            return (
-                delegatedAccess.delegates?.map((delegate) =>
-                    delegate.email !== email
-                        ? delegate
-                        : {
-                              ...delegate,
-                              isLoading: false,
-                              pendingAction: null,
-                              pendingFields: {email: null, role: null},
-                              optimisticAccountID: undefined,
-                          },
-                ) ?? []
-            );
-        }
-
-        return [
-            ...(delegatedAccess.delegates ?? []),
-            {
-                email,
-                role,
-                isLoading: false,
-                pendingAction: null,
-                pendingFields: {email: null, role: null},
-                optimisticAccountID: undefined,
-            },
-        ];
-    };
-
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
                 delegatedAccess: {
-                    delegates: successDelegateData(),
                     errorFields: {
                         addDelegate: {
                             [email]: null,
@@ -437,20 +405,18 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
 
     const failureDelegateData = (): Delegate[] => {
         if (existingDelegate) {
-            return (
-                delegatedAccess.delegates?.map((delegate) =>
-                    delegate.email !== email
-                        ? delegate
-                        : {
-                              ...delegate,
-                              isLoading: false,
-                          },
-                ) ?? []
+            return delegates.map((delegate) =>
+                delegate.email !== email
+                    ? delegate
+                    : {
+                          ...delegate,
+                          isLoading: false,
+                      },
             );
         }
 
         return [
-            ...(delegatedAccess.delegates ?? []),
+            ...delegates,
             {
                 email,
                 role,
@@ -468,6 +434,11 @@ function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegatePa
             value: {
                 delegatedAccess: {
                     delegates: failureDelegateData(),
+                    errorFields: {
+                        addDelegate: {
+                            [email]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
                 },
                 isLoading: false,
             },
