@@ -6,7 +6,14 @@ import splitPathAndQuery from './splitPathAndQuery';
 
 /**
  * Merges two query strings into one. If both contain the same key,
- * the suffix value wins and a warning is logged.
+ * the error is thrown.
+ * @param baseQuery - The query string of the base path
+ * @param suffixQuery - The query string of the suffix
+ * @returns The merged query string or an empty string if both are empty
+ *
+ * @example
+ * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
+ * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
  */
 const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
