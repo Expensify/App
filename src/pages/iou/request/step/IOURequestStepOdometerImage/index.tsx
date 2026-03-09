@@ -423,6 +423,7 @@ function IOURequestStepOdometerImage({
         for (const file of files) {
             const blobUrl = URL.createObjectURL(file);
             blobUrls.push(blobUrl);
+            // eslint-disable-next-line no-param-reassign
             file.uri = blobUrl;
         }
         dropBlobUrlsRef.current = blobUrls;

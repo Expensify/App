@@ -26,7 +26,7 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
@@ -215,15 +215,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             updatedFilterFormValues.columns = [];
         }
 
-        let queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues, {
-            sortBy: queryJSON.sortBy,
-            sortOrder: queryJSON.sortOrder,
-            limit: queryJSON.limit,
-        });
-
-        if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
-            queryString = getQueryWithUpdatedValues(queryString, true) ?? '';
-        }
+        const queryString =
+            buildFilterQueryWithSortDefaults(
+                updatedFilterFormValues,
+                {view: searchAdvancedFiltersForm.view, groupBy: searchAdvancedFiltersForm.groupBy},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+            ) ?? '';
         if (!queryString) {
             return;
         }

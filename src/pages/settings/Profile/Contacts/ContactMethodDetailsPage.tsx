@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
@@ -139,21 +140,42 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [isDefaultContactMethod, loginData?.validatedDate, isRestrictedDefaultContactMethodSwitch]);
 
     const prevValidatedDate = usePrevious(loginData?.validatedDate);
+    const isFocused = useIsFocused();
+    const [shouldNavigateOnFocus, setShouldNavigateOnFocus] = useState(false);
+
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (prevValidatedDate || !loginData?.validatedDate) {
             return;
         }
 
-        // Navigate to methods page on successful magic code verification
-        // validatedDate property is responsible to decide the status of the magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        if (isFocused) {
+            // Navigate to methods page on successful magic code verification.
+            // The validatedDate property indicates successful magic code verification.
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        } else {
+            // Set flag to navigate when screen regains focus
+            setShouldNavigateOnFocus(true);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Omitting `isFocused` since we don't want this effect to on focus transitions
     }, [prevValidatedDate, loginData?.validatedDate, isDefaultContactMethod, backTo]);
+
+    // Handle navigation when screen regains focus and flag is set
+    useEffect(() => {
+        if (!isFocused || !shouldNavigateOnFocus) {
+            return;
+        }
+        setShouldNavigateOnFocus(false);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Only fire on focus transitions
+    }, [isFocused]);
 
     useEffect(() => {
         setIsValidateCodeFormVisible(!loginData?.validatedDate);
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!loginData?.partnerUserID || loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
@@ -289,6 +311,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         <ScreenWrapper
             shouldEnableMaxHeight
             onEntryTransitionEnd={() => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     validateCodeFormRef.current?.focus?.();
                 });
@@ -346,7 +369,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        handleSubmitForm={(validateCode) => validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber)}
+                        handleSubmitForm={(validateCode) => validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
                         clearError={() => {
                             // When removing unverified contact methods, the ValidateCodeActionForm unmounts and triggers clearError.

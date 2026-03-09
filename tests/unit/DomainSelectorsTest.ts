@@ -355,6 +355,7 @@ describe('domainSelectors', () => {
                 validated: true,
                 accountID: 1,
                 email: 'test@example.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 domain_defaultSecurityGroupID: '1',
                 [key1]: group1,
                 [key2]: group2,
@@ -486,6 +487,7 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the vacation delegate prefix', () => {
             const domain = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_otherPrefix_123: {
                     delegate: 'wrong@example.com',
                 },
