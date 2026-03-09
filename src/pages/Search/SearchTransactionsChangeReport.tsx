@@ -3,6 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import getSearchMoveSelectionValidation from '@components/Search/SearchSelectionUtils';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
@@ -29,15 +30,19 @@ type TransactionGroupListItem = ListItem & {
 
 function SearchTransactionsChangeReport() {
     const {translate, toLocaleDigit} = useLocalize();
-    const {selectedTransactions} = useSearchStateContext();
+    const {currentSearchQueryJSON, selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
     const transactions = useMemo(
         () =>
             Object.values(selectedTransactions).reduce(
                 (transactionsCollection, transactionItem) => {
+                    const transactionID = transactionItem.transaction?.transactionID;
+                    if (!transactionID || !transactionItem.transaction) {
+                        return transactionsCollection;
+                    }
                     // eslint-disable-next-line no-param-reassign
-                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transaction?.transactionID}`] = transactionItem.transaction;
+                    transactionsCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transactionItem.transaction;
                     return transactionsCollection;
                 },
                 {} as NonNullable<OnyxCollection<Transaction>>,
@@ -70,30 +75,20 @@ function SearchTransactionsChangeReport() {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-    const targetOwnerAccountID = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0) {
-            return undefined;
-        }
-
-        // Prefer owner metadata attached to each selection (handles unreported expenses)
-        const ownerFromSelection = selectedTransactionsKeys.map((transactionKey) => selectedTransactions[transactionKey]?.ownerAccountID).find((ownerID) => typeof ownerID === 'number');
-        if (ownerFromSelection !== undefined) {
-            return ownerFromSelection;
-        }
-
-        const reportIDWithOwner = selectedTransactionsKeys
-            .map((transactionKey) => selectedTransactions[transactionKey]?.reportID)
-            .find((reportID) => reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
-
-        if (!reportIDWithOwner) {
-            return undefined;
-        }
-
-        const report = getReportOrDraftReport(reportIDWithOwner);
-        return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys]);
+    const {canMoveToReport, targetOwnerAccountID} = useMemo(
+        () =>
+            getSearchMoveSelectionValidation(selectedTransactions, {
+                isExpenseReportSearch: currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                getOwnerAccountIDForReportID: (reportID) => getReportOrDraftReport(reportID)?.ownerAccountID,
+            }),
+        [currentSearchQueryJSON?.type, selectedTransactions],
+    );
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!canMoveToReport) {
+            return;
+        }
+
         const optimisticReport = createNewReport(
             targetOwnerPersonalDetails,
             hasViolations,
@@ -131,6 +126,9 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
+        if (!canMoveToReport) {
+            return;
+        }
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
             return;
@@ -143,7 +141,7 @@ function SearchTransactionsChangeReport() {
     };
 
     const selectReport = (item: TransactionGroupListItem) => {
-        if (selectedTransactionsKeys.length === 0) {
+        if (!canMoveToReport || selectedTransactionsKeys.length === 0) {
             return;
         }
 
@@ -171,7 +169,7 @@ function SearchTransactionsChangeReport() {
     };
 
     const removeFromReport = () => {
-        if (selectedTransactionsKeys.length === 0) {
+        if (!canMoveToReport || selectedTransactionsKeys.length === 0) {
             return;
         }
         changeTransactionsReport({
@@ -196,10 +194,11 @@ function SearchTransactionsChangeReport() {
                 transactionIDs={selectedTransactionsKeys}
                 selectedReportID={selectedReportID}
                 selectReport={selectReport}
-                removeFromReport={removeFromReport}
-                createReport={createReport}
+                removeFromReport={canMoveToReport ? removeFromReport : undefined}
+                createReport={canMoveToReport ? createReport : undefined}
                 isEditing
                 isUnreported={areAllTransactionsUnreported}
+                shouldShowNotFoundPage={!canMoveToReport}
                 targetOwnerAccountID={targetOwnerAccountID}
                 isPerDiemRequest={hasPerDiemTransactions}
             />
