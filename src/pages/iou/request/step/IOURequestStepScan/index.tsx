@@ -2,7 +2,6 @@ import React, {useCallback, useEffect} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -11,8 +10,6 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
-import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
@@ -39,7 +36,6 @@ function IOURequestStepScan({
     setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
-    const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
 
@@ -156,76 +152,58 @@ function IOURequestStepScan({
         });
     }, [initialTransaction?.amount, iouType]);
 
-    const locationPermissionModal = startLocationPermissionFlow && !!receiptFiles.length && (
-        <LocationPermissionModal
-            startPermissionFlow={startLocationPermissionFlow}
-            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-            onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-            onDeny={() => {
-                updateLastLocationPermissionPrompt();
-                navigateToConfirmationStep(receiptFiles, false);
-            }}
-        />
-    );
-
-    if (isMobileWeb) {
-        return (
-            <StepScreenWrapper
-                headerTitle={translate('common.receipt')}
-                onBackButtonPress={navigateBack}
-                shouldShowWrapper={!!backTo || isEditing}
-                testID="IOURequestStepScan"
-            >
-                <>
-                    <MobileWebCameraView
-                        PDFValidationComponent={PDFValidationComponent}
-                        shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                        isMultiScanEnabled={isMultiScanEnabled}
-                        canUseMultiScan={canUseMultiScan}
-                        blinkStyle={blinkStyle}
-                        showBlink={showBlink}
-                        shouldShowMultiScanEducationalPopup={shouldShowMultiScanEducationalPopup}
-                        initialTransactionID={initialTransactionID}
-                        initialTransaction={initialTransaction}
-                        currentUserPersonalDetails={currentUserPersonalDetails}
-                        reportID={reportID}
-                        receiptFiles={receiptFiles}
-                        isEditing={isEditing}
-                        onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
-                        validateFiles={validateFiles}
-                        toggleMultiScan={toggleMultiScan}
-                        dismissMultiScanEducationalPopup={dismissMultiScanEducationalPopup}
-                        submitMultiScanReceipts={submitMultiScanReceipts}
-                        setReceiptFiles={setReceiptFiles}
-                        updateScanAndNavigate={updateScanAndNavigate}
-                        submitReceipts={submitReceipts}
-                    />
-                    {ErrorModal}
-                    {locationPermissionModal}
-                </>
-            </StepScreenWrapper>
-        );
-    }
-
     return (
-        <StepScreenDragAndDropWrapper
-            headerTitle={translate('common.receipt')}
-            onBackButtonPress={navigateBack}
-            shouldShowWrapper={!!backTo || isEditing}
-            testID="IOURequestStepScan"
-        >
-            <>
+        <>
+            {isMobileWeb ? (
+                <MobileWebCameraView
+                    PDFValidationComponent={PDFValidationComponent}
+                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    canUseMultiScan={canUseMultiScan}
+                    blinkStyle={blinkStyle}
+                    showBlink={showBlink}
+                    shouldShowMultiScanEducationalPopup={shouldShowMultiScanEducationalPopup}
+                    initialTransactionID={initialTransactionID}
+                    initialTransaction={initialTransaction}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                    reportID={reportID}
+                    receiptFiles={receiptFiles}
+                    isEditing={isEditing}
+                    onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
+                    validateFiles={validateFiles}
+                    toggleMultiScan={toggleMultiScan}
+                    dismissMultiScanEducationalPopup={dismissMultiScanEducationalPopup}
+                    submitMultiScanReceipts={submitMultiScanReceipts}
+                    setReceiptFiles={setReceiptFiles}
+                    updateScanAndNavigate={updateScanAndNavigate}
+                    submitReceipts={submitReceipts}
+                    onBackButtonPress={navigateBack}
+                    shouldShowWrapper={!!backTo || isEditing}
+                />
+            ) : (
                 <DesktopWebUploadView
                     PDFValidationComponent={PDFValidationComponent}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                     isReplacingReceipt={isReplacingReceipt}
                     onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
                     validateFiles={validateFiles}
+                    onBackButtonPress={navigateBack}
+                    shouldShowWrapper={!!backTo || isEditing}
                 />
-                {ErrorModal}
-                {locationPermissionModal}
-            </>
-        </StepScreenDragAndDropWrapper>
+            )}
+            {ErrorModal}
+            {startLocationPermissionFlow && !!receiptFiles.length && (
+                <LocationPermissionModal
+                    startPermissionFlow={startLocationPermissionFlow}
+                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                    onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
+                    onDeny={() => {
+                        updateLastLocationPermissionPrompt();
+                        navigateToConfirmationStep(receiptFiles, false);
+                    }}
+                />
+            )}
+        </>
     );
 }
 

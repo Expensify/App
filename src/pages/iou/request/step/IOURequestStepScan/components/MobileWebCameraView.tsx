@@ -25,6 +25,7 @@ import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpa
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -54,6 +55,8 @@ type MobileWebCameraViewProps = {
     setReceiptFiles: React.Dispatch<React.SetStateAction<ReceiptFile[]>>;
     updateScanAndNavigate: (file: FileObject, source: string) => void;
     submitReceipts: (files: ReceiptFile[]) => void;
+    onBackButtonPress: () => void;
+    shouldShowWrapper: boolean;
 };
 
 function MobileWebCameraView({
@@ -78,6 +81,8 @@ function MobileWebCameraView({
     setReceiptFiles,
     updateScanAndNavigate,
     submitReceipts,
+    onBackButtonPress,
+    shouldShowWrapper,
 }: MobileWebCameraViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -303,193 +308,200 @@ function MobileWebCameraView({
     }, [isFlashLightOn, getScreenshot, clearTorchConstraints]);
 
     return (
-        <View
-            onLayout={onLayout}
-            style={[styles.flex1]}
+        <StepScreenWrapper
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={onBackButtonPress}
+            shouldShowWrapper={shouldShowWrapper}
+            testID="IOURequestStepScan"
         >
-            <View style={[styles.flex1, styles.justifyContentCenter]}>
-                <View style={[styles.cameraView]}>
-                    {PDFValidationComponent}
-                    {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.textSupporting}
-                        />
-                    )}
-                    {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
-                        <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
-                            <Icon
-                                src={lazyIllustrations.Hand}
-                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                additionalStyles={[styles.pb5]}
+            <View
+                onLayout={onLayout}
+                style={[styles.flex1]}
+            >
+                <View style={[styles.flex1, styles.justifyContentCenter]}>
+                    <View style={[styles.cameraView]}>
+                        {PDFValidationComponent}
+                        {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.textSupporting}
                             />
-                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                            {cameraPermissionState === 'denied' ? (
-                                <Text style={[styles.subTextFileUpload]}>
-                                    <RenderHTML html={translate('receipt.deniedCameraAccess')} />
-                                </Text>
-                            ) : (
-                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                            )}
-                            <Button
-                                success
-                                text={translate('common.continue')}
-                                accessibilityLabel={translate('common.continue')}
-                                style={[styles.p9, styles.pt5]}
-                                onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
-                        </View>
-                    )}
-                    {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
-                        <View
-                            style={styles.flex1}
-                            onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
-                        >
-                            <NavigationAwareCamera
-                                onUserMedia={setupCameraPermissionsAndCapabilities}
-                                onUserMediaError={() => setCameraPermissionState('denied')}
-                                style={{
-                                    ...styles.videoContainer,
-                                    display: cameraPermissionState !== 'granted' ? 'none' : 'block',
-                                }}
-                                ref={cameraRef}
-                                screenshotFormat="image/png"
-                                videoConstraints={videoConstraints}
-                                forceScreenshotSourceSize
-                                audio={false}
-                                disablePictureInPicture={false}
-                                imageSmoothing={false}
-                                mirrored={false}
-                                screenshotQuality={0}
-                            />
-                            {canUseMultiScan ? (
-                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
-                                    <PressableWithFeedback
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('receipt.flash')}
-                                        disabled={!isTorchAvailable}
-                                        onPress={toggleFlashlight}
-                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                                    >
-                                        <Icon
-                                            height={16}
-                                            width={16}
-                                            src={lazyIcons.Bolt}
-                                            fill={isFlashLightOn ? theme.white : theme.icon}
-                                        />
-                                    </PressableWithFeedback>
-                                </View>
-                            ) : null}
-                            <Animated.View
-                                pointerEvents="none"
-                                style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
-                            />
-                        </View>
-                    )}
-                </View>
+                        )}
+                        {cameraPermissionState !== 'granted' && isQueriedPermissionState && (
+                            <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
+                                <Icon
+                                    src={lazyIllustrations.Hand}
+                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                    additionalStyles={[styles.pb5]}
+                                />
+                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                {cameraPermissionState === 'denied' ? (
+                                    <Text style={[styles.subTextFileUpload]}>
+                                        <RenderHTML html={translate('receipt.deniedCameraAccess')} />
+                                    </Text>
+                                ) : (
+                                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                )}
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionState === 'granted' && !isEmptyObject(videoConstraints) && (
+                            <View
+                                style={styles.flex1}
+                                onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                            >
+                                <NavigationAwareCamera
+                                    onUserMedia={setupCameraPermissionsAndCapabilities}
+                                    onUserMediaError={() => setCameraPermissionState('denied')}
+                                    style={{
+                                        ...styles.videoContainer,
+                                        display: cameraPermissionState !== 'granted' ? 'none' : 'block',
+                                    }}
+                                    ref={cameraRef}
+                                    screenshotFormat="image/png"
+                                    videoConstraints={videoConstraints}
+                                    forceScreenshotSourceSize
+                                    audio={false}
+                                    disablePictureInPicture={false}
+                                    imageSmoothing={false}
+                                    mirrored={false}
+                                    screenshotQuality={0}
+                                />
+                                {canUseMultiScan ? (
+                                    <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
+                                        <PressableWithFeedback
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('receipt.flash')}
+                                            disabled={!isTorchAvailable}
+                                            onPress={toggleFlashlight}
+                                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                                        >
+                                            <Icon
+                                                height={16}
+                                                width={16}
+                                                src={lazyIcons.Bolt}
+                                                fill={isFlashLightOn ? theme.white : theme.icon}
+                                            />
+                                        </PressableWithFeedback>
+                                    </View>
+                                ) : null}
+                                <Animated.View
+                                    pointerEvents="none"
+                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                />
+                            </View>
+                        )}
+                    </View>
 
-                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                    <AttachmentPicker
-                        acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
-                        allowMultiple={shouldAcceptMultipleFiles}
-                    >
-                        {({openPicker}) => (
+                    <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                        <AttachmentPicker
+                            acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
+                            allowMultiple={shouldAcceptMultipleFiles}
+                        >
+                            {({openPicker}) => (
+                                <PressableWithFeedback
+                                    accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                                    role={CONST.ROLE.BUTTON}
+                                    style={isMultiScanEnabled && styles.opacity0}
+                                    onPress={() => {
+                                        openPicker({
+                                            onPicked: (data) => validateFiles(data),
+                                        });
+                                    }}
+                                    sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
+                                >
+                                    <Icon
+                                        height={32}
+                                        width={32}
+                                        src={lazyIcons.Gallery}
+                                        fill={theme.textSupporting}
+                                    />
+                                </PressableWithFeedback>
+                            )}
+                        </AttachmentPicker>
+                        <PressableWithFeedback
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('receipt.shutter')}
+                            style={[styles.alignItemsCenter]}
+                            onPress={capturePhoto}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
+                        >
+                            <Icon
+                                src={lazyIllustrations.Shutter}
+                                width={CONST.RECEIPT.SHUTTER_SIZE}
+                                height={CONST.RECEIPT.SHUTTER_SIZE}
+                            />
+                        </PressableWithFeedback>
+                        {canUseMultiScan ? (
                             <PressableWithFeedback
-                                accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                                accessibilityRole="button"
                                 role={CONST.ROLE.BUTTON}
-                                style={isMultiScanEnabled && styles.opacity0}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: (data) => validateFiles(data),
-                                    });
-                                }}
-                                sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
+                                accessibilityLabel={translate('receipt.multiScan')}
+                                style={styles.alignItemsEnd}
+                                onPress={toggleMultiScan}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             >
                                 <Icon
                                     height={32}
                                     width={32}
-                                    src={lazyIcons.Gallery}
+                                    src={lazyIcons.ReceiptMultiple}
+                                    fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
+                        ) : (
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.flash')}
+                                style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
+                                onPress={toggleFlashlight}
+                                disabled={!isTorchAvailable}
+                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                            >
+                                <Icon
+                                    height={32}
+                                    width={32}
+                                    src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
                                     fill={theme.textSupporting}
                                 />
                             </PressableWithFeedback>
                         )}
-                    </AttachmentPicker>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.shutter')}
-                        style={[styles.alignItemsCenter]}
-                        onPress={capturePhoto}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
-                    >
-                        <Icon
-                            src={lazyIllustrations.Shutter}
-                            width={CONST.RECEIPT.SHUTTER_SIZE}
-                            height={CONST.RECEIPT.SHUTTER_SIZE}
+                    </View>
+                    {canUseMultiScan && shouldShowMultiScanEducationalPopup && (
+                        <FeatureTrainingModal
+                            title={translate('iou.scanMultipleReceipts')}
+                            image={lazyIllustrations.MultiScan}
+                            shouldRenderSVG
+                            imageHeight="auto"
+                            imageWidth="auto"
+                            modalInnerContainerStyle={styles.pt0}
+                            illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
+                            onConfirm={dismissMultiScanEducationalPopup}
+                            titleStyles={styles.mb2}
+                            confirmText={translate('common.buttonConfirm')}
+                            description={translate('iou.scanMultipleReceiptsDescription')}
+                            contentInnerContainerStyles={styles.mb6}
+                            shouldGoBack={false}
                         />
-                    </PressableWithFeedback>
-                    {canUseMultiScan ? (
-                        <PressableWithFeedback
-                            accessibilityRole="button"
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.multiScan')}
-                            style={styles.alignItemsEnd}
-                            onPress={toggleMultiScan}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
-                        >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={lazyIcons.ReceiptMultiple}
-                                fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    ) : (
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
-                            onPress={toggleFlashlight}
-                            disabled={!isTorchAvailable}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                        >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
                     )}
                 </View>
-                {canUseMultiScan && shouldShowMultiScanEducationalPopup && (
-                    <FeatureTrainingModal
-                        title={translate('iou.scanMultipleReceipts')}
-                        image={lazyIllustrations.MultiScan}
-                        shouldRenderSVG
-                        imageHeight="auto"
-                        imageWidth="auto"
-                        modalInnerContainerStyle={styles.pt0}
-                        illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
-                        onConfirm={dismissMultiScanEducationalPopup}
-                        titleStyles={styles.mb2}
-                        confirmText={translate('common.buttonConfirm')}
-                        description={translate('iou.scanMultipleReceiptsDescription')}
-                        contentInnerContainerStyles={styles.mb6}
-                        shouldGoBack={false}
+
+                {canUseMultiScan && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={isMultiScanEnabled}
+                        submit={submitMultiScanReceipts}
                     />
                 )}
             </View>
-
-            {canUseMultiScan && (
-                <ReceiptPreviews
-                    isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitMultiScanReceipts}
-                />
-            )}
-        </View>
+        </StepScreenWrapper>
     );
 }
 
