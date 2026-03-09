@@ -1,8 +1,8 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -19,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useFilteredOptions from '@hooks/useFilteredOptions';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -243,10 +244,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
-    const isFocused = useIsFocused();
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
-    const [initialSelectedOptions, setInitialSelectedOptions] = useState<SelectedOption[]>([]);
-    const previousIsFocusedRef = useRef(false);
 
     const allPersonalDetails = usePersonalDetails();
     const {singleExecution} = useSingleExecution();
@@ -269,24 +267,13 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions(reportAttributesDerived);
 
-    useEffect(() => {
-        const wasFocused = previousIsFocusedRef.current;
-
-        if (isFocused && !wasFocused) {
+    useFocusEffect(
+        useCallback(() => {
             setHasUserInteracted(false);
-            setInitialSelectedOptions(selectedOptions);
-        }
+        }, []),
+    );
 
-        previousIsFocusedRef.current = isFocused;
-    }, [isFocused, selectedOptions]);
-
-    useEffect(() => {
-        if (!isFocused || hasUserInteracted) {
-            return;
-        }
-
-        setInitialSelectedOptions(selectedOptions);
-    }, [hasUserInteracted, isFocused, selectedOptions]);
+    const initialSelectedOptions = useInitialSelectionRef(selectedOptions, {resetOnFocus: true, shouldSyncSelection: !hasUserInteracted});
 
     const selectedOptionKeySet = useMemo(() => new Set(selectedOptions.map(getSelectedOptionKey).filter(Boolean)), [selectedOptions]);
     const initialSelectedKeySet = useMemo(() => new Set(initialSelectedOptions.map(getSelectedOptionKey).filter(Boolean)), [initialSelectedOptions]);

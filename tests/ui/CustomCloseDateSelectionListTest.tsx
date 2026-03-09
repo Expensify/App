@@ -61,11 +61,11 @@ describe('CustomCloseDateSelectionList', () => {
         expect(initialProps?.shouldUpdateFocusedIndex).toBeUndefined();
 
         act(() => {
-            initialProps?.onSelectRow?.({
-                keyForList: '14',
-                text: '14',
-                isSelected: false,
-            });
+            const targetRow = initialProps?.data.find((item) => item.keyForList === '14');
+            if (!targetRow) {
+                throw new Error('Expected target row to exist');
+            }
+            initialProps?.onSelectRow?.(targetRow);
         });
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];

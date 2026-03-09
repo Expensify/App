@@ -1,6 +1,6 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -17,6 +17,7 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -76,10 +77,7 @@ function RoomInvitePage({
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const isFocused = useIsFocused();
     const [hasUserInteracted, setHasUserInteracted] = useState(false);
-    const [initialSelectedOptions, setInitialSelectedOptions] = useState<OptionData[]>([]);
-    const previousIsFocusedRef = useRef(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const isReportArchived = useReportIsArchived(report.reportID);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
@@ -145,28 +143,17 @@ function RoomInvitePage({
         [allPersonalDetails, countryCode, currentUserAccountID, currentUserEmail, debouncedSearchTerm, defaultOptions, excludedUsers, loginList],
     );
 
-    useEffect(() => {
-        const wasFocused = previousIsFocusedRef.current;
-
-        if (isFocused && !wasFocused) {
+    useFocusEffect(
+        useCallback(() => {
             setHasUserInteracted(false);
-            setInitialSelectedOptions((previousInitialSelection) =>
-                areRoomInviteSelectionsEqual(previousInitialSelection, selectedOptionsForDisplay) ? previousInitialSelection : selectedOptionsForDisplay,
-            );
-        }
+        }, []),
+    );
 
-        previousIsFocusedRef.current = isFocused;
-    }, [isFocused, selectedOptionsForDisplay]);
-
-    useEffect(() => {
-        if (!isFocused || hasUserInteracted) {
-            return;
-        }
-
-        setInitialSelectedOptions((previousInitialSelection) =>
-            areRoomInviteSelectionsEqual(previousInitialSelection, selectedOptionsForDisplay) ? previousInitialSelection : selectedOptionsForDisplay,
-        );
-    }, [hasUserInteracted, isFocused, selectedOptionsForDisplay]);
+    const initialSelectedOptions = useInitialSelectionRef(selectedOptionsForDisplay, {
+        resetOnFocus: true,
+        shouldSyncSelection: !hasUserInteracted,
+        isEqual: areRoomInviteSelectionsEqual,
+    });
 
     const selectedOptionKeySet = useMemo(() => new Set(selectedOptions.map(getMemberSelectionKey).filter(Boolean)), [selectedOptions]);
     const initialSelectedKeySet = useMemo(() => new Set(initialSelectedOptions.map(getMemberSelectionKey).filter(Boolean)), [initialSelectedOptions]);

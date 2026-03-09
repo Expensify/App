@@ -23,14 +23,17 @@ jest.mock('@components/Search/SearchContext', () => ({
         currentSearchResults: {errors: {}},
     })),
 }));
-jest.mock('@hooks/useAdvancedSearchFilters', () =>
-    jest.fn(() => ({
-        currentType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+jest.mock('@hooks/useAdvancedSearchFilters', () => {
+    const mockCONSTModule = jest.requireActual<{default: typeof CONST}>('@src/CONST');
+    const mockCONST = mockCONSTModule.default;
+
+    return jest.fn(() => ({
+        currentType: mockCONST.SEARCH.DATA_TYPES.EXPENSE,
         typeFiltersKeys: [[]],
         workspaces: [],
         shouldShowWorkspaceSearchInput: false,
-    })),
-);
+    }));
+});
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: jest.fn(() => ({
         getCurrencySymbol: jest.fn(() => '$'),

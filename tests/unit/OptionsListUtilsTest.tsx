@@ -1070,7 +1070,7 @@ describe('OptionsListUtils', () => {
             expect(results.currentUserOption).toBeUndefined();
             expect(results.userToInvite).toEqual(null);
             expect(results.workspaceChats).toEqual([]);
-            expect(results.selfDMChat).toEqual(undefined);
+            expect(results.selfDMChat).toEqual(null);
         });
 
         it('should include Concierge by default in results', () => {

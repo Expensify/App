@@ -9,6 +9,7 @@ const monthNames = DateUtils.getMonthNames();
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useNavigation: () => ({navigate: jest.fn()}),
+    useFocusEffect: jest.fn(),
     createNavigationContainerRef: jest.fn(),
 }));
 

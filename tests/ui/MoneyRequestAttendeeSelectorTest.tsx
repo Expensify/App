@@ -396,12 +396,10 @@ describe('MoneyRequestAttendeeSelector', () => {
                     return buildOnyxResult('policyID');
                 case ONYXKEYS.NVP_RECENT_ATTENDEES:
                     return buildOnyxResult([
-                        [
-                            buildAttendee({
-                                email: 'recent1@test.com',
-                                displayName: 'Recent User 1',
-                            }),
-                        ],
+                        buildAttendee({
+                            email: 'recent1@test.com',
+                            displayName: 'Recent User 1',
+                        }),
                     ]);
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
                     return buildOnyxResult(false);

@@ -14,7 +14,7 @@ import {appendParam} from '@libs/Url';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
-import ConstantPicker from './ConstantPicker';
+import DebugConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
 
 type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
@@ -82,7 +82,7 @@ function DebugDetailsConstantPickerPage({
         }
 
         return (
-            <ConstantPicker
+            <DebugConstantPicker
                 formType={formType}
                 fieldName={fieldName}
                 fieldValue={fieldValue}
