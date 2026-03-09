@@ -4575,7 +4575,7 @@ describe('OptionsListUtils', () => {
                 created: '',
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 message: [{type: 'COMMENT', text: ''}],
-                originalMessage: {to: 'example@gmail.com'},
+                originalMessage: {to: 'example@gmail.com', message: ''},
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [action.reportActionID]: action,
