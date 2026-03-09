@@ -3,6 +3,7 @@ import {useMemo} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
+import {DIAGONAL_ANGLE_RAD_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
 import {isCursorOverChartLabel, measureTextWidth} from '@components/Charts/utils';
 import variables from '@styles/variables';
@@ -110,7 +111,7 @@ function useLabelHitTesting({font, truncatedLabels, labelRotation, labelSkipInte
         const labelY = args.chartBottom + labelYOffset;
 
         let corners45: Array<{x: number; y: number}> | undefined;
-        if (angleRad > 0 && angleRad < 1) {
+        if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RAD_THRESHOLD) {
             const labelSin = labelSins.at(activeIndex) ?? 0;
             const anchorDX = cornerAnchorDX.at(activeIndex) ?? 0;
             const anchorDY = cornerAnchorDY.at(activeIndex) ?? 0;

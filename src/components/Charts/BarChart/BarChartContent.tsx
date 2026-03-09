@@ -40,6 +40,7 @@ const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angl
     const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA);
     const halfWidths = labelWidths.map((w) => w / 2);
     return {
+        // variables.iconSizeExtraSmall / 3 is the vertical offset of label from the axis line
         labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - variables.iconSizeExtraSmall / 3,
         iconSin: variables.iconSizeExtraSmall * sinA,
         labelSins: labelWidths.map((w) => w * sinA),

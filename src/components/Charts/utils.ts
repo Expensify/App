@@ -1,6 +1,6 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
-import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, SIN_45} from './constants';
+import {ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -166,8 +166,8 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
                 const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + (pieGeometry.radius / 1.5) * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + (pieGeometry.radius / 1.5) * Math.sin((angle * Math.PI) / 180);
+                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
