@@ -5,6 +5,7 @@
 import {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
+import Log from '@libs/Log';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
@@ -34,12 +35,16 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
 
     useEffect(() => {
         let cancelled = false;
-        getLocalPublicKey().then((key) => {
-            if (cancelled) {
-                return;
-            }
-            setLocalPublicKey(key);
-        });
+        getLocalPublicKey()
+            .then((key) => {
+                if (cancelled) {
+                    return;
+                }
+                setLocalPublicKey(key);
+            })
+            .catch((error: unknown) => {
+                Log.hmmm('[useBiometricRegistrationStatus] Failed to get local public key', {error: String(error)});
+            });
         return () => {
             cancelled = true;
         };
