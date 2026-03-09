@@ -5940,9 +5940,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
     if (isConciergeChatReport(report, conciergeReportID)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    if (chatIncludesChronos(report)) {
+    } else if (chatIncludesChronos(report)) {
         formattedName = CONST.CHRONOS_DISPLAY_NAME;
     }
 

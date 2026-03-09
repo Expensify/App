@@ -864,9 +864,7 @@ function computeReportName(
 
     if (isConciergeChatReport(report)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    if (chatIncludesChronos(report)) {
+    } else if (chatIncludesChronos(report)) {
         formattedName = CONST.CHRONOS_DISPLAY_NAME;
     }
 
