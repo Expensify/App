@@ -146,6 +146,7 @@ type SplitBillActionsParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -177,6 +178,7 @@ function splitBill({
     policyRecentlyUsedCurrencies,
     policyRecentlyUsedTags,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -206,6 +208,7 @@ function splitBill({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -268,6 +271,7 @@ function splitBillAndOpenReport({
     quickAction,
     policyRecentlyUsedCurrencies,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -297,6 +301,7 @@ function splitBillAndOpenReport({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -723,6 +728,7 @@ function completeSplitBill(
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -954,6 +960,7 @@ function completeSplitBill(
                 policyRecentlyUsed: {},
             },
             quickAction,
+            personalDetails,
         });
 
         splits.push({

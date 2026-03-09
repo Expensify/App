@@ -7231,6 +7231,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         topMerchants: 'Topverkopers',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
+            editMultiple: 'Meerdere bewerken',
+            editMultipleTitle: 'Meerdere uitgaven bewerken',
+            editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
             pay: 'Betalen',
             delete: 'Verwijderen',
@@ -7647,6 +7650,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         notActivated: 'Niet geactiveerd',
         outOfPocket: 'Vergoedbaar',
         companySpend: 'Niet vergoedbaar',
+        personalCard: 'Persoonlijke kaart',
+        companyCard: 'Bedrijfskaart',
+        expensifyCard: 'Expensify Kaart',
     },
     distance: {
         addStop: 'Stop toevoegen',

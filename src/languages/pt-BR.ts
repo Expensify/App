@@ -7223,6 +7223,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         topMerchants: 'Principais comerciantes',
         groupedExpenses: 'despesas agrupadas',
         bulkActions: {
+            editMultiple: 'Editar múltiplos',
+            editMultipleTitle: 'Editar múltiplas despesas',
+            editMultipleDescription: 'As alterações serão aplicadas a todas as despesas selecionadas e substituirão quaisquer valores definidos anteriormente.',
             approve: 'Aprovar',
             pay: 'Pagar',
             delete: 'Excluir',
@@ -7639,6 +7642,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         notActivated: 'Não ativado',
         outOfPocket: 'Reembolsável',
         companySpend: 'Não reembolsável',
+        personalCard: 'Cartão pessoal',
+        companyCard: 'Cartão corporativo',
+        expensifyCard: 'Cartão Expensify',
     },
     distance: {
         addStop: 'Adicionar parada',
