@@ -8948,9 +8948,24 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
+    const isUnreadByLastVisibleAction = lastReadTime < (lastVisibleActionCreated ?? '');
+    const isUnreadByMention = lastReadTime < lastMentionedTime;
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
-    return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
+    if (isUnreadByMention) {
+        return true;
+    }
+
+    if (!isUnreadByLastVisibleAction) {
+        return false;
+    }
+
+    const lastActorAccountID = getReportLastActorAccountID(report, oneTransactionThreadReport);
+    if (currentUserAccountID && lastActorAccountID === currentUserAccountID) {
+        return false;
+    }
+
+    return true;
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {
@@ -12370,6 +12385,17 @@ function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransac
     const reportLastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
     const threadLastVisibleActionCreated = oneTransactionThreadReport?.lastVisibleActionCreated ?? '';
     return reportLastVisibleActionCreated > threadLastVisibleActionCreated ? reportLastVisibleActionCreated : threadLastVisibleActionCreated;
+}
+
+function getReportLastActorAccountID(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>) {
+    const reportLastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
+    const threadLastVisibleActionCreated = oneTransactionThreadReport?.lastVisibleActionCreated ?? '';
+
+    if (threadLastVisibleActionCreated > reportLastVisibleActionCreated) {
+        return oneTransactionThreadReport?.lastActorAccountID ?? report?.lastActorAccountID;
+    }
+
+    return report?.lastActorAccountID ?? oneTransactionThreadReport?.lastActorAccountID;
 }
 
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {

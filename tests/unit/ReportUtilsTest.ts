@@ -110,6 +110,7 @@ import {
     isReportOutstanding,
     isRootGroupChat,
     isSelfDMOrSelfDMThread,
+    isUnread,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
@@ -2641,6 +2642,72 @@ describe('ReportUtils', () => {
 
                 expect(reportName).toBe('');
             });
+        });
+    });
+
+    describe('isUnread', () => {
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        });
+
+        it('returns false when the latest unread-driving action is from the current user', () => {
+            const report: Report = {
+                reportID: '1',
+                lastReadTime: '2024-02-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-02-01 11:00:00.000',
+                lastActorAccountID: currentUserAccountID,
+                lastMessageText: 'Latest message',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+
+            expect(isUnread(report, undefined, false)).toBe(false);
+        });
+
+        it('returns true when the latest unread-driving action is from another user', () => {
+            const report: Report = {
+                reportID: '1',
+                lastReadTime: '2024-02-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-02-01 11:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Latest message',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+
+            expect(isUnread(report, undefined, false)).toBe(true);
+        });
+
+        it('returns true when the latest visible action is in the transaction thread and authored by another user', () => {
+            const report: Report = {
+                reportID: '1',
+                lastReadTime: '2024-02-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-02-01 10:30:00.000',
+                lastActorAccountID: currentUserAccountID,
+                lastMessageText: 'Parent report message',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            const oneTransactionThreadReport: Report = {
+                reportID: '2',
+                lastVisibleActionCreated: '2024-02-01 11:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Thread message',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+
+            expect(isUnread(report, oneTransactionThreadReport, false)).toBe(true);
+        });
+
+        it('returns true when there is a newer mention even if the latest action is from the current user', () => {
+            const report: Report = {
+                reportID: '1',
+                lastReadTime: '2024-02-01 10:00:00.000',
+                lastVisibleActionCreated: '2024-02-01 11:00:00.000',
+                lastMentionedTime: '2024-02-01 12:00:00.000',
+                lastActorAccountID: currentUserAccountID,
+                lastMessageText: 'Latest message',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+
+            expect(isUnread(report, undefined, false)).toBe(true);
         });
     });
 
