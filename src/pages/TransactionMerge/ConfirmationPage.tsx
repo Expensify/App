@@ -40,14 +40,14 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch, backTo} = route.params;
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(targetTransactionPolicy?.id)}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(targetTransactionPolicy?.id)}`);
+    const policyID = targetTransactionReport?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -81,7 +81,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             targetTransactionThreadParentReport,
             targetTransactionThreadParentReportNextStep,
             allTransactionViolations,
-            policy: targetTransactionPolicy,
+            policy,
             policyTags,
             policyCategories,
             currentUserAccountIDParam,
@@ -133,8 +133,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
                     </View>
                     <MoneyRequestView
-                        allReports={allReports}
-                        expensePolicy={targetTransactionPolicy}
+                        expensePolicy={policy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly

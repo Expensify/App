@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import {Star} from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,16 +30,11 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const privateSubscription = usePrivateSubscription();
 
-    const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
 
-    useEffect(() => {
-        if (!privateSubscription && !isOffline) {
-            return;
-        }
-        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial));
-    }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
+    const freeTrialText = privateSubscription || isOffline ? getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial) : undefined;
 
     if (!freeTrialText) {
         return null;
@@ -47,7 +42,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const freeTrial = pressable ? (
         <Button
-            icon={Star}
+            icon={icons.Star}
             success={success}
             text={freeTrialText}
             iconWrapperStyles={[styles.mw100]}
@@ -56,6 +51,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     ) : (
         <Badge
             success={success}
+            isCondensed
             text={freeTrialText}
             badgeStyles={badgeStyles}
         />
