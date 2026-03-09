@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -38,7 +39,6 @@ function InviteMemberListItem<TItem extends ListItem>({
     index = 0,
     sectionIndex = 0,
     shouldUseDefaultRightHandSideCheckmark = false,
-    accessibilityState,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -97,7 +97,6 @@ function InviteMemberListItem<TItem extends ListItem>({
             shouldDisplayRBR={false}
             testID={item.text}
             shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
-            accessibilityState={accessibilityState}
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip
@@ -151,7 +150,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && item.rightElement}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!item.isDisabled && (
                             <Checkbox
                                 style={[styles.ml2]}

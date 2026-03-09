@@ -198,6 +198,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             // Simulate setting an unread report and personal details
             await act(async () => {
                 await Promise.all([
+                    Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         reportID: REPORT_ID,
                         reportName,

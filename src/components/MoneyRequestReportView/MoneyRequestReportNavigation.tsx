@@ -41,6 +41,15 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             return;
         }
 
+        // Update count when reports are added or removed (e.g., created offline)
+        if (allReports.length !== allReportsCount) {
+            saveLastSearchParams({
+                ...lastSearchQuery,
+                previousLengthOfResults: allReports.length,
+            });
+            return;
+        }
+
         if (currentIndex < allReportsCount - 1) {
             return;
         }

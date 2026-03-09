@@ -3,6 +3,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import SelectCircle from '@components/SelectCircle';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -109,6 +111,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     shiftVertical={variables.inviteMemberListItemTooltipShiftVertical}
                     shiftHorizontal={variables.inviteMemberListItemTooltipShiftHorizontal}
                     shouldHideOnNavigate
+                    shouldHideOnScroll
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     uniqueID={`${sectionIndex}-${index}`}
                 >
@@ -151,15 +154,22 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && item.rightElement}
-                        {!!shouldShowCheckBox && (
-                            <SelectionCheckbox
-                                item={item}
-                                onSelectRow={handleCheckboxPress}
-                                disabled={!!isDisabled}
-                                style={[styles.ml2, styles.optionSelectCircle]}
-                            />
-                        )}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                        {!!shouldShowCheckBox &&
+                            (
+                                <SelectionCheckbox
+                                    item={item}
+                                    onSelectRow={handleCheckboxPress}
+                                    disabled={!!isDisabled}
+                                    style={[styles.ml2, styles.optionSelectCircle]}
+                                />
+                            ) >
+                                (
+                                    <SelectCircle
+                                        isChecked={item.isSelected ?? false}
+                                        selectCircleStyles={styles.ml0}
+                                    />
+                                )}
                     </View>
                 </EducationalTooltip>
             )}

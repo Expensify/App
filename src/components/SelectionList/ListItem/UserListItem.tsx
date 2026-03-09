@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -39,6 +40,7 @@ function UserListItem<TItem extends ListItem>({
     pressableStyle,
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
+    shouldDisableHoverStyle,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark'] as const);
     const styles = useThemeStyles();
@@ -87,76 +89,81 @@ function UserListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
         >
-            {(hovered?: boolean) => (
-                <>
-                    {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                        <SelectionCheckbox
-                            item={item}
-                            onSelectRow={onCheckboxPress ?? onSelectRow}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            style={styles.mr3}
-                        />
-                    )}
-                    {(!!reportExists || !!itemAccountID || !!policyID) && (
-                        <ReportActionAvatars
-                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                            shouldShowTooltip={showTooltip}
-                            secondaryAvatarContainerStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                            ]}
-                            reportID={reportExists ? item.reportID : undefined}
-                            /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-                            accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
-                            policyID={!reportExists && !!policyID ? policyID : undefined}
-                            singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
-                            fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
-                        />
-                    )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={Str.removeSMSDomain(item.text ?? '')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                styles.pre,
-                                item.alternateText ? styles.mb1 : null,
-                            ]}
-                        />
-                        {!!item.alternateText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                forwardedFSClass={forwardedFSClass}
+            {(hovered?: boolean) => {
+                const isHovered = !!hovered && !shouldDisableHoverStyle;
+
+                return (
+                    <>
+                        {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onCheckboxPress ?? onSelectRow}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
+                                style={styles.mr3}
                             />
                         )}
-                    </View>
-                    {!!item.rightElement && item.rightElement}
-                    {!!item.shouldShowRightCaret && (
-                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
-                            <Icon
-                                src={icons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                        {(!!reportExists || !!itemAccountID || !!policyID) && (
+                            <ReportActionAvatars
+                                subscriptAvatarBorderColor={isHovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                shouldShowTooltip={showTooltip}
+                                secondaryAvatarContainerStyle={[
+                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                    isHovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                ]}
+                                reportID={reportExists ? item.reportID : undefined}
+                                /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+                                accountIDs={!reportExists && !!itemAccountID ? [itemAccountID] : []}
+                                policyID={!reportExists && !!policyID ? policyID : undefined}
+                                singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
+                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             />
+                        )}
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={Str.removeSMSDomain(item.text ?? '')}
+                                style={[
+                                    styles.optionDisplayName,
+                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
+                            />
+                            {!!item.alternateText && (
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    forwardedFSClass={forwardedFSClass}
+                                />
+                            )}
                         </View>
-                    )}
-                    {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                        <SelectionCheckbox
-                            item={item}
-                            onSelectRow={onCheckboxPress ?? onSelectRow}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            style={styles.ml3}
-                        />
-                    )}
-                </>
-            )}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                        {!!item.shouldShowRightCaret && (
+                            <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                                />
+                            </View>
+                        )}
+                        {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onCheckboxPress ?? onSelectRow}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                disabled={isDisabled || item.isDisabledCheckbox}
+                                style={styles.ml3}
+                            />
+                        )}
+                    </>
+                );
+            }}
         </BaseListItem>
     );
 }
