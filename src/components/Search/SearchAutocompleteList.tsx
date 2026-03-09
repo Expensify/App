@@ -297,7 +297,9 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) => localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp));
+    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+    );
 
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
@@ -413,7 +415,17 @@ function SearchAutocompleteList({
         }
 
         return generatedSections;
-    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons.MagnifyingGlass, getAdditionalSections, recentSearchesData, searchOptions, searchQueryItem, styledRecentReports, translate]);
+    }, [
+        autocompleteQueryValue,
+        autocompleteSuggestions,
+        expensifyIcons.MagnifyingGlass,
+        getAdditionalSections,
+        recentSearchesData,
+        searchOptions,
+        searchQueryItem,
+        styledRecentReports,
+        translate,
+    ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
