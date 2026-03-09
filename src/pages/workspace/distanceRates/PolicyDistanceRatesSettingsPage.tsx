@@ -20,6 +20,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import {shouldUpdateGpsNotificationUnit, updateGpsTripNotificationUnit} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCustomUnitDefaultCategory} from '@userActions/Policy/Category';
 import {clearPolicyDistanceRatesErrorFields, setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
@@ -54,6 +55,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const setNewUnit = (unit: UnitItemType) => {
         if (!customUnit) {
             return;
+        }
+        if (shouldUpdateGpsNotificationUnit()) {
+            updateGpsTripNotificationUnit(translate, unit.value);
         }
         const attributes = {...customUnit?.attributes, unit: unit.value};
         setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
