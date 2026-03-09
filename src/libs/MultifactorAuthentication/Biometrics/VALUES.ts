@@ -12,8 +12,31 @@ const MultifactorAuthenticationCallbacks: {
     onFulfill: {},
 };
 
+/**
+ * Backend message strings as returned by the API.
+ * Used as keys in API_RESPONSE_MAP for matching against actual backend responses.
+ */
+const BACKEND_MESSAGE = {
+    INVALID_CHALLENGE_TYPE: 'Invalid challenge type',
+    REGISTRATION_REQUIRED: 'Registration required',
+    TOO_MANY_ATTEMPTS: 'Too many attempts',
+    INVALID_VALIDATE_CODE: 'Invalid validate code',
+    MISSING_CHALLENGE_TYPE: 'Missing challengeType',
+    INVALID_KEY: 'Invalid key',
+    SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
+    NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
+    INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
+    AUTHENTICATION_REQUIRED: 'Authentication required',
+    UNAUTHORIZED: 'Unauthorized',
+    TRANSACTION_NOT_FOUND: 'Transaction not found',
+    TRANSACTION_EXPIRED: 'Transaction review period expired',
+    TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
+    TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
+    TRANSACTION_ALREADY_REVIEWED: 'Transaction already reviewed',
+} as const;
+
 const REASON = {
-    /** Backend reason messages for multifactor authentication responses. */
+    /** Internal reason identifiers for multifactor authentication responses. */
     BACKEND: {
         INVALID_CHALLENGE_TYPE: 'Invalid challenge type',
         CHALLENGE_GENERATED: 'Challenge generated successfully',
@@ -29,8 +52,16 @@ const REASON = {
         INVALID_VALIDATE_CODE: 'Invalid validate code',
         SIGNATURE_VERIFICATION_FAILED: 'Signature verification failed',
         NO_PENDING_REGISTRATION_CHALLENGE: 'No pending registration challenge',
-        UNKNOWN_RESPONSE: 'Unknown response',
         REVOKE_SUCCESSFUL: 'Revoked successfully',
+        TRANSACTION_NOT_FOUND: 'Transaction not found',
+        TRANSACTION_EXPIRED: 'Transaction review period has expired',
+        ALREADY_APPROVED_APPROVE_ATTEMPTED: 'Already approved, approve attempted',
+        ALREADY_APPROVED_DENY_ATTEMPTED: 'Already approved, deny attempted',
+        ALREADY_DENIED_DENY_ATTEMPTED: 'Already denied, deny attempted',
+        ALREADY_DENIED_APPROVE_ATTEMPTED: 'Already denied, approve attempted',
+        ALREADY_REVIEWED: 'Transaction already reviewed',
+        TRANSACTION_APPROVED: 'Transaction approved successfully',
+        TRANSACTION_DENIED: 'Transaction denied successfully',
     },
     CHALLENGE: {
         CHALLENGE_MISSING: 'Challenge is missing',
@@ -47,11 +78,16 @@ const REASON = {
     },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
+        /** The device supports biometrics but the user has none enrolled (e.g. no fingerprint/face set up in device settings). */
         NO_ELIGIBLE_METHODS: 'No eligible methods available',
+        /** The device hardware does not support biometrics at all (e.g. web/mWeb). */
         UNSUPPORTED_DEVICE: 'Unsupported device',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
         UNHANDLED_ERROR: 'An unhandled error occurred',
+        REQUESTED_TRANSACTION_UNAVAILABLE: 'Requested transaction is unavailable',
+        UNKNOWN_RESPONSE: 'Unknown response',
+        CANCELED: 'Flow canceled by user',
     },
     KEYSTORE: {
         KEY_DELETED: 'Key successfully deleted from SecureStore',
@@ -66,58 +102,85 @@ const REASON = {
     },
 } as const;
 
-// Disables ESLint rule because it throws an error when a key is a number like 401.
-/* eslint-disable @typescript-eslint/naming-convention */
-const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP = {
-    401: {
-        INVALID_SIGNED_CHALLENGE: REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
-        REGISTRATION_REQUIRED: REASON.BACKEND.REGISTRATION_REQUIRED,
-        AUTHENTICATION_REQUIRED: REASON.BACKEND.AUTHENTICATION_REQUIRED,
-        UNAUTHORIZED: REASON.BACKEND.UNAUTHORIZED,
-    },
+const HTTP_STATUS = {
+    SUCCESS: 'SUCCESS',
+    CLIENT_ERROR: 'CLIENT_ERROR',
+    SERVER_ERROR: 'SERVER_ERROR',
+} as const;
+
+const MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS = {
+    [BACKEND_MESSAGE.INVALID_SIGNED_CHALLENGE]: REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
+    [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.BACKEND.REGISTRATION_REQUIRED,
+    [BACKEND_MESSAGE.AUTHENTICATION_REQUIRED]: REASON.BACKEND.AUTHENTICATION_REQUIRED,
+    [BACKEND_MESSAGE.UNAUTHORIZED]: REASON.BACKEND.UNAUTHORIZED,
+    [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
 } as const;
 
 /**
- * Maps API endpoints to their HTTP status codes and corresponding reason messages.
+ * Maps API endpoints to HTTP status categories and corresponding reason messages.
+ * Keys in error sub-maps are backend message strings (BACKEND_MESSAGE) used for matching.
+ * Values are the internal REASON constants returned to the caller.
  */
 const API_RESPONSE_MAP = {
     REQUEST_AUTHENTICATION_CHALLENGE: {
-        200: REASON.BACKEND.CHALLENGE_GENERATED,
-        400: {
-            INVALID_CHALLENGE_TYPE: REASON.BACKEND.INVALID_CHALLENGE_TYPE,
-            REGISTRATION_REQUIRED: REASON.BACKEND.REGISTRATION_REQUIRED,
-        },
-        401: {
-            TOO_MANY_ATTEMPTS: REASON.BACKEND.TOO_MANY_ATTEMPTS,
-            INVALID_VALIDATE_CODE: REASON.BACKEND.INVALID_VALIDATE_CODE,
-        },
-        402: {
-            MISSING_CHALLENGE_TYPE: REASON.BACKEND.MISSING_CHALLENGE_TYPE,
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.CHALLENGE_GENERATED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.INVALID_CHALLENGE_TYPE]: REASON.BACKEND.INVALID_CHALLENGE_TYPE,
+            [BACKEND_MESSAGE.REGISTRATION_REQUIRED]: REASON.BACKEND.REGISTRATION_REQUIRED,
+            [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
+            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
+            [BACKEND_MESSAGE.MISSING_CHALLENGE_TYPE]: REASON.BACKEND.MISSING_CHALLENGE_TYPE,
         },
     },
     REGISTER_AUTHENTICATION_KEY: {
-        200: REASON.BACKEND.BIOMETRICS_REGISTERED,
-        400: {
-            INVALID_KEY: REASON.BACKEND.INVALID_KEY,
-        },
-        401: {
-            INVALID_VALIDATE_CODE: REASON.BACKEND.INVALID_VALIDATE_CODE,
-            SIGNATURE_VERIFICATION_FAILED: REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
-            TOO_MANY_ATTEMPTS: REASON.BACKEND.TOO_MANY_ATTEMPTS,
-            NO_PENDING_REGISTRATION_CHALLENGE: REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.BIOMETRICS_REGISTERED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            [BACKEND_MESSAGE.INVALID_KEY]: REASON.BACKEND.INVALID_KEY,
+            [BACKEND_MESSAGE.INVALID_VALIDATE_CODE]: REASON.BACKEND.INVALID_VALIDATE_CODE,
+            [BACKEND_MESSAGE.SIGNATURE_VERIFICATION_FAILED]: REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
+            [BACKEND_MESSAGE.TOO_MANY_ATTEMPTS]: REASON.BACKEND.TOO_MANY_ATTEMPTS,
+            [BACKEND_MESSAGE.NO_PENDING_REGISTRATION_CHALLENGE]: REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
         },
     },
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: {
-        ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
-        200: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+        },
     },
 
     REVOKE_MULTIFACTOR_AUTHENTICATION_SETUP: {
-        ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_RESPONSE_MAP,
-        200: REASON.BACKEND.REVOKE_SUCCESSFUL,
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.REVOKE_SUCCESSFUL,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+        },
+    },
+
+    /** Transaction review (3DS) - approve/deny endpoints */
+    APPROVE_TRANSACTION: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.TRANSACTION_APPROVED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.BACKEND.TRANSACTION_EXPIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.BACKEND.ALREADY_APPROVED_APPROVE_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.BACKEND.ALREADY_REVIEWED,
+            [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
+        },
+    },
+
+    DENY_TRANSACTION: {
+        [HTTP_STATUS.SUCCESS]: REASON.BACKEND.TRANSACTION_DENIED,
+        [HTTP_STATUS.CLIENT_ERROR]: {
+            ...MULTIFACTOR_AUTHENTICATION_COMMAND_BASE_CLIENT_ERRORS,
+            [BACKEND_MESSAGE.TRANSACTION_EXPIRED]: REASON.BACKEND.TRANSACTION_EXPIRED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_APPROVED]: REASON.BACKEND.ALREADY_APPROVED_DENY_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_DENIED]: REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED,
+            [BACKEND_MESSAGE.TRANSACTION_ALREADY_REVIEWED]: REASON.BACKEND.ALREADY_REVIEWED,
+            [BACKEND_MESSAGE.TRANSACTION_NOT_FOUND]: REASON.BACKEND.TRANSACTION_NOT_FOUND,
+        },
     },
 } as const;
-/* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Expo error message search strings and separator.
@@ -200,7 +263,9 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         VALIDATE_CODE: 'validateCode',
     },
     API_RESPONSE_MAP,
+    BACKEND_MESSAGE,
     REASON,
+    HTTP_STATUS,
 
     /**
      * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.
@@ -210,6 +275,14 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
      */
     PUBLIC_KEYS_PREVIOUSLY_BUT_NOT_CURRENTLY_REGISTERED: [] as string[],
     PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED: undefined,
+
+    /**
+     * Used to determine the action for a particular transaction under LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS Onyx key.
+     */
+    LOCALLY_PROCESSED_TRANSACTION_ACTION: {
+        APPROVE: 'Approve',
+        DENY: 'Deny',
+    },
 
     /**
      * Callback response values that determine what the MultifactorAuthenticationContext should do

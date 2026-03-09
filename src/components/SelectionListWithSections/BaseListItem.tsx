@@ -6,7 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {useMouseContext} from '@hooks/useMouseContext';
+import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -45,7 +45,6 @@ function BaseListItem<TItem extends ListItem>({
     shouldShowRightCaret = false,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation = true,
     accessibilityRole = getButtonRole(true),
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
@@ -53,7 +52,8 @@ function BaseListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
-    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const {isMouseDownOnInput} = useMouseState();
+    const {setMouseUp} = useMouseActions();
 
     const pressableRef = useRef<View>(null);
 
@@ -61,9 +61,7 @@ function BaseListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
-        if (shouldStopMouseLeavePropagation) {
-            e.stopPropagation();
-        }
+        e.stopPropagation();
         setMouseUp();
     };
 

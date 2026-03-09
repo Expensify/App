@@ -29,7 +29,6 @@ const mockGetSubscriptionStatus = jest.fn();
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     ...jest.requireActual<typeof SubscriptionUtils>('@libs/SubscriptionUtils'),
-    getAmountOwed: () => AMOUNT_OWED,
     getSubscriptionStatus: (...args: Parameters<typeof SubscriptionUtils.getSubscriptionStatus>) => mockGetSubscriptionStatus(...args) as BillingStatusResult,
 }));
 

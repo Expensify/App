@@ -245,12 +245,7 @@ jobs:
         run: |
           IPA_FILE=$(find .rock/cache/ios/export/ -maxdepth 1 -name '*.ipa' -print -quit 2>/dev/null || true)
           if [ -z "$IPA_FILE" ]; then
-            if [ "${{ inputs.variant }}" = "Adhoc" ]; then
-              echo "::warning::No .ipa found locally (expected for remote-cache hits on Adhoc builds)"
-            else
-              echo "::error::No .ipa found in .rock/cache/ios/export/"
-              exit 1
-            fi
+            echo "::warning::No .ipa found locally (expected for Rock remote-cache hits)"
           else
             {
               echo "IPA_FILENAME=$(basename "$IPA_FILE")"

@@ -12,6 +12,7 @@ import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {getReportTransactions} from './ReportUtils';
+import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
@@ -332,6 +333,12 @@ function navigateToConfirmationPage(
     reportIDParam: string | undefined = undefined,
     fromManualDistanceRequest = false,
 ) {
+    endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+    startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
+        name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+    });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));

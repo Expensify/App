@@ -283,7 +283,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
     });
 
-    it('should focus next/previous item relative to hovered item when arrow keys are pressed', async () => {
+    it('should focus next/previous item relative to focused item when arrow keys are pressed', async () => {
         render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections}]}
@@ -294,17 +294,14 @@ describe('BaseSelectionList', () => {
 
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
 
-        // Trigger a mouse move event to hover the item
-        fireEvent(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`), 'mouseMove', {stopPropagation: () => {}});
-
         // eslint-disable-next-line testing-library/no-unnecessary-act
         act(() => {
             arrowDownCallback();
         });
 
-        // The item that gets focused will be the one following the hovered item
+        // The item that gets focused will be the one following the currently focused item
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}11`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
 
         act(() => {
@@ -313,7 +310,7 @@ describe('BaseSelectionList', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toHaveStyle({backgroundColor: colors.productDark300});
         });
 
         act(() => {
@@ -321,7 +318,7 @@ describe('BaseSelectionList', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}10`)).toHaveStyle({backgroundColor: colors.productDark300});
+            expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toHaveStyle({backgroundColor: colors.productDark400});
         });
     });
 });

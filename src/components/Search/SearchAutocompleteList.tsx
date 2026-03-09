@@ -1,7 +1,7 @@
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {OptionsListStateContext, useOptionsList} from '@components/OptionListContextProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
@@ -30,7 +30,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -163,6 +163,40 @@ function SearchAutocompleteList({
     const taxRates = getAllTaxRates(policies);
 
     const {options, areOptionsInitialized} = useOptionsList();
+
+    const computeSpanStarted = useRef(false);
+    const spanHandoffDone = useRef(false);
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry span must start during render to measure computation time
+    if (!computeSpanStarted.current && areOptionsInitialized && isRecentSearchesDataLoaded && getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER)) {
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS,
+            op: 'function',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+        });
+        computeSpanStarted.current = true;
+    }
+
+    useEffect(() => {
+        return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
+            cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+        };
+    }, []);
+
+    const {areOptionsInitialized: contextAreOptionsInitialized} = useContext(OptionsListStateContext);
+    const coldStartAttributeSet = useRef(false);
+    useEffect(() => {
+        if (coldStartAttributeSet.current) {
+            return;
+        }
+        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        if (parentSpan) {
+            parentSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_COLD_START, !contextAreOptionsInitialized);
+            coldStartAttributeSet.current = true;
+        }
+    }, [contextAreOptionsInitialized]);
+
     const searchOptions = (() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
@@ -403,7 +437,7 @@ function SearchAutocompleteList({
                 flatIndex++;
             }
         }
-    }, [areOptionsInitialized, firstRecentReportKey, shouldUseNarrowLayout]);
+    }, [areOptionsInitialized, firstRecentReportKey, sections, shouldUseNarrowLayout]);
 
     useEffect(() => {
         const targetText = autocompleteQueryValue;
@@ -413,7 +447,6 @@ function SearchAutocompleteList({
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
 
     if (isLoading) {
@@ -426,9 +459,20 @@ function SearchAutocompleteList({
         );
     }
 
+    // eslint-disable-next-line react-hooks/refs -- intentional: telemetry handoff must run during render to accurately mark compute→render transition
+    if (isInitialRender && computeSpanStarted.current && !spanHandoffDone.current) {
+        spanHandoffDone.current = true;
+        endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_COMPUTE_OPTIONS);
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER, {
+            name: CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER,
+            op: 'ui.render',
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER),
+        });
+    }
+
     return (
         <SelectionListWithSections<AutocompleteListItem>
-            showLoadingPlaceholder
+            shouldShowLoadingPlaceholder
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
@@ -447,6 +491,7 @@ function SearchAutocompleteList({
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding
             onLayout={() => {
+                endSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
                 setPerformanceTimersEnd();
                 setIsInitialRender(false);
                 innerListRef.current?.updateExternalTextInputFocus(textInputRef?.current?.isFocused() ?? false);

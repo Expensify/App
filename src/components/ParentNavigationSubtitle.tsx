@@ -21,6 +21,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import StatusBadge from './StatusBadge';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -189,18 +190,12 @@ function ParentNavigationSubtitle({
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
             {!!statusText && (
-                <View
-                    style={[
-                        styles.reportStatusContainer,
-                        styles.mr1,
-                        {
-                            backgroundColor: statusTextBackgroundColor,
-                        },
-                        statusTextContainerStyles,
-                    ]}
-                >
-                    <Text style={[styles.reportStatusText, {color: statusTextColor}]}>{statusText}</Text>
-                </View>
+                <StatusBadge
+                    text={statusText}
+                    backgroundColor={statusTextBackgroundColor}
+                    textColor={statusTextColor}
+                    badgeStyles={[styles.mr1, statusTextContainerStyles]}
+                />
             )}
             <Text
                 style={[styles.optionAlternateText, styles.textLabelSupporting, styles.flexShrink1, styles.mnw0, textStyles]}

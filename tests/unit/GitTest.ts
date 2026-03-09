@@ -982,6 +982,209 @@ describe('Git', () => {
         });
     });
 
+    describe('parseDiff with context lines', () => {
+        it('calculates correct line numbers when context lines are present', () => {
+            // GitHub API diffs include 3 context lines by default
+            const diffWithContext = dedent(`
+                diff --git a/src/languages/en.ts b/src/languages/en.ts
+                --- a/src/languages/en.ts
+                +++ b/src/languages/en.ts
+                @@ -100,6 +100,7 @@
+                 formatPolicyRules
+                 exportToCSV
+                 duplicateExpense
+                +cannotDuplicateDistanceExpense
+                 reportField
+                 reportFieldList
+                 reportFieldRule
+            `);
+
+            const result = Git.parseDiff(diffWithContext);
+
+            expect(result.hasChanges).toBe(true);
+            expect(result.files).toHaveLength(1);
+
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            const hunk = file.hunks.at(0);
+            expect(hunk).toBeDefined();
+            if (!hunk) {
+                return;
+            }
+
+            // Context lines should NOT appear in hunk.lines
+            expect(hunk.lines).toHaveLength(1);
+            expect(hunk.lines.at(0)).toEqual({
+                number: 103,
+                type: 'added',
+                content: 'cannotDuplicateDistanceExpense',
+            });
+
+            // Context lines should be counted
+            expect(hunk.contextLineCount).toBe(6);
+
+            // addedLines should reflect the correct line number
+            expect(file.addedLines.has(103)).toBe(true);
+        });
+
+        it('calculates correct line numbers with zero context lines', () => {
+            // Local git diff uses -U0
+            const diffWithoutContext = dedent(`
+                diff --git a/src/languages/en.ts b/src/languages/en.ts
+                --- a/src/languages/en.ts
+                +++ b/src/languages/en.ts
+                @@ -102,0 +103 @@
+                +cannotDuplicateDistanceExpense
+            `);
+
+            const result = Git.parseDiff(diffWithoutContext);
+
+            const hunk = result.files.at(0)?.hunks.at(0);
+            expect(hunk).toBeDefined();
+            if (!hunk) {
+                return;
+            }
+
+            expect(hunk.lines).toHaveLength(1);
+            expect(hunk.lines.at(0)?.number).toBe(103);
+            expect(hunk.contextLineCount).toBe(0);
+        });
+
+        it('handles context lines interleaved with additions and removals', () => {
+            const diff = dedent(`
+                diff --git a/file.ts b/file.ts
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -10,5 +10,6 @@
+                 unchanged1
+                -removed1
+                +replaced1
+                +added1
+                 unchanged2
+                 unchanged3
+            `);
+
+            const result = Git.parseDiff(diff);
+            const hunk = result.files.at(0)?.hunks.at(0);
+            expect(hunk).toBeDefined();
+            if (!hunk) {
+                return;
+            }
+
+            // Only changed lines in hunk.lines
+            expect(hunk.lines).toHaveLength(3);
+            expect(hunk.lines.at(0)).toEqual({number: 11, type: 'removed', content: 'removed1'});
+            expect(hunk.lines.at(1)).toEqual({number: 11, type: 'added', content: 'replaced1'});
+            expect(hunk.lines.at(2)).toEqual({number: 12, type: 'added', content: 'added1'});
+
+            expect(hunk.contextLineCount).toBe(3);
+        });
+
+        it('produces same line numbers for -U0 and context diffs', () => {
+            // Same logical change, different context levels
+            const withContext = dedent(`
+                diff --git a/file.ts b/file.ts
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -8,4 +8,5 @@
+                 line8
+                 line9
+                 line10
+                +newLine11
+                 line11
+            `);
+
+            const withoutContext = dedent(`
+                diff --git a/file.ts b/file.ts
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -10,0 +11 @@
+                +newLine11
+            `);
+
+            const resultWithContext = Git.parseDiff(withContext);
+            const resultWithoutContext = Git.parseDiff(withoutContext);
+
+            const lineWithContext = resultWithContext.files.at(0)?.hunks.at(0)?.lines.at(0)?.number;
+            const lineWithoutContext = resultWithoutContext.files.at(0)?.hunks.at(0)?.lines.at(0)?.number;
+
+            expect(lineWithContext).toBe(11);
+            expect(lineWithoutContext).toBe(11);
+            expect(lineWithContext).toBe(lineWithoutContext);
+        });
+
+        it('calculates correct removed line numbers with context lines', () => {
+            const diff = dedent(`
+                diff --git a/file.ts b/file.ts
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -5,4 +5,3 @@
+                 context1
+                 context2
+                -removedLine
+                 context3
+            `);
+
+            const result = Git.parseDiff(diff);
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            const hunk = file.hunks.at(0);
+            expect(hunk).toBeDefined();
+            if (!hunk) {
+                return;
+            }
+
+            expect(hunk.lines).toHaveLength(1);
+            expect(hunk.lines.at(0)).toEqual({number: 7, type: 'removed', content: 'removedLine'});
+            expect(hunk.contextLineCount).toBe(3);
+            expect(file.removedLines.has(7)).toBe(true);
+        });
+
+        it('tracks contextLineCount independently per hunk', () => {
+            const diff = dedent(`
+                diff --git a/file.ts b/file.ts
+                --- a/file.ts
+                +++ b/file.ts
+                @@ -1,3 +1,4 @@
+                 ctx1
+                 ctx2
+                +addedInFirstHunk
+                 ctx3
+                @@ -20,2 +21,3 @@
+                 ctx4
+                +addedInSecondHunk
+                 ctx5
+            `);
+
+            const result = Git.parseDiff(diff);
+            const file = result.files.at(0);
+            expect(file).toBeDefined();
+            if (!file) {
+                return;
+            }
+
+            expect(file.hunks).toHaveLength(2);
+
+            const firstHunk = file.hunks.at(0);
+            expect(firstHunk?.contextLineCount).toBe(3);
+            expect(firstHunk?.lines).toHaveLength(1);
+            expect(firstHunk?.lines.at(0)).toEqual({number: 3, type: 'added', content: 'addedInFirstHunk'});
+
+            const secondHunk = file.hunks.at(1);
+            expect(secondHunk?.contextLineCount).toBe(2);
+            expect(secondHunk?.lines).toHaveLength(1);
+            expect(secondHunk?.lines.at(0)).toEqual({number: 22, type: 'added', content: 'addedInSecondHunk'});
+        });
+    });
+
     describe('getUntrackedFiles', () => {
         it('returns array of untracked file paths', () => {
             mockExecSync.mockReturnValue('src/new-file.ts\nsrc/another-file.tsx\n');

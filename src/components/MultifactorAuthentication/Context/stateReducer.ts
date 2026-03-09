@@ -1,4 +1,5 @@
 import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
 import type {Action, MultifactorAuthenticationState} from './types';
 
@@ -67,12 +68,15 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, authenticationMethod: action.payload};
         case 'SET_SCENARIO_RESPONSE':
             return {...state, scenarioResponse: action.payload};
-        case 'INIT':
+        case 'INIT': {
+            // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
+            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
-                scenario: MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario],
+                scenario,
                 payload: action.payload.payload,
             };
+        }
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
