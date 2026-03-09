@@ -1,8 +1,8 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
 import useOnyx from '@hooks/useOnyx';
-import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
@@ -55,6 +55,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
         }
 
         if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
             onSubmit();
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         }

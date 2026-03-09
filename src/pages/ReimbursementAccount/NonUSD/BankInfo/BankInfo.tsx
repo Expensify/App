@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
@@ -17,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
@@ -33,7 +33,7 @@ const pages = [
     {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
 ];
 
-function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubPage}: NonUSDPageProps) {
+function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: NonUSDPageProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -45,16 +45,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
-    const initialTargetSubPage = pages.at(startFrom)?.pageName ?? SUB_PAGE_NAMES.BANK_ACCOUNT_DETAILS;
-    const shouldRedirect = !currentSubPage;
     const isSubmittingRef = useRef(false);
-
-    useEffect(() => {
-        if (!shouldRedirect) {
-            return;
-        }
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: initialTargetSubPage}), {forceReplace: true});
-    }, [shouldRedirect, policyID, initialTargetSubPage]);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
@@ -107,7 +98,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
         [policyID],
     );
 
-    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage<BankInfoSubStepProps>({
+    const {CurrentPage, isEditing, isRedirecting, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage<BankInfoSubStepProps>({
         pages,
         startFrom,
         onFinished: submit,
@@ -132,7 +123,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, currentSubP
         return <NotFoundPage />;
     }
 
-    if (shouldRedirect) {
+    if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
     }
 

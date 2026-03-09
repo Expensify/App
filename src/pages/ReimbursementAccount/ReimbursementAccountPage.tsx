@@ -43,6 +43,7 @@ import {
     setReimbursementAccountLoading,
     updateReimbursementAccountDraft,
 } from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import {getPaymentMethods} from '@userActions/PaymentMethods';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import {clearReimbursementAccount, clearReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
@@ -56,7 +57,6 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {setDraftValues} from '@userActions/FormActions';
 import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import getStartPageForContinueSetup from './NonUSD/utils/getStartPageForContinueSetup';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';

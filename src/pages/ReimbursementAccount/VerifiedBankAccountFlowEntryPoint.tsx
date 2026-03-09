@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
 import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -35,7 +36,6 @@ import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {setDraftValues} from '@userActions/FormActions';
 
 type VerifiedBankAccountFlowEntryPointProps = {
     /** Bank account currently in setup */

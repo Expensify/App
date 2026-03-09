@@ -1,8 +1,8 @@
 import React, {useEffect, useMemo} from 'react';
 import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
 import useOnyx from '@hooks/useOnyx';
-import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
