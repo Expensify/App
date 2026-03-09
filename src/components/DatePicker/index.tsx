@@ -139,7 +139,6 @@ function DatePicker({
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
@@ -151,7 +150,6 @@ function DatePicker({
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
-                    disableKeyboard
                 />
             </View>
 
