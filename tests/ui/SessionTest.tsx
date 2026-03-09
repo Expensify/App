@@ -95,6 +95,7 @@ describe('Deep linking', () => {
         jest.spyOn(AppActions, 'openApp').mockImplementation(async () => {
             const originalResult = await originalOpenApp();
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
             return originalResult;
         });
     });
