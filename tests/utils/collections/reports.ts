@@ -225,6 +225,31 @@ function createPolicyExpenseChatTask(index: number): Report {
     };
 }
 
+/**
+ * Creates a trip room
+ */
+function createTripRoom(index: number): Report {
+    return {
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.TRIP_ROOM),
+        type: CONST.REPORT.TYPE.CHAT,
+    };
+}
+
+/**
+ * Creates an IOU report with explicit owner and manager
+ */
+function createIOUReport(index: number, ownerAccountID: number, managerAccountID: number): Report {
+    return {
+        ...createRandomReport(index, undefined),
+        type: CONST.REPORT.TYPE.IOU,
+        ownerAccountID,
+        managerID: managerAccountID,
+        parentReportID: `${index + 1000}`,
+        parentReportActionID: `${index + 2000}`,
+        isOwnPolicyExpenseChat: false,
+    };
+}
+
 export {
     createRandomReport,
     createPolicyExpenseChat,
@@ -243,4 +268,6 @@ export {
     createRegularChat,
     createPolicyExpenseChatThread,
     createPolicyExpenseChatTask,
+    createTripRoom,
+    createIOUReport,
 };
