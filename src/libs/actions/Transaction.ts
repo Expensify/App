@@ -1328,7 +1328,11 @@ function changeTransactionsReport({
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
-            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
+            const moneyRequestReportForThread =
+                reportID === CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? selfDMReport)
+                    : newReport;
+            const optimisticTransactionThread = buildTransactionThread(newIOUAction, moneyRequestReportForThread);
             const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
