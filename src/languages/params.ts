@@ -44,6 +44,8 @@ type ReportArchiveReasonsRemovedFromPolicyParams = {
 type CreatedReportForUnapprovedTransactionsParams = {
     reportUrl: string;
     reportName: string;
+    reportID: string;
+    isReportDeleted: boolean;
 };
 
 type PaidElsewhereParams = {payer?: string; comment?: string};
