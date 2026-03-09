@@ -104,7 +104,6 @@ function usePasskeys(): UseBiometricsReturn {
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             publicKey: credentialId,
-            privateKey: '',
             authenticationMethod: {
                 code: passkeyAuthType.CODE,
                 name: passkeyAuthType.NAME,

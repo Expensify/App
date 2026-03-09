@@ -8,7 +8,6 @@ type PasskeyAttestationResponse = {
 };
 
 type BaseRegisterResult = {
-    privateKey: string;
     publicKey: string;
     authenticationMethod: AuthTypeInfo;
     attestation?: PasskeyAttestationResponse;

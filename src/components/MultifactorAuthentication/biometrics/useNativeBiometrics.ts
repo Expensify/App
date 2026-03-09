@@ -113,7 +113,6 @@ function useNativeBiometrics(): UseBiometricsReturn {
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
-            privateKey,
             publicKey,
             authenticationMethod: authType,
         });
