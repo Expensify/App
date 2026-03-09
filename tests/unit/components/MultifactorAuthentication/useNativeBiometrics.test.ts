@@ -181,6 +181,29 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
+    describe('haveCredentialsEverBeenConfigured', () => {
+        it('should return false when Onyx state is undefined', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = undefined;
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(result.current.haveCredentialsEverBeenConfigured).toBe(false);
+        });
+
+        it('should return true when Onyx state is an empty array', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = [];
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(result.current.haveCredentialsEverBeenConfigured).toBe(true);
+        });
+
+        it('should return true when Onyx state has credential IDs', () => {
+            mockMultifactorAuthenticationPublicKeyIDs = ['key-1'];
+            const {result} = renderHook(() => useNativeBiometrics());
+
+            expect(result.current.haveCredentialsEverBeenConfigured).toBe(true);
+        });
+    });
+
     describe('register', () => {
         beforeEach(() => {
             (generateKeyPair as jest.Mock).mockReturnValue({

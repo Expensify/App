@@ -115,10 +115,6 @@ jest.mock('@src/CONFIG', () => ({
     IS_USING_LOCAL_WEB: false,
 }));
 
-jest.mock('@src/selectors/Account', () => ({
-    isAccountLoadingSelector: () => false,
-}));
-
 jest.mock('@components/Button', () => {
     const RN = require('react-native');
     const ReactModule = require('react');

@@ -79,8 +79,16 @@ jest.mock('@components/BlockingViews/FullPageOfflineBlockingView', () => {
 });
 
 jest.mock('@components/FormHelpMessage', () => {
-    function MockFormHelpMessage() {
-        return null;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const {Text} = require('react-native');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    const mockReact = require('react');
+    function MockFormHelpMessage({message}: {message?: string}) {
+        if (!message) {
+            return null;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return
+        return mockReact.createElement(Text, null, message);
     }
     MockFormHelpMessage.displayName = 'FormHelpMessage';
     return MockFormHelpMessage;
@@ -369,12 +377,13 @@ describe('MultifactorAuthenticationRevokePage', () => {
             expect(thisDeviceButton).toBeTruthy();
             fireEvent.press(thisDeviceButton!);
 
-            const onConfirm = capturedConfirmModalProps.onConfirm as () => void;
+            const onConfirm = capturedConfirmModalProps.onConfirm as () => Promise<void>;
             await act(async () => {
-                onConfirm();
+                await onConfirm();
             });
 
             expect(mockRevokeCredentials).toHaveBeenCalled();
+            expect(screen.getByText('multifactorAuthentication.revoke.error')).toBeTruthy();
         });
     });
 
