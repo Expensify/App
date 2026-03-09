@@ -398,7 +398,7 @@ function computeReportNameBasedOnReportAction(
     ) {
         const harvesting = !isMarkAsClosedAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.harvesting ?? false) : false;
         if (harvesting) {
-            return translate('iou.automaticallySubmitted');
+            return Parser.htmlToText(translate('iou.automaticallySubmitted'));
         }
         return translate('iou.submitted', getOriginalMessage(parentReportAction)?.message);
     }
@@ -406,7 +406,7 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return translate('iou.automaticallyForwarded');
+            return Parser.htmlToText(translate('iou.automaticallyForwarded'));
         }
         return translate('iou.forwarded');
     }
@@ -577,7 +577,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isMovedAction(parentReportAction)) {
-        return getMovedActionMessage(translate, parentReportAction, parentReport);
+        return Parser.htmlToText(getMovedActionMessage(translate, parentReportAction, parentReport));
     }
 
     if (
@@ -602,13 +602,13 @@ function computeReportNameBasedOnReportAction(
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
-                    return translate('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits);
+                    return Parser.htmlToText(translate('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits));
                 }
                 return translate('iou.businessBankAccount', undefined, last4Digits);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
-                    return translate('iou.automaticallyPaidWithExpensify');
+                    return Parser.htmlToText(translate('iou.automaticallyPaidWithExpensify'));
                 }
                 return translate('iou.paidWithExpensify');
             }
@@ -618,7 +618,7 @@ function computeReportNameBasedOnReportAction(
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
-            return translate('iou.automaticallyApproved');
+            return Parser.htmlToText(translate('iou.automaticallyApproved'));
         }
         return translate('iou.approvedMessage');
     }
@@ -640,11 +640,11 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
-        return getCompanyCardConnectionBrokenMessage(translate, parentReportAction);
+        return Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
-        return getPlaidBalanceFailureMessage(translate, parentReportAction);
+        return Parser.htmlToText(getPlaidBalanceFailureMessage(translate, parentReportAction));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -662,7 +662,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
-        return getSettlementAccountLockedMessage(translate, parentReportAction);
+        return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
     }
 
     return undefined;
@@ -688,7 +688,7 @@ function computeChatThreadReportName(
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-        let formattedName = getTransactionReportName({reportAction: parentReportAction});
+        let formattedName = getTransactionReportName({translate, reportAction: parentReportAction});
 
         if (isArchivedNonExpense) {
             formattedName = generateArchivedReportName(formattedName);

@@ -32,6 +32,7 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasReasoning,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -3870,6 +3871,7 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
         });
     });
+
     describe('isRejectedAction', () => {
         it('should return true for REJECTED action type', () => {
             // Given a report action with REJECTED action type
@@ -3939,6 +3941,57 @@ describe('ReportActionsUtils', () => {
 
             // Then it should return false because the action is null
             expect(result).toBe(false);
+        });
+    });
+
+    describe('hasReasoning', () => {
+        it('should return true when the action has a non-empty reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: 'This expense was moved because it violated the max amount rule.',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(true);
+        });
+
+        it('should return false when the action has no reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when reasoning is an empty string', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: '',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when the action is null or undefined', () => {
+            expect(hasReasoning(null)).toBe(false);
+            expect(hasReasoning(undefined)).toBe(false);
         });
     });
 });
