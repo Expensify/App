@@ -95,6 +95,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
                     formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM}
                     onSubmit={submit}
                     submitButtonText={translate('common.save')}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
