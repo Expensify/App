@@ -8,6 +8,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isOldDotURL from '@libs/isOldDotURL';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -232,22 +233,6 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     }
 
     openExternalLink(href);
-}
-
-/**
- * Checks whether a URL points to an Old Dot domain (e.g. www.expensify.com)
- * rather than a New Dot domain (e.g. new.expensify.com).
- */
-function isOldDotURL(url: string): boolean {
-    const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(url, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(url, CONFIG.EXPENSIFY.STAGING_API_ROOT);
-    if (!hasExpensifyOrigin) {
-        return false;
-    }
-
-    // Ensure it doesn't match any New Dot prefix — if it does, it's a ND URL served from the same origin
-    const hasNewDotOrigin =
-        Url.hasSameExpensifyOrigin(url, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(url, CONST.STAGING_NEW_EXPENSIFY_URL) || url.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
-    return !hasNewDotOrigin;
 }
 
 function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
