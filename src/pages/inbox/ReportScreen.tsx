@@ -1,7 +1,7 @@
 import {PortalHost} from '@gorhom/portal';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -168,7 +168,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
 
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`);
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportOnyx?.parentReportID}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);

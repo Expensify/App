@@ -111,7 +111,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {canBeMissing: true});
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -303,7 +303,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 reportActions={reportActions}
                                 hasOlderActions={hasOlderActions}
                                 hasNewerActions={hasNewerActions}
-                                isComposerFullSize={isComposerFullSize}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
                                 composerHeight={composerHeight}

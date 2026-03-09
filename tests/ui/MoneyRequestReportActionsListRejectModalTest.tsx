@@ -179,6 +179,7 @@ const renderComponent = () => {
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
                     <MoneyRequestReportActionsList
+                        composerHeight={0}
                         report={mockReport}
                         policy={mockPolicy}
                         reportActions={[mockReportAction]}
