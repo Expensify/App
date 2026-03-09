@@ -50,6 +50,7 @@ import {
     canSubmitPerDiemExpenseFromWorkspace,
     getLengthOfTag,
     getPerDiemCustomUnit,
+    getPerDiemRateCustomUnitRate,
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -421,7 +422,12 @@ function MoneyRequestView({
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
+    const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    const perDiemRate = isPerDiemRequest && customUnitRateID ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : undefined;
+    const isCustomUnitOutOfPolicy =
+        transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) ||
+        (isDistanceRequest && !rate) ||
+        (isPerDiemRequest && !!customUnitRateID && !perDiemRate);
     let rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
