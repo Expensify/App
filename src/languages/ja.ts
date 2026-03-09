@@ -1565,7 +1565,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'ワークスペースを選択',
-        routedDueToDEW: (to: string) => `カスタム承認ワークフローにより、レポートは${to}に回付されました`,
+        routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '時間' : '時間'} @ ${rate} / 時間`,
             hrs: '時間',
@@ -5225,6 +5225,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         confirm: 'オフにする',
                     },
                     outstandingBalanceModal: {title: 'トラベル請求書作成をオフにできません', body: '未清算の出張残高があります。先に残高を精算してください。', confirm: '了解しました'},
+                    exportToPDF: 'PDF にエクスポート',
+                    exportToCSV: 'CSV にエクスポート',
+                    selectDateRangeError: 'エクスポートする日付範囲を選択してください',
+                    invalidDateRangeError: '開始日は終了日より前でなければなりません',
                     enabled: '集中請求が有効になりました！',
                     enabledDescription: 'このワークスペースのすべての出張費は、今後、月次請求書で一元管理されます。',
                 },
@@ -7676,6 +7680,7 @@ ${reportName}
             prompt: 'GPSで距離の追跡を開始するには、端末の設定で位置情報へのアクセスを許可してください。',
         },
         fabGpsTripExplained: 'GPS画面へ移動（フローティングアクション）',
+        liveActivity: {subtitle: '距離の記録', button: '進捗を表示'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績表の紛失または破損',

@@ -1573,7 +1573,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Kies een werkruimte',
-        routedDueToDEW: (to: string) => `rapport doorgestuurd naar ${to} vanwege aangepast goedkeuringsworkflow`,
+        routedDueToDEW: (to: string, reason?: string) => `rapport doorgestuurd naar ${to}${reason ? ` omdat ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`,
             hrs: 'uur',
@@ -5264,6 +5264,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         confirm: 'Uitschakelen',
                     },
                     outstandingBalanceModal: {title: 'Kan Reiskostenfacturatie niet uitschakelen', body: 'Je hebt nog een openstaand reissaldo. Betaal eerst je saldo.', confirm: 'Begrepen'},
+                    exportToPDF: 'Exporteren naar PDF',
+                    exportToCSV: 'Exporteren naar CSV',
+                    selectDateRangeError: 'Selecteer een datumbereik om te exporteren',
+                    invalidDateRangeError: 'De begindatum moet vóór de einddatum liggen',
                     enabled: 'Centraal factureren ingeschakeld!',
                     enabledDescription: 'Alle reiskosten in deze workspace worden nu gebundeld op één maandelijkse factuur.',
                 },
@@ -7741,6 +7745,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             prompt: 'Sta locatiestoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
         },
         fabGpsTripExplained: 'Ga naar GPS-scherm (zwevende actie)',
+        liveActivity: {subtitle: 'Afstand bijhouden', button: 'Voortgang bekijken'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Rapportkaart kwijt of beschadigd',

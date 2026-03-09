@@ -1572,7 +1572,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
-        routedDueToDEW: (to: string) => `raport skierowano do ${to} z powodu niestandardowego przepływu zatwierdzania`,
+        routedDueToDEW: (to: string, reason?: string) => `raport przekazany do ${to}${reason ? ` bo ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`,
             hrs: 'godz.',
@@ -5259,6 +5259,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         body: 'Masz nadal zaległe saldo za podróż. Najpierw ureguluj swoje saldo.',
                         confirm: 'Rozumiem',
                     },
+                    exportToPDF: 'Eksportuj do PDF',
+                    exportToCSV: 'Eksportuj do CSV',
+                    selectDateRangeError: 'Wybierz zakres dat do eksportu',
+                    invalidDateRangeError: 'Data początkowa musi być wcześniejsza niż data końcowa',
                     enabled: 'Centralne fakturowanie włączone!',
                     enabledDescription: 'Wszystkie wydatki podróżne w tym obszarze roboczym będą teraz rozliczane na scentralizowanej, miesięcznej fakturze.',
                 },
@@ -7729,6 +7733,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu GPS.',
         },
         fabGpsTripExplained: 'Przejdź do ekranu GPS (działanie pływające)',
+        liveActivity: {subtitle: 'Śledzenie dystansu', button: 'Zobacz postęp'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',
