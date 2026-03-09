@@ -9330,9 +9330,9 @@ function hasReportErrorsOtherThanFailedReceipt(
     doesReportHaveViolations: boolean,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     transactions: OnyxCollection<Transaction>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
+    reportAttributes: ReportAttributesDerivedValue['reports'],
 ) {
-    const allReportErrors = reportAttributes?.[report?.reportID]?.reportErrors ?? {};
+    const allReportErrors = reportAttributes[report?.reportID]?.reportErrors ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, transactionReportActions, undefined);
     let doesTransactionThreadReportHasViolations = false;
