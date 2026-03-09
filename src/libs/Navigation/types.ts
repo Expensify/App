@@ -2927,6 +2927,7 @@ type AttachmentModalScreensParamList = {
         mergeTransactionID?: string;
         imageType?: OdometerImageType;
         isEditingConfirmation?: boolean;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: AttachmentModalContainerModalProps & {
         reportID: string;
@@ -2943,6 +2944,7 @@ type AttachmentModalScreensParamList = {
         readonly: string;
         imageType: OdometerImageType;
         isEditingConfirmation: boolean;
+        backToReport?: string;
     };
     [SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT]: AttachmentModalContainerModalProps & {
         source?: AvatarSource;

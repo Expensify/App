@@ -331,9 +331,9 @@ function IOURequestStepDistanceOdometer({
             if (!reportID || !transactionID) {
                 return;
             }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType, isEditingConfirmation));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType, isEditingConfirmation, backToReport));
         },
-        [reportID, transactionID, isEditingConfirmation, action, iouType],
+        [reportID, transactionID, isEditingConfirmation, action, iouType, backToReport],
     );
 
     const navigateBack = useCallback(() => {
