@@ -105,7 +105,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 introSelected,
                 betas,
-                isSelfTourViewed,
             });
 
             setOnboardingAdminsChatReportID();
@@ -135,7 +134,6 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             introSelected,
             conciergeChatReportID,
             betas,
-            isSelfTourViewed,
         ],
     );
 
