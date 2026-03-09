@@ -76,6 +76,16 @@ function useSearchDeleteTransactions() {
                     if (remaining.transactionID !== originalTransactionID) {
                         splitTransactionIDList.push(remaining.transactionID);
                     }
+                    const optimisticDeletedSplitTransactions = splitTransactionIDList.reduce<Record<string, Transaction>>((acc, transactionID) => {
+                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+                        const splitTransaction = transactions?.[transactionKey];
+
+                        if (splitTransaction) {
+                            acc[transactionKey] = splitTransaction;
+                        }
+
+                        return acc;
+                    }, {});
                     const remainingModifiedAmount = hasValidModifiedAmount(remaining) ? remaining.modifiedAmount : '';
                     const optimisticRestoredTransaction: Transaction = {
                         ...remaining,
@@ -104,7 +114,7 @@ function useSearchDeleteTransactions() {
                             billable: remaining.billable,
                             reportID: remaining.reportID,
                         },
-                        splitTransactionIDList,
+                        optimisticDeletedSplitTransactions,
                         optimisticRestoredTransaction,
                     );
                     continue;

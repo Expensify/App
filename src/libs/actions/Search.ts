@@ -871,30 +871,25 @@ function revertSplitTransactionOnSearch(
     hash: number,
     originalTransactionID: string,
     params: RevertSplitTransactionParams,
-    splitTransactionIDList: string[] = [],
+    optimisticDeletedSplitTransactions: Record<string, Transaction> = {},
     optimisticRestoredTransaction?: Transaction,
 ) {
     let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     let finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
-    if (splitTransactionIDList.length > 0 && optimisticRestoredTransaction) {
+    if (Object.keys(optimisticDeletedSplitTransactions).length > 0 && optimisticRestoredTransaction) {
         const {optimisticData: loadingOptimisticData, finallyData: loadingFinallyData} = getOnyxLoadingData(hash);
         optimisticData = [...(loadingOptimisticData ?? [])];
         finallyData = [...(loadingFinallyData ?? [])];
 
-        const pendingDeleteEntries = Object.fromEntries(
-            splitTransactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]),
-        );
-
-        const pendingDeleteRollbackEntries = Object.fromEntries(splitTransactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null}]));
-
+        const deletedSplitEntries = Object.fromEntries(Object.keys(optimisticDeletedSplitTransactions).map((transactionKey) => [transactionKey, null]));
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: {
-                    ...pendingDeleteEntries,
+                    ...deletedSplitEntries,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: optimisticRestoredTransaction,
                 },
             },
@@ -906,7 +901,7 @@ function revertSplitTransactionOnSearch(
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
                     data: {
-                        ...pendingDeleteRollbackEntries,
+                        ...optimisticDeletedSplitTransactions,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
                     },
                 },
