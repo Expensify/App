@@ -544,7 +544,7 @@ type OptimisticReopenedReportAction = Pick<
 
 type OptimisticRetractedReportAction = Pick<
     ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction' | 'delegateAccountID'
 >;
 
 type OptimisticCancelPaymentReportAction = Pick<
@@ -8120,6 +8120,7 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
+        delegateAccountID: getPersonalDetailByEmail(delegateEmail)?.accountID,
     };
 }
 
