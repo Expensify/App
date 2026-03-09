@@ -1382,6 +1382,7 @@ function startMoneyRequest(
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
             isFromFloatingActionButton,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             ...(requestType && {iouRequestType: requestType}),
         });
     }
