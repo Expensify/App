@@ -2087,6 +2087,7 @@ const translations: TranslationDeepObject<typeof en> = {
         authenticatorApp: 'application d’authentification',
         addKey: 'Ou ajoutez cette clé secrète à votre application d’authentification :',
         enterCode: 'Saisissez ensuite le code à six chiffres généré par votre application d’authentification.',
+        secretKey: 'clé secrète',
         stepSuccess: 'Terminé',
         enabled: 'Authentification à deux facteurs activée',
         congrats: 'Félicitations ! Vous bénéficiez désormais de cette sécurité supplémentaire.',
@@ -7698,6 +7699,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         notActivated: 'Non activé',
         outOfPocket: 'Remboursable',
         companySpend: 'Non remboursable',
+        personalCard: 'Carte personnelle',
+        companyCard: 'Carte d’entreprise',
+        expensifyCard: 'Carte Expensify',
     },
     distance: {
         addStop: 'Ajouter un arrêt',

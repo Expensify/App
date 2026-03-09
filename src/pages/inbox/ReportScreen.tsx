@@ -915,7 +915,9 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             hasCreatedLegacyThreadRef.current ||
             route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
             transactionThreadReport ||
-            (transactionThreadReportID && transactionThreadReportID !== '0')
+            (transactionThreadReportID && transactionThreadReportID !== '0') ||
+            !reportMetadata?.hasOnceLoadedReportActions ||
+            reportActions.length === 0
         ) {
             return;
         }
@@ -940,7 +942,19 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, report, undefined, transaction);
-    }, [introSelected, currentUserEmail, currentUserAccountID, report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
+    }, [
+        introSelected,
+        currentUserEmail,
+        currentUserAccountID,
+        report,
+        visibleTransactions,
+        transactionThreadReport,
+        transactionThreadReportID,
+        reportID,
+        route.name,
+        reportMetadata?.hasOnceLoadedReportActions,
+        reportActions.length,
+    ]);
 
     const lastRoute = usePrevious(route);
 
