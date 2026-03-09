@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,6 +30,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
     const [isRefreshComplete, setIsRefreshComplete] = useState(false);
+    const {updateBrokenConnection} = useUpdateFeedBrokenConnection({policyID, feed});
 
     useEffect(() => {
         return () => {
@@ -38,6 +40,19 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const handleRefreshComplete = useCallback(() => {
         setIsRefreshComplete(true);
+    }, []);
+
+    const handleAssignSuccess = useCallback(() => {
+        handleRefreshComplete();
+    }, [handleRefreshComplete]);
+
+    const handleAssignFailure = useCallback(() => {
+        updateBrokenConnection();
+        handleRefreshComplete();
+    }, [handleRefreshComplete, updateBrokenConnection]);
+
+    const handleBackButtonPress = useCallback(() => {
+        Navigation.dismissModal();
     }, []);
 
     if (isRefreshComplete) {
@@ -65,7 +80,9 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                     policyID={policyID}
                     feed={feed}
                     isRefreshConnectionFlow
-                    onRefreshComplete={handleRefreshComplete}
+                    onSuccess={handleAssignSuccess}
+                    onFailure={handleAssignFailure}
+                    onBackButtonPress={handleBackButtonPress}
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
