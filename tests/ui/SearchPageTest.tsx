@@ -59,11 +59,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
 }
 
 const renderPage = () => {
-    const searchParams = {q: SearchQueryUtils.buildSearchQueryString()};
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
-                <SearchContextProvider params={searchParams}>
+                <SearchContextProvider>
                     <TestNavigationContainer
                         initialState={{
                             index: 0,
