@@ -1,37 +1,33 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import * as Sentry from '@sentry/react-native';
+import type * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Platform} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import ConfirmModal from './components/ConfirmModal';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
+import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
+import DelegateAccessHandler from './DelegateAccessHandler';
+import FullstoryInitHandler from './FullstoryInitHandler';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
-import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
-import usePriorityMode from './hooks/usePriorityChange';
-import {confirmReadyToOpenApp, openApp, updateLastRoute} from './libs/actions/App';
-import {disconnect} from './libs/actions/Delegate';
+import {updateLastRoute} from './libs/actions/App';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/actions/replaceOptimisticReportWithActualReport';
-import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import FS from './libs/Fullstory';
 import {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -50,9 +46,10 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
+import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
+import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
-import type {ScreenShareRequest} from './types/onyx';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -65,53 +62,22 @@ Onyx.registerLogger(({level, message, parameters}) => {
     }
 });
 
-type ExpensifyProps = {
-    /** Whether the app is waiting for the server's response to determine if a room is public */
-    isCheckingPublicRoom: OnyxEntry<boolean>;
-
-    /** Whether a new update is available and ready to install. */
-    updateAvailable: OnyxEntry<boolean>;
-
-    /** Tells us if the sidebar has rendered */
-    isSidebarLoaded: OnyxEntry<boolean>;
-
-    /** Information about a screen share call requested by a GuidesPlus agent */
-    screenShareRequest: OnyxEntry<ScreenShareRequest>;
-
-    /** True when the user must update to the latest minimum version of the app */
-    updateRequired: OnyxEntry<boolean>;
-
-    /** Last visited path in the app */
-    lastVisitedPath: OnyxEntry<string | undefined>;
-};
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
-    const hasLoggedDelegateMismatchRef = useRef(false);
-    const hasHandledMissingIsLoadingAppRef = useRef(false);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState} = useSplashScreenState();
     const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {preferredLocale} = useLocalize();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const {isOffline} = useNetwork();
-    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
-    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
 
     useDebugShortcut();
-    usePriorityMode();
 
     useEffect(() => {
         initializeMemoryTrackingTelemetry();
@@ -244,21 +210,10 @@ function Expensify() {
         ActiveClientManager.init();
 
         // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(session?.accountID);
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo(accountID);
 
         return unsubscribeNetInfo;
-    }, [session?.accountID]);
-
-    useEffect(() => {
-        // Initialize Fullstory lib
-        FS.init(userMetadata);
-        FS.getSessionURL().then((url) => {
-            if (!url) {
-                return;
-            }
-            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {url});
-        });
-    }, [userMetadata]);
+    }, [accountID]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -271,12 +226,10 @@ function Expensify() {
             Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
 
             if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
+                const propsToLog = {
                     isCheckingPublicRoom,
                     updateRequired,
                     updateAvailable,
-                    isSidebarLoaded,
-                    screenShareRequest,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -324,47 +277,6 @@ function Expensify() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
 
-    useEffect(() => {
-        if (!account?.delegatedAccess?.delegate) {
-            return;
-        }
-        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
-            return;
-        }
-        disconnect({stashedCredentials, stashedSession});
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
-
-    useEffect(() => {
-        if (hasLoggedDelegateMismatchRef.current || !hasLoadedApp || isLoadingApp) {
-            return;
-        }
-        const delegators = account?.delegatedAccess?.delegators ?? [];
-        const hasDelegatorMatch = !!session?.email && delegators.some((delegator) => delegator.email === session.email);
-        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !account?.delegatedAccess?.delegate;
-        if (!shouldLogMismatch) {
-            return;
-        }
-        hasLoggedDelegateMismatchRef.current = true;
-        Log.info('[Delegate] Missing delegate field after switch', false, {
-            sessionAccountID: session?.accountID,
-            delegatorsCount: delegators.length,
-            hasPrimaryLogin: !!account?.primaryLogin,
-        });
-    }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, session?.accountID, session?.email]);
-
-    useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !isOnyxMigrated || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
-            return;
-        }
-        hasHandledMissingIsLoadingAppRef.current = true;
-        Log.info('[Onyx] isLoadingApp missing after app is ready', false, {
-            sessionAccountID: session?.accountID,
-            hasLoadedApp: !!hasLoadedApp,
-        });
-        confirmReadyToOpenApp();
-        openApp();
-    }, [hasLoadedApp, isLoadingApp, isOffline, isOnyxMigrated, session?.accountID]);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -387,20 +299,13 @@ function Expensify() {
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
                     {/* Proactive app review modal shown when user has completed a trigger action */}
                     <ProactiveAppReviewModalManager />
-                    {screenShareRequest ? (
-                        <ConfirmModal
-                            title={translate('guides.screenShare')}
-                            onConfirm={() => User.joinScreenShare(screenShareRequest.accessToken, screenShareRequest.roomName)}
-                            onCancel={User.clearScreenShareRequest}
-                            prompt={translate('guides.screenShareRequest')}
-                            confirmText={translate('common.join')}
-                            cancelText={translate('common.decline')}
-                            isVisible
-                        />
-                    ) : null}
+                    <ScreenShareRequestModal />
                 </>
             )}
 
+            <PriorityModeHandler />
+            <DelegateAccessHandler />
+            <FullstoryInitHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (

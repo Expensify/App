@@ -157,11 +157,11 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com'});
+        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once

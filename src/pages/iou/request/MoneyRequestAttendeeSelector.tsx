@@ -17,7 +17,8 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
+import useUserToInviteReports from '@hooks/useUserToInviteReports';
+import {searchUserInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {
     formatSectionsFromSearchTerm,
@@ -123,7 +124,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     });
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     let orderedAvailableOptions;
@@ -151,6 +152,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         };
     }
 
+    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(orderedAvailableOptions?.userToInvite);
+
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
     const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
@@ -161,7 +164,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
 
-    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const getFooterContent = () => {
         if (!shouldShowErrorMessage && !selectedOptions.length) {
@@ -250,7 +253,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 data: [orderedAvailableOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }) as OptionData[],
                 sectionIndex: 3,
@@ -269,7 +272,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + (section.data?.length ?? 0), 0);
 
-    const shouldShowListEmptyContent = optionLength === 0 && !showLoadingPlaceholder;
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
@@ -291,12 +294,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             }}
             footerContent={footerContent}
             isLoadingNewOptions={!!isSearchingForReports}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            showListEmptyContent={shouldShowListEmptyContent}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onEndReached={onListEndReached}
-            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldShowTextInput
             canSelectMultiple

@@ -33,7 +33,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const handleBackButtonPress = () => {
         clearInviteDraft(policyID);

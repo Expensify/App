@@ -178,18 +178,21 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, currentUserL
     });
 }
 
-function matchesSearchTerms(option: OptionData, searchTerms: string[]): boolean {
-    const searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
+function matchesSearchTerms(option: OptionData, searchTerms: string[], extraSearchTerms?: string[]): boolean {
+    let searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
+    if (extraSearchTerms?.length) {
+        searchText += ` ${deburr(extraSearchTerms.join(' ').toLocaleLowerCase())}`;
+    }
     return searchTerms.every((term) => searchText.includes(term));
 }
 
-function filterOption(option: OptionData | undefined, searchValue: string | undefined) {
+function filterOption(option: OptionData | undefined, searchValue: string | undefined, extraSearchTerms?: string[]) {
     if (!option) {
         return null;
     }
 
     const searchTerms = processSearchString(searchValue);
-    const isMatchingSearch = matchesSearchTerms(option, searchTerms);
+    const isMatchingSearch = matchesSearchTerms(option, searchTerms, extraSearchTerms);
 
     if (isMatchingSearch) {
         return option;
@@ -383,20 +386,22 @@ function createOptionList(
     const currentUserRef = {
         current: undefined as OptionData | undefined,
     };
-    const allPersonalDetailsOptions = Object.values(personalDetails).map((personalDetail) => {
-        if (!personalDetail) {
-            return {} as OptionData;
+    const allPersonalDetailsOptions = [] as OptionData[];
+
+    for (const personalDetail of Object.values(personalDetails)) {
+        if (!personalDetail || !personalDetail.accountID) {
+            continue;
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const reportAttributes = report?.reportID ? reportAttributesDerived?.[report.reportID] : undefined;
         const isReportArchived = privateIsArchivedMap[reportID];
         const option = createOption(personalDetail, report, formatPhoneNumber, config, reportAttributes, isReportArchived);
+        allPersonalDetailsOptions.push(option);
         if (option.accountID === currentUserAccountID) {
             currentUserRef.current = option;
         }
-        return option;
-    });
+    }
 
     return {
         currentUserOption: currentUserRef.current,
@@ -429,6 +434,6 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, getUserToInviteOption, canCreateOptimisticPersonalDetailOption, filterOption, getValidOptions, createOptionList, getHeaderMessage};
+export {createOption, getUserToInviteOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
 
 export type {OptionData, Options};

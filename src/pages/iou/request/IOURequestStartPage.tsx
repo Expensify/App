@@ -155,7 +155,13 @@ function IOURequestStartPage({
     const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     useEffect(() => {
+        // Don't end span for scan flows - it will be ended when camera initializes (or canceled if permission is denied).
+        if (transactionRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            return;
+        }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        // Tab switches change transactionRequestType but shouldn't re-trigger endSpan.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

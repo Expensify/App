@@ -40,8 +40,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
     const {transactionID, isOnSearch, backTo} = route.params;
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -135,7 +133,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         <Text>{translate('transactionMerge.confirmationPage.pageTitle')}</Text>
                     </View>
                     <MoneyRequestView
-                        allReports={allReports}
                         expensePolicy={policy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}

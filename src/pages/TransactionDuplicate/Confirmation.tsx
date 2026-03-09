@@ -10,7 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -46,7 +46,6 @@ function Confirmation() {
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates, duplicatedTransaction), [duplicatedTransaction, reviewDuplicates]);
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
     const transactionID = TransactionUtils.getTransactionID(report);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const allDuplicateIDs = useMemo(
@@ -54,7 +53,7 @@ function Confirmation() {
         [transactionViolations],
     );
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
-    const reviewDuplicatesReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`];
+    const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reviewDuplicates?.reportID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
@@ -93,18 +92,24 @@ function Confirmation() {
         Navigation.dismissToSuperWideRHP();
     }, [transactionsMergeParams]);
 
-    const contextValue = useMemo(
+    const contextMenuStateValue = useMemo(
         () => ({
             transactionThreadReport: report,
             action: reportAction,
             report,
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: () => {},
             isReportArchived: false,
             anchor: null,
             isDisabled: false,
         }),
         [report, reportAction],
+    );
+
+    const contextMenuActionsValue = useMemo(
+        () => ({
+            checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
+        }),
+        [],
     );
 
     const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
@@ -145,18 +150,19 @@ function Confirmation() {
                             <Text>{translate('violations.confirmDuplicatesInfo')}</Text>
                         </View>
                         {/* We need that provider here because MoneyRequestView component requires that */}
-                        <ShowContextMenuContext.Provider value={contextValue}>
-                            <MoneyRequestView
-                                allReports={allReports}
-                                transactionThreadReport={report}
-                                parentReportID={report?.parentReportID}
-                                expensePolicy={policy}
-                                shouldShowAnimatedBackground={false}
-                                readonly
-                                updatedTransaction={newTransaction as OnyxEntry<Transaction>}
-                                isFromReviewDuplicates
-                            />
-                        </ShowContextMenuContext.Provider>
+                        <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+                            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                                <MoneyRequestView
+                                    transactionThreadReport={report}
+                                    parentReportID={report?.parentReportID}
+                                    expensePolicy={policy}
+                                    shouldShowAnimatedBackground={false}
+                                    readonly
+                                    updatedTransaction={newTransaction as OnyxEntry<Transaction>}
+                                    isFromReviewDuplicates
+                                />
+                            </ShowContextMenuActionsContext.Provider>
+                        </ShowContextMenuStateContext.Provider>
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
                         <Button

@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -117,7 +117,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         setApprovalWorkflow({
             ...currentApprovalWorkflow,
-            availableMembers: [...currentApprovalWorkflow.members, ...defaultWorkflowMembers],
+            availableMembers: mergeWorkflowMembersWithAvailableMembers(currentApprovalWorkflow.members, defaultWorkflowMembers),
             usedApproverEmails,
             action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
             errors: null,

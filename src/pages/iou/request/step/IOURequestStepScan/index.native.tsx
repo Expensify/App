@@ -1,13 +1,12 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
-import type {LayoutRectangle} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
-import {useCameraDevice} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -24,6 +23,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
@@ -34,6 +34,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -46,8 +47,6 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import {cropImageToAspectRatio} from './cropImageToAspectRatio';
-import type {ImageObject} from './cropImageToAspectRatio';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
@@ -67,12 +66,16 @@ function IOURequestStepScan({
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+    // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
+    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -91,6 +94,78 @@ function IOURequestStepScan({
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+
+    // Track camera init telemetry
+    const cameraInitSpanStarted = useRef(false);
+    const cameraInitialized = useRef(false);
+
+    // Ref for double-tap protection (doesn't trigger re-render)
+    const isCapturingPhoto = useRef(false);
+
+    // Start camera init span when permission is granted and camera is ready
+    useEffect(() => {
+        if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
+            return;
+        }
+        startSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT, {
+            name: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+            op: CONST.TELEMETRY.SPAN_CAMERA_INIT,
+        });
+        cameraInitSpanStarted.current = true;
+    }, [cameraPermissionStatus, device]);
+
+    // Cancel spans when permission is denied/blocked/unavailable
+    useEffect(() => {
+        if (cameraPermissionStatus !== RESULTS.BLOCKED && cameraPermissionStatus !== RESULTS.UNAVAILABLE && cameraPermissionStatus !== RESULTS.DENIED) {
+            return;
+        }
+        cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, [cameraPermissionStatus]);
+
+    // Cancel spans on unmount if camera never initialized
+    useEffect(() => {
+        return () => {
+            // If camera initialized successfully, spans were already ended
+            if (cameraInitialized.current) {
+                return;
+            }
+            // Cancel camera init span if it was started
+            if (cameraInitSpanStarted.current) {
+                cancelSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+            }
+            // Always cancel the create expense span if camera never initialized
+            cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+        };
+    }, []);
+
+    const handleCameraInitialized = useCallback(() => {
+        // Prevent duplicate span endings if callback fires multiple times
+        if (cameraInitialized.current) {
+            return;
+        }
+        cameraInitialized.current = true;
+        // Only end camera init span if it was actually started
+        if (cameraInitSpanStarted.current) {
+            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
+        }
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+
+        // Pre-create upload directory to avoid latency during capture
+        const path = getReceiptsUploadFolderPath();
+        ReactNativeBlobUtil.fs
+            .isDir(path)
+            .then((isDir) => {
+                if (isDir) {
+                    return;
+                }
+                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
+                    Log.warn('Error creating the receipts upload directory', error);
+                });
+            })
+            .catch((error: string) => {
+                Log.warn('Error checking if the upload directory exists', error);
+            });
+    }, []);
 
     const askForPermissions = useCallback(() => {
         // There's no way we can check for the BLOCKED status without requesting the permission first
@@ -146,6 +221,7 @@ function IOURequestStepScan({
     useFocusEffect(
         useCallback(() => {
             setDidCapturePhoto(false);
+            isCapturingPhoto.current = false;
             const refreshCameraPermissionStatus = () => {
                 CameraPermission?.getCameraPermissionStatus?.()
                     .then(setCameraPermissionStatus)
@@ -165,6 +241,8 @@ function IOURequestStepScan({
 
             return () => {
                 subscription.remove();
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
 
                 if (isLoaderVisible) {
                     setIsLoaderVisible(false);
@@ -233,10 +311,26 @@ function IOURequestStepScan({
         setIsMultiScanEnabled,
     });
 
-    const viewfinderLayout = useRef<LayoutRectangle>(null);
+    const maybeCancelShutterSpan = useCallback(() => {
+        if (isMultiScanEnabled) {
+            return;
+        }
+
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+    }, [isMultiScanEnabled]);
 
     const capturePhoto = useCallback(() => {
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+            });
+        }
+
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            maybeCancelShutterSpan();
             askForPermissions();
             return;
         }
@@ -246,91 +340,85 @@ function IOURequestStepScan({
         };
 
         if (!camera.current) {
+            maybeCancelShutterSpan();
             showCameraAlert();
-        }
-
-        if (didCapturePhoto) {
             return;
         }
 
-        if (isMultiScanEnabled) {
-            showBlink();
+        if (isCapturingPhoto.current) {
+            maybeCancelShutterSpan();
+            return;
         }
 
-        setDidCapturePhoto(true);
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'native'},
+        });
+
+        isCapturingPhoto.current = true;
+        showBlink();
 
         const path = getReceiptsUploadFolderPath();
 
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
+        camera?.current
+            ?.takePhoto({
+                flash: flash && hasFlash ? 'on' : 'off',
+                enableShutterSound: !isPlatformMuted,
+                path,
+            })
+            .then((photo: PhotoFile) => {
+                setDidCapturePhoto(true);
+
+                const transaction =
+                    isMultiScanEnabled && initialTransaction?.receipt?.source
+                        ? buildOptimisticTransactionAndCreateDraft({
+                              initialTransaction,
+                              currentUserPersonalDetails,
+                              reportID,
+                          })
+                        : initialTransaction;
+                const transactionID = transaction?.transactionID ?? initialTransactionID;
+                const source = getPhotoSource(photo.path);
+                const filename = photo.path;
+                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+
+                const cameraFile = {
+                    uri: source,
+                    name: filename,
+                    type: 'image/jpeg',
+                    source,
+                };
+
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+
+                if (isEditing) {
+                    updateScanAndNavigate(cameraFile as FileObject, source);
                     return;
                 }
 
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the directory', error);
-                });
+                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
+                setReceiptFiles(newReceiptFiles);
+
+                if (isMultiScanEnabled) {
+                    setDidCapturePhoto(false);
+                    isCapturingPhoto.current = false;
+                    return;
+                }
+
+                submitReceipts(newReceiptFiles);
             })
             .catch((error: string) => {
-                Log.warn('Error checking if the directory exists', error);
-            })
-            .then(() => {
-                camera?.current
-                    ?.takePhoto({
-                        flash: flash && hasFlash ? 'on' : 'off',
-                        enableShutterSound: !isPlatformMuted,
-                        path,
-                    })
-                    .then((photo: PhotoFile) => {
-                        // Store the receipt on the transaction object in Onyx
-                        const transaction =
-                            isMultiScanEnabled && initialTransaction?.receipt?.source
-                                ? buildOptimisticTransactionAndCreateDraft({
-                                      initialTransaction,
-                                      currentUserPersonalDetails,
-                                      reportID,
-                                  })
-                                : initialTransaction;
-                        const transactionID = transaction?.transactionID ?? initialTransactionID;
-                        const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation).then(
-                            ({file, filename, source}) => {
-                                // Add source property to file for prepareRequestPayload compatibility
-                                const cameraFile = {
-                                    ...file,
-                                    source,
-                                };
-
-                                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, file.type);
-
-                                if (isEditing) {
-                                    updateScanAndNavigate(cameraFile as FileObject, source);
-                                    return;
-                                }
-
-                                const newReceiptFiles = [...receiptFiles, {file: cameraFile as FileObject, source, transactionID}];
-                                setReceiptFiles(newReceiptFiles);
-
-                                if (isMultiScanEnabled) {
-                                    setDidCapturePhoto(false);
-                                    return;
-                                }
-
-                                submitReceipts(newReceiptFiles);
-                            },
-                        );
-                    })
-                    .catch((error: string) => {
-                        setDidCapturePhoto(false);
-                        showCameraAlert();
-                        Log.warn('Error taking photo', error);
-                    });
+                isCapturingPhoto.current = false;
+                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                maybeCancelShutterSpan();
+                showCameraAlert();
+                Log.warn('Error taking photo', error);
             });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
-        didCapturePhoto,
         isMultiScanEnabled,
         translate,
         showBlink,
@@ -404,23 +492,24 @@ function IOURequestStepScan({
                         </View>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.cameraView]}>
+                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
                             <GestureDetector gesture={tapGesture}>
-                                <View style={styles.flex1}>
+                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
                                     <NavigationAwareCamera
                                         ref={camera}
                                         device={device}
+                                        format={format}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
                                         cameraTabIndex={1}
-                                        onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
-                                        forceInactive={isAttachmentPickerActive}
+                                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
+                                        onInitialized={handleCameraInitialized}
                                     />
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>

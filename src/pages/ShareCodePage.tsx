@@ -6,8 +6,6 @@ import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
@@ -70,7 +68,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -103,7 +101,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const title = isReport ? getReportName(reportForTitle) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? getReportName({report: reportForTitle}) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -153,8 +151,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     <ContextMenuItem
                         isAnonymousAction
                         text={translate('qrCodes.copy')}
-                        icon={Expensicons.Copy}
-                        successIcon={Expensicons.Checkmark}
+                        icon={icons.Copy}
+                        successIcon={icons.Checkmark}
                         successText={translate('qrCodes.copied')}
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}

@@ -7,7 +7,7 @@ import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimat
 import {scheduleOnRN} from 'react-native-worklets';
 import Hoverable from '@components/Hoverable';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,8 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow']);
-    const {updateVolume, volume, toggleMute} = useVolumeContext();
+    const {volume} = useVolumeState();
+    const {updateVolume, toggleMute} = useVolumeActions();
     const [sliderHeight, setSliderHeight] = useState(1);
     const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(expensifyIcons, volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
