@@ -802,6 +802,7 @@ function MenuItem({
                                         <View style={[styles.flexRow]}>
                                             <View style={[styles.flexColumn, styles.flex1]}>
                                                 {!!label && isLabelHoverable && (
+                                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                                     <View style={[isIDPassed ? styles.mb2 : null, labelStyle]}>
                                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                             {label}
@@ -810,7 +811,7 @@ function MenuItem({
                                                 )}
                                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}>
                                                     {!!leftComponent && <View style={[styles.mr3]}>{leftComponent}</View>}
-                                                    {}
+                                                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                                                     {isIDPassed && (
                                                         <ReportActionAvatars
                                                             subscriptAvatarBorderColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
