@@ -1,6 +1,6 @@
 /**
  * Submit follow-up action span: measures time from expense submit until the follow-up action
- * (e.g. dismiss modal and open report, navigate to search, pop RHP) is complete and the target screen is visible.
+ * (e.g. dismiss modal and open report, dismiss modal only, navigate to search) is complete and the target screen is visible.
  * Uses submit_follow_up_action attribute to record which action was taken.
  */
 import type {ValueOf} from 'type-fest';
@@ -17,23 +17,52 @@ type PendingSubmitFollowUpAction = {
 let pendingSubmitFollowUpAction: PendingSubmitFollowUpAction = null;
 
 /**
+ * True when the new call is a refinement of the same submit flow (same report, same or more specific action).
+ * In that case we update pending and span attributes instead of cancelling, so the second setPending call in the same flow does not drop the span.
+ */
+function isSameFlowUpdate(pending: NonNullable<PendingSubmitFollowUpAction>, followUpAction: SubmitFollowUpAction, reportID?: string): boolean {
+    if (pending.reportID !== reportID) {
+        return false;
+    }
+    if (pending.followUpAction === followUpAction) {
+        return true;
+    }
+    // Refinement: we first set DISMISS_MODAL_ONLY, then dismissModalWithReport's onBeforeNavigate refines it to DISMISS_MODAL_AND_OPEN_REPORT when the report will open. Same flow — update in place instead of cancelling.
+    return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT;
+}
+
+/**
  * Set the pending follow-up action before navigating (for submit-to-visible span).
  * The screen that becomes visible should call endSubmitFollowUpActionSpan when visible.
  * If there is already a pending action and the span is still running (e.g. second submit before first completes), we cancel the previous span so it is not left stuck or attributed to the wrong action.
+ * Exception: when the new call is a same-flow update (same report, same or refined action), we just update pending and span attributes without cancelling.
  */
 function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, reportID?: string) {
-    if (pendingSubmitFollowUpAction !== null && getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+    const span = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    const pending = pendingSubmitFollowUpAction;
+
+    if (pending !== null && span && isSameFlowUpdate(pending, followUpAction, reportID)) {
+        // Same flow: update in place instead of cancelling (e.g. dismissModalAndOpenReportInInboxTab sets pending, then onBeforeNavigate refines it).
+        pendingSubmitFollowUpAction = {followUpAction, reportID};
+        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+        if (reportID !== undefined) {
+            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+        }
+        return;
+    }
+
+    if (pending !== null && span) {
         cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
         pendingSubmitFollowUpAction = null;
     }
     pendingSubmitFollowUpAction = {followUpAction, reportID};
     // Set the attribute on the span immediately so it is present when the transaction is serialized.
     // When navigating away (e.g. to Search), the confirmation transaction can end and the SDK may cancel our span before the destination screen mounts to call endSubmitFollowUpActionSpan.
-    const span = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (span) {
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+    const spanAfter = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+    if (spanAfter) {
+        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
         if (reportID !== undefined) {
-            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+            spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
         }
     }
 }

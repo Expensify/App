@@ -1095,11 +1095,15 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
                     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
                 }
             }
+            // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
             if (isSuperWideRHP) {
                 Navigation.dismissToPreviousRHP();
                 return;
             }
+            // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
+                // On small screens, dismiss all modals and then navigate to the right report.
+                // On large screens, dismiss to the previous RHP first, then replace the current route with the new report.
                 const isNarrowLayout = getIsNarrowLayout();
                 if (isNarrowLayout) {
                     Navigation.dismissModal();
@@ -1183,12 +1187,17 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
-    // When already on Search ROOT (Expenses), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only. When on another Search sub-tab (e.g. Chats), we navigate to ROOT so record as navigate_to_search.
+    // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
+    // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
     const rootState = navigationRef.getRootState();
     const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
     const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
-    setPendingSubmitFollowUpAction(alreadyOnSearchRoot ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
+    const isSameSearchType = currentSearchQueryJSON?.type === type;
+    setPendingSubmitFollowUpAction(
+        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
+    );
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,

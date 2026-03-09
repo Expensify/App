@@ -973,11 +973,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
-    // End submit follow-up action span when this report screen gains focus (dismiss-and-open-report or pop-rhp; reset ref on blur for next submit).
+    // When this report is the submit destination (dismiss-and-open-report or dismiss-modal-only), end the submit-to-destination-visible span on focus; cleanup resets the ref so the next submit can end the span again.
     useFocusEffect(
         useCallback(() => {
             const pending = getPendingSubmitFollowUpAction();
-            // Already ended this span, or no pending action, or destination is Search (not this screen).
+            // Skip if we already ended for this mount, or we're not the target destination.
             if (hasEndedSubmitFollowUpActionRef.current || !pending || !reportIDFromRoute || pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
                 return;
             }
