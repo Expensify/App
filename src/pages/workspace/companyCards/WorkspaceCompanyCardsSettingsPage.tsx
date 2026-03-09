@@ -68,7 +68,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const isPending = !!selectedFeedData?.pending;
     const {currencyList} = useCurrencyListState();
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const isDirectCardFeed = isDirectFeed(feed);
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {

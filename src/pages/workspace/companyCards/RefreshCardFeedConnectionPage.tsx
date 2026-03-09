@@ -26,7 +26,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const {translate} = useLocalize();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
     const [isRefreshComplete, setIsRefreshComplete] = useState(false);
 
