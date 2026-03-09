@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import DesktopWebUploadView from './components/DesktopWebUploadView';
 import MobileWebCameraView from './components/MobileWebCameraView';
-import useMobileReceiptScan from './hooks/useMobileReceiptScan';
+import useReceiptScan from './hooks/useReceiptScan';
 import {getLocationPermission} from './LocationPermission';
 import type IOURequestStepScanProps from './types';
 
@@ -58,29 +58,7 @@ function IOURequestStepScan({
 
     const getSource = useCallback((file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob), []);
 
-    const {
-        transactions,
-        isEditing,
-        canUseMultiScan,
-        isReplacingReceipt,
-        shouldAcceptMultipleFiles,
-        startLocationPermissionFlow,
-        setStartLocationPermissionFlow,
-        receiptFiles,
-        setReceiptFiles,
-        shouldShowMultiScanEducationalPopup,
-        navigateToConfirmationStep,
-        validateFiles,
-        PDFValidationComponent,
-        ErrorModal,
-        submitReceipts,
-        submitMultiScanReceipts,
-        toggleMultiScan,
-        dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
-        setTestReceiptAndNavigate,
-    } = useMobileReceiptScan({
+    const receiptScan = useReceiptScan({
         report,
         reportID,
         initialTransactionID,
@@ -96,6 +74,20 @@ function IOURequestStepScan({
         getSource,
         setIsMultiScanEnabled,
     });
+
+    const {
+        transactions,
+        isReplacingReceipt,
+        shouldAcceptMultipleFiles,
+        startLocationPermissionFlow,
+        setStartLocationPermissionFlow,
+        receiptFiles,
+        navigateToConfirmationStep,
+        validateFiles,
+        PDFValidationComponent,
+        ErrorModal,
+        setTestReceiptAndNavigate,
+    } = receiptScan;
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -156,29 +148,24 @@ function IOURequestStepScan({
         <>
             {isMobileWeb ? (
                 <MobileWebCameraView
-                    PDFValidationComponent={PDFValidationComponent}
-                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
-                    isMultiScanEnabled={isMultiScanEnabled}
-                    canUseMultiScan={canUseMultiScan}
-                    blinkStyle={blinkStyle}
-                    showBlink={showBlink}
-                    shouldShowMultiScanEducationalPopup={shouldShowMultiScanEducationalPopup}
+                    receiptScan={receiptScan}
+                    report={report}
+                    reportID={reportID}
                     initialTransactionID={initialTransactionID}
                     initialTransaction={initialTransaction}
+                    iouType={iouType}
+                    action={action}
                     currentUserPersonalDetails={currentUserPersonalDetails}
-                    reportID={reportID}
-                    receiptFiles={receiptFiles}
-                    isEditing={isEditing}
-                    onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
-                    validateFiles={validateFiles}
-                    toggleMultiScan={toggleMultiScan}
-                    dismissMultiScanEducationalPopup={dismissMultiScanEducationalPopup}
-                    submitMultiScanReceipts={submitMultiScanReceipts}
-                    setReceiptFiles={setReceiptFiles}
+                    backTo={backTo}
+                    backToReport={backToReport}
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    isStartingScan={isStartingScan}
                     updateScanAndNavigate={updateScanAndNavigate}
-                    submitReceipts={submitReceipts}
+                    getSource={getSource}
+                    setIsMultiScanEnabled={setIsMultiScanEnabled}
+                    onLayout={onLayout}
                     onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
+                    shouldShowWrapper={!!backTo || receiptScan.isEditing}
                 />
             ) : (
                 <DesktopWebUploadView
@@ -188,7 +175,7 @@ function IOURequestStepScan({
                     onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || isEditing}
+                    shouldShowWrapper={!!backTo || receiptScan.isEditing}
                 />
             )}
             {ErrorModal}
