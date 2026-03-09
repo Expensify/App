@@ -13,8 +13,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy, ReportAction} from '@src/types/onyx';
@@ -70,17 +68,7 @@ function ExpenseReportListItemRow({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
-    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
-
-    const isScanning = (() => {
-        if (!item.transactions || item.transactions.length === 0) {
-            return false;
-        }
-
-        const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
-
-        return allScanning;
-    })();
+    const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (

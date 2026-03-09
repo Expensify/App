@@ -405,6 +405,7 @@ function NumberWithSymbolForm({
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
+                onFocus={props.onFocus}
             />
         );
     }
