@@ -1,5 +1,5 @@
 diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
-index 3169c25..4a8d325 100644
+index 3169c25..19acc49 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
@@ -13,43 +13,52 @@ index 3169c25..4a8d325 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -53,7 +53,34 @@ function htmlTreeAsString(
+@@ -53,7 +53,43 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
-+    // Search for data-sentry-label up to 15 levels (beyond the 5 levels of cssSelector)
-+    let labelElem = elem;
++    // Search for data-sentry-label and data-tag="pressable" up to 15 levels
++    let labelElem = null;
 +    let dataLabel = null;
-+    for (let i = 0; i < 15 && labelElem; i++) {
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
 +      // @ts-expect-error WINDOW has HTMLElement
-+      if (WINDOW.HTMLElement && labelElem instanceof HTMLElement && labelElem.dataset && labelElem.dataset['sentryLabel']) {
-+        dataLabel = labelElem.dataset['sentryLabel'];
-+        break;
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (!dataLabel && current.dataset['sentryLabel']) {
++          dataLabel = current.dataset['sentryLabel'];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
 +      }
-+      labelElem = labelElem.parentNode;
++      current = current.parentNode;
 +    }
 +
-+    if (dataLabel) {
-+      // If the labeled element is a pressable, the label alone identifies the interaction
-+      // @ts-expect-error labelElem is guaranteed to be an HTMLElement here (checked in loop above)
-+      if (labelElem.dataset['tag'] === 'pressable') {
-+        return `[data-sentry-label="${dataLabel}"]`;
-+      }
-+      // If the label was found within the 5-level CSS selector, return as is
-+      if (cssSelector.includes('[data-sentry-label="')) {
-+        return cssSelector;
-+      }
-+      return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
++    if (!dataLabel) {
++      return cssSelector;
 +    }
 +
-+    return cssSelector;
++    // If the first pressable and the first label are on the same element, the label alone identifies the interaction
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++
++    // If the label was found within the 5-level CSS selector, return as is
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
    } catch {
      return '<unknown>';
    }
-@@ -77,8 +104,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -77,8 +113,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
@@ -78,43 +87,52 @@ index 2ad52b0..796cac9 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -51,7 +51,34 @@ function htmlTreeAsString(
+@@ -51,7 +51,43 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
-+    // Search for data-sentry-label up to 15 levels (beyond the 5 levels of cssSelector)
-+    let labelElem = elem;
++    // Search for data-sentry-label and data-tag="pressable" up to 15 levels
++    let labelElem = null;
 +    let dataLabel = null;
-+    for (let i = 0; i < 15 && labelElem; i++) {
++    let pressableElem = null;
++    let current = elem;
++    for (let i = 0; i < 15 && current; i++) {
 +      // @ts-expect-error WINDOW has HTMLElement
-+      if (WINDOW.HTMLElement && labelElem instanceof HTMLElement && labelElem.dataset && labelElem.dataset['sentryLabel']) {
-+        dataLabel = labelElem.dataset['sentryLabel'];
-+        break;
++      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (!dataLabel && current.dataset['sentryLabel']) {
++          dataLabel = current.dataset['sentryLabel'];
++          labelElem = current;
++        }
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++          pressableElem = current;
++        }
++        if (dataLabel && pressableElem) break;
 +      }
-+      labelElem = labelElem.parentNode;
++      current = current.parentNode;
 +    }
 +
-+    if (dataLabel) {
-+      // If the labeled element is a pressable, the label alone identifies the interaction
-+      // @ts-expect-error labelElem is guaranteed to be an HTMLElement here (checked in loop above)
-+      if (labelElem.dataset['tag'] === 'pressable') {
-+        return `[data-sentry-label="${dataLabel}"]`;
-+      }
-+      // If the label was found within the 5-level CSS selector, return as is
-+      if (cssSelector.includes('[data-sentry-label="')) {
-+        return cssSelector;
-+      }
-+      return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
++    if (!dataLabel) {
++      return cssSelector;
 +    }
 +
-+    return cssSelector;
++    // If the first pressable and the first label are on the same element, the label alone identifies the interaction
++    if (pressableElem && labelElem === pressableElem) {
++      return `[data-sentry-label="${dataLabel}"]`;
++    }
++
++    // If the label was found within the 5-level CSS selector, return as is
++    if (cssSelector.includes('[data-sentry-label="')) {
++      return cssSelector;
++    }
++
++    return `[data-sentry-label="${dataLabel}"] ${cssSelector}`;
    } catch {
      return '<unknown>';
    }
-@@ -75,8 +102,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -75,8 +111,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
