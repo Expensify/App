@@ -5,7 +5,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
-import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -60,7 +59,6 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const {initScanRequest, PDFValidationComponent, ErrorModal, isDragDisabled} = useReceiptScanDrop();
-    const {resetVideoPlayerData} = usePlaybackActionsContext();
 
     const [isSorting, setIsSorting] = useState(false);
     let searchResults: SearchResults | undefined;
@@ -73,21 +71,6 @@ function SearchPage({route}: SearchPageProps) {
     const metadata = searchResults?.search;
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
     const shouldShowFooter = selectedTransactionsKeys.length > 0 || (shouldAllowFooterTotals && !!metadata?.count);
-
-    useEffect(() => {
-        if (shouldUseNarrowLayout) {
-            return;
-        }
-        resetVideoPlayerData();
-        return () => {
-            if (shouldUseNarrowLayout) {
-                return;
-            }
-            resetVideoPlayerData();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
     useEffect(() => {
