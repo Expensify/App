@@ -205,7 +205,14 @@ const TEST_INTRO_SELECTED: IntroSelected = {
     isInviteOnboardingComplete: false,
 };
 
-const getPolicyTags = async (reportID: string) => {
+const getTransactionAndExpenseReports = (reportID: string) => {
+    const transactionReport = getReportOrDraftReport(reportID);
+    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    return {transactionReport, expenseReport};
+};
+
+const getPolicyTags = async (expenseReportPolicyID: string | undefined) => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
     await getOnyxData({
         key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -215,10 +222,7 @@ const getPolicyTags = async (reportID: string) => {
         },
     });
 
-    const splitTransactionReport = getReportOrDraftReport(reportID);
-    const splitParentTransactionReport = getReportOrDraftReport(splitTransactionReport?.parentReportID);
-    const splitExpenseReport = splitTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? splitTransactionReport : splitParentTransactionReport;
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${splitExpenseReport?.policyID}`] ?? {};
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReportPolicyID}`] ?? {};
     return policyTags;
 };
 
@@ -5711,7 +5715,8 @@ describe('actions/IOU', () => {
                 },
             });
 
-            const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
+            const policyTags = await getPolicyTags(reports.expenseReport?.policyID);
 
             // When splitting the expense
             updateSplitTransactionsFromSplitExpensesFlow({
@@ -5741,6 +5746,8 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -5892,6 +5899,7 @@ describe('actions/IOU', () => {
             });
             const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
             const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
 
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
@@ -5920,6 +5928,8 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -6008,6 +6018,7 @@ describe('actions/IOU', () => {
 
             const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
             const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
 
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
@@ -6036,6 +6047,8 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -6136,6 +6149,7 @@ describe('actions/IOU', () => {
 
             const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
             const policyTags = await getPolicyTags(reportID);
+            const reports = getTransactionAndExpenseReports(reportID);
 
             updateSplitTransactionsFromSplitExpensesFlow({
                 allTransactionsList: allTransactions,
@@ -6164,6 +6178,8 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 policyTags,
                 personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
             });
 
             await waitForBatchedUpdates();
@@ -12001,6 +12017,7 @@ describe('actions/IOU', () => {
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
@@ -12029,6 +12046,8 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -12171,6 +12190,7 @@ describe('actions/IOU', () => {
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
@@ -12199,6 +12219,8 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -12354,6 +12376,7 @@ describe('actions/IOU', () => {
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
@@ -12383,6 +12406,8 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
                 await waitForBatchedUpdates();
 
@@ -12561,6 +12586,7 @@ describe('actions/IOU', () => {
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const policyTags = await getPolicyTags(reportID);
+                const reports = getTransactionAndExpenseReports(reportID);
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
@@ -12590,6 +12616,8 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     policyTags,
                     personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    transactionReport: reports.transactionReport,
+                    expenseReport: reports.expenseReport,
                 });
 
                 await waitForBatchedUpdates();
