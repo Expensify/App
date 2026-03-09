@@ -270,6 +270,7 @@ function Search({
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [onyxPersonalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -468,6 +469,7 @@ function Search({
             customCardNames,
             allReportMetadata,
             cardList,
+            onyxPersonalDetailsList,
         });
         return [filteredData1, filteredData1.length, allLength];
     }, [
@@ -492,6 +494,7 @@ function Search({
         customCardNames,
         allReportMetadata,
         cardList,
+        onyxPersonalDetailsList,
     ]);
 
     const groupedTransactionsCacheRef = useRef(new Map<string, {snapshotData: SearchResults['data']; transactions: TransactionListItemType[]}>());
@@ -608,6 +611,14 @@ function Search({
             return !!snapshot && !snapshot?.search?.hasMoreResults;
         });
     }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
+
+    useEffect(() => {
+        if (!shouldShowLoadingState) {
+            return;
+        }
+
+        Log.info('[Search] Showing skeleton', false, {isOffline, isDataLoaded, isCardFeedsLoading, isSearchLoading: !!searchResults?.search?.isLoading, hasErrors, shouldUseLiveData});
+    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -1366,9 +1377,9 @@ function Search({
             </View>
         );
     }
-
+    const isAnyVisibleActionLoading = filteredData.some((item) => 'reportID' in item && item.reportID && isActionLoadingSet.has(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${item.reportID}`));
     const visibleDataLength = filteredData.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType)) {
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchDataType) && !isAnyVisibleActionLoading) {
         cancelNavigationSpans();
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>

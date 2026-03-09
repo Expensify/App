@@ -1577,7 +1577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wähle einen Arbeitsbereich',
-        routedDueToDEW: (to: string) => `Report aufgrund des benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
+        routedDueToDEW: (to: string, reason?: string) => `Bericht weitergeleitet an ${to}${reason ? ` weil ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'} @ ${rate} / Stunde`,
             hrs: 'Std.',
@@ -2080,6 +2080,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Scanne den QR-Code mit deinem',
         authenticatorApp: 'Authentifizierungs-App',
         addKey: 'Oder füge diesen geheimen Schlüssel zu deiner Authentifizierungs-App hinzu:',
+        secretKey: 'geheimer Schlüssel',
         enterCode: 'Gib dann den sechsstelligen Code ein, der von deiner Authentifizierungs-App generiert wurde.',
         stepSuccess: 'Fertig',
         enabled: 'Zwei-Faktor-Authentifizierung aktiviert',
@@ -7260,6 +7261,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
+            editMultiple: 'Mehrere bearbeiten',
+            editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',
@@ -7676,6 +7680,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         notActivated: 'Nicht aktiviert',
         outOfPocket: 'Erstattungsfähig',
         companySpend: 'Nicht erstattungsfähig',
+        personalCard: 'Private Karte',
+        companyCard: 'Firmenkarte',
+        expensifyCard: 'Expensify Karte',
     },
     distance: {
         addStop: 'Stopp hinzufügen',

@@ -1571,7 +1571,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
-        routedDueToDEW: (to: string) => `raport skierowano do ${to} z powodu niestandardowego przepływu zatwierdzania`,
+        routedDueToDEW: (to: string, reason?: string) => `raport przekazany do ${to}${reason ? ` bo ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'godzina' : 'godziny'} @ ${rate} / godzinę`,
             hrs: 'godz.',
@@ -2074,6 +2074,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Zeskanuj kod QR za pomocą swojego',
         authenticatorApp: 'aplikacja uwierzytelniająca',
         addKey: 'Lub dodaj ten tajny klucz do swojej aplikacji uwierzytelniającej:',
+        secretKey: 'tajny klucz',
         enterCode: 'Następnie wprowadź sześciocyfrowy kod wygenerowany przez aplikację uwierzytelniającą.',
         stepSuccess: 'Zakończono',
         enabled: 'Włączono uwierzytelnianie dwuskładnikowe',
@@ -7214,6 +7215,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         topMerchants: 'Najlepsi sprzedawcy',
         groupedExpenses: 'zgrupowane wydatki',
         bulkActions: {
+            editMultiple: 'Edytuj wiele',
+            editMultipleTitle: 'Edytuj wiele wydatków',
+            editMultipleDescription: 'Zmiany zostaną zastosowane do wszystkich wybranych wydatków i zastąpią wcześniej ustawione wartości.',
             approve: 'Zatwierdź',
             pay: 'Zapłać',
             delete: 'Usuń',
@@ -7629,6 +7633,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         notActivated: 'Nieaktywne',
         outOfPocket: 'Zwrotne',
         companySpend: 'Niezgodne z refundacją',
+        personalCard: 'Karta osobista',
+        companyCard: 'Karta firmowa',
+        expensifyCard: 'Karta Expensify',
     },
     distance: {
         addStop: 'Dodaj przystanek',
