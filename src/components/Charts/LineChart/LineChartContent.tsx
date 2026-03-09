@@ -1,5 +1,5 @@
 import {useFont} from '@shopify/react-native-skia';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -14,10 +14,10 @@ import LeftFrameLine from '@components/Charts/components/LeftFrameLine';
 import ScatterPoints from '@components/Charts/components/ScatterPoints';
 import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
-import type {HitTestArgs} from '@components/Charts/hooks';
-import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useTooltipData} from '@components/Charts/hooks';
+import type {HitTestArgs,ComputeGeometryFn} from '@components/Charts/hooks';
+import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, isCursorOverChartLabel, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +34,25 @@ const MIN_SAFE_PADDING = DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
 
 /** Base domain padding applied to all sides */
 const BASE_DOMAIN_PADDING = {top: 16, bottom: 16, left: 0, right: 0};
+
+/**
+ * Line chart geometry for label hit-testing.
+ * Labels are start-anchored at the tick: the 45° parallelogram's upper-right corner is
+ * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
+ */
+const computeLineLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
+    const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
+    return {
+        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 1.5,
+        iconSin: variables.iconSizeExtraSmall * sinA,
+        labelSins: labelWidths.map((w) => w * sinA),
+        halfWidths: labelWidths.map((w) => w / 2),
+        cornerAnchorDX: labelWidths.map(() => -iconThirdSin),
+        cornerAnchorDY: labelWidths.map(() => iconThirdSin),
+        yMin90Offsets: labelWidths.map(() => padding),
+        yMax90Offsets: labelWidths.map((w) => w + padding),
+    };
+};
 
 type LineChartProps = CartesianChartProps & {
     /** Callback when a data point is pressed */
@@ -71,20 +90,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
     };
 
     const chartBottom = useSharedValue(0);
-
-    /** Pixel-space X position of each tick, filled by onScaleChange and used for label hit-testing */
-    const tickXPositions = useSharedValue<number[]>([]);
-
-    const handleScaleChange = (xScale: Scale) => {
-        tickXPositions.set(data.map((_, i) => xScale(i)));
-    };
-
-    const handleChartBoundsChange = (bounds: ChartBounds) => {
-        setPlotAreaWidth(bounds.right - bounds.left);
-        setBoundsLeft(bounds.left);
-        setBoundsRight(bounds.right);
-        chartBottom.set(bounds.bottom);
-    };
 
     const domainPadding = (() => {
         if (chartWidth === 0 || data.length === 0) {
@@ -130,45 +135,6 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         allowTightDiagonalPacking: true,
     });
 
-    // Measure label widths for custom positioning in `renderOutside`
-    const labelWidths = useMemo(() => {
-        if (!font) {
-            return [] as number[];
-        }
-        return truncatedLabels.map((label) => measureTextWidth(label, font));
-    }, [font, truncatedLabels]);
-
-    // Convert hook's degree rotation to radians for Skia rendering
-    const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
-
-    /**
-     * Pre-computed geometry for label hit-testing.
-     * Extracted from the worklet so that font metrics, trig, and per-label scaled widths
-     * are calculated once per layout/rotation change rather than on every hover event.
-     */
-    const labelHitGeometry = useMemo(() => {
-        if (!font) {
-            return null;
-        }
-        const metrics = font.getMetrics();
-        const ascent = Math.abs(metrics.ascent);
-        const descent = Math.abs(metrics.descent);
-        const sinA = Math.sin(angleRad);
-
-        return {
-            /** Constant offset from chartBottom to the label Y baseline */
-            labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - variables.iconSizeExtraSmall / 1.5,
-            /** (iconSize / 3) * sin(angle) — right-corner anchor horizontal/vertical offset */
-            iconThirdSin: (variables.iconSizeExtraSmall / 3) * sinA,
-            /** iconSize * sin(angle) — step from upper to lower corner */
-            iconSin: variables.iconSizeExtraSmall * sinA,
-            /** Per-label: labelWidth * sin(angle) — left-corner horizontal/vertical offset */
-            labelSins: labelWidths.map((w) => w * sinA),
-            /** Original widths kept here so the worklet needs only one closure capture */
-            widths: labelWidths,
-        };
-    }, [font, angleRad, labelWidths]);
-
     const {formatValue} = useChartLabelFormats({
         data,
         font,
@@ -176,77 +142,32 @@ function LineChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUn
         unitPosition: yAxisUnitPosition,
     });
 
+    const {checkIsOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
+        font,
+        truncatedLabels,
+        labelRotation,
+        labelSkipInterval,
+        chartBottom,
+        computeGeometry: computeLineLabelGeometry,
+    });
+
+    const handleScaleChange = (xScale: Scale) => {
+        updateTickPositions(xScale, data.length);
+    };
+
+    const handleChartBoundsChange = (bounds: ChartBounds) => {
+        setPlotAreaWidth(bounds.right - bounds.left);
+        setBoundsLeft(bounds.left);
+        setBoundsRight(bounds.right);
+        chartBottom.set(bounds.bottom);
+    };
+
     const checkIsOverDot = (args: HitTestArgs) => {
         'worklet';
 
         const dx = args.cursorX - args.targetX;
         const dy = args.cursorY - args.targetY;
         return Math.sqrt(dx * dx + dy * dy) <= DOT_RADIUS + DOT_HOVER_EXTRA_RADIUS;
-    };
-
-    const checkIsOverLabel = (args: HitTestArgs, activeIndex: number) => {
-        'worklet';
-
-        if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
-            return false;
-        }
-
-        const padding = variables.iconSizeExtraSmall / 2;
-
-        const {labelYOffset, iconThirdSin, iconSin, labelSins, widths} = labelHitGeometry;
-        const labelWidth = widths.at(activeIndex) ?? 0;
-        const labelY = args.chartBottom + labelYOffset;
-
-        let corners45: Array<{x: number; y: number}> | undefined;
-        if (angleRad > 0 && angleRad < 1) {
-            const labelSin = labelSins.at(activeIndex) ?? 0;
-            const rightUpperCorner = {x: args.targetX - iconThirdSin, y: labelY + iconThirdSin};
-            const rightLowerCorner = {x: rightUpperCorner.x + iconSin, y: rightUpperCorner.y + iconSin};
-            const leftUpperCorner = {x: rightUpperCorner.x - labelSin, y: rightUpperCorner.y + labelSin};
-            const leftLowerCorner = {x: rightLowerCorner.x - labelSin, y: rightLowerCorner.y + labelSin};
-            corners45 = [rightUpperCorner, rightLowerCorner, leftLowerCorner, leftUpperCorner];
-        }
-
-        // Shared hit-test from utils; run in worklet via closure (boolean return)
-        return isCursorOverChartLabel({
-            cursorX: args.cursorX,
-            cursorY: args.cursorY,
-            targetX: args.targetX,
-            labelY,
-            angleRad,
-            halfWidth: labelWidth / 2,
-            padding,
-            corners45,
-            yMin90: labelY + padding,
-            yMax90: labelY + labelWidth + padding,
-        });
-    };
-
-    /**
-     * Scans every visible label's bounding box using its own tick X as the anchor.
-     * Returns that tick's X position when the cursor is inside, otherwise returns
-     * the raw cursor X unchanged.
-     * Used to correct Victory's nearest-point-by-X algorithm for rotated labels whose
-     * bounding boxes can extend past the midpoint to the adjacent tick.
-     */
-    const findLabelCursorX = (cursorX: number, cursorY: number): number => {
-        'worklet';
-
-        const positions = tickXPositions.get();
-        const currentChartBottom = chartBottom.get();
-        for (let i = 0; i < positions.length; i++) {
-            if (i % labelSkipInterval !== 0) {
-                continue;
-            }
-            const tickX = positions.at(i);
-            if (tickX === undefined) {
-                continue;
-            }
-            if (checkIsOverLabel({cursorX, cursorY, targetX: tickX, targetY: 0, chartBottom: currentChartBottom}, i)) {
-                return tickX;
-            }
-        }
-        return cursorX;
     };
 
     const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
