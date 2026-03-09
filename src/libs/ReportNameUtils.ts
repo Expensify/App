@@ -102,6 +102,7 @@ import {
 } from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {
+    computeOptimisticReportName,
     formatReportLastMessageText,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -811,7 +812,16 @@ function computeReportName({
     }
 
     if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
-        return report?.reportName;
+        // When the title is formula-managed, re-evaluate from the current policy formula
+        // instead of returning the stale stored reportName
+        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        if (reportNameValuePair?.expensify_text_title?.type === CONST.REPORT_FIELD_TYPES.FORMULA) {
+            const computedName = computeOptimisticReportName(report, reportPolicy, report.policyID, (transactions ?? {}) as Record<string, Transaction>);
+            if (computedName) {
+                return computedName;
+            }
+        }
+        return report.reportName;
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
