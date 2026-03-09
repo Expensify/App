@@ -10,6 +10,7 @@ import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
+import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -34,9 +35,6 @@ import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicato
 import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
-
-const FOCUSABLE_ELEMENTS_SELECTOR = 'button, [href], [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
-const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
 
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
@@ -188,53 +186,7 @@ function ScreenWrapper({
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
     });
 
-    useEffect(() => {
-        if (!shouldMoveAccessibilityFocus || !didScreenTransitionEnd || !isFocused) {
-            return;
-        }
-
-        if (typeof document === 'undefined') {
-            return;
-        }
-
-        const element = screenWrapperRef.current;
-        if (!element || !('contains' in element) || !('querySelectorAll' in element)) {
-            return;
-        }
-
-        const activeElement = document.activeElement;
-        if (activeElement && element.contains(activeElement)) {
-            return;
-        }
-
-        const focusTargets = element.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS_SELECTOR);
-        for (const focusTarget of focusTargets) {
-            const isDisabledTarget = focusTarget.matches(':disabled') || focusTarget.getAttribute('aria-disabled')?.toLowerCase() === 'true';
-            if (isDisabledTarget || focusTarget.getAttribute('aria-hidden') === 'true') {
-                continue;
-            }
-
-            if (focusTarget === activeElement) {
-                return;
-            }
-
-            const removeProgrammaticFocusAttr = () => {
-                focusTarget.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
-            };
-
-            focusTarget.setAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, 'true');
-            focusTarget.addEventListener('blur', removeProgrammaticFocusAttr, {once: true});
-            focusTarget.focus();
-
-            const focusedElement = document.activeElement;
-            if (focusedElement === focusTarget || (focusedElement && focusTarget.contains(focusedElement))) {
-                return;
-            }
-
-            focusTarget.removeEventListener('blur', removeProgrammaticFocusAttr);
-            removeProgrammaticFocusAttr();
-        }
-    }, [didScreenTransitionEnd, isFocused, shouldMoveAccessibilityFocus]);
+    useAccessibilityFocus({didScreenTransitionEnd, isFocused, ref: screenWrapperRef, shouldMoveAccessibilityFocus});
 
     useEffect(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
