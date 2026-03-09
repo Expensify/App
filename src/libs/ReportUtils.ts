@@ -1201,18 +1201,6 @@ Onyx.connect({
     },
 });
 
-let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportsViolations = value;
-    },
-});
-
 let onboarding: OnyxEntry<Onboarding>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
@@ -9263,11 +9251,10 @@ function hasAnyViolations(
     );
 }
 
-function hasReportViolations(reportID: string | undefined) {
-    if (!reportID) {
+function hasReportViolations(reportViolations: OnyxEntry<ReportViolations>) {
+    if (!reportViolations) {
         return false;
     }
-    const reportViolations = allReportsViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
     return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
@@ -12381,17 +12368,6 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
     }
 }
 
-/**
- * Returns all violations for report
- */
-function getReportViolations(reportID: string): ReportViolations | undefined {
-    if (!allReportsViolations) {
-        return undefined;
-    }
-
-    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
-}
-
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
@@ -12752,11 +12728,8 @@ function generateReportAttributes({
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
-    const isReportSettled = isSettled(report);
-    const isCurrentUserReportOwner = isReportOwner(report);
-    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-    const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
+    const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
@@ -12764,7 +12737,6 @@ function generateReportAttributes({
     const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction, isReportArchived);
 
     return {
-        doesReportHasViolations,
         hasViolationsToDisplayInLHN,
         hasAnyViolations: hasAnyTypeOfViolations,
         reportErrors,
@@ -13442,7 +13414,6 @@ export {
     getChatUsedForOnboarding,
     getFieldViolationTranslation,
     getFieldViolation,
-    getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
     canBeExported,
