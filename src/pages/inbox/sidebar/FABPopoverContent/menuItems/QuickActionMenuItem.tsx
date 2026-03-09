@@ -1,4 +1,5 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import React from 'react';
+import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
