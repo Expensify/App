@@ -3,7 +3,7 @@ import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -75,7 +75,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -147,6 +147,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
+    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
+
+    useEffect(() => {
+        if (!isDuplicateActive) {
+            return;
+        }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isDuplicateActive]);
+
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
     const personalDetails = usePersonalDetails();
@@ -650,6 +659,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         {!!primaryAction && primaryActionImplementation[primaryAction]}
                         {!!applicableSecondaryActions.length && (
                             <ButtonWithDropdownMenu
+                                ref={dropdownMenuRef}
                                 success={false}
                                 onPress={() => {}}
                                 shouldAlwaysShowDropdownMenu
@@ -672,6 +682,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     {!!primaryAction && <View style={[styles.flexGrow4]}>{primaryActionImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && (
                         <ButtonWithDropdownMenu
+                            ref={dropdownMenuRef}
                             success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
