@@ -52,6 +52,8 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     shouldShow?: boolean;
     /** Whether to show a loading spinner for this option */
     shouldShowLoadingSpinnerIcon?: boolean;
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
@@ -157,6 +159,9 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
 
     /** Whether to display the option icon when only one option is available */
     shouldUseOptionIcon?: boolean;
+
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
     /** Reference to the outer element */
     ref?: React.Ref<ButtonWithDropdownMenuRef>;

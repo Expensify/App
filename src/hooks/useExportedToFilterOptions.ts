@@ -17,14 +17,14 @@ type UseExportedToFilterDataResult = {
 
 /**
  * Hook that prepares all data needed for the exported to search filter.
- * It collects export templates and all connected integrations to build the filter options.
+ * It collects standard export templates and all connected integrations to build the filter options.
  * When currentSearchQueryJSON has policyID, options are scoped to those workspaces so form hydration and autocomplete stay consistent.
  */
 export default function useExportedToFilterOptions(): UseExportedToFilterDataResult {
     const {currentSearchQueryJSON} = useSearchStateContext();
     const policyIDs = currentSearchQueryJSON?.policyID;
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -45,19 +45,14 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
 
     const standardExportTemplates: string[] = [];
-    const customExportTemplates: string[] = [];
     for (const template of combinedUniqueExportTemplates) {
         const displayName = getStandardExportTemplateDisplayName(template.templateName);
         const isStandardTemplate = displayName !== template.templateName;
 
         if (isStandardTemplate) {
             standardExportTemplates.push(displayName);
-        } else {
-            customExportTemplates.push(template.name ?? template.templateName);
         }
     }
-
-    customExportTemplates.sort((a, b) => localeCompare(a, b));
 
     const connectedIntegrationNames = policyIDs && policyIDs.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
@@ -70,7 +65,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         return connectionName && connectedIntegrationNames.has(connectionName);
     });
 
-    const exportedToFilterOptions = [...connectedIntegrationDisplayNames, ...customExportTemplates, ...standardExportTemplates];
+    const exportedToFilterOptions = [...connectedIntegrationDisplayNames, ...standardExportTemplates];
 
     return {
         exportedToFilterOptions,
