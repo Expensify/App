@@ -431,6 +431,7 @@ function getAlternateText(
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
     currentUserLogin: string,
+    // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>,
     lastActorDetails: Partial<PersonalDetails> | null = {},
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
