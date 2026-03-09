@@ -4501,7 +4501,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
             const lastMessage = getLastMessageTextForReport({
@@ -4522,7 +4522,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {},
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
             const lastMessage = getLastMessageTextForReport({
