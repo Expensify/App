@@ -1920,7 +1920,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: '恢复暂存的登录',
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。</muted-text-micro>`,
+        readTheTermsAndPrivacy: `阅读<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。`,
         help: '帮助',
         whatIsNew: '最新动态',
         accountSettings: '账户设置',
@@ -2582,7 +2582,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>登录即表示你同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。</muted-text-xs>`,
-        license: `<muted-text-xs>资金传输服务由 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">执照</a>提供。</muted-text-xs>`,
+        license: `资金传输服务由 ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其<a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">执照</a>提供。`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到验证码？',
