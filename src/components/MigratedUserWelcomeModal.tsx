@@ -48,29 +48,77 @@ function MigratedUserWelcomeModal() {
         [illustrations.ChatBubbles],
     );
 
+    const onHelp = () => {
+        Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
+        const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
+        const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
+        const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
+        openExternalLink(helpUrl);
+        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+    };
+
+    const onClose = () => {
+        Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
+        dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+    };
+
+    const featureListContent = (
+        <View
+            style={[styles.gap3, styles.pt1, styles.pl1]}
+            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+        >
+            {ExpensifyFeatures.map(({translationKey, icon}) => (
+                <View
+                    key={translationKey}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                >
+                    <Icon
+                        src={icon}
+                        height={variables.menuIconSize}
+                        width={variables.menuIconSize}
+                    />
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                        <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
+                    </View>
+                </View>
+            ))}
+        </View>
+    );
+
+    if (isReduceMotionEnabled) {
+        return (
+            <FeatureTrainingModal
+                image={illustrations.PlanetWithMobileApp}
+                title={translate('migratedUserWelcomeModal.title')}
+                description={translate('migratedUserWelcomeModal.subtitle')}
+                confirmText={translate('migratedUserWelcomeModal.confirmText')}
+                helpText={translate('migratedUserWelcomeModal.helpText')}
+                onHelp={onHelp}
+                onClose={onClose}
+                illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
+                illustrationOuterContainerStyle={styles.p0}
+                contentInnerContainerStyles={[styles.mb5, styles.gap2]}
+                contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
+                modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
+                shouldUseScrollView
+            >
+                {featureListContent}
+            </FeatureTrainingModal>
+        );
+    }
+
     return (
         <FeatureTrainingModal
             // We would like to show the Lottie animation instead of a video
             videoURL=""
+            animation={LottieAnimations.WorkspacePlanet}
+            animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
             title={translate('migratedUserWelcomeModal.title')}
             description={translate('migratedUserWelcomeModal.subtitle')}
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             helpText={translate('migratedUserWelcomeModal.helpText')}
-            onHelp={() => {
-                Log.info('[MigratedUserWelcomeModal] onHelp called, opening help URL based on admin status and device type');
-                const adminUrl = shouldUseNarrowLayout ? CONST.STORYLANE.ADMIN_MIGRATED_MOBILE : CONST.STORYLANE.ADMIN_MIGRATED;
-                const employeeUrl = shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_MIGRATED_MOBILE : CONST.STORYLANE.EMPLOYEE_MIGRATED;
-                const helpUrl = isCurrentUserPolicyAdmin ? adminUrl : employeeUrl;
-                openExternalLink(helpUrl);
-                dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-            }}
-            {...(isReduceMotionEnabled
-                ? {image: illustrations.PlanetWithMobileApp}
-                : {animation: LottieAnimations.WorkspacePlanet, animationStyle: [styles.emptyWorkspaceIllustrationStyle]})}
-            onClose={() => {
-                Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
-                dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
-            }}
+            onHelp={onHelp}
+            onClose={onClose}
             illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
             illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
@@ -78,26 +126,7 @@ function MigratedUserWelcomeModal() {
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
             shouldUseScrollView
         >
-            <View
-                style={[styles.gap3, styles.pt1, styles.pl1]}
-                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-            >
-                {ExpensifyFeatures.map(({translationKey, icon}) => (
-                    <View
-                        key={translationKey}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
-                    >
-                        <Icon
-                            src={icon}
-                            height={variables.menuIconSize}
-                            width={variables.menuIconSize}
-                        />
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                            <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
-                        </View>
-                    </View>
-                ))}
-            </View>
+            {featureListContent}
         </FeatureTrainingModal>
     );
 }

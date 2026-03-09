@@ -71,14 +71,25 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
         case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
             return (
                 <>
-                    <BlockingView
-                        title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
-                        subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
-                        {...(isReduceMotionEnabled
-                            ? {icon: illustrations.Fireworks, iconWidth: Number(styles.loadingVBAAnimation.width), iconHeight: Number(styles.loadingVBAAnimation.height)}
-                            : {animation: LottieAnimations.Fireworks, animationStyles: styles.loadingVBAAnimation, animationWebStyle: styles.loadingVBAAnimationWeb})}
-                        subtitleStyle={styles.textLabelSupporting}
-                    />
+                    {isReduceMotionEnabled ? (
+                        <BlockingView
+                            title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                            subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                            icon={illustrations.Fireworks}
+                            iconWidth={Number(styles.loadingVBAAnimation.width)}
+                            iconHeight={Number(styles.loadingVBAAnimation.height)}
+                            subtitleStyle={styles.textLabelSupporting}
+                        />
+                    ) : (
+                        <BlockingView
+                            title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                            subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                            animation={LottieAnimations.Fireworks}
+                            animationStyles={styles.loadingVBAAnimation}
+                            animationWebStyle={styles.loadingVBAAnimationWeb}
+                            subtitleStyle={styles.textLabelSupporting}
+                        />
+                    )}
                     <Button
                         success
                         large

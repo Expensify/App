@@ -103,32 +103,40 @@ function ConfirmationPage({
     return (
         <View style={[styles.flex1, containerStyle]}>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
-                {shouldShowStaticFallback ? (
-                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                        <ImageSVG
-                            src={illustrations.Fireworks}
-                            contentFit="contain"
-                        />
-                    </View>
-                ) : isLottie ? (
-                    <Lottie
-                        source={illustration}
-                        autoPlay
-                        loop
-                        style={[styles.confirmationAnimation, illustrationStyle]}
-                        webStyle={{
-                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
-                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
-                        }}
-                    />
-                ) : (
-                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
-                        <ImageSVG
-                            src={illustration}
-                            contentFit="contain"
-                        />
-                    </View>
-                )}
+                {(() => {
+                    if (shouldShowStaticFallback) {
+                        return (
+                            <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                                <ImageSVG
+                                    src={illustrations.Fireworks}
+                                    contentFit="contain"
+                                />
+                            </View>
+                        );
+                    }
+                    if (isLottie) {
+                        return (
+                            <Lottie
+                                source={illustration}
+                                autoPlay
+                                loop
+                                style={[styles.confirmationAnimation, illustrationStyle]}
+                                webStyle={{
+                                    width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                                    height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
+                                }}
+                            />
+                        );
+                    }
+                    return (
+                        <View style={[styles.confirmationAnimation, illustrationStyle]}>
+                            <ImageSVG
+                                src={illustration}
+                                contentFit="contain"
+                            />
+                        </View>
+                    );
+                })()}
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 {!!descriptionComponent && descriptionComponent}
                 {!!description && <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>}
