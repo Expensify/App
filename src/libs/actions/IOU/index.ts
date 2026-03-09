@@ -207,6 +207,7 @@ import {
     getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -329,6 +330,7 @@ type PayInvoiceArgs = {
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 };
 
 type RejectMoneyRequestData = {
@@ -858,6 +860,7 @@ type PayMoneyRequestFunctionParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -9083,6 +9086,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     iouReportCurrentNextStepDeprecated,
     betas,
+    isSelfTourViewed,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9101,6 +9105,7 @@ function getPayMoneyRequestParams({
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9138,6 +9143,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -9574,6 +9580,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         !hasAnySubmissionBlockingViolations &&
+        !hasSmartScanFailedWithMissingFields(transactions, report) &&
         transactions.length > 0
     );
 }
@@ -11041,6 +11048,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         activePolicy,
         policy,
         betas,
+        isSelfTourViewed,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11063,6 +11071,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         betas,
+        isSelfTourViewed,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11089,6 +11098,7 @@ function payInvoice({
     activePolicy,
     invoiceReportCurrentNextStepDeprecated,
     betas,
+    isSelfTourViewed,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11120,6 +11130,7 @@ function payInvoice({
         currentUserEmailParam,
         introSelected,
         betas,
+        isSelfTourViewed,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
