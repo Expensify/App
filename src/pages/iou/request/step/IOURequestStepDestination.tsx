@@ -27,15 +27,8 @@ import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@lib
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
-import {
-    clearSubrates,
-    getIOURequestPolicyID,
-    setCustomUnitID,
-    setCustomUnitRateID,
-    setMoneyRequestCategory,
-    setMoneyRequestCurrency,
-    setMoneyRequestParticipantsFromReport,
-} from '@userActions/IOU';
+import {getIOURequestPolicyID, setCustomUnitID, setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {clearSubrates} from '@userActions/IOU/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
