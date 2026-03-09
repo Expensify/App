@@ -185,6 +185,8 @@ function BaseTextInput({
         setIsFocused(false);
     };
 
+    const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
+
     const onPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (!!inputProps.disabled || !event) {
             return;
@@ -293,7 +295,6 @@ function BaseTextInput({
 
     const shouldAddPaddingBottom = isMultiline || (autoGrowHeight && !isAutoGrowHeightMarkdown && textInputHeight > variables.componentSizeLarge);
     const hasLabel = !!label?.length;
-    const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
