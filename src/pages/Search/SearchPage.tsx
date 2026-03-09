@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -16,7 +14,6 @@ import {search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
@@ -35,7 +32,6 @@ function SearchPage({route}: SearchPageProps) {
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
 
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
-    const receiptDropTargetRef = useRef<View>(null);
 
     useConfirmReadyToOpenApp();
 
@@ -131,37 +127,26 @@ function SearchPage({route}: SearchPageProps) {
 
     return (
         <Animated.View style={[styles.flex1]}>
-            <View
-                ref={receiptDropTargetRef}
-                style={styles.flex1}
-            >
-                {shouldUseNarrowLayout ? (
-                    <SearchPageNarrow
-                        queryJSON={queryJSON}
-                        metadata={metadata}
-                        searchResults={searchResults}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        shouldShowFooter={shouldShowFooter}
-                    />
-                ) : (
-                    <SearchPageWide
-                        queryJSON={queryJSON}
-                        searchResults={searchResults}
-                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        footerData={footerData}
-                        handleSearchAction={handleSearchAction}
-                        onSortPressedCallback={onSortPressedCallback}
-                        route={route}
-                        shouldShowFooter={shouldShowFooter}
-                    />
-                )}
-            </View>
-            {!!queryJSON && (
-                <ReceiptScanDropZone
-                    targetRef={receiptDropTargetRef}
-                    dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}
+            {shouldUseNarrowLayout ? (
+                <SearchPageNarrow
+                    queryJSON={queryJSON}
+                    metadata={metadata}
+                    searchResults={searchResults}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    footerData={footerData}
+                    shouldShowFooter={shouldShowFooter}
+                />
+            ) : (
+                <SearchPageWide
+                    queryJSON={queryJSON}
+                    searchResults={searchResults}
+                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                    footerData={footerData}
+                    handleSearchAction={handleSearchAction}
+                    onSortPressedCallback={onSortPressedCallback}
+                    route={route}
+                    shouldShowFooter={shouldShowFooter}
                 />
             )}
         </Animated.View>

@@ -1,8 +1,9 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
@@ -48,6 +49,7 @@ function SearchPageWide({
 }: SearchPageWideProps) {
     const styles = useThemeStyles();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
+    const receiptDropTargetRef = useRef<View>(null);
 
     const scrollHandler = useCallback(
         (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -71,7 +73,10 @@ function SearchPageWide({
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     return (
-        <View style={styles.searchSplitContainer}>
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.searchSplitContainer}
+        >
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
@@ -116,6 +121,7 @@ function SearchPageWide({
                     )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
+            {!!queryJSON && <ReceiptScanDropZone targetRef={receiptDropTargetRef} />}
         </View>
     );
 }
