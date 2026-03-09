@@ -15,7 +15,6 @@ import {
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
@@ -180,7 +179,9 @@ function process(): Promise<void> {
         reportsWithOfflineSentMessages.has(requestToProcess.data.reportID)
     ) {
         const now = networkTimeSkew > 0 ? new Date(Date.now() + networkTimeSkew) : new Date();
-        const refreshedLastReadTime = DateUtils.getDBTime(now.valueOf());
+        // Inline the DB time format conversion to avoid importing DateUtils, which would create a circular dependency
+        // (SequentialQueue → DateUtils → Localize → memoize → memoize/stats → Log → Network → SequentialQueue)
+        const refreshedLastReadTime = now.toISOString().replace('T', ' ').replace('Z', '');
         Log.info('[SequentialQueue] Refreshing stale lastReadTime for offline ReadNewestAction', false, {
             reportID: requestToProcess.data.reportID,
             originalLastReadTime: requestToProcess.data.lastReadTime,
