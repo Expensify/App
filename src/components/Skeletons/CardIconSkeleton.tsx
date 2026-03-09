@@ -1,5 +1,5 @@
 import React from 'react';
-import {Rect} from 'react-native-svg';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -23,10 +23,9 @@ function CardIconSkeleton({width, height, reasonAttributes}: CardIconSkeletonPro
             backgroundColor={theme.skeletonLHNIn}
             foregroundColor={theme.skeletonLHNOut}
         >
-            <Rect
+            <SkeletonRect
                 width={width}
                 height={height}
-                rx="4"
             />
         </SkeletonViewContentLoader>
     );

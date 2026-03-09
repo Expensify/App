@@ -1,5 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -85,6 +85,8 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
     );
 };
 
+const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -94,4 +96,5 @@ export {
     policyTimeTrackingSelector,
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
+    shouldRedirectToExpensifyClassicSelector,
 };

@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -58,7 +56,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -81,7 +79,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
-    const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
+    const {popoverAnchorRefs} = useAccountingState();
+    const {startIntegrationFlow} = useAccountingActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
@@ -92,7 +91,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard', 'Key', 'Sync', 'Trashcan', 'QuestionMark', 'Pencil']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'ArrowRight',
+        'CircularArrowBackwards',
+        'ExpensifyCard',
+        'Gear',
+        'Key',
+        'NewWindow',
+        'Pencil',
+        'QuestionMark',
+        'Send',
+        'Sync',
+        'Trashcan',
+    ] as const);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
@@ -309,7 +320,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
-                        badgeSuccess: isXero,
+                        isBadgeSuccess: isXero,
                         shouldShowBadgeBelow: shouldUseNarrowLayout,
                         rightComponent: (
                             <Button
@@ -370,7 +381,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
             },
             {
-                icon: Expensicons.Send,
+                icon: icons.Send,
                 iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
@@ -447,6 +458,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         icons.ArrowRight,
         icons.ExpensifyCard,
         icons.Gear,
+        icons.Send,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
@@ -560,6 +572,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={illustrations.Accounting}
                     shouldUseHeadlineHeader
+                    shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView

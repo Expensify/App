@@ -31,9 +31,11 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
+import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import variables from '@styles/variables';
 import {checkIfScanFileCanBeRead, replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -78,6 +80,12 @@ function IOURequestStepScan({
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'ReceiptStack', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash', 'ReplaceReceipt', 'SmartScan']);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+
+    // End the create expense span on mount for web (no camera init tracking needed)
+    useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+    }, []);
+
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
@@ -228,7 +236,6 @@ function IOURequestStepScan({
 
     useEffect(() => {
         if (!isMobile() || !isTabActive) {
-            setVideoConstraints(undefined);
             return;
         }
         navigator.permissions
@@ -247,9 +254,10 @@ function IOURequestStepScan({
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // We only want to get the camera permission status when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isTabActive]);
+        return () => {
+            setVideoConstraints(undefined);
+        };
+    }, [isTabActive, requestCameraPermission]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
@@ -306,9 +314,25 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
+                name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+            });
+        }
+        startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
+            name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
+            parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+            attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: 'web'},
+        });
+
         const imageBase64 = cameraRef.current.getScreenshot();
 
         if (imageBase64 === null) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
             return;
         }
 
@@ -326,6 +350,7 @@ function IOURequestStepScan({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
+            endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             const transaction =
                 isMultiScanEnabled && initialTransaction?.receipt?.source
                     ? buildOptimisticTransactionAndCreateDraft({
@@ -385,7 +410,7 @@ function IOURequestStepScan({
                     getScreenshotTimeoutRef.current = setTimeout(() => {
                         getScreenshot();
                         clearTorchConstraints();
-                    }, 2000);
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
                 });
             return;
         }
@@ -401,6 +426,8 @@ function IOURequestStepScan({
 
     useEffect(
         () => () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
@@ -478,8 +505,8 @@ function IOURequestStepScan({
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                 >
                                     <Icon
-                                        height={16}
-                                        width={16}
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
                                         src={lazyIcons.Bolt}
                                         fill={isFlashLightOn ? theme.white : theme.icon}
                                     />
@@ -512,8 +539,8 @@ function IOURequestStepScan({
                             sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={lazyIcons.Gallery}
                                 fill={theme.textSupporting}
                             />
@@ -543,8 +570,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={lazyIcons.ReceiptMultiple}
                             fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                         />
@@ -559,8 +586,8 @@ function IOURequestStepScan({
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     >
                         <Icon
-                            height={32}
-                            width={32}
+                            height={variables.iconSizeMenuItem}
+                            width={variables.iconSizeMenuItem}
                             src={isFlashLightOn ? lazyIcons.Bolt : lazyIcons.boltSlash}
                             fill={theme.textSupporting}
                         />

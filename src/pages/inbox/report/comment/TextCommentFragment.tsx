@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {useEnvironmentActions} from '@components/EnvironmentContextProvider';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -56,7 +56,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {adjustExpensifyLinksForEnv} = useEnvironment();
+    const {adjustExpensifyLinksForEnv} = useEnvironmentActions();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
