@@ -39,7 +39,7 @@ const GITHUB_BASE_REF = process.env.GITHUB_BASE_REF as string | undefined;
 
 /**
  * Represents a single changed line in a git diff.
- * Only added and removed lines are tracked (context lines are skipped during parsing).
+ * Only added and removed lines are tracked (context lines are counted separately).
  */
 type DiffLine = {
     number: number;
@@ -56,6 +56,7 @@ type DiffHunk = {
     newStart: number;
     newCount: number;
     lines: DiffLine[];
+    contextLineCount: number;
 };
 
 /**
@@ -239,6 +240,7 @@ class Git {
                         newStart,
                         newCount,
                         lines: [],
+                        contextLineCount: 0,
                     };
                 }
                 continue;
@@ -268,7 +270,8 @@ class Git {
                         content,
                     });
                 } else if (firstChar === ' ') {
-                    // Context line - skip it (we only care about added/removed lines)
+                    // Context line - count it so calculateLineNumber accounts for position advancement
+                    currentHunk.contextLineCount++;
                     continue;
                 } else if (firstChar === '\\') {
                     // "No newline at end of file" marker - skip it (metadata, not content)
@@ -339,9 +342,9 @@ class Git {
 
         switch (lineType) {
             case 'added':
-                return hunk.newStart + addedCount;
+                return hunk.newStart + hunk.contextLineCount + addedCount;
             case 'removed':
-                return hunk.oldStart + removedCount;
+                return hunk.oldStart + hunk.contextLineCount + removedCount;
             default:
                 throw new Error(`Unknown line type: ${String(lineType)}`);
         }
@@ -560,6 +563,7 @@ class Git {
                 newStart: 1,
                 newCount: lines.length,
                 lines: diffLines,
+                contextLineCount: 0,
             };
 
             const fileDiff: FileDiff = {

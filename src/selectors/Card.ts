@@ -56,6 +56,16 @@ const filterOutPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
+ * Get only personal cards from the card list.
+ */
+const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
+    return filterObject(
+        cards ?? {},
+        (key, card) => card?.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH && card?.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV && (!card?.fundID || card?.fundID === '0'),
+    );
+};
+
+/**
  * Selects the Expensify Card feed from the card list and returns the first one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>, translate: LocalizedTranslate) => {
@@ -90,4 +100,5 @@ export {
     areAllExpensifyCardsShipped,
     buildFeedKeysWithAssignedCards,
     isExpensifyCardUkEuSupportedSelector,
+    getBankLinkedPersonalCards,
 };

@@ -197,6 +197,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
     if (canUseTouchScreen) {
         return (
             <Lightbox
+                key={url}
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
