@@ -728,7 +728,7 @@ const ViolationsUtils = {
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
             case 'modifiedDistance':
-                return translate('violations.modifiedDistance');
+                return translate('violations.modifiedDistance', {formattedRouteDistance: violation.data?.formattedRouteDistance});
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':

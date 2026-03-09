@@ -83,6 +83,9 @@ type TransactionViolationData = {
     /** Percent Variance for modified amount violations */
     displayPercentVariance?: number;
 
+    /** Formatted route distance for modifiedDistance violations (e.g., "10.46 km") */
+    formattedRouteDistance?: string;
+
     /** List of duplicate transactions */
     duplicates?: string[];
 

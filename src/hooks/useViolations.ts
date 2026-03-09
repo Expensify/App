@@ -32,6 +32,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     missingTag: () => 'tag',
     modifiedAmount: () => 'amount',
     modifiedDate: () => 'date',
+    modifiedDistance: () => 'amount',
     nonExpensiworksExpense: () => 'merchant',
     overAutoApprovalLimit: () => 'amount',
     overCategoryLimit: () => 'amount',
