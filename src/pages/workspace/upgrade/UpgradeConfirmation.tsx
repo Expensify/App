@@ -6,8 +6,9 @@ import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type Props = {
     policyName: string;
@@ -27,8 +28,7 @@ function UpgradeConfirmation({policyName, afterUpgradeAcknowledged, isReporting,
     const [subscriptionLink, setSubscriptionLink] = useState('');
 
     const updateSubscriptionLink = useCallback(() => {
-        const backTo = Navigation.getActiveRoute();
-        setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
+        setSubscriptionLink(`${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION.path)}`);
     }, [environmentURL]);
 
     useEffect(() => {

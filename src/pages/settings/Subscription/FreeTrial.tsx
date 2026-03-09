@@ -9,10 +9,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText} from '@libs/SubscriptionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type FreeTrialProps = {
     badgeStyles?: StyleProp<ViewStyle>;
@@ -46,7 +47,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
             success={success}
             text={freeTrialText}
             iconWrapperStyles={[styles.mw100]}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
+            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION.path))}
         />
     ) : (
         <Badge

@@ -16,9 +16,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
 
@@ -71,8 +71,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         if (!subscriptionPlan) {
             return CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
         }
-        const currentRoute = Navigation.getActiveRoute();
-        return `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(currentRoute)}`;
+        return `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION.path)}`;
     }, [environmentURL, subscriptionPlan]);
 
     /**

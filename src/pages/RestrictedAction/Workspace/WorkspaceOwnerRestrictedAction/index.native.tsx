@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -10,9 +10,10 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
     const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
@@ -20,11 +21,10 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
     const goToSubscription = useCallback(() => {
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
-    }, [activeRoute]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION.path));
+    }, []);
 
     return (
         <ScreenWrapper

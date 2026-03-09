@@ -97,6 +97,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    SUBSCRIPTION: {
+        path: 'subscription',
+        entryScreens: [SCREENS.WORKSPACE.UPGRADE, SCREENS.WORKSPACE.PLAN, SCREENS.REPORT, SCREENS.HOME, SCREENS.RESTRICTED_ACTION_ROOT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {

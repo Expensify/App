@@ -246,6 +246,7 @@ const SCREENS = {
             REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
             SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
         },
+        DYNAMIC_SUBSCRIPTION: 'Settings_Dynamic_Subscription',
     },
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',

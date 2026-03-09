@@ -17,12 +17,13 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -123,7 +124,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                                     count: privateSubscription?.userCount ?? 1,
                                     annualSubscriptionEndDate: autoRenewalDate,
                                 })}{' '}
-                                <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}>
+                                <TextLink onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SUBSCRIPTION.path))}>
                                     {translate('workspace.planTypePage.subscriptions')}
                                 </TextLink>
                                 .
