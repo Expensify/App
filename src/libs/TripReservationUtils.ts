@@ -157,7 +157,12 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
             for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
-                const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
+                const leg = pnrData.legs?.at(legIdx);
+                const flightObject = leg?.flights.at(flightIdx);
+
+                if (leg?.legStatus === CONST.LEG_STATUS.CANCELLED || isCancelledPnrStatus(flightObject?.flightStatus ?? '')) {
+                    continue;
+                }
 
                 const airlineCode = flightObject?.marketing.airlineCode;
                 const longAirlineName = airlineInfo.find((info) => info.airlineCode === airlineCode)?.airlineName ?? airlineCode;
@@ -394,12 +399,41 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
     return reservationList;
 }
 
+function isCancelledPnrStatus(status: string): boolean {
+    return status === CONST.PNR_STATUS.CANCELLED || status === CONST.PNR_STATUS.VOIDED;
+}
+
+function isPnrCancelled(pnr: Pnr): boolean {
+    const {data} = pnr;
+
+    if (data.bookingStatus && isCancelledPnrStatus(data.bookingStatus)) {
+        return true;
+    }
+
+    if (data.hotelPnr) {
+        return isCancelledPnrStatus(data.hotelPnr.pnrStatus);
+    }
+    if (data.carPnr) {
+        return isCancelledPnrStatus(data.carPnr.pnrStatus);
+    }
+    if (data.airPnr) {
+        return data.airPnr.legs.length > 0 && data.airPnr.legs.every((leg) => leg.legStatus === CONST.LEG_STATUS.CANCELLED);
+    }
+    if (data.railPnr) {
+        const {outwardJourney, inwardJourney} = data.railPnr;
+        return isCancelledPnrStatus(outwardJourney.journeyStatus) && isCancelledPnrStatus(inwardJourney.journeyStatus);
+    }
+
+    return false;
+}
+
 function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripData): ReservationData[] {
     if (!tripData?.pnrs) {
         return [];
     }
 
     const reservations: ReservationData[] = tripData.pnrs
+        .filter((pnr) => !isPnrCancelled(pnr))
         .flatMap((pnr) => {
             const travelers = pnr.data.pnrTravelers ?? [];
 
@@ -517,5 +551,6 @@ export {
     formatAirportInfo,
     getPNRReservationDataFromTripReport,
     getAirReservations,
+    isPnrCancelled,
 };
 export type {ReservationData};

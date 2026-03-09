@@ -14,11 +14,107 @@
 </h1>
 
 <section>
+    {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
+
+    {% comment %} Render direct articles (no nested path) {% endcomment %}
     <div class="cards-group">
-        {% assign sortedArticles = section.articles | sort: 'order', 'last' | default: 999 %}
         {% for article in sortedArticles %}
-            {% assign article_href = section.href | append: '/' | append: article.href %}
-            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+            {% unless article.href contains '/' %}
+                {% assign article_href = section.href | append: '/' | append: article.href %}
+                {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+            {% endunless %}
         {% endfor %}
     </div>
+
+    {% comment %} Collect unique subfolder names from nested articles {% endcomment %}
+    {% assign subfolders = "" %}
+    {% for article in sortedArticles %}
+        {% if article.href contains '/' %}
+            {% assign parts = article.href | split: '/' %}
+            {% assign subfolder = parts[0] %}
+            {% assign alreadyAdded = false %}
+            {% if subfolders != "" %}
+                {% assign existingSubfolders = subfolders | split: '|' %}
+                {% for existing in existingSubfolders %}
+                    {% if existing == subfolder %}
+                        {% assign alreadyAdded = true %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% unless alreadyAdded %}
+                {% if subfolders == "" %}
+                    {% assign subfolders = subfolder %}
+                {% else %}
+                    {% assign subfolders = subfolders | append: '|' | append: subfolder %}
+                {% endif %}
+            {% endunless %}
+        {% endif %}
+    {% endfor %}
+
+    {% comment %} Render nested articles grouped under subfolder headings {% endcomment %}
+    {% if subfolders != "" %}
+        {% assign subfolderArray = subfolders | split: '|' %}
+        {% for subfolder in subfolderArray %}
+            <h3 class="title">{{ subfolder | replace: '-', ' ' }}</h3>
+
+            {% comment %} Render articles directly under this subfolder (2-segment paths like Troubleshooting/Overview) {% endcomment %}
+            <div class="cards-group">
+                {% for article in sortedArticles %}
+                    {% if article.href contains '/' %}
+                        {% assign parts = article.href | split: '/' %}
+                        {% if parts[0] == subfolder and parts.size == 2 %}
+                            {% assign article_href = section.href | append: '/' | append: article.href %}
+                            {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% comment %} Collect unique sub-subfolders for 3-segment paths (e.g., Troubleshooting/Export-Errors/Overview) {% endcomment %}
+            {% assign subSubfolders = "" %}
+            {% for article in sortedArticles %}
+                {% if article.href contains '/' %}
+                    {% assign parts = article.href | split: '/' %}
+                    {% if parts[0] == subfolder and parts.size >= 3 %}
+                        {% assign subSubfolder = parts[1] %}
+                        {% assign ssAlreadyAdded = false %}
+                        {% if subSubfolders != "" %}
+                            {% assign ssExisting = subSubfolders | split: '|' %}
+                            {% for existing in ssExisting %}
+                                {% if existing == subSubfolder %}
+                                    {% assign ssAlreadyAdded = true %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                        {% unless ssAlreadyAdded %}
+                            {% if subSubfolders == "" %}
+                                {% assign subSubfolders = subSubfolder %}
+                            {% else %}
+                                {% assign subSubfolders = subSubfolders | append: '|' | append: subSubfolder %}
+                            {% endif %}
+                        {% endunless %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% comment %} Render sub-subfolder groups {% endcomment %}
+            {% if subSubfolders != "" %}
+                {% assign subSubfolderArray = subSubfolders | split: '|' %}
+                {% for subSubfolder in subSubfolderArray %}
+                    <h4 class="title">{{ subSubfolder | replace: '-', ' ' }}</h4>
+                    <div class="cards-group">
+                        {% for article in sortedArticles %}
+                            {% if article.href contains '/' %}
+                                {% assign parts = article.href | split: '/' %}
+                                {% if parts[0] == subfolder and parts[1] == subSubfolder %}
+                                    {% assign article_href = section.href | append: '/' | append: article.href %}
+                                    {% include article-card.html hub=hub.href href=article_href title=article.title platform=activePlatform %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
 </section>

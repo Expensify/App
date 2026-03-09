@@ -1,8 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import LottieAnimations from '@components/LottieAnimations';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,9 +20,11 @@ const minModalHeight = 380;
 
 function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes.Report; policy?: OnyxTypes.Policy}) {
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const reportId = report.reportID;
@@ -39,7 +40,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -54,7 +55,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -66,7 +67,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
             text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -83,13 +84,11 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         <View style={styles.flex1}>
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
+                cardContentStyles={[styles.pb0]}
+                headerMedia={illustrations.FolderWithPapersAndWatch}
                 title={translate('search.moneyRequestReport.emptyStateTitle')}
                 headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
+                headerContentStyles={[styles.emptyStateFolderStaticIllustration]}
                 minModalHeight={minModalHeight}
                 buttons={
                     canAddTransactionToReport

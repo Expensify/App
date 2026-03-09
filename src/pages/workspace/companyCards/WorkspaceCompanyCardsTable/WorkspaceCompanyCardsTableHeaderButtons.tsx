@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -112,6 +113,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardsTableHeaderButtons',
+        isLoading,
+    };
+
     return (
         <View>
             <View
@@ -128,6 +134,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
                         style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
+                        reasonAttributes={skeletonReasonAttributes}
                     />
                 ) : (
                     <FeedSelector
