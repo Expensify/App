@@ -11988,7 +11988,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(42186));
 const utils_1 = __nccwpck_require__(73030);
 const plugin_paginate_rest_1 = __nccwpck_require__(64193);
@@ -12535,7 +12535,6 @@ class OpenAIUtils {
             model,
             input,
             instructions,
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
             // eslint-disable-next-line @typescript-eslint/naming-convention
             prompt_cache_key: promptCacheKey,
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -12571,7 +12570,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
             run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;

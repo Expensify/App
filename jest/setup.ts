@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';

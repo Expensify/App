@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useCompanyCardBankIcons, useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
@@ -20,34 +20,26 @@ type PlaidCardFeedIconProps = {
 };
 
 function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader = false}: PlaidCardFeedIconProps) {
-    const [isBrokenImage, setIsBrokenImage] = useState<boolean>(false);
+    const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
+    const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+    const isBrokenImage = brokenUrl === plaidUrl;
+    const loading = loadedUrl !== plaidUrl && !isBrokenImage;
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const width = isLarge ? variables.cardPreviewWidth : variables.cardIconWidth;
     const height = isLarge ? variables.cardPreviewHeight : variables.cardIconHeight;
-    const [loading, setLoading] = useState<boolean>(true);
+
     const plaidImageStyle = isLarge ? styles.plaidIcon : styles.plaidIconSmall;
     const iconWidth = isSmall ? variables.cardMiniatureWidth : width;
     const iconHeight = isSmall ? variables.cardMiniatureHeight : height;
     const plaidLoadedStyle = isSmall ? styles.plaidIconExtraSmall : plaidImageStyle;
 
-    useEffect(() => {
-        if (!plaidUrl) {
-            return;
-        }
-        setIsBrokenImage(false);
-        setLoading(true);
-    }, [plaidUrl]);
-
-    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'PlaidCardFeedIcon',
-            loading,
-        }),
-        [loading],
-    );
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'PlaidCardFeedIcon',
+        loading,
+    };
 
     return (
         <View style={[style]}>
@@ -64,8 +56,8 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge, isSmall, useSkeletonLoader
                         source={{uri: plaidUrl}}
                         style={plaidLoadedStyle}
                         cachePolicy="memory-disk"
-                        onError={() => setIsBrokenImage(true)}
-                        onLoadEnd={() => setLoading(false)}
+                        onError={() => setBrokenUrl(plaidUrl)}
+                        onLoadEnd={() => setLoadedUrl(plaidUrl)}
                     />
                     {loading && useSkeletonLoader && (
                         <CardIconSkeleton

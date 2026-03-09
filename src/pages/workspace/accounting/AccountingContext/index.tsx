@@ -8,10 +8,10 @@ import useLocalize from '@hooks/useLocalize';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
-import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {getAccountingIntegrationData} from '../utils';
 import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
 import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
 
