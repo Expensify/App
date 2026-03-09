@@ -198,7 +198,8 @@ import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, ge
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -1088,12 +1089,26 @@ function getPolicyTagsData(policyID: string | undefined) {
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
     const rootState = navigationRef.getRootState();
+    const hasSubmitToDestinationVisibleSpan = !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+
     if (!isInvoice && isReportOpenInRHP(rootState)) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
+            const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
+
+            // submit_follow_up_action: only set when the span was started.
+            if (hasSubmitToDestinationVisibleSpan) {
+                if (isSuperWideRHP) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                } else if (hasMultipleTransactions && reportID) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
+                } else {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                }
+            }
             // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
-            if (isReportOpenInSuperWideRHP(rootState)) {
+            if (isSuperWideRHP) {
                 Navigation.dismissToPreviousRHP();
                 return;
             }
@@ -1107,7 +1122,6 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
                 } else {
                     Navigation.dismissToPreviousRHP();
                 }
-
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
                 });
@@ -1118,10 +1132,30 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
         }
     }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
+        if (hasSubmitToDestinationVisibleSpan) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+        }
         Navigation.dismissModal();
+        if (hasSubmitToDestinationVisibleSpan) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
+            InteractionManager.runAfterInteractions(() => {
+                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+            });
+        }
         return;
     }
-    Navigation.dismissModalWithReport({reportID});
+    if (hasSubmitToDestinationVisibleSpan) {
+        Navigation.dismissModalWithReport({reportID}, undefined, {
+            onBeforeNavigate: (willOpenReport) => {
+                setPendingSubmitFollowUpAction(
+                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                    reportID,
+                );
+            },
+        });
+    } else {
+        Navigation.dismissModalWithReport({reportID});
+    }
 }
 
 /**
@@ -1165,6 +1199,17 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
+    // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
+    // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
+    const rootState = navigationRef.getRootState();
+    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
+    const isSameSearchType = currentSearchQueryJSON?.type === type;
+    setPendingSubmitFollowUpAction(
+        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
+    );
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
