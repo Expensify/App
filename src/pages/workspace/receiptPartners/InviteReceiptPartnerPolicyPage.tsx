@@ -214,7 +214,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     customListHeader={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
                     confirmButtonOptions={confirmButtonOptions}
                     textInputOptions={textInputOptions}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     shouldUseDefaultRightHandSideCheckmark
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding

@@ -1,4 +1,4 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {View} from 'react-native';
@@ -39,7 +39,7 @@ function TabSelectorItem({
 
     const {onTabLayout, registerTab, scrollToTab} = useContext(TabSelectorContext);
 
-    const accessibilityState = useMemo(() => ({selected: isActive}), [isActive]);
+    const accessibilityState = {selected: isActive};
 
     const children = (
         <AnimatedPressableWithFeedback

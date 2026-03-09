@@ -32,7 +32,6 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
@@ -91,10 +90,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     }
 
     const goBack = () => {
-        if (isReportFieldTitle) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
-            return;
-        }
         Navigation.goBack(backTo);
     };
 
