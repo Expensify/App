@@ -144,7 +144,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                         onChangeText: setSearchTerm,
                     }}
                     data={adminsList}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={
                         <ErrorMessageRow
