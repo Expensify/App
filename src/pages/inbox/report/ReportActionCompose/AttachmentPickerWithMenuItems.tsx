@@ -220,7 +220,7 @@ function AttachmentPickerWithMenuItems({
                     text: translate('iou.splitExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
                 },
             ],
             [CONST.IOU.TYPE.SUBMIT]: [
@@ -229,7 +229,7 @@ function AttachmentPickerWithMenuItems({
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
                 },
                 {
                     icon: icons.Location,
@@ -238,15 +238,7 @@ function AttachmentPickerWithMenuItems({
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () =>
                         selectOption(
-                            () =>
-                                startDistanceRequest(
-                                    CONST.IOU.TYPE.SUBMIT,
-                                    report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-                                    draftTransactionIDs,
-                                    lastDistanceExpenseType,
-                                    false,
-                                    undefined,
-                                ),
+                            () => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
                             true,
                         ),
                 },
@@ -264,7 +256,7 @@ function AttachmentPickerWithMenuItems({
                             });
                             return;
                         }
-                        selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
+                        selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false);
                     },
                 },
             ],
@@ -274,7 +266,7 @@ function AttachmentPickerWithMenuItems({
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
                 },
                 {
                     icon: icons.Location,
@@ -283,15 +275,7 @@ function AttachmentPickerWithMenuItems({
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () =>
                         selectOption(
-                            () =>
-                                startDistanceRequest(
-                                    CONST.IOU.TYPE.TRACK,
-                                    report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
-                                    draftTransactionIDs,
-                                    lastDistanceExpenseType,
-                                    false,
-                                    undefined,
-                                ),
+                            () => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs, lastDistanceExpenseType),
                             true,
                         ),
                 },
@@ -302,7 +286,7 @@ function AttachmentPickerWithMenuItems({
                     text: translate('workspace.invoices.sendInvoice'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
-                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
+                    onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false),
                 },
             ],
         };
@@ -326,6 +310,7 @@ function AttachmentPickerWithMenuItems({
         translate,
         icons,
         betas,
+        draftTransactionIDs,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

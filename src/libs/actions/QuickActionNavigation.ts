@@ -15,7 +15,7 @@ type NavigateToQuickActionParams = {
     lastDistanceExpenseType?: DistanceExpenseType;
     targetAccountPersonalDetails: PersonalDetails;
     currentUserAccountID: number;
-    draftTransactionIDs: string[];
+    draftTransactionIDs: string[] | undefined;
     isFromFloatingActionButton?: boolean;
 };
 
