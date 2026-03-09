@@ -9,6 +9,7 @@ import type * as OnyxTypes from './types/onyx';
 import type {Attendee, DistanceExpenseType, Participant} from './types/onyx/IOU';
 import type Onboarding from './types/onyx/Onboarding';
 import type {AnyOnyxUpdate} from './types/onyx/Request';
+import type {SavedCSVColumnLayoutList} from './types/onyx/SavedCSVColumnLayout';
 import type AssertTypesEqual from './types/utils/AssertTypesEqual';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -187,6 +188,9 @@ const ONYXKEYS = {
     /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'nvp_expensify_recentWaypoints',
 
+    /** This NVP contains saved CSV column layouts for imported cards */
+    NVP_SAVED_CSV_COLUMN_LAYOUT_LIST: 'nvp_expensify_savedCSVColumnLayoutList',
+
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
 
@@ -340,6 +344,9 @@ const ONYXKEYS = {
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
+    /** Stores information about the user's travel invoice statements */
+    TRAVEL_INVOICE_STATEMENT: 'travelInvoiceStatement',
+
     /** Stores information about the user's purchases */
     PURCHASE_LIST: 'purchaseList',
 
@@ -372,6 +379,9 @@ const ONYXKEYS = {
 
     /** Is loading policy rules preview? */
     IS_LOADING_POLICY_CODING_RULES_PREVIEW: 'isLoadingPolicyCodingRulesPreview',
+
+    /** Set when we are loading fresh subscription/billing data from the server */
+    IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
     /** Is the app loaded? */
     HAS_LOADED_APP: 'hasLoadedApp',
@@ -1006,6 +1016,12 @@ const ONYXKEYS = {
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
         ENABLE_GLOBAL_REIMBURSEMENTS: 'enableGlobalReimbursementsForm',
         ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT: 'enableGlobalReimbursementsFormDraft',
+        SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM: 'searchEditMultipleDescriptionForm',
+        SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM_DRAFT: 'searchEditMultipleDescriptionFormDraft',
+        SEARCH_EDIT_MULTIPLE_MERCHANT_FORM: 'searchEditMultipleMerchantForm',
+        SEARCH_EDIT_MULTIPLE_MERCHANT_FORM_DRAFT: 'searchEditMultipleMerchantFormDraft',
+        SEARCH_EDIT_MULTIPLE_DATE_FORM: 'searchEditMultipleDateForm',
+        SEARCH_EDIT_MULTIPLE_DATE_FORM_DRAFT: 'searchEditMultipleDateFormDraft',
         CREATE_DOMAIN_FORM: 'createDomainForm',
         CREATE_DOMAIN_FORM_DRAFT: 'createDomainFormDraft',
         SPLIT_EXPENSE_EDIT_DATES: 'splitExpenseEditDates',
@@ -1143,6 +1159,9 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM]: FormTypes.SearchEditMultipleDescriptionForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM]: FormTypes.SearchEditMultipleMerchantForm;
+    [ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM]: FormTypes.SearchEditMultipleDateForm;
     [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.CreateDomainForm;
     [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
@@ -1291,6 +1310,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;
     [ONYXKEYS.LAST_EXPORT_METHOD]: OnyxTypes.LastExportMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
+    [ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST]: SavedCSVColumnLayoutList;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
@@ -1317,6 +1337,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
+    [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
@@ -1329,6 +1350,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
+    [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_LOADING_APP]: boolean;
