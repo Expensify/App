@@ -155,7 +155,6 @@ describe('OnboardingPurpose Page', () => {
                 lastName: 'User',
             });
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, introSelectedValue);
-            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
         });
 
         const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
@@ -175,7 +174,6 @@ describe('OnboardingPurpose Page', () => {
                     firstName: 'Test',
                     lastName: 'User',
                     introSelected: introSelectedValue,
-                    isSelfTourViewed: true,
                 }),
             );
         });
