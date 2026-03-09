@@ -308,6 +308,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             betas,
             policyTags: policyTags ?? {},
             personalDetails,
+            transactionReport: draftTransactionReport,
+            expenseReport,
         });
     };
 
