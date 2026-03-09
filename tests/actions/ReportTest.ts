@@ -5452,8 +5452,8 @@ describe('actions/Report', () => {
             .then(() => {
                 // Set up a report with actions in Onyx (as if delivered via Pusher from a new user)
                 // but without hasOnceLoadedReportActions being set (simulating offline + new chat)
-                return Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {
+                return Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         reportID: REPORT_ID,
                         participants: {
                             [USER_1_ACCOUNT_ID]: {notificationPreference: 'always'},
@@ -5462,8 +5462,8 @@ describe('actions/Report', () => {
                         lastActorAccountID: USER_2_ACCOUNT_ID,
                         lastVisibleActionCreated: reportActionCreatedDate,
                         lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
-                    },
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
+                    }),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                         1: {
                             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                             actorAccountID: USER_2_ACCOUNT_ID,
@@ -5475,8 +5475,8 @@ describe('actions/Report', () => {
                             created: reportActionCreatedDate,
                             reportActionID: '1',
                         },
-                    },
-                });
+                    }),
+                ]);
             })
             .then(waitForBatchedUpdates)
             .then(() => {
