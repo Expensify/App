@@ -1,4 +1,4 @@
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/findMatchingDynamicSuffix';
+import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 
 describe('findMatchingDynamicSuffix', () => {
     it('should match a single-segment dynamic suffix', () => {

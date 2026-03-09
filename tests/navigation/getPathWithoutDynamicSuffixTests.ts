@@ -1,4 +1,4 @@
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/getPathWithoutDynamicSuffix';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 
 describe('getPathWithoutDynamicSuffix', () => {
     it('should remove a single-segment suffix from a simple path', () => {
