@@ -443,7 +443,7 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
-                                                aria-label={translate('delegate.learnMoreAboutDelegatedAccess')}
+                                                accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
