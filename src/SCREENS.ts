@@ -758,6 +758,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         TRAVEL_SETTINGS_ACCOUNT: 'Workspace_Travel_Settings_Account',
         TRAVEL_SETTINGS_FREQUENCY: 'Workspace_Travel_Settings_Frequency',
+        TRAVEL_EXPORT: 'Workspace_Travel_Invoicing_Export',
         TRAVEL_MISSING_PERSONAL_DETAILS: 'Travel_Missing_Personal_Details',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         CREATE_DISTANCE_RATE_UPGRADE: 'Create_Distance_Rate_Upgrade',

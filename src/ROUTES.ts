@@ -2642,6 +2642,15 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/settings/account',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/account` as const,
     },
+    WORKSPACE_TRAVEL_EXPORT: {
+        route: 'workspaces/:policyID/travel/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL_EXPORT route');
+            }
+            return `workspaces/${policyID}/travel/export` as const;
+        },
+    },
     WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,

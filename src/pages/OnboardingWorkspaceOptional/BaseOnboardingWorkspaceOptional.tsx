@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -18,12 +19,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {OnboardingPurpose} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingWorkspaceOptionalProps} from './types';
 
@@ -44,6 +48,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const {onboardingMessages} = useOnboardingMessages();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -77,49 +85,104 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         },
     ];
 
-    const completeOnboarding = useCallback(() => {
+    const completeOnboarding = useCallback(
+        (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
+            const engagementChoice = overrides?.engagementChoice ?? onboardingPurposeSelected;
+            if (!engagementChoice) {
+                return;
+            }
+
+            const resolvedAdminsChatReportID = overrides?.adminsChatReportID ?? onboardingAdminsChatReportID;
+            const resolvedPolicyID = overrides?.policyID ?? onboardingPolicyID;
+
+            completeOnboardingReport({
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                firstName: currentUserPersonalDetails.firstName,
+                lastName: currentUserPersonalDetails.lastName,
+                adminsChatReportID: resolvedAdminsChatReportID,
+                onboardingPolicyID: resolvedPolicyID,
+                shouldSkipTestDriveModal: (!!resolvedPolicyID && !resolvedAdminsChatReportID) || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                introSelected,
+                betas,
+            });
+
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
+                archivedReportsIdSet,
+                resolvedPolicyID,
+                mergedAccountConciergeReportID,
+                false,
+            );
+        },
+        [
+            onboardingPurposeSelected,
+            currentUserPersonalDetails.firstName,
+            currentUserPersonalDetails.lastName,
+            onboardingAdminsChatReportID,
+            onboardingMessages,
+            onboardingPolicyID,
+            archivedReportsIdSet,
+            isSmallScreenWidth,
+            isBetaEnabled,
+            mergedAccountConciergeReportID,
+            introSelected,
+            conciergeChatReportID,
+            betas,
+        ],
+    );
+
+    const createWorkspaceAndCompleteOnboarding = useCallback(() => {
         if (!onboardingPurposeSelected) {
             return;
         }
 
-        completeOnboardingReport({
-            engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-            firstName: currentUserPersonalDetails.firstName,
-            lastName: currentUserPersonalDetails.lastName,
-            adminsChatReportID: onboardingAdminsChatReportID,
-            onboardingPolicyID,
-            shouldSkipTestDriveModal: (!!onboardingPolicyID && !onboardingAdminsChatReportID) || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
-            introSelected,
-            betas,
+        const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+
+        const {adminsChatReportID, policyID} = shouldCreateWorkspace
+            ? createWorkspace({
+                  policyOwnerEmail: undefined,
+                  makeMeAdmin: true,
+                  policyName: generateDefaultWorkspaceName(session?.email),
+                  policyID: generatePolicyID(),
+                  engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                  currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+                  file: undefined,
+                  shouldAddOnboardingTasks: false,
+                  introSelected,
+                  activePolicyID,
+                  currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                  currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                  shouldAddGuideWelcomeMessage: false,
+                  onboardingPurposeSelected,
+                  isSelfTourViewed,
+              })
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+        completeOnboarding({
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            adminsChatReportID,
+            policyID,
         });
-
-        setOnboardingAdminsChatReportID();
-        setOnboardingPolicyID();
-
-        navigateAfterOnboardingWithMicrotaskQueue(
-            isSmallScreenWidth,
-            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-            conciergeChatReportID,
-            archivedReportsIdSet,
-            onboardingPolicyID,
-            mergedAccountConciergeReportID,
-            false,
-        );
     }, [
         onboardingPurposeSelected,
-        currentUserPersonalDetails.firstName,
-        currentUserPersonalDetails.lastName,
-        onboardingAdminsChatReportID,
-        onboardingMessages,
+        allPolicies,
+        session?.email,
         onboardingPolicyID,
-        archivedReportsIdSet,
-        isSmallScreenWidth,
-        isBetaEnabled,
-        mergedAccountConciergeReportID,
+        onboardingAdminsChatReportID,
+        currentUserPersonalDetails.localCurrencyCode,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
         introSelected,
-        conciergeChatReportID,
-        betas,
+        activePolicyID,
+        isSelfTourViewed,
+        completeOnboarding,
     ]);
 
     return (
@@ -187,6 +250,10 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             text={translate('onboarding.workspace.createWorkspace')}
                             onPress={() => {
                                 setOnboardingErrorMessage(null);
+                                if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+                                    createWorkspaceAndCompleteOnboarding();
+                                    return;
+                                }
                                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.getRoute());
                             }}
                             sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CREATE_WORKSPACE}
