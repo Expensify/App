@@ -540,13 +540,9 @@ function ReportActionsList({
                     if (action?.reportActionID) {
                         setActionIdToHighlight(action.reportActionID);
                     }
-                } else if (Navigation.getReportRHPActiveRoute()) {
+                } else {
                     setIsFloatingMessageCounterVisible(false);
                     reportScrollManager.scrollToBottom();
-                } else {
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                    });
                 }
 
                 setIsScrollToBottomEnabled(true);
