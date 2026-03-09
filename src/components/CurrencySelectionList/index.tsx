@@ -8,14 +8,17 @@ import useLocalize from '@hooks/useLocalize';
 import getMatchScore from '@libs/getMatchScore';
 import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arraysEqual from '@src/utils/arraysEqual';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
+
+const EMPTY_SELECTED_CURRENCIES: string[] = [];
 
 function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
     onSelect,
     didScreenTransitionEnd = true,
-    selectedCurrencies = [],
+    selectedCurrencies = EMPTY_SELECTED_CURRENCIES,
     recentlyUsedCurrencies,
     excludedCurrencies = [],
     ...restProps
@@ -35,7 +38,12 @@ function CurrencySelectionList({
         }
         return Array.from(codes);
     }, [initiallySelectedCurrencyCode, selectedCurrencies]);
-    const initialSelectedCurrencySnapshot = useInitialSelectionRef(initialSelectedCurrencyCodes, {resetDeps: [initialSelectedCurrencyCodes], resetOnFocus: true});
+    const initialSelectedCurrencyCodesSignature = useMemo(() => initialSelectedCurrencyCodes.join('|'), [initialSelectedCurrencyCodes]);
+    const initialSelectedCurrencySnapshot = useInitialSelectionRef(initialSelectedCurrencyCodes, {
+        resetDeps: [initialSelectedCurrencyCodesSignature],
+        resetOnFocus: true,
+        isEqual: arraysEqual,
+    });
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
         const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
