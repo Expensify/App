@@ -2254,8 +2254,8 @@ function readNewestAction(reportID: string | undefined, hasOnceLoadedReportActio
     // However, if report actions already exist in Onyx (e.g., delivered via Pusher), the report is
     // clearly shared with the user and we can proceed with marking it as read.
     const reportActions = allReportActions?.[reportID];
-    const hasReportActionsInOnyx = !!reportActions && Object.keys(reportActions).length > 0;
-    if (!hasOnceLoadedReportActions && !hasReportActionsInOnyx) {
+    const hasReportActions = !!reportActions && Object.keys(reportActions).length > 0;
+    if (!hasOnceLoadedReportActions && !hasReportActions) {
         return;
     }
 
