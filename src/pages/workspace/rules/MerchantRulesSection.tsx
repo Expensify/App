@@ -106,7 +106,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
-                badgeStyles={styles.badgeNewFeature}
+                isCondensed
                 success
             />
         </View>
@@ -137,7 +137,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                         description={matchDescription}
                                         title={ruleDescription}
                                         wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        descriptionTextStyle={[styles.textStrong, styles.themeTextColor, styles.fontSizeNormal]}
+                                        descriptionTextStyle={[styles.textSupportingNormal, styles.textStrong, styles.themeTextColor]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}

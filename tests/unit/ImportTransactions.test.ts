@@ -105,7 +105,7 @@ describe('ImportTransactions', () => {
                 offset: 0,
                 dateFormat: null,
                 accountDetails: {
-                    bank: CONST.PERSONAL_CARD.BANK_NAME.CSV,
+                    bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
                     currency: 'USD',
                     accountID: 'Test Card',
                 },

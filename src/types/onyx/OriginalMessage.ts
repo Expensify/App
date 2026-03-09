@@ -1044,6 +1044,9 @@ type OriginalMessageDismissedViolation = {
 type OriginalMessageDynamicExternalWorkflowRouted = {
     /** The approver of the report is submitted to */
     to: string;
+
+    /** Explanation for why the report was routed that way */
+    message?: string;
 };
 
 /** Model of `marked reimbursed` report action */
@@ -1110,6 +1113,9 @@ type OriginalMessageForwarded = {
 
     /** The workflow the report is approved on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Optional message explaining why the report was forwarded that way */
+    message?: string;
 };
 
 /**
@@ -1372,6 +1378,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;

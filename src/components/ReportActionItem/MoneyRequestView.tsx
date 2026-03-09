@@ -510,7 +510,7 @@ function MoneyRequestView({
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
 
-    if (isFromMergeTransaction) {
+    if (isFromMergeTransaction && !rateName) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
         // We need to extract the rate from the merchant string
         // See https://github.com/Expensify/App/pull/71675#issuecomment-3425488228 for more information
