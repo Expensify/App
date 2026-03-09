@@ -47,7 +47,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 if (introSelected === undefined) {
                     Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                 }
-                openReportFromDeepLink(url, allReports, isAuthenticated, conciergeReportID, introSelected);
+                // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
+                // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
+                const isCurrentlyAuthenticated = hasAuthToken();
+                openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected);
             } else {
                 Report.doneCheckingPublicRoom();
             }
@@ -72,6 +75,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to re-run when conciergeReportID changes
     }, [sessionMetadata?.status, conciergeReportID, introSelected]);
+
+    // Cold-start race condition safety net: the initial deep link may be processed before the session
+    // loads from storage, triggering an unnecessary public room check. Once isAuthenticated settles to
+    // true, unblock the UI immediately. This call is idempotent.
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        Report.doneCheckingPublicRoom();
+    }, [isAuthenticated]);
 
     return null;
 }
