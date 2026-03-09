@@ -19,6 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import MyParagraph from '@components/Charts/ParagraphAPI';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;
@@ -192,59 +193,62 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
     }
 
     return (
-        <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
-            <ChartHeader
-                title={title}
-                titleIcon={titleIcon}
-            />
-            <View
-                style={[styles.barChartChartContainer, dynamicChartStyle]}
-                onLayout={handleLayout}
-            >
-                {chartWidth > 0 && (
-                    <CartesianChart
-                        xKey="x"
-                        padding={chartPadding}
-                        yKeys={['y']}
-                        domainPadding={domainPadding}
-                        actionsRef={actionsRef}
-                        customGestures={customGestures}
-                        onChartBoundsChange={handleChartBoundsChange}
-                        onScaleChange={handleScaleChange}
-                        renderOutside={renderOutside}
-                        xAxis={{
-                            tickCount: data.length,
-                            lineWidth: X_AXIS_LINE_WIDTH,
-                        }}
-                        yAxis={[
-                            {
-                                font,
-                                labelColor: theme.textSupporting,
-                                formatYLabel: formatValue,
-                                tickCount: Y_AXIS_TICK_COUNT,
-                                lineWidth: Y_AXIS_LINE_WIDTH,
-                                lineColor: theme.border,
-                                labelOffset: AXIS_LABEL_GAP,
-                                domain: yAxisDomain,
-                            },
-                        ]}
-                        frame={{lineWidth: 0}}
-                        data={chartData}
-                    >
-                        {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
-                    </CartesianChart>
-                )}
-                {isTooltipActive && !!tooltipData && (
-                    <ChartTooltip
-                        label={tooltipData.label}
-                        amount={tooltipData.amount}
-                        percentage={tooltipData.percentage}
-                        chartWidth={chartWidth}
-                        initialTooltipPosition={initialTooltipPosition}
-                    />
-                )}
-            </View>
+        <View style={{borderWidth: 1, borderColor: 'red'}}>
+            <MyParagraph />
         </View>
+        // <View style={[styles.barChartContainer, styles.highlightBG, shouldUseNarrowLayout ? styles.p5 : styles.p8]}>
+        //     <ChartHeader
+        //         title={title}
+        //         titleIcon={titleIcon}
+        //     />
+        //     <View
+        //         style={[styles.barChartChartContainer, dynamicChartStyle]}
+        //         onLayout={handleLayout}
+        //     >
+        //         {chartWidth > 0 && (
+        //             <CartesianChart
+        //                 xKey="x"
+        //                 padding={chartPadding}
+        //                 yKeys={['y']}
+        //                 domainPadding={domainPadding}
+        //                 actionsRef={actionsRef}
+        //                 customGestures={customGestures}
+        //                 onChartBoundsChange={handleChartBoundsChange}
+        //                 onScaleChange={handleScaleChange}
+        //                 renderOutside={renderOutside}
+        //                 xAxis={{
+        //                     tickCount: data.length,
+        //                     lineWidth: X_AXIS_LINE_WIDTH,
+        //                 }}
+        //                 yAxis={[
+        //                     {
+        //                         font,
+        //                         labelColor: theme.textSupporting,
+        //                         formatYLabel: formatValue,
+        //                         tickCount: Y_AXIS_TICK_COUNT,
+        //                         lineWidth: Y_AXIS_LINE_WIDTH,
+        //                         lineColor: theme.border,
+        //                         labelOffset: AXIS_LABEL_GAP,
+        //                         domain: yAxisDomain,
+        //                     },
+        //                 ]}
+        //                 frame={{lineWidth: 0}}
+        //                 data={chartData}
+        //             >
+        //                 {({points, chartBounds}) => <>{points.y.map((point) => renderBar(point, chartBounds, points.y.length))}</>}
+        //             </CartesianChart>
+        //         )}
+        //         {isTooltipActive && !!tooltipData && (
+        //             <ChartTooltip
+        //                 label={tooltipData.label}
+        //                 amount={tooltipData.amount}
+        //                 percentage={tooltipData.percentage}
+        //                 chartWidth={chartWidth}
+        //                 initialTooltipPosition={initialTooltipPosition}
+        //             />
+        //         )}
+        //     </View>
+        // </View>
     );
 }
 
