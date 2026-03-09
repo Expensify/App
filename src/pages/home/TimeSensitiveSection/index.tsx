@@ -10,9 +10,10 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasSynchronizationErrorMessage, isConnectionInProgress} from '@libs/actions/connections';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import useTimeSensitiveCards from './hooks/useTimeSensitiveCards';
 import useTimeSensitiveOffers from './hooks/useTimeSensitiveOffers';
 import ActivateCard from './items/ActivateCard';
@@ -82,8 +83,8 @@ function TimeSensitiveSection() {
         const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
         const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
 
-        for (const connectionName of Object.keys(policyConnections) as ConnectionName[]) {
-            if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
+        for (const connectionName of Object.values(CONST.POLICY.CONNECTIONS.NAME)) {
+            if (policyConnections[connectionName] && hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
                 brokenAccountingConnections.push({
                     policyID: policy.id,
                     policyName: policy.name,
