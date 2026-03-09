@@ -1466,6 +1466,8 @@ function PureReportActionItem({
                 <MovedTransactionAction
                     action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
                     emptyHTML={emptyHTML}
+                    childReport={childReport}
+                    originalReport={originalReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED) {
