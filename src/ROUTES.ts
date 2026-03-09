@@ -1138,27 +1138,15 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_ODOMETER_PREVIEW: {
-        route: ':action/:iouType/odometer-image-preview/:transactionID/:reportID/:imageType?',
-        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
+        route: ':action/:iouType/odometer-image-preview/:transactionID/:reportID/:imageType/:isEditingConfirmation?',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType: OdometerImageType, isEditingConfirmation: boolean) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
-            return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
-        },
-    },
-    MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW: {
-        route: ':action/:iouType/odometer-image-confirmation-preview/:transactionID/:reportID/:imageType?',
-        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType?: OdometerImageType) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW route');
-            }
-            if (!transactionID) {
-                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW route');
-            }
-            return `${action as string}/${iouType as string}/odometer-image-confirmation-preview/${transactionID}/${reportID}?readonly=false${imageType ? `&imageType=${imageType}` : ''}` as const;
+            return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}?readonly=false&imageType=${imageType}${isEditingConfirmation ? '&isEditingConfirmation=true' : ''}` as const;
         },
     },
     MONEY_REQUEST_EDIT_REPORT: {
@@ -1500,7 +1488,7 @@ const ROUTES = {
     },
     ODOMETER_IMAGE: {
         route: ':action/:iouType/odometer-image/:transactionID/:reportID/:imageType/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType, isEditingConfirmation: boolean, backToReport?: string) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType, isEditingConfirmation?: boolean, backToReport?: string) =>
             `${action as string}/${iouType as string}/odometer-image/${transactionID}/${reportID}/${imageType}${backToReport ? `/${backToReport}` : ''}${isEditingConfirmation ? '?isEditingConfirmation=true' : ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',

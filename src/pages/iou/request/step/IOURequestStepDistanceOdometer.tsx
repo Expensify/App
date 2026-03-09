@@ -331,11 +331,7 @@ function IOURequestStepDistanceOdometer({
             if (!reportID || !transactionID) {
                 return;
             }
-            if (isEditingConfirmation) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_CONFIRMATION_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
-            } else {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType));
-            }
+            Navigation.navigate(ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.getRoute(reportID, transactionID, action, iouType, imageType, isEditingConfirmation));
         },
         [reportID, transactionID, isEditingConfirmation, action, iouType],
     );

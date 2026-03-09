@@ -31,13 +31,13 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation} = route.params;
     const {name: routeName} = useRoute();
 
     const {translate} = useLocalize();
@@ -518,7 +518,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                           transactionID,
                                           reportID,
                                           imageType,
-                                          routeName === SCREENS.MONEY_REQUEST.ODOMETER_CONFIRMATION_PREVIEW,
+                                          isEditingConfirmation,
                                       )
                                     : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                           action ?? CONST.IOU.ACTION.EDIT,
