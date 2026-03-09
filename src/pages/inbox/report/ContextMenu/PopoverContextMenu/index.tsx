@@ -35,20 +35,6 @@ type PopoverPosition = {
     anchorHeight: number;
 };
 
-type PopoverContextMenuState = {
-    type: ContextMenuType;
-    reportID: string | undefined;
-    reportActionID: string | undefined;
-    originalReportID: string | undefined;
-    selection: string;
-    draftMessage: string | undefined;
-    isOverflowMenu: boolean;
-    withoutOverlay: boolean;
-    position: PopoverPosition;
-    contextMenuTargetNode: HTMLDivElement | null;
-    onEmojiPickerToggle: ((state: boolean) => void) | undefined;
-};
-
 type PopoverContextMenuProps = {
     ref?: React.Ref<ReportActionContextMenu>;
 };
@@ -57,13 +43,21 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
     const modalContext = useModal();
 
-    const [menuState, setMenuState] = useState<PopoverContextMenuState | null>(null);
+    const [type, setType] = useState<ContextMenuType | null>(null);
+    const [reportID, setReportID] = useState<string | undefined>();
+    const [reportActionID, setReportActionID] = useState<string | undefined>();
+    const [originalReportID, setOriginalReportID] = useState<string | undefined>();
+    const [selection, setSelection] = useState('');
+    const [draftMessage, setDraftMessage] = useState<string | undefined>();
+    const [isOverflowMenu, setIsOverflowMenu] = useState(false);
+    const [withoutOverlay, setWithoutOverlay] = useState(true);
+    const [popoverPosition, setPopoverPosition] = useState<PopoverPosition>({anchorHorizontal: 0, anchorVertical: 0, anchorWidth: 0, anchorHeight: 0});
+    const [contextMenuTargetNode, setContextMenuTargetNode] = useState<HTMLDivElement | null>(null);
+    const [onEmojiPickerToggle, setOnEmojiPickerToggle] = useState<((state: boolean) => void) | undefined>();
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const [composerToRefocusOnClose, setComposerToRefocusOnClose] = useState<ComposerType>();
     const [localShouldKeepOpen, setLocalShouldKeepOpen] = useState(false);
-
-    const reportActionID = menuState?.reportActionID;
 
     const cursorRelativePosition = useRef({horizontal: 0, vertical: 0});
     const instanceIDRef = useRef('');
@@ -104,19 +98,11 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
                     return;
                 }
 
-                setMenuState((prev) => {
-                    if (!prev) {
-                        return prev;
-                    }
-                    return {
-                        ...prev,
-                        position: {
-                            ...prev.position,
-                            anchorHorizontal: cursorRelativePosition.current.horizontal + x,
-                            anchorVertical: cursorRelativePosition.current.vertical + y,
-                        },
-                    };
-                });
+                setPopoverPosition((prev) => ({
+                    ...prev,
+                    anchorHorizontal: cursorRelativePosition.current.horizontal + x,
+                    anchorVertical: cursorRelativePosition.current.vertical + y,
+                }));
             });
         });
 
@@ -128,21 +114,31 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     const isActiveReportAction: ReportActionContextMenu['isActiveReportAction'] = (actionID) => !!actionID && reportActionID === String(actionID);
 
     const clearActiveReportAction = () => {
-        setMenuState(null);
+        setType(null);
+        setReportID(undefined);
+        setReportActionID(undefined);
+        setOriginalReportID(undefined);
+        setSelection('');
+        setDraftMessage(undefined);
+        setIsOverflowMenu(false);
+        setWithoutOverlay(true);
+        setPopoverPosition({anchorHorizontal: 0, anchorVertical: 0, anchorWidth: 0, anchorHeight: 0});
+        setContextMenuTargetNode(null);
+        setOnEmojiPickerToggle(undefined);
     };
 
     const showContextMenuHandler: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
         const {
-            type,
+            type: showType,
             event,
-            selection,
+            selection: showSelection,
             contextMenuAnchor,
             report: currentReport = {},
             reportAction: reportActionParam = {},
             callbacks = {},
             shouldCloseOnTarget = false,
-            isOverflowMenu = false,
-            withoutOverlay = true,
+            isOverflowMenu: showIsOverflowMenu = false,
+            withoutOverlay: showWithoutOverlay = true,
         } = showContextMenuParams;
         if (ReportActionComposeFocusManager.isFocused()) {
             setComposerToRefocusOnClose('main');
@@ -151,7 +147,7 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
         }
 
         const {reportID: showReportID, originalReportID: showOriginalReportID} = currentReport;
-        const {reportActionID: showReportActionID, draftMessage} = reportActionParam;
+        const {reportActionID: showReportActionID, draftMessage: showDraftMessage} = reportActionParam;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
 
@@ -169,7 +165,7 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
 
         new Promise<PopoverPosition>((resolve) => {
             const anchor = contextMenuAnchorRef.current;
-            const useAnchorPosition = isOverflowMenu || (anchor != null && !pageX && !pageY);
+            const useAnchorPosition = showIsOverflowMenu || (anchor != null && !pageX && !pageY);
             if (useAnchorPosition && anchor) {
                 calculateAnchorPosition(anchor).then((position) => {
                     resolve({
@@ -194,20 +190,18 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
                 });
             }
         }).then((position) => {
-            setMenuState({
-                type,
-                reportID: showReportID,
-                reportActionID: showReportActionID,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                originalReportID: showOriginalReportID || undefined,
-                selection,
-                draftMessage,
-                isOverflowMenu,
-                withoutOverlay,
-                position,
-                contextMenuTargetNode: targetNode,
-                onEmojiPickerToggle: setIsEmojiPickerActive,
-            });
+            setType(showType);
+            setReportID(showReportID);
+            setReportActionID(showReportActionID);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setOriginalReportID(showOriginalReportID || undefined);
+            setSelection(showSelection);
+            setDraftMessage(showDraftMessage);
+            setIsOverflowMenu(showIsOverflowMenu);
+            setWithoutOverlay(showWithoutOverlay);
+            setPopoverPosition(position);
+            setContextMenuTargetNode(targetNode);
+            setOnEmojiPickerToggle(() => setIsEmojiPickerActive);
             setIsPopoverVisible(true);
         });
     };
@@ -227,7 +221,7 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
     };
 
     const runAndResetOnPopoverHide = () => {
-        setMenuState(null);
+        clearActiveReportAction();
         instanceIDRef.current = '';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
@@ -273,21 +267,8 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
             return;
         }
 
-        setMenuState((prev) => ({
-            ...(prev ?? {
-                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION as ContextMenuType,
-                selection: '',
-                draftMessage: undefined,
-                isOverflowMenu: false,
-                withoutOverlay: true,
-                position: {anchorHorizontal: 0, anchorVertical: 0, anchorWidth: 0, anchorHeight: 0},
-                contextMenuTargetNode: null,
-                onEmojiPickerToggle: undefined,
-            }),
-            reportID: showReportID,
-            reportActionID: showReportAction.reportActionID,
-            originalReportID: prev?.originalReportID,
-        }));
+        setReportID(showReportID);
+        setReportActionID(showReportAction.reportActionID);
 
         isDeleteModalActiveRef.current = true;
         modalContext
@@ -338,61 +319,61 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
             onModalShow={runAndResetOnPopoverShow}
             onModalHide={runAndResetOnPopoverHide}
             anchorPosition={{
-                horizontal: menuState?.position.anchorHorizontal ?? 0,
-                vertical: menuState?.position.anchorVertical ?? 0,
+                horizontal: popoverPosition.anchorHorizontal,
+                vertical: popoverPosition.anchorVertical,
             }}
             animationIn="fadeIn"
             disableAnimation={false}
             shouldSetModalVisibility={false}
             fullscreen
-            withoutOverlay={menuState?.withoutOverlay ?? true}
+            withoutOverlay={withoutOverlay}
             anchorDimensions={{
-                width: menuState?.position.anchorWidth ?? 0,
-                height: menuState?.position.anchorHeight ?? 0,
+                width: popoverPosition.anchorWidth,
+                height: popoverPosition.anchorHeight,
             }}
             anchorRef={anchorRef}
-            shouldSwitchPositionIfOverflow={menuState?.isOverflowMenu ?? false}
+            shouldSwitchPositionIfOverflow={isOverflowMenu}
         >
-            {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (
+            {type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (
                 <PopoverReportActionContent
-                    reportID={menuState.reportID}
-                    reportActionID={menuState.reportActionID}
-                    originalReportID={menuState.originalReportID}
-                    draftMessage={menuState.draftMessage}
-                    selection={menuState.selection}
-                    contextMenuTargetNode={menuState.contextMenuTargetNode}
-                    onEmojiPickerToggle={menuState.onEmojiPickerToggle}
+                    reportID={reportID}
+                    reportActionID={reportActionID}
+                    originalReportID={originalReportID}
+                    draftMessage={draftMessage}
+                    selection={selection}
+                    contextMenuTargetNode={contextMenuTargetNode}
+                    onEmojiPickerToggle={onEmojiPickerToggle}
                     hideAndRun={hideAndRun}
                     setLocalShouldKeepOpen={setLocalShouldKeepOpen}
                     contentRef={contentRef}
                     shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
-            {menuState?.type === CONST.CONTEXT_MENU_TYPES.REPORT && (
+            {type === CONST.CONTEXT_MENU_TYPES.REPORT && (
                 <PopoverReportContent
-                    reportID={menuState.reportID}
-                    reportActionID={menuState.reportActionID}
-                    originalReportID={menuState.originalReportID}
+                    reportID={reportID}
+                    reportActionID={reportActionID}
+                    originalReportID={originalReportID}
                     hideAndRun={hideAndRun}
                     contentRef={contentRef}
                     shouldEnableArrowNavigation={shouldEnableArrowNavigation}
                 />
             )}
-            {menuState?.type === CONST.CONTEXT_MENU_TYPES.LINK && (
+            {type === CONST.CONTEXT_MENU_TYPES.LINK && (
                 <PopoverLinkContent
-                    selection={menuState.selection}
+                    selection={selection}
                     contentRef={contentRef}
                 />
             )}
-            {menuState?.type === CONST.CONTEXT_MENU_TYPES.EMAIL && (
+            {type === CONST.CONTEXT_MENU_TYPES.EMAIL && (
                 <PopoverEmailContent
-                    selection={menuState.selection}
+                    selection={selection}
                     contentRef={contentRef}
                 />
             )}
-            {menuState?.type === CONST.CONTEXT_MENU_TYPES.TEXT && (
+            {type === CONST.CONTEXT_MENU_TYPES.TEXT && (
                 <PopoverTextContent
-                    selection={menuState.selection}
+                    selection={selection}
                     contentRef={contentRef}
                 />
             )}
@@ -403,4 +384,4 @@ function PopoverContextMenu({ref: forwardedRef}: PopoverContextMenuProps) {
 PopoverContextMenu.displayName = 'PopoverContextMenu';
 
 export default PopoverContextMenu;
-export type {PopoverPosition, PopoverContextMenuState};
+export type {PopoverPosition};
