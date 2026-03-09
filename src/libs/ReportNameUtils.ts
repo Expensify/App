@@ -121,6 +121,7 @@ import {
     isChatRoom,
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
+    chatIncludesChronos,
     isConciergeChatReport,
     isExpenseReport,
     isGroupChat,
@@ -863,6 +864,10 @@ function computeReportName(
 
     if (isConciergeChatReport(report)) {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
+    if (chatIncludesChronos(report)) {
+        formattedName = CONST.CHRONOS_DISPLAY_NAME;
     }
 
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);

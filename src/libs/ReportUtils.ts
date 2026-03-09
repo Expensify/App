@@ -5942,6 +5942,10 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
+    if (chatIncludesChronos(report)) {
+        formattedName = CONST.CHRONOS_DISPLAY_NAME;
+    }
+
     if (formattedName) {
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
     }
