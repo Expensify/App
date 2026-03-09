@@ -600,16 +600,17 @@ describe('actions/IOU', () => {
 
             // When the transaction is saved to draft by selecting a category in the selfDM report
             const reportActionableTrackExpense = Object.values(selfDMReportActions ?? {}).find((reportAction) => isActionableTrackExpense(reportAction));
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transaction?.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                reportActionableTrackExpense?.reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transaction?.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: reportActionableTrackExpense?.reportActionID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the transaction draft should be saved successfully
@@ -1160,16 +1161,17 @@ describe('actions/IOU', () => {
             expect(createdTransaction).toBeTruthy();
 
             // When a draft is created for categorization
-            createDraftTransactionAndNavigateToParticipantSelector(
-                createdTransaction?.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                actionableWhisper?.reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: createdTransaction?.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: actionableWhisper?.reportActionID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the draft should be created
@@ -1571,16 +1573,17 @@ describe('actions/IOU', () => {
             expect(allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingDraftTransaction2.transactionID}`]).toBeTruthy();
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with allTransactionDrafts
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transactionToCategorize.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transactionToCategorize.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts,
-                undefined,
-                undefined,
-            );
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then the existing draft transactions should be cleared
@@ -1618,16 +1621,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
-            createDraftTransactionAndNavigateToParticipantSelector(
-                originalTransaction.transactionID,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: originalTransaction.transactionID,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
                 reportActionID,
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-            );
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then a draft transaction should be created with the correct data
@@ -1654,16 +1658,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined transactionID
-            createDraftTransactionAndNavigateToParticipantSelector(
-                undefined,
-                selfDMReport.reportID,
-                CONST.IOU.ACTION.CATEGORIZE,
-                'some-report-action-id',
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: undefined,
+                reportID: selfDMReport.reportID,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: 'some-report-action-id',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then no draft transaction should be created
@@ -1685,16 +1690,17 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When createDraftTransactionAndNavigateToParticipantSelector is called with undefined reportID
-            createDraftTransactionAndNavigateToParticipantSelector(
-                transaction.transactionID,
-                undefined,
-                CONST.IOU.ACTION.CATEGORIZE,
-                'some-report-action-id',
-                {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                {},
-                undefined,
-                undefined,
-            );
+            createDraftTransactionAndNavigateToParticipantSelector({
+                transactionID: transaction.transactionID,
+                reportID: undefined,
+                actionName: CONST.IOU.ACTION.CATEGORIZE,
+                reportActionID: 'some-report-action-id',
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                allTransactionDrafts: {},
+                activePolicy: undefined,
+                userBillingGraceEndPeriodCollection: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Then no draft transaction should be created
@@ -6263,6 +6269,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6467,6 +6474,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6625,6 +6633,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6675,6 +6684,7 @@ describe('actions/IOU', () => {
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
             });
 
@@ -6787,6 +6797,7 @@ describe('actions/IOU', () => {
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         full: false,
                         betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
                         userBillingGraceEndPeriods: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -6880,12 +6891,105 @@ describe('actions/IOU', () => {
                 full: false,
                 policy,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('should accept isSelfTourViewed as true and apply optimistic data correctly', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+                userBillingGraceEndPeriods: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
+        });
+
+        it('should accept isSelfTourViewed as false and apply optimistic data correctly', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
         });
     });
 
@@ -6982,6 +7086,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -11465,6 +11570,7 @@ describe('actions/IOU', () => {
                     iouReportCurrentNextStepDeprecated: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     betas: [CONST.BETAS.ALL],
+                    isSelfTourViewed: false,
                     userBillingGraceEndPeriods: undefined,
                 });
             }
