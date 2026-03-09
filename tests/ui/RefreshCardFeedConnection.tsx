@@ -63,18 +63,18 @@ jest.mock('@userActions/CompanyCards', () => ({
     setAddNewCompanyCardStepAndData: jest.fn(),
 }));
 
-let capturedOnRefreshComplete: (() => void) | undefined;
+let capturedOnSuccess: (() => void) | undefined;
 jest.mock('@pages/workspace/companyCards/BankConnection', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
     return {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        default: ({onRefreshComplete, isRefreshConnectionFlow}: {onRefreshComplete?: () => void; isRefreshConnectionFlow?: boolean}) => {
-            capturedOnRefreshComplete = onRefreshComplete;
+        default: ({onSuccess}: {onSuccess?: () => void}) => {
+            capturedOnSuccess = onSuccess;
             return (
                 <View testID="BankConnection">
-                    <Text>{isRefreshConnectionFlow ? 'refresh-mode' : 'normal-mode'}</Text>
+                    <Text>{onSuccess ? 'has-refresh-callback' : 'no-refresh-callback'}</Text>
                 </View>
             );
         },
@@ -119,7 +119,7 @@ describe('RefreshCardFeedConnection', () => {
     });
 
     beforeEach(() => {
-        capturedOnRefreshComplete = undefined;
+        capturedOnSuccess = undefined;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
@@ -171,7 +171,7 @@ describe('RefreshCardFeedConnection', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId('BankConnection')).toBeOnTheScreen();
-                expect(screen.getByText('refresh-mode')).toBeOnTheScreen();
+                expect(screen.getByText('has-refresh-callback')).toBeOnTheScreen();
             });
 
             unmount();
@@ -202,7 +202,7 @@ describe('RefreshCardFeedConnection', () => {
     });
 
     describe('Success view', () => {
-        it('should show success confirmation when onRefreshComplete is called', async () => {
+        it('should show success confirmation when onSuccess is called', async () => {
             await TestHelper.signInWithTestUser();
 
             const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, workspaceAccountID: WORKSPACE_ACCOUNT_ID};
@@ -220,11 +220,11 @@ describe('RefreshCardFeedConnection', () => {
                 expect(screen.getByTestId('BankConnection')).toBeOnTheScreen();
             });
 
-            expect(capturedOnRefreshComplete).toBeDefined();
+            expect(capturedOnSuccess).toBeDefined();
 
-            // Simulate BankConnection calling onRefreshComplete after successful re-auth
+            // Simulate BankConnection calling onSuccess after successful re-auth
             act(() => {
-                capturedOnRefreshComplete?.();
+                capturedOnSuccess?.();
             });
 
             await waitFor(() => {
@@ -255,7 +255,7 @@ describe('RefreshCardFeedConnection', () => {
 
             // Trigger the success view
             act(() => {
-                capturedOnRefreshComplete?.();
+                capturedOnSuccess?.();
             });
 
             await waitFor(() => {
@@ -286,7 +286,7 @@ describe('RefreshCardFeedConnection', () => {
             await waitForBatchedUpdatesWithAct();
 
             act(() => {
-                capturedOnRefreshComplete?.();
+                capturedOnSuccess?.();
             });
 
             await waitFor(() => {
