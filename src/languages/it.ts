@@ -1574,7 +1574,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
-        routedDueToDEW: (to: string) => `rendiconto instradato a ${to} a causa del flusso di approvazione personalizzato`,
+        routedDueToDEW: (to: string, reason?: string) => `report indirizzato a ${to}${reason ? ` perché ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'ora' : 'ore'} @ ${rate} / ora`,
             hrs: 'ore',
@@ -3019,8 +3019,6 @@ ${
                 '# Configuriamo il tuo account\n👋 Ciao, sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire ricevute e spese. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui i passaggi di configurazione rimanenti qui sotto!',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come fare.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come amministratore e inviare le tue spese.',
-            onboardingLookingAroundMessage:
-                'Expensify è conosciuta soprattutto per la gestione delle spese, dei viaggi e delle carte aziendali, ma facciamo molto di più. Dimmi che cosa ti interessa e ti aiuterò a iniziare.',
             onboardingTestDriveReceiverMessage: '*Hai 3 mesi gratis! Inizia qui sotto.*',
         },
         workspace: {
@@ -5283,6 +5281,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         body: 'Hai ancora un saldo di viaggio in sospeso. Paga prima il tuo saldo.',
                         confirm: 'Capito',
                     },
+                    exportToPDF: 'Esporta in PDF',
+                    exportToCSV: 'Esporta in CSV',
+                    selectDateRangeError: 'Seleziona un intervallo di date da esportare',
+                    invalidDateRangeError: 'La data di inizio deve essere precedente alla data di fine',
+                    enabled: 'Fatturazione centralizzata abilitata!',
+                    enabledDescription: 'Tutte le spese di viaggio in questo spazio di lavoro saranno ora centralizzate in una fattura mensile.',
                 },
                 personalDetailsDescription: 'Per prenotare il viaggio, inserisci il tuo nome legale così come appare sul tuo documento d’identità rilasciato dal governo.',
             },
@@ -7761,6 +7765,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per iniziare il tracciamento della distanza GPS.',
         },
         fabGpsTripExplained: 'Vai alla schermata GPS (azione flottante)',
+        liveActivity: {subtitle: 'Rilevamento distanza', button: 'Visualizza avanzamento'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',

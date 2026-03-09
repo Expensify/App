@@ -110,6 +110,7 @@ function IOURequestStepDistanceOdometer({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
@@ -126,7 +127,7 @@ function IOURequestStepDistanceOdometer({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
-    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy), [iouType, defaultExpensePolicy]);
+    const shouldUseDefaultExpensePolicy = useMemo(() => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed), [iouType, defaultExpensePolicy, amountOwed]);
     const customUnitRateID = getRateID(transaction);
 
     const mileageRate = DistanceRequestUtils.getRate({transaction: currentTransaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy});
@@ -470,6 +471,7 @@ function IOURequestStepDistanceOdometer({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
+            amountOwed,
         });
     };
 

@@ -150,7 +150,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID, introSelected);
+        openReport({reportID, introSelected});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
