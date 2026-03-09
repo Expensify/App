@@ -332,6 +332,8 @@ type ChartLabelHitTestParams = {
  * Used by BarChart and LineChart to detect cursor over rotated labels.
  */
 function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90}: ChartLabelHitTestParams): boolean {
+    'worklet';
+
     if (angleRad === 0) {
         return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
     }
