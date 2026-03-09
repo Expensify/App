@@ -18,7 +18,6 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             showTooltip={shouldShowTooltip}
             text={categoryForDisplay}
             textStyle={[styles.textMicro, styles.mnh0]}
-            numberOfLines={2}
         />
     ) : (
         <TextWithTooltip

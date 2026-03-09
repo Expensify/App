@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
 
@@ -71,4 +71,12 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
     return Object.assign({}, ...mockReports) as ReportActions;
 };
 
-export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap};
+const createMockReport = (overrides: Partial<Report> = {}): Report =>
+    ({
+        reportID: '1',
+        reportName: 'Test Report',
+        type: CONST.REPORT.TYPE.CHAT,
+        ...overrides,
+    }) as Report;
+
+export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap, createMockReport};
