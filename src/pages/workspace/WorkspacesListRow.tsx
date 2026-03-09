@@ -203,7 +203,7 @@ function WorkspacesListRow({
             <Badge
                 text={translate('workspace.common.requested')}
                 textStyles={styles.textStrong}
-                badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                badgeStyles={styles.alignSelfCenter}
                 icon={icons.Hourglass}
             />
         </View>
@@ -219,7 +219,7 @@ function WorkspacesListRow({
                 <Badge
                     text={translate('common.default')}
                     textStyles={styles.textStrong}
-                    badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, styles.badgeSuccess]}
+                    badgeStyles={styles.alignSelfCenter}
                 />
             </View>
         </Tooltip>
@@ -227,7 +227,7 @@ function WorkspacesListRow({
 
     const ThreeDotsSection = !isJoinRequestPending ? (
         <View style={[styles.flexRow, styles.gap1, !isNarrow && styles.ml2, isNarrow && styles.alignItemsCenter]}>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
             </View>
             <ThreeDotsMenu
@@ -262,7 +262,7 @@ function WorkspacesListRow({
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, styles.br3]}>
-            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide && styles.gap5, styles.p5, styles.pr3, animatedHighlightStyle]}>
+            <Animated.View style={[styles.flex1, styles.flexRow, styles.bgTransparent, isWide ? styles.gap5 : styles.gap2, styles.p5, styles.pr3, animatedHighlightStyle]}>
                 <PressableWithoutFeedback
                     accessible
                     accessibilityLabel={accessibilityLabel}
@@ -351,10 +351,7 @@ function WorkspacesListRow({
                     </View>
                 </PressableWithoutFeedback>
 
-                <View
-                    role={isWide ? CONST.ROLE.CELL : undefined}
-                    style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}
-                >
+                <View style={[styles.flexRow, styles.alignItemsCenter, isNarrow && styles.alignSelfStart]}>
                     {isNarrow && ThreeDotsSection}
                     {!isNarrow && ThreeDotMenuOrPendingIcon}
                     {!isNarrow && (
