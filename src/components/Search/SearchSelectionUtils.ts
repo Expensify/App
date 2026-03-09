@@ -54,4 +54,3 @@ function getSearchMoveSelectionValidation(
 }
 
 export default getSearchMoveSelectionValidation;
-export type {SearchMoveSelectionValidation, SearchMoveSelectionValidationParams};
