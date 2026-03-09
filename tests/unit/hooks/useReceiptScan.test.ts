@@ -30,7 +30,6 @@ jest.mock('@hooks/useFilesValidation', () => ({
     }),
 }));
 
-
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     handleMoneyRequestStepScanParticipants: (...args: unknown[]) => mockHandleMoneyRequestStepScanParticipants(...args),
 }));
@@ -44,7 +43,6 @@ jest.mock('@userActions/TransactionEdit', () => ({
 jest.mock('@userActions/IOU', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
-
 
 const REPORT_ID = '123';
 const INITIAL_TRANSACTION_ID = '987';

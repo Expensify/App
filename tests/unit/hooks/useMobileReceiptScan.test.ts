@@ -14,7 +14,6 @@ const mockDismissProductTraining = jest.fn();
 const mockRemoveDraftTransactions = jest.fn();
 const mockRemoveTransactionReceipt = jest.fn();
 
-
 jest.mock('@libs/actions/Welcome', () => ({
     dismissProductTraining: (...args: unknown[]) => mockDismissProductTraining(...args),
 }));
