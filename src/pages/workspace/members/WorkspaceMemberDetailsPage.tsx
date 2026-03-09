@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
