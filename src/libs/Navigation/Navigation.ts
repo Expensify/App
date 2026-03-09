@@ -298,21 +298,17 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
-        const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
-        const reportID = reportIDMatch?.at(1);
+    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    if (reportOpenMatch) {
+        const routePrefix = reportOpenMatch.at(1);
+        const reportID = reportOpenMatch.at(2);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
             if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
+                const spanName = `/${routePrefix}/*`;
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -321,7 +317,7 @@ function navigate(route: Route, options?: LinkToOptions) {
             span.setAttributes({
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
             });
         }
     }
