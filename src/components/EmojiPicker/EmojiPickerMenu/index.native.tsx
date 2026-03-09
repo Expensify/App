@@ -1,7 +1,7 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useRef, useState} from 'react';
+import {AccessibilityInfo, InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
@@ -43,6 +43,56 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
 
+    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const pendingHeaderFocusIndexRef = useRef<number | null>(null);
+    const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
+
+    const getHeaderRef = useCallback((index: number) => {
+        if (!headerRefs.current[index]) {
+            headerRefs.current[index] = React.createRef<View>();
+        }
+        return headerRefs.current[index];
+    }, []);
+
+    const focusHeaderAtIndex = useCallback((headerIndex: number) => {
+        const headerRef = headerRefs.current[headerIndex];
+        if (!headerRef?.current) {
+            return false;
+        }
+        pendingHeaderFocusIndexRef.current = null;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            if (!headerRef.current) {
+                return;
+            }
+            AccessibilityInfo.sendAccessibilityEvent(headerRef.current, 'focus');
+        });
+        return true;
+    }, []);
+
+    const scheduleHeaderFocus = useCallback(
+        function schedule(headerIndex: number, attempt = 0) {
+            if (focusHeaderAtIndex(headerIndex)) {
+                return;
+            }
+            if (attempt >= 2) {
+                return;
+            }
+            setTimeout(() => schedule(headerIndex, attempt + 1), CONST.ANIMATED_TRANSITION);
+        },
+        [focusHeaderAtIndex],
+    );
+
+    const handleHeaderLayout = useCallback(
+        (index: number) => {
+            if (pendingHeaderFocusIndexRef.current !== index) {
+                return;
+            }
+            focusHeaderAtIndex(index);
+        },
+        [focusHeaderAtIndex],
+    );
+
     const updateEmojiList = (emojiData: EmojiPickerList | Emoji[], headerData: number[] = []) => {
         setFilteredEmojis(emojiData);
         setHeaderIndices(headerData);
@@ -71,9 +121,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     const scrollToHeader = useCallback(
         (headerIndex: number) => {
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            setSelectedHeaderIndex(headerIndex);
+            pendingHeaderFocusIndexRef.current = headerIndex;
             emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+            scheduleHeaderFocus(headerIndex);
         },
-        [emojiListRef],
+        [emojiListRef, scheduleHeaderFocus],
     );
 
     /**
@@ -82,7 +135,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
      * so that the sticky headers function properly.
      */
     const renderItem: ListRenderItem<EmojiPickerListItem> = useCallback(
-        ({item, target}) => {
+        ({item, target, index}) => {
             const code = item.code;
             const types = 'types' in item ? item.types : undefined;
 
@@ -92,7 +145,14 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
             if ('header' in item && item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
+                    <View
+                        ref={getHeaderRef(index)}
+                        accessible
+                        accessibilityRole="header"
+                        accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                        style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}
+                        onLayout={() => handleHeaderLayout(index)}
+                    >
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>
                 );
@@ -114,7 +174,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 />
             );
         },
-        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji],
+        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate, activeEmoji, getHeaderRef, handleHeaderLayout],
     );
 
     return (
@@ -132,6 +192,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             <BaseEmojiPickerMenu
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
+                selectedHeaderIndex={selectedHeaderIndex}
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[
                     listStyle,
@@ -145,6 +206,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 extraData={[filteredEmojis, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 alwaysBounceVertical={filteredEmojis.length !== 0}
+                onMomentumScrollEnd={() => {
+                    if (pendingHeaderFocusIndexRef.current == null) {
+                        return;
+                    }
+                    scheduleHeaderFocus(pendingHeaderFocusIndexRef.current);
+                }}
             />
         </View>
     );
