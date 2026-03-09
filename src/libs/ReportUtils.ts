@@ -1410,7 +1410,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
-    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policy) && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
+    if ((!report?.policyName && !parentReport?.policyName && isEmptyObject(policies) && isEmptyObject(allPolicies)) || isEmptyObject(report)) {
         return noPolicyFound;
     }
     const finalPolicy = (() => {
