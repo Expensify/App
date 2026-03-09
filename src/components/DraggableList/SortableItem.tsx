@@ -50,6 +50,18 @@ function SortableItem({id, children, disabled = false}: SortableItemProps) {
             style={style}
             // Use capture phase to intercept Enter before inner MenuItem handles it
             onKeyDownCapture={handleKeyDown}
+            // Maintain single tab stop per item (WCAG 1.3.2): when focus lands on a
+            // nested interactive element via Tab, pull it back to the sortable wrapper
+            // and remove the child from tab order so the next Tab advances correctly.
+            onFocus={(e) => {
+                for (const element of e.currentTarget.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')) {
+                    element.tabIndex = -1;
+                }
+                if (e.target === e.currentTarget) {
+                    return;
+                }
+                e.currentTarget.focus();
+            }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
