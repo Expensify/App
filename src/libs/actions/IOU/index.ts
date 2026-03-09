@@ -813,7 +813,6 @@ type GetTrackExpenseInformationParams = {
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -912,7 +911,6 @@ type PayMoneyRequestFunctionParams = {
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -927,7 +925,6 @@ Onyx.connect({
 });
 
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -937,7 +934,6 @@ Onyx.connect({
 });
 
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -952,7 +948,6 @@ Onyx.connect({
 });
 
 let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
@@ -966,7 +961,6 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -976,7 +970,6 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -987,7 +980,6 @@ Onyx.connect({
 
 let userAccountID = -1;
 let currentUserEmail = '';
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -997,7 +989,6 @@ Onyx.connect({
 });
 
 let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -1006,7 +997,6 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -1019,7 +1009,6 @@ Onyx.connect({
 });
 
 let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
