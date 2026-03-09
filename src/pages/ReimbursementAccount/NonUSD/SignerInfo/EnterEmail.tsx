@@ -36,9 +36,10 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const policy = usePolicy(policyID);
-    const currency = policy?.outputCurrency ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const shouldGatherBothEmails = currency === CONST.CURRENCY.AUD && !isUserDirector;
     const shouldGatherOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';

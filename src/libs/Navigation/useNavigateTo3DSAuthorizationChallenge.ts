@@ -1,5 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {useEffect, useMemo} from 'react';
+import AuthorizeTransaction from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
@@ -99,12 +100,9 @@ function useNavigateTo3DSAuthorizationChallenge() {
             return;
         }
 
-        // Note: Importing AuthorizeTransaction in this file causes the browser to get stuck in an infinite reload loop
-        // Issue to fix this: https://github.com/Expensify/App/issues/83021
-        // TODO: when adding Passkey support, update this list and the switch below.
+        // TODO: when adding Passkey support, update the switch-case below.
         // Passkey issue: https://github.com/expensify/app/issues/79470
-        const allowedAuthenticationMethods = [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS];
-        const doesDeviceSupportAnAllowedAuthenticationMethod = allowedAuthenticationMethods.some((method) => {
+        const doesDeviceSupportAnAllowedAuthenticationMethod = AuthorizeTransaction.allowedAuthenticationMethods.some((method) => {
             switch (method) {
                 case CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS:
                     return doesDeviceSupportBiometrics();
@@ -128,7 +126,7 @@ function useNavigateTo3DSAuthorizationChallenge() {
             // the old value and react will run a second effect with the new value. Typescript doesn't know that Onyx treats the object as
             // immutable, so we must guard against transactionID becoming undefined again, even though we know it won't be.
             if (!transactionPending3DSReview?.transactionID) {
-                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - typeguard bail-out (should be impossible to reach)');
+                Log.info('[useNavigateTo3DSAuthorizationChallenge] Ignoring navigation - type guard bail-out (should be impossible to reach)');
                 return;
             }
 

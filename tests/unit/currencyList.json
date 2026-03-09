@@ -164,7 +164,6 @@
     "COP": {
         "symbol": "Col$",
         "name": "Colombian Peso",
-        "decimals": 0,
         "ISO4217": "170"
     },
     "CRC": {
