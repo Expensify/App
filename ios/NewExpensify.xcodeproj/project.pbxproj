@@ -673,25 +673,6 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ \"$CONFIGURATION\" != \"DebugDevelopment\" ]; then\n  \"${PODS_ROOT}/FullStory/tools/FullStoryCommandLine\" \"${CONFIGURATION_BUILD_DIR}/${WRAPPER_NAME}\"\nelse\n  echo \"Skipping FullStory Asset Uploader phase for DebugDevelopment scheme.\"\nfi\n";
 		};
-		87174A5CC3CF40CC94B76870 /* Strip Debug Symbols */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Strip Debug Symbols";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "bash \"${PROJECT_DIR}/../scripts/strip-ios-debug-symbols.sh\"\n";
-		};
 		5124824122A346BD617AD428 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -755,6 +736,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-NewExpensify/expo-configure-project.sh\"\n";
+		};
+		87174A5CC3CF40CC94B76870 /* Strip Debug Symbols */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip Debug Symbols";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "bash \"${PROJECT_DIR}/../scripts/strip-ios-debug-symbols.sh\"\n";
 		};
 		87667FE2684C0D1946DE7329 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
