@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {doesContainReservedWord, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, isValidDisplayName, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,7 +53,7 @@ function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NA
 
     if (!firstName) {
         errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
-    } else if (!isValidLegalName(firstName)) {
+    } else if (!isValidDisplayName(firstName) || !isValidLegalName(firstName)) {
         errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
     } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_FIRST_NAME, translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH));
@@ -64,7 +64,7 @@ function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NA
 
     if (!lastName) {
         errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
-    } else if (!isValidLegalName(lastName)) {
+    } else if (!isValidDisplayName(lastName) || !isValidLegalName(lastName)) {
         errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
     } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_LAST_NAME, translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH));
