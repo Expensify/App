@@ -161,6 +161,9 @@ type SplitExpense = {
     /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
     reimbursable?: boolean;
 
+    /** Whether the split expense is billable */
+    billable?: boolean;
+
     /** Custom unit data for distance requests */
     customUnit?: TransactionCustomUnit;
 
