@@ -3147,8 +3147,8 @@ function getSortedTransactionData(
             const aIsUnreported = a.report?.type !== CONST.REPORT.TYPE.EXPENSE && a.report?.type !== CONST.REPORT.TYPE.INVOICE;
             const bIsUnreported = b.report?.type !== CONST.REPORT.TYPE.EXPENSE && b.report?.type !== CONST.REPORT.TYPE.INVOICE;
 
-            const aValue = !aIsUnreported ? getPolicyName({report: a.report}) : '';
-            const bValue = !bIsUnreported ? getPolicyName({report: b.report}) : '';
+            const aValue = !aIsUnreported ? getPolicyName({report: a.report, policy: a.policy}) : '';
+            const bValue = !bIsUnreported ? getPolicyName({report: b.report, policy: b.policy}) : '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4560,6 +4560,40 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+/**
+ * Determine policyID based on selected transactions:
+ * - If all selected transactions belong to the same policy, use that policy
+ * - Otherwise, fall back to the user's active workspace policy
+ */
+function getSearchBulkEditPolicyID(
+    selectedTransactionIDs: string[],
+    activePolicyID: string | undefined,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): string | undefined {
+    if (selectedTransactionIDs.length === 0) {
+        return activePolicyID;
+    }
+
+    const policyIDs = selectedTransactionIDs.map((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID) {
+            return undefined;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        return report?.policyID;
+    });
+
+    const firstPolicyID = policyIDs.at(0);
+    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
+
+    if (allSamePolicy && firstPolicyID) {
+        return firstPolicyID;
+    }
+
+    return activePolicyID;
+}
+
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4691,6 +4725,7 @@ function applySelectionToItem(
 }
 
 export {
+    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getListItem,
     getSections,
