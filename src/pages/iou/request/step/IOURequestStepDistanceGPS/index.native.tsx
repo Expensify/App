@@ -151,11 +151,7 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <DistanceCounter
-                report={report}
-                transaction={transaction}
-                iouType={iouType}
-            />
+            <DistanceCounter unit={unit} />
             <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
                 <DotIndicatorMessage
@@ -168,6 +164,7 @@ function IOURequestStepDistanceGPS({
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
                     reportID={reportID}
+                    unit={unit}
                 />
             </View>
         </StepScreenWrapper>

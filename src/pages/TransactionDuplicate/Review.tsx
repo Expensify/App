@@ -114,7 +114,7 @@ function TransactionDuplicateReview() {
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }
-        openReport(route.params.threadReportID, introSelected);
+        openReport({reportID: route.params.threadReportID, introSelected});
     }, [report?.reportID, route.params.threadReportID, introSelected]);
 
     useEffect(() => {
