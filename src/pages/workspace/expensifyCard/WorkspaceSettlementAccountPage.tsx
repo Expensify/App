@@ -108,6 +108,9 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
 
     const handleSelectAccount = (value: number) => {
+        if (!feedCountry) {
+            return;
+        }
         updateSettlementAccountCard(domainName, defaultFundID, policyID, feedCountry, value, paymentBankAccountID);
         Navigation.goBack();
     };

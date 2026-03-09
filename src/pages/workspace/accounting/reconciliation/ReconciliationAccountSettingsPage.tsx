@@ -75,6 +75,9 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     }, [policyID, backTo, connection]);
 
     const selectBankAccount = (newBankAccountID?: number) => {
+        if (!feedCountry) {
+            return;
+        }
         updateSettlementAccount(domainName, defaultFundID, policyID, feedCountry, newBankAccountID, paymentBankAccountID);
         goBack();
     };

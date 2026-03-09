@@ -59,6 +59,9 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
+        if (!feedCountry) {
+            return;
+        }
         updateSettlementFrequencyUtil(defaultFundID, feedCountry, value, settings?.monthlySettlementDate);
     };
 
