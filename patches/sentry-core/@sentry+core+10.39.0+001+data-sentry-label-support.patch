@@ -32,7 +32,7 @@ index 3169c25..19acc49 100644
 +          dataLabel = current.dataset['sentryLabel'];
 +          labelElem = current;
 +        }
-+        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++        if (!pressableElem && current.dataset['tag'] === 'pressable' && current.getAttribute('aria-disabled') !== 'true') {
 +          pressableElem = current;
 +        }
 +        if (dataLabel && pressableElem) break;
@@ -44,7 +44,7 @@ index 3169c25..19acc49 100644
 +      return cssSelector;
 +    }
 +
-+    // If the first pressable and the first label are on the same element, the label alone identifies the interaction
++    // If the first active pressable and the first label are on the same element, the label alone identifies the interaction
 +    if (pressableElem && labelElem === pressableElem) {
 +      return `[data-sentry-label="${dataLabel}"]`;
 +    }
@@ -106,7 +106,7 @@ index 2ad52b0..796cac9 100644
 +          dataLabel = current.dataset['sentryLabel'];
 +          labelElem = current;
 +        }
-+        if (!pressableElem && current.dataset['tag'] === 'pressable') {
++        if (!pressableElem && current.dataset['tag'] === 'pressable' && current.getAttribute('aria-disabled') !== 'true') {
 +          pressableElem = current;
 +        }
 +        if (dataLabel && pressableElem) break;
@@ -118,7 +118,7 @@ index 2ad52b0..796cac9 100644
 +      return cssSelector;
 +    }
 +
-+    // If the first pressable and the first label are on the same element, the label alone identifies the interaction
++    // If the first active pressable and the first label are on the same element, the label alone identifies the interaction
 +    if (pressableElem && labelElem === pressableElem) {
 +      return `[data-sentry-label="${dataLabel}"]`;
 +    }
