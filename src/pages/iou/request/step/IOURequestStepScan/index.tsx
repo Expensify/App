@@ -287,6 +287,7 @@ function IOURequestStepScan({
             return;
         }
         for (const file of files) {
+            // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
         }
 
