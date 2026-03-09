@@ -110,6 +110,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     shiftVertical={variables.inviteMemberListItemTooltipShiftVertical}
                     shiftHorizontal={variables.inviteMemberListItemTooltipShiftHorizontal}
                     shouldHideOnNavigate
+                    shouldHideOnScroll
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     uniqueID={`${sectionIndex}-${index}`}
                 >
@@ -160,6 +161,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={item.text ?? ''}
                                 style={[styles.ml2, styles.optionSelectCircle]}
+                                sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
                             >
                                 <SelectCircle
                                     isChecked={item.isSelected ?? false}

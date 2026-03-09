@@ -1,8 +1,9 @@
 import React from 'react';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import SkeletonRect from './SkeletonRect';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
 function getLinedWidth(index: number): string {
@@ -50,12 +51,12 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                             cy="32"
                             r="20"
                         />
-                        <Rect
+                        <SkeletonRect
                             transform={[{translateX: textStartX}, {translateY: 18}]}
                             width="20%"
                             height="8"
                         />
-                        <Rect
+                        <SkeletonRect
                             transform={[{translateX: textStartX}, {translateY: 38}]}
                             width={shouldStyleAsTable ? '10%' : lineWidth}
                             height="8"

@@ -74,12 +74,13 @@ describe('AddressPageTest', () => {
         renderPage(SCREENS.SETTINGS.PROFILE.ADDRESS);
 
         await waitForBatchedUpdatesWithAct();
-        const state = screen.getAllByLabelText('State / Province');
-        expect(state.at(1)?.props.value).toEqual('Test');
+        const stateInput = screen.getByLabelText('State / Province');
+        expect(stateInput.props.value).toEqual('Test');
         Navigation.setParams({
             country: 'VN',
         });
         await waitForBatchedUpdatesWithAct();
-        expect(state?.at(1)?.props.value).toEqual('Test');
+        const stateInputAfterParams = screen.getByLabelText('State / Province');
+        expect(stateInputAfterParams.props.value).toEqual('Test');
     });
 });
