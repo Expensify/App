@@ -37,6 +37,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const formRef = useRef<ScrollView>(null);
     const {showConfirmModal} = useConfirmModal();
@@ -87,6 +88,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             personalDetails,
             firstApprover,
             localeCompare,
+            currentUserLogin: session?.email,
         });
 
         return {

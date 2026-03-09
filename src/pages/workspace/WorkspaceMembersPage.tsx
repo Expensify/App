@@ -154,8 +154,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 policy,
                 personalDetails: personalDetails ?? {},
                 localeCompare,
+                currentUserLogin: currentUserPersonalDetails.login,
             }),
-        [personalDetails, policy, localeCompare],
+        [personalDetails, policy, localeCompare, currentUserPersonalDetails.login],
     );
 
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
