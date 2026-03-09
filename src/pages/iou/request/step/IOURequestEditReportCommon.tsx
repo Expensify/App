@@ -16,7 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
@@ -47,6 +47,7 @@ type Props = {
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
     isPerDiemRequest: boolean;
+    isTimeRequest?: boolean;
 };
 
 function IOURequestEditReportCommon({
@@ -63,6 +64,7 @@ function IOURequestEditReportCommon({
     shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
     createReport,
     isPerDiemRequest,
+    isTimeRequest = false,
 }: Props) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
     const {translate, localeCompare} = useLocalize();
@@ -127,6 +129,10 @@ function IOURequestEditReportCommon({
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+                if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
+                    return false;
+                }
 
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
