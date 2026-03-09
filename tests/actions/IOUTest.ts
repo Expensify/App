@@ -6268,6 +6268,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6472,6 +6473,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6630,6 +6632,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -6680,6 +6683,7 @@ describe('actions/IOU', () => {
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
             });
 
@@ -6792,6 +6796,7 @@ describe('actions/IOU', () => {
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         full: false,
                         betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
                         userBillingGraceEndPeriods: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -6885,12 +6890,105 @@ describe('actions/IOU', () => {
                 full: false,
                 policy,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
+
+        it('should accept isSelfTourViewed as true and apply optimistic data correctly', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+                userBillingGraceEndPeriods: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
+        });
+
+        it('should accept isSelfTourViewed as false and apply optimistic data correctly', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
         });
     });
 
@@ -6987,6 +7085,7 @@ describe('actions/IOU', () => {
                             iouReportCurrentNextStepDeprecated: undefined,
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
+                            isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
                         });
                     }
@@ -11470,6 +11569,7 @@ describe('actions/IOU', () => {
                     iouReportCurrentNextStepDeprecated: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     betas: [CONST.BETAS.ALL],
+                    isSelfTourViewed: false,
                     userBillingGraceEndPeriods: undefined,
                 });
             }
@@ -15140,7 +15240,7 @@ describe('actions/IOU', () => {
         });
 
         it('should not call completeOnboarding when introSelected is undefined', () => {
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, undefined, false, [CONST.BETAS.ALL]);
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
         });
 
@@ -15152,6 +15252,7 @@ describe('actions/IOU', () => {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                     isInviteOnboardingComplete: true,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15163,6 +15264,7 @@ describe('actions/IOU', () => {
                 {
                     inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15174,6 +15276,7 @@ describe('actions/IOU', () => {
                 {
                     choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 },
+                false,
                 [CONST.BETAS.ALL],
             );
             expect(completeOnboardingSpy).not.toHaveBeenCalled();
@@ -15185,7 +15288,7 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -15195,6 +15298,7 @@ describe('actions/IOU', () => {
                     shouldSkipTestDriveModal: true,
                     companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15205,7 +15309,7 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -15215,6 +15319,7 @@ describe('actions/IOU', () => {
                     shouldSkipTestDriveModal: true,
                     companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15224,12 +15329,13 @@ describe('actions/IOU', () => {
                 choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15239,12 +15345,13 @@ describe('actions/IOU', () => {
                 choice: CONST.ONBOARDING_CHOICES.SUBMIT,
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL]);
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL]);
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
                     introSelected,
+                    isSelfTourViewed: false,
                 }),
             );
         });
@@ -15255,13 +15362,30 @@ describe('actions/IOU', () => {
                 inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
             };
-            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, [CONST.BETAS.ALL], 'adminsChatReport123', 'policyID456');
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected, false, [CONST.BETAS.ALL], 'adminsChatReport123', 'policyID456');
 
             expect(completeOnboardingSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                     adminsChatReportID: 'adminsChatReport123',
                     onboardingPolicyID: 'policyID456',
+                    introSelected,
+                    isSelfTourViewed: false,
+                }),
+            );
+        });
+
+        it('should pass isSelfTourViewed=true through to completeOnboarding when tour was viewed', () => {
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+            };
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, true, [CONST.BETAS.ALL]);
+
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    isSelfTourViewed: true,
                     introSelected,
                 }),
             );
