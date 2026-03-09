@@ -26,7 +26,15 @@ function onInitialization(callbackFunction: () => void) {
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
     callback: (val) => {
-        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null});
+        Log.info('[PersistedRequests] hit Onyx connect callback', false, {isValNullish: val == null, isInitialized});
+
+        if (isInitialized) {
+            // After initialization, in-memory is authoritative.
+            // Ignore disk callbacks to prevent out-of-order Onyx.set() from
+            // overwriting the correct in-memory state (Bug #80759 Issue 4).
+            return;
+        }
+
         const previousInMemoryRequests = [...persistedRequests];
         const diskRequests = val ?? [];
         persistedRequests = diskRequests;
@@ -95,6 +103,8 @@ Onyx.connectWithoutView({
  */
 function clear() {
     ongoingRequest = null;
+    persistedRequests = [];
+    pendingSaveOperations = [];
     Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, null);
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }

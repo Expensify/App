@@ -1016,10 +1016,9 @@ describe('API.write() persistence guarantees', () => {
             await capturedSets.at(0)?.triggerRealSet();
             await waitForBatchedUpdates();
 
-            // BUG (Issue 4): In-memory state is now [A] — CommandB was lost
-            // because the stale callback overwrote the correct [A, B] with [A].
-            expect(PersistedRequests.getAll()).toHaveLength(1);
-            expect(PersistedRequests.getAll().at(0)?.command).toBe('CommandA');
+            // FIX (Issue 4): After initialization, the connect callback is a no-op.
+            // In-memory state is authoritative — both commands survive.
+            expect(PersistedRequests.getAll()).toHaveLength(2);
 
             // Restore Onyx.set to normal before the next write
             setMock.mockRestore();
@@ -1038,14 +1037,9 @@ describe('API.write() persistence guarantees', () => {
                 },
             );
 
-            // BUG (Issue 5): The conflict resolver cannot see CommandB because the
-            // in-memory queue was corrupted by the Issue 4 out-of-order race. The stale
-            // connect callback overwrote [A, B] with [A], making CommandB invisible
-            // to the resolver. If it needed to deduplicate or resolve conflicts with
-            // CommandB, it would fail, potentially causing duplicate or conflicting requests.
-            // When fixed, the resolver should see both CommandA and CommandB.
-            // Change to: expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: 'CommandB'}));
-            expect(queueSeenByResolver).not.toContainEqual(expect.objectContaining({command: 'CommandB'}));
+            // FIX (Issue 5): With Issue 4 fixed, the conflict resolver sees the complete
+            // queue including CommandB, enabling correct deduplication decisions.
+            expect(queueSeenByResolver).toContainEqual(expect.objectContaining({command: 'CommandB'}));
         } finally {
             setMock.mockRestore();
         }

@@ -257,13 +257,10 @@ describe('PersistedRequests persistence guarantees', () => {
             await capturedSets.at(0)?.triggerRealSet();
             await waitForBatchedUpdates();
 
-            // BUG: The connect callback at PersistedRequests.ts:32 blindly overwrites
-            // in-memory state with whatever disk returns. The stale Onyx.set([A])
-            // resolved last, so the callback received [A] and overwrote [A, B].
-            // requestB is permanently lost.
-            // When fixed, both requests should survive regardless of resolution order.
-            // Change to: expect(PersistedRequests.getAll()).toHaveLength(2);
-            expect(PersistedRequests.getAll()).toHaveLength(1);
+            // FIX: After initialization, the connect callback is a no-op.
+            // In-memory state is authoritative and not overwritten by stale disk callbacks.
+            // Both requests survive regardless of Onyx.set() resolution order.
+            expect(PersistedRequests.getAll()).toHaveLength(2);
         } finally {
             setMock.mockRestore();
         }
