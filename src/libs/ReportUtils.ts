@@ -2976,7 +2976,7 @@ function getAddExpenseDropdownOptions(
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
     userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>,
-    draftTransactionIDs: string[] = [],
+    draftTransactionIDs: string[] | undefined,
     iouRequestBackToReport?: string,
     unreportedExpenseBackToReport?: string,
     lastDistanceExpenseType?: IOURequestType,

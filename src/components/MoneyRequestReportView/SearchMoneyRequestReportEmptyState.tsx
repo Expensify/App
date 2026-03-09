@@ -45,7 +45,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs);
             },
         },
         {
@@ -60,7 +60,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
-                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType, false, undefined);
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportId, draftTransactionIDs, lastDistanceExpenseType);
             },
         },
         {

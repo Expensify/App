@@ -1342,7 +1342,7 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactionIDs: string[] = []) {
+function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactionIDs: string[] | undefined) {
     removeDraftTransactionsByIDs(draftTransactionIDs);
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
 }
@@ -1350,7 +1350,7 @@ function clearMoneyRequest(transactionID: string, skipConfirmation = false, draf
 function startMoneyRequest(
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     reportID: string,
-    draftTransactionIDs: string[] = [],
+    draftTransactionIDs: string[] | undefined,
     requestType?: IOURequestType,
     skipConfirmation = false,
     backToReport?: string,
@@ -1392,7 +1392,7 @@ function startMoneyRequest(
 function startDistanceRequest(
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     reportID: string,
-    draftTransactionIDs: string[] = [],
+    draftTransactionIDs: string[] | undefined,
     requestType?: IOURequestType,
     skipConfirmation = false,
     backToReport?: string,
