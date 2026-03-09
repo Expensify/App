@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.urbanairship.UAirship;
 import com.urbanairship.push.NotificationListener;
 import com.urbanairship.push.PushManager;
+import com.urbanairship.liveupdate.LiveUpdateManager;
 import com.urbanairship.reactnative.AirshipExtender;
 
 public class CustomAirshipExtender implements AirshipExtender {
@@ -14,5 +15,7 @@ public class CustomAirshipExtender implements AirshipExtender {
 
         CustomNotificationProvider notificationProvider = new CustomNotificationProvider(context, airship.getAirshipConfigOptions());
         pushManager.setNotificationProvider(notificationProvider);
+
+        LiveUpdateManager.shared().register(GpsLiveUpdateHandler.TYPE, new GpsLiveUpdateHandler());
     }
 }
