@@ -38,11 +38,11 @@ jest.mock('@src/libs/API', () => ({
 // The jest-expo preset resolves to the .native.tsx file which defers rendering via onLayout (which never fires in tests).
 // Mock the deferred wrapper to directly render SearchAutocompleteList.
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
-    const SearchAutocompleteList = jest.requireActual('@components/Search/SearchAutocompleteList').default;
+    const module = jest.requireActual<{default: React.ComponentType}>('@components/Search/SearchAutocompleteList');
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
-        default: SearchAutocompleteList,
+        default: module.default,
     };
 });
 
@@ -168,9 +168,11 @@ describe('SearchAutocompleteList', () => {
     });
 
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
+        const timestampOne = '2024-01-01T00:00:00';
+        const timestampTwo = '2024-01-02T00:00:00';
         const recentSearches = {
-            '2024-01-01T00:00:00': {query: 'type:expense status:approved', timestamp: '2024-01-01T00:00:00'},
-            '2024-01-02T00:00:00': {query: 'type:chat', timestamp: '2024-01-02T00:00:00'},
+            [timestampOne]: {query: 'type:expense status:approved', timestamp: timestampOne},
+            [timestampTwo]: {query: 'type:chat', timestamp: timestampTwo},
         };
 
         await waitForBatchedUpdates();
