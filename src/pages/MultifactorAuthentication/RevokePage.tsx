@@ -21,8 +21,8 @@ function MultifactorAuthenticationRevokePage() {
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector, canBeMissing: true});
-    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector, canBeMissing: true});
+    const [hasDevices] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector});
+    const [isLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector});
 
     const onGoBackPress = () => {
         Navigation.goBack();

@@ -450,6 +450,13 @@ function arePersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePers
 }
 
 /**
+ * Checks if the user has a legal first and last name.
+ */
+function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return !privatePersonalDetails?.legalFirstName || !privatePersonalDetails?.legalLastName;
+}
+
+/**
  * Determines if the user should be redirected to the missing details page
  * before revealing their card details (for UK/EU cards only).
  */
@@ -480,6 +487,7 @@ export {
     getLoginByAccountID,
     getPhoneNumber,
     arePersonalDetailsMissing,
+    areTravelPersonalDetailsMissing,
     shouldShowMissingDetailsPage,
     createPersonalDetailsLookupByAccountID,
 };

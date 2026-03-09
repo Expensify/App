@@ -30,6 +30,10 @@ describe('TestDriveModalGuard', () => {
         currentUrl: '',
     };
 
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
     beforeEach(async () => {
         await Onyx.clear();
         resetSessionFlag();

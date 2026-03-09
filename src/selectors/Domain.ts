@@ -178,6 +178,8 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
     }, []);
 }
 
+const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
+
 function defaultSecurityGroupIDPendingActionSelector(groupID?: string) {
     return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
         return domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.defaultSecurityGroupID;
@@ -207,6 +209,7 @@ export {
     isSecurityGroupEntry,
     groupsSelector,
     vacationDelegateSelector,
+    accountLockSelector,
     selectGroupByID,
     defaultSecurityGroupIDPendingActionSelector,
     defaultSecurityGroupIDErrorsSelector,

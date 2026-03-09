@@ -41,7 +41,7 @@ function MapView({
     unit,
     ref,
 }: MapViewProps) {
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

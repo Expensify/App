@@ -9,14 +9,15 @@ import {View} from 'react-native';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
-import LoadingIndicator from '@components/LoadingIndicator';
 import Hoverable from '@components/Hoverable';
+import LoadingIndicator from '@components/LoadingIndicator';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
+import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import type {PlaybackSpeed} from '@components/VideoPlayerContexts/types';
-import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import {useVideoPopoverMenuActions} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,14 +56,17 @@ function BaseVideoPlayer({
     const styles = useThemeStyles();
     const {currentlyPlayingURL, sharedElement, originalParent, currentVideoPlayerRef, currentVideoViewRef, mountedVideoPlayersRef, playerStatus} = usePlaybackStateContext();
     const {pauseVideo, playVideo, replayVideo, shareVideoPlayerElements, updateCurrentURLAndReportID, setCurrentlyPlayingURL, updatePlayerStatus} = usePlaybackActionsContext();
-    const {isFullScreenRef} = useFullScreenContext();
+    const {isFullScreenRef} = useFullScreenState();
 
     const isOffline = useNetwork().isOffline;
+    const [isVideoOffline, setIsVideoOffline] = useState(false);
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const [duration, setDuration] = useState(videoDuration);
     const [isEnded, setIsEnded] = useState(false);
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
+    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
@@ -106,11 +110,24 @@ function BaseVideoPlayer({
     });
 
     useEffect(() => {
-        if (!(isOffline && isLoading)) {
+        if (!isOffline) {
+            setIsVideoOffline(false);
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setIsVideoOffline(true);
+        }, CONST.VIDEO_PLAYER.OFFLINE_THRESHOLD);
+
+        return () => clearTimeout(timer);
+    }, [isOffline]);
+
+    useEffect(() => {
+        if (!(isVideoOffline && isLoading && isOffline)) {
             return;
         }
         videoPlayerRef.current.replaceAsync('');
-    }, [isLoading, isOffline]);
+    }, [isLoading, isVideoOffline, isOffline]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -121,26 +138,27 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const shouldShowErrorIndicator = useMemo(() => {
-        // No need to set hasError while offline, since the offline indicator is already shown.
+        // No need to set hasError while confirmed offline, since the offline indicator is already shown.
         // Once the user reconnects, if the video is unsupported, the error will be triggered again.
-        return hasError && !isOffline;
-    }, [hasError, isOffline]);
+        return hasError && !isVideoOffline;
+    }, [hasError, isVideoOffline]);
     const shouldShowLoadingIndicator = useMemo(() => {
         // We want to show LoadingIndicator when video's loading and paused, except when it's loading
-        // for the first time, then playing/loading may vary. Video should be online and without errors.
-        return isLoading && (!isPlaying || currentTime <= 0) && !isOffline && !hasError;
-    }, [currentTime, hasError, isLoading, isOffline, isPlaying]);
+        // for the first time, then playing/loading may vary. Video should not be confirmed offline and without errors.
+        return isLoading && (!isPlaying || currentTime <= 0) && !isVideoOffline && !hasError;
+    }, [currentTime, hasError, isLoading, isVideoOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
-        return isOffline && currentTime + bufferedPosition <= 0;
-    }, [bufferedPosition, currentTime, isOffline]);
-    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
+        return isVideoOffline && currentTime + bufferedPosition <= 0;
+    }, [bufferedPosition, currentTime, isVideoOffline]);
+    const {updateVolume} = useVolumeActions();
+    const {lastNonZeroVolume} = useVolumeState();
     useHandleNativeVideoControls({
         videoViewRef,
         isOffline,
         isLocalFile: isUploading,
     });
 
-    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
+    const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuActions();
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -476,7 +494,6 @@ function BaseVideoPlayer({
                                             }
                                             videoPlayerElementParentRef.current = el;
                                         }}
-                                        pointerEvents="none"
                                     >
                                         <VideoView
                                             // has to be switched to fullscreenOptions={{enable: true}} when mobile Safari gets fixed
