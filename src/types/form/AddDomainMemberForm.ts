@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type Form from '@src/types/form/Form';
+import type Form from './Form';
 
 const INPUT_IDS = {
     EMAIL: 'email',

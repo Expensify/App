@@ -1,8 +1,10 @@
 import React, {useMemo} from 'react';
 import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
 import type {RenderersProps} from 'react-native-render-html';
+import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
+import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
@@ -22,6 +24,11 @@ type RenderHTMLProps = {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
 function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+    const hasTextAncestor = useHasTextAncestor();
+    if (__DEV__ && hasTextAncestor) {
+        throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
+    }
+
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -43,6 +50,11 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         };
     }, [onLinkPress]);
 
+    const renderers = {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'bullet-item': BulletItemRenderer,
+    };
+
     const htmlSource = (
         <RenderHTMLSource
             contentWidth={windowWidth * 0.8}
@@ -54,6 +66,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         <RenderHTMLConfigProvider
             defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
             renderersProps={renderersProps}
+            renderers={renderers}
         >
             {htmlSource}
         </RenderHTMLConfigProvider>

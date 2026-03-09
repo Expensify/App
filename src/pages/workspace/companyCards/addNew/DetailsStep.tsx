@@ -29,7 +29,7 @@ function DetailsStep() {
     const {inputCallbackRef} = useAutoFocusInput();
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
@@ -58,7 +58,7 @@ function DetailsStep() {
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID], translate);
 
         switch (feedProvider) {
             case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:

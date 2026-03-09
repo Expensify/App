@@ -18,6 +18,9 @@ type RuleSelectionBaseProps = {
     /** The translation key for the page title */
     titleKey: TranslationPaths;
 
+    /** The translated page title */
+    title?: string;
+
     /** Test ID for the screen wrapper */
     testID: string;
 
@@ -40,7 +43,7 @@ type RuleSelectionBaseProps = {
     hash?: string;
 };
 
-function RuleSelectionBase({titleKey, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
+function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -48,12 +51,11 @@ function RuleSelectionBase({titleKey, testID, selectedItem, items, onSave, onBac
         <RuleNotFoundPageWrapper hash={hash}>
             <ScreenWrapper
                 testID={testID}
-                shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate(titleKey)}
+                    title={title ?? translate(titleKey)}
                     onBackButtonPress={onBack}
                 />
                 <View style={[styles.flex1]}>

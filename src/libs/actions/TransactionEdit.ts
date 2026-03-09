@@ -114,6 +114,21 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTra
     Onyx.multiSet(draftTransactionsSet);
 }
 
+function removeDraftTransactionsByIDs(transactionIDs: string[]) {
+    if (!transactionIDs.length) {
+        return;
+    }
+
+    const draftTransactionsSet = transactionIDs.reduce(
+        (acc, transactionID) => {
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
+    Onyx.multiSet(draftTransactionsSet);
+}
+
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
     if (!transaction) {
         return;
@@ -151,7 +166,7 @@ type BuildOptimisticTransactionParams = {
 
 function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
-    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
+    const {currency, iouRequestType, isFromGlobalCreate, isFromFloatingActionButton} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
@@ -161,6 +176,7 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isFromFloatingActionButton,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     } as Transaction;
     createDraftTransaction(newTransaction);
@@ -175,6 +191,7 @@ export {
     removeDraftTransaction,
     removeTransactionReceipt,
     removeDraftTransactions,
+    removeDraftTransactionsByIDs,
     removeDraftSplitTransaction,
     replaceDefaultDraftTransaction,
     buildOptimisticTransactionAndCreateDraft,

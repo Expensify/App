@@ -4,15 +4,17 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import TwoFactorAuthForm from './TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function ReplaceDeviceVerifyOldPage() {
@@ -21,6 +23,15 @@ function ReplaceDeviceVerifyOldPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
+
+    const errorMessage = getLatestErrorMessage(account);
+
+    const clearAccountErrorsIfPresent = () => {
+        if (!account?.errors) {
+            return;
+        }
+        clearAccountMessages();
+    };
 
     // Navigate to verify new page when we receive the new secret key from the backend
     useEffect(() => {
@@ -43,9 +54,10 @@ function ReplaceDeviceVerifyOldPage() {
                 <View style={[styles.ph5, styles.mb4, styles.mt3]}>
                     <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
-                        innerRef={formRef}
-                        validateInsteadOfDisable
-                        step={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD}
+                        ref={formRef}
+                        onSubmit={(code) => replaceTwoFactorDevice('verify_old', code)}
+                        onInputChange={clearAccountErrorsIfPresent}
+                        errorMessage={errorMessage}
                     />
                 </View>
             </ScrollView>

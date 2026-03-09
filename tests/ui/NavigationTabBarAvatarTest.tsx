@@ -1,7 +1,7 @@
 import {cleanup, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
+import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
@@ -36,7 +36,7 @@ describe('NavigationTabBarAvatar hover', () => {
 
     it('shows green ring while hovered', () => {
         renderAvatar();
-        const button = screen.getByRole(CONST.ROLE.BUTTON);
+        const button = screen.getByRole(CONST.ROLE.TAB);
 
         // Before hover, ring should not have border styles
         const ring = screen.getByTestId('avatar-ring');

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {getCompanyFeeds} from '@libs/CardUtils';
+import {getCompanyFeeds, isCSVFeedOrExpensifyCard} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
@@ -10,6 +10,7 @@ import usePolicy from './usePolicy';
  *
  * Collect plan workspaces are limited to one company card feed. This hook checks if the workspace already has
  * a feed and returns whether users should be blocked from adding more feeds.
+ * CSV uploads from Classic and Expensify Cards should not count toward this limit.
  *
  * @param policyID - The ID of the workspace/policy to check
  * @returns An object containing:
@@ -30,7 +31,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
         if (isLoading) {
             return;
         }
-        const connectedFeeds = Object.entries(companyFeeds)?.length;
+        const connectedFeeds = Object.keys(companyFeeds).filter((feedKey) => !isCSVFeedOrExpensifyCard(feedKey)).length;
         setPrevCompanyFeedsLength(connectedFeeds);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, [isLoading]);

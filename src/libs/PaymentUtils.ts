@@ -1,17 +1,18 @@
 import isEmpty from 'lodash/isEmpty';
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -32,7 +33,7 @@ type SelectPaymentTypeParams = {
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
     policy: OnyxEntry<Policy>;
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
     currentEmail: string;
     hasViolations: boolean;
@@ -41,6 +42,9 @@ type SelectPaymentTypeParams = {
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
+    betas: OnyxEntry<Beta[]>;
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
 };
 
 /**
@@ -176,8 +180,11 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         confirmApproval,
         iouReport,
         iouReportNextStep,
+        betas,
+        userBillingGraceEndPeriods,
+        amountOwed,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -195,12 +202,24 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy,
+                currentUserAccountIDParam: currentAccountID,
+                currentUserEmailParam: currentEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+            });
         }
         return;
     }
 
-    onPress(iouPaymentType);
+    onPress({paymentType: iouPaymentType});
 };
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
@@ -218,14 +237,11 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 };
 
 /**
- * Get the appropriate payment type, selected policy, and whether a payment method should be selected
+ * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
  * based on the provided payment method, active admin policies, and latest bank items.
  */
 function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
-    const shouldSelectPaymentMethod = isPaymentMethod || !isEmpty(latestBankItems);
-    // payment method is equal to policyID when user selects "Pay via workspace" option
-    const selectedPolicy = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID || activePolicy.id === paymentMethod);
 
     let paymentType;
     switch (paymentMethod) {
@@ -240,9 +256,19 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
             break;
     }
 
+    // Policy related to the context ie: Policy related to opened chat
+    const policyFromContext = activeAdminPolicies.find((activePolicy) => activePolicy.id === policyID);
+
+    // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
+    const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
+
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
+
     return {
         paymentType,
-        selectedPolicy,
+        policyFromContext,
+        policyFromPaymentMethod,
         shouldSelectPaymentMethod,
     };
 }

@@ -101,7 +101,7 @@ columnsValues
   / bankAccount
   / reportId
   / base62ReportId
-  / exportedTo
+  / exportedToColumnValue
   / exchangeRate
   / reimbursableTotal
   / nonReimbursableTotal
@@ -114,7 +114,12 @@ columnsValues
   / groupWithdrawn
   / groupWithdrawalId
   / groupCategory
+  / groupTag
+  / groupMerchant
   / groupMonth
+  / groupWeek
+  / groupYear
+  / groupQuarter
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -126,7 +131,11 @@ withdrawalId            = "withdrawal-id"i &wordBoundary            { return "wi
 bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
-exportedTo              = "exported-to"i &wordBoundary              { return "exportedto"; }
+exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }
+exportedToKeyEnd = wordBoundary / _ (":" / "=")
+exportedTo
+  = "exportedTo"i &exportedToKeyEnd { return "exportedTo"; }
+  / "exported-to"i &exportedToKeyEnd { return "exportedTo"; }
 exchangeRate            = "exchange-rate"i &wordBoundary            { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i &wordBoundary       { return "reimbursableTotal"; }
 nonReimbursableTotal    = "non-reimbursable-total"i &wordBoundary   { return "nonReimbursableTotal"; }
@@ -139,7 +148,12 @@ groupBankAccount        = "group-bank-account"i &wordBoundary       { return "gr
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
-groupMonth              = "group-month"i &wordBoundary              { return "groupMonth"; }
+groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
+groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
+groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
+groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
+groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
 
 
 operator "operator"

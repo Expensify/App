@@ -12,6 +12,7 @@ import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -156,11 +157,11 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com'});
+        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
@@ -169,6 +170,8 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+
         trackExpense({
             report: {reportID: '123'},
             isDraftPolicy: true,
@@ -197,6 +200,8 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             activePolicyID: undefined,
             quickAction: undefined,
+            recentWaypoints,
+            betas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdatesWithAct();

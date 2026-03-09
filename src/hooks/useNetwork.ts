@@ -16,7 +16,6 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
 
     const [network] = useOnyx(ONYXKEYS.NETWORK, {
         selector: networkStatusSelector,
-        canBeMissing: true,
     });
 
     // Extract values with proper defaults

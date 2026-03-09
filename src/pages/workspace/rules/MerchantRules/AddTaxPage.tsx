@@ -12,10 +12,11 @@ import type SCREENS from '@src/SCREENS';
 type AddTaxPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_TAX>;
 
 function AddTaxPage({route}: AddTaxPageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, ruleID} = route.params;
+    const isEditing = ruleID !== ROUTES.NEW;
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
@@ -27,7 +28,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
 
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;
 
-    const backToRoute = ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
+    const backToRoute = isEditing ? ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_MERCHANT_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
         updateDraftMerchantRule({tax: value});

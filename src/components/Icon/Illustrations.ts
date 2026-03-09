@@ -1,11 +1,12 @@
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -43,7 +44,9 @@ import Luggage from '@assets/images/simple-illustrations/simple-illustration__lu
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
@@ -66,8 +69,8 @@ export {
     CreditCardEyes,
     CreditCardsNewGreen,
     EmailAddress,
-    EmptyCardState,
     EmptyShelves,
+    ExpensifyCardCoins,
     EmptyStateTravel,
     Encryption,
     EnvelopeReceipt,
@@ -75,6 +78,7 @@ export {
     ExpensifyCardImage,
     FastMoney,
     Filters,
+    Fireworks,
     Flash,
     Gears,
     HeadSet,
@@ -93,5 +97,7 @@ export {
     Pencil,
     PendingTravel,
     Puzzle,
+    TravelCVV,
+    ThumbsUpStars,
     TurtleInShell,
 };

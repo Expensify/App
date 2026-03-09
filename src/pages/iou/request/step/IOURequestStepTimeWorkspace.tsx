@@ -37,7 +37,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
                 setTransactionReport(transactionID, {reportID: policyExpenseChat.reportID}, isTransactionDraft);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseChat, accountID);
 
-                const defaultRate = policy ? getDefaultTimeTrackingRate(policy) : undefined;
+                const defaultRate = getDefaultTimeTrackingRate(policy);
                 if (defaultRate) {
                     setMoneyRequestTimeRate(transactionID, defaultRate, isTransactionDraft);
                 }

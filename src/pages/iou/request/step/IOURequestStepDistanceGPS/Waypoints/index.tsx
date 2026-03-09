@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -11,11 +10,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {GpsDraftDetails} from '@src/types/onyx';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 
 function Waypoints() {
     const styles = useThemeStyles();
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
     const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled']);
@@ -63,10 +62,8 @@ export default Waypoints;
 
 const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
-const isTrackingSelector = (gpsDraftDetails: OnyxEntry<GpsDraftDetails>) => gpsDraftDetails?.isTracking;
-
 function GPSTooltip({children}: React.PropsWithChildren) {
-    const [isTracking] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true, selector: isTrackingSelector});
+    const [isTracking = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();

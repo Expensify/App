@@ -28,10 +28,7 @@ function SubscriptionPlanDowngradeBlocked({privateSubscription, formattedSubscri
             </Text>
             {!isInvoicingPlanType && (
                 <Text style={[styles.ph5, styles.textNormalThemeText]}>
-                    {translate('subscription.subscriptionSize.youAlreadyCommitted', {
-                        size: privateSubscription?.userCount ?? 0,
-                        date: formattedSubscriptionEndDate,
-                    })}
+                    {translate('subscription.subscriptionSize.youAlreadyCommitted', privateSubscription?.userCount ?? 0, formattedSubscriptionEndDate)}
                 </Text>
             )}
             <FixedFooter style={[styles.mtAuto]}>

@@ -1,8 +1,9 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 // eslint-disable-next-line no-restricted-syntax
 import * as UserActions from '@libs/actions/User';
+import Navigation from '@libs/Navigation/Navigation';
 import ContactMethodDetailsPage from '@pages/settings/Profile/Contacts/ContactMethodDetailsPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MockFetch} from '../utils/TestHelper';
@@ -10,11 +11,32 @@ import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    const actualNav = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualNav,
+        useIsFocused: () => true,
+        useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
+        usePreventRemove: jest.fn(),
+    };
+});
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@components/DelegateNoAccessModalProvider');
+jest.mock('@components/DelegateNoAccessModalProvider', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@components/DelegateNoAccessModalProvider');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useDelegateNoAccessState: () => ({isActingAsDelegate: false, isDelegateAccessRestricted: false}),
+        useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
+    };
+});
 
 jest.mock('@libs/actions/User', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -108,5 +130,34 @@ describe('ContactMethodDetailsPage', () => {
 
         // Then resetContactMethodValidateCodeSentState should not be called
         expect(UserActions.resetContactMethodValidateCodeSentState).not.toHaveBeenCalled();
+    });
+
+    it('calls Navigation.goBack when contact method becomes validated and screen is focused', async () => {
+        Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail});
+        Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+            [fakeEmail]: {
+                partnerName: 'expensify.com',
+                partnerUserID: fakeEmail,
+                validatedDate: '',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(<ContactMethodDetailsPageRenderer />);
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+                [fakeEmail]: {
+                    partnerName: 'expensify.com',
+                    partnerUserID: fakeEmail,
+                    validatedDate: '2024-01-01',
+                },
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.goBack).toHaveBeenCalled();
     });
 });

@@ -6,16 +6,18 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import TwoFactorAuthForm from '@components/TwoFactorAuthForm';
+import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getContactMethod} from '@libs/UserUtils';
+import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import TwoFactorAuthForm from './TwoFactorAuthForm';
-import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 import TwoFactorAuthSecretDisplay from './TwoFactorAuthSecretDisplay';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -28,6 +30,15 @@ function ReplaceDeviceVerifyNewPage() {
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
     const scrollViewRef = useRef<RNScrollView>(null);
+
+    const errorMessage = getLatestErrorMessage(account);
+
+    const clearAccountErrorsIfPresent = () => {
+        if (!account?.errors) {
+            return;
+        }
+        clearAccountMessages();
+    };
 
     // Navigate back to 2FA settings after successful device replacement
     useEffect(() => {
@@ -65,10 +76,11 @@ function ReplaceDeviceVerifyNewPage() {
                     />
                     <Text style={[styles.mt5, styles.mb3, styles.textLabel]}>{translate('twoFactorAuth.enterCode')}</Text>
                     <TwoFactorAuthForm
-                        innerRef={formRef}
+                        ref={formRef}
+                        onSubmit={(code) => replaceTwoFactorDevice('verify_new', code)}
+                        onInputChange={clearAccountErrorsIfPresent}
+                        errorMessage={errorMessage}
                         onFocus={handleInputFocus}
-                        validateInsteadOfDisable
-                        step={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW}
                     />
                 </View>
             </ScrollView>

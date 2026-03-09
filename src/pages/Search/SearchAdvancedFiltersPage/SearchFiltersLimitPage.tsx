@@ -7,6 +7,7 @@ function SearchFiltersLimitPage() {
         <SearchFiltersTextBase
             filterKey={CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}
             titleKey="search.filters.limit"
+            descriptionKey="search.filters.limitDescription"
             testID="SearchFiltersLimitPage"
         />
     );

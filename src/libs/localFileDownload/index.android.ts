@@ -1,5 +1,5 @@
 import RNFetchBlob from 'react-native-blob-util';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {getMimeType, showGeneralErrorAlert, showSuccessAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
 
@@ -10,20 +10,21 @@ import type LocalFileDownload from './types';
  */
 const localFileDownload: LocalFileDownload = (fileName, textContent, translate, successMessage) => {
     localFileCreate(fileName, textContent).then(({path, newFileName}) => {
+        const {fileExtension} = splitExtensionFromFileName(newFileName);
         RNFetchBlob.MediaCollection.copyToMediaStore(
             {
                 name: newFileName,
                 parentFolder: '', // subdirectory in the Media Store, empty goes to 'Downloads'
-                mimeType: 'text/plain',
+                mimeType: getMimeType(fileExtension),
             },
             'Download',
             path,
         )
             .then(() => {
-                FileUtils.showSuccessAlert(translate, successMessage);
+                showSuccessAlert(translate, successMessage);
             })
             .catch(() => {
-                FileUtils.showGeneralErrorAlert(translate);
+                showGeneralErrorAlert(translate);
             })
             .finally(() => {
                 RNFetchBlob.fs.unlink(path);
