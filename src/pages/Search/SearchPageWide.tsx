@@ -24,6 +24,7 @@ import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
+import SearchPagePlaybackReset from './SearchPagePlaybackReset';
 
 type SearchPageWideProps = {
     queryJSON?: SearchQueryJSON;
@@ -89,6 +90,7 @@ function SearchPageWide({
 
     return (
         <View style={styles.searchSplitContainer}>
+            <SearchPagePlaybackReset />
             <ScreenWrapper
                 testID="Search"
                 shouldEnableMaxHeight
