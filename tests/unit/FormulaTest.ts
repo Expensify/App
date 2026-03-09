@@ -199,6 +199,23 @@ describe('CustomFormula', () => {
             expect(result).toBe('R0000000001z');
         });
 
+        test('should compute old report ID', () => {
+            const result = compute('{report:oldID}', mockContext);
+            expect(result).toBe('R123');
+        });
+
+        test('should compute report title', () => {
+            const contextWithReportTitle: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    reportName: 'Quarterly Expenses',
+                },
+            };
+            const result = compute('{report:title}', contextWithReportTitle);
+            expect(result).toBe('Quarterly Expenses');
+        });
+
         test('should compute report status', () => {
             const contextWithStatus: FormulaContext = {
                 ...mockContext,
@@ -209,6 +226,31 @@ describe('CustomFormula', () => {
             };
             const result = compute('{report:status}', contextWithStatus);
             expect(result).toBe('Submitted');
+        });
+
+        test('should compute display status', () => {
+            const contextWithDisplayStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+            };
+            const result = compute('{report:displaystatus}', contextWithDisplayStatus);
+            expect(result).toBe('Outstanding');
+        });
+
+        test('should compute approve date', () => {
+            const contextWithApprovedDate: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    approved: '2025-02-03T09:10:11Z',
+                },
+            };
+            const result = compute('{report:approve:date:yyyy-MM-dd}', contextWithApprovedDate);
+            expect(result).toBe('2025-02-03');
         });
 
         test('should compute expenses count', () => {
@@ -1064,6 +1106,10 @@ describe('CustomFormula', () => {
         });
 
         describe('Submitter information', () => {
+            test('from without subfield - defaults to full name', () => {
+                expect(compute('{report:submit:from}', mockContextWithSubmissionInfo)).toBe('John Doe');
+            });
+
             test('firstname - basic submitter first name', () => {
                 expect(compute('{report:submit:from:firstname}', mockContextWithSubmissionInfo)).toBe('John');
             });
@@ -1179,6 +1225,10 @@ describe('CustomFormula', () => {
         });
 
         describe('Manager information', () => {
+            test('to without subfield - defaults to full name', () => {
+                expect(compute('{report:submit:to}', mockContextWithSubmissionInfo)).toBe('Jane Smith');
+            });
+
             test('firstname - basic manager first name', () => {
                 expect(compute('{report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('Jane');
             });

@@ -5493,7 +5493,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             reportFieldNameRequiredError: 'Insira um nome de campo de relatório',
             reportFieldTypeRequiredError: 'Escolha um tipo de campo de relatório',
             circularReferenceError: 'Este campo não pode fazer referência a si mesmo. Atualize, por favor.',
-            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Token(s) de fórmula não suportado(s): ${value}. Use tokens suportados como {report:id}.`,
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `O campo de fórmula ${value} não é reconhecido`,
             reportFieldInitialValueRequiredError: 'Escolha um valor inicial para o campo de relatório',
             genericFailureMessage: 'Ocorreu um erro ao atualizar o campo do relatório. Tente novamente.',
         },

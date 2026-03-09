@@ -54,7 +54,13 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
 
     it('returns empty array for supported report tokens', () => {
         expect(getUnsupportedReportFieldFormulaParts('{report:id}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:oldID}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:title}')).toEqual([]);
         expect(getUnsupportedReportFieldFormulaParts('{report:status}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:displaystatus}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:approve:date}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:submit:from}')).toEqual([]);
+        expect(getUnsupportedReportFieldFormulaParts('{report:submit:to}')).toEqual([]);
         expect(getUnsupportedReportFieldFormulaParts('{report:submit:from:firstname}')).toEqual([]);
         expect(getUnsupportedReportFieldFormulaParts('{report:autoreporting:start}')).toEqual([]);
     });
@@ -72,6 +78,7 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
     it('rejects invalid submit and autoreporting subfields', () => {
         expect(getUnsupportedReportFieldFormulaParts('{report:submit:invalid}')).toEqual(['{report:submit:invalid}']);
         expect(getUnsupportedReportFieldFormulaParts('{report:autoreporting:invalid}')).toEqual(['{report:autoreporting:invalid}']);
+        expect(getUnsupportedReportFieldFormulaParts('{report:approve:invalid}')).toEqual(['{report:approve:invalid}']);
     });
 });
 

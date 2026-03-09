@@ -133,7 +133,10 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
 
     const supportedReportFields = new Set([
         'id',
+        'oldid',
+        'title',
         'status',
+        'displaystatus',
         'expensescount',
         'type',
         'startdate',
@@ -144,6 +147,7 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         'policyname',
         'workspacename',
         'created',
+        'approve',
         'submit',
         'autoreporting',
     ]);
@@ -175,6 +179,11 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
                 continue;
             }
 
+            // report:submit:from and report:submit:to are valid without subfield.
+            if ((direction === 'from' || direction === 'to') && rest.length === 1) {
+                continue;
+            }
+
             // report:submit:date is valid (format is optional and validated elsewhere)
             if (direction === 'date') {
                 continue;
@@ -191,6 +200,12 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
         if (normalizedField === 'autoreporting') {
             const subField = rest.at(0)?.trim().toLowerCase();
             if (!subField || !supportedAutoReportingFields.has(subField)) {
+                unsupported.push(part.definition);
+            }
+        }
+
+        if (normalizedField === 'approve') {
+            if (rest.at(0)?.trim().toLowerCase() !== 'date') {
                 unsupported.push(part.definition);
             }
         }

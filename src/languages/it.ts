@@ -5512,7 +5512,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             reportFieldNameRequiredError: 'Inserisci un nome per il campo del report',
             reportFieldTypeRequiredError: 'Scegli un tipo di campo del report',
             circularReferenceError: 'Questo campo non può fare riferimento a se stesso. Aggiorna per favore.',
-            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Token di formula non supportati: ${value}. Usa token supportati come {report:id}.`,
+            unsupportedFormulaValueError: ({value}: UnsupportedFormulaValueErrorParams) => `Il campo formula ${value} non è riconosciuto`,
             reportFieldInitialValueRequiredError: 'Scegli un valore iniziale per il campo del resoconto',
             genericFailureMessage: 'Si è verificato un errore durante l’aggiornamento del campo del report. Riprova.',
         },
