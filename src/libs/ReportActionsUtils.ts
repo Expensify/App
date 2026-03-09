@@ -1150,17 +1150,11 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     }
 
     // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
-    // When automaticAction is true and the actor is in mentionedAccountIDs, this indicates
+    // When automaticAction is true and there are no mentionedAccountIDs, this indicates
     // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
     if (actionName === CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) {
-        const takeControlOriginalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>);
-        if (
-            takeControlOriginalMessage &&
-            'automaticAction' in takeControlOriginalMessage &&
-            takeControlOriginalMessage.automaticAction &&
-            reportAction.actorAccountID &&
-            takeControlOriginalMessage.mentionedAccountIDs?.includes(reportAction.actorAccountID)
-        ) {
+        const originalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>);
+        if (originalMessage?.automaticAction && !originalMessage?.mentionedAccountIDs?.length) {
             return false;
         }
     }

@@ -1636,6 +1636,72 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [],
+                    automaticAction: true,
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [123],
+                    automaticAction: true,
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is false', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [],
+                    automaticAction: false,
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [456],
+                },
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
