@@ -428,7 +428,9 @@ const ViolationsUtils = {
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
         const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
-        const isTaxInPolicy = !!(updatedTransaction.taxCode && getCurrentTaxID(policy, updatedTransaction.taxCode));
+        const resolvedTaxCode = updatedTransaction.taxCode ? getCurrentTaxID(policy, updatedTransaction.taxCode) : undefined;
+        const transactionForTaxCheck = resolvedTaxCode && resolvedTaxCode !== updatedTransaction.taxCode ? {...updatedTransaction, taxCode: resolvedTaxCode} : updatedTransaction;
+        const isTaxInPolicy = !!resolvedTaxCode && TransactionUtils.hasTaxRateWithMatchingValue(policy, transactionForTaxCheck);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
