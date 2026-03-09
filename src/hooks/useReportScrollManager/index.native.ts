@@ -5,7 +5,7 @@ import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
+    const {flatListRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
@@ -15,19 +15,6 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
         flatListRef.current.scrollToIndex({index});
-    };
-
-    /**
-     * Scroll to the bottom of the inverted FlatList.
-     * When FlatList is inverted it's "bottom" is really it's top
-     */
-    const scrollToBottom = () => {
-        if (!flatListRef?.current) {
-            return;
-        }
-
-        scrollPositionRef.current = {offset: 0};
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
     };
 
     /**
@@ -55,7 +42,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         flatListRef.current.scrollToOffset({offset, animated: false});
     };
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
+    return {ref: flatListRef, scrollToIndex, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

@@ -17,18 +17,6 @@ function useReportScrollManager(): ReportScrollManagerData {
     };
 
     /**
-     * Scroll to the bottom of the inverted FlatList.
-     * When FlatList is inverted it's "bottom" is really it's top
-     */
-    const scrollToBottom = () => {
-        if (!flatListRef?.current) {
-            return;
-        }
-
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
-    };
-
-    /**
      * Scroll to the end of the FlatList.
      */
     const scrollToEnd = () => {
@@ -47,7 +35,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         flatListRef.current.scrollToOffset({animated: true, offset});
     };
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
+    return {ref: flatListRef, scrollToIndex, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;
