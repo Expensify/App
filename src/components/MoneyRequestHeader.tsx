@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import type {ReactNode} from 'react';
@@ -13,7 +14,6 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -43,6 +43,7 @@ import {
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
+    isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -51,7 +52,9 @@ import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    hasMultipleSplitChildren,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isDistanceRequest,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -77,11 +80,11 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
-import LoadingBar from './LoadingBar';
 import {ModalActions} from './Modal/Global/ModalContext';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -148,7 +151,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
-    const shouldShowLoadingBar = useLoadingBarVisibility();
     const personalDetails = usePersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -164,6 +166,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {currentSearchHash} = useSearchStateContext();
     const {removeTransaction} = useSearchActionsContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const hasMultipleSplits = useMemo(
+        () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
+    const isReportOpen = isOpenReport(parentReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
@@ -193,14 +203,22 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
+    const isDistanceExpenseUnsupportedForDuplicating = !!(
+        isDistanceRequest(transaction) &&
+        (isParentReportArchived || (activePolicyExpenseChat && (isSelfDM(parentReport) || isParentChatReportDM)))
+    );
+
     const {wideRHPRouteKeys} = useWideRHPState();
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
     }, [reportID, transaction?.transactionID, transactionViolations]);
+
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
@@ -236,6 +254,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     betas,
                     personalDetails,
                     recentWaypoints,
+                    targetPolicyTags,
                 });
             }
         },
@@ -255,6 +274,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             betas,
             personalDetails,
             recentWaypoints,
+            targetPolicyTags,
         ],
     );
 
@@ -399,7 +419,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
-        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !network?.shouldFailAllRequests);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (parentReportAction) {
             changeMoneyRequestHoldStatus(parentReportAction);
         }
@@ -465,7 +485,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
-            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
+            text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {
@@ -501,6 +521,16 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
+                if (isDistanceExpenseUnsupportedForDuplicating) {
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.cannotDuplicateDistanceExpense'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
                     showConfirmModal({
                         title: translate('common.duplicateExpense'),
@@ -519,7 +549,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
                 duplicateTransaction([transaction]);
             },
-            shouldCloseModalOnSelect: hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace,
+            shouldCloseModalOnSelect: isDistanceExpenseUnsupportedForDuplicating || hasCustomUnitOutOfPolicyViolation || isPerDiemRequestOnNonDefaultWorkspace,
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -671,7 +701,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     />
                 </View>
             )}
-            <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
+            <HeaderLoadingBar />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
