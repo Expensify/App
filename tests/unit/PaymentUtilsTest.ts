@@ -9,7 +9,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import createRandomPolicy from '../utils/collections/policies';
 
@@ -176,8 +176,8 @@ describe('PaymentUtils', () => {
         const mockOnPress = jest.fn();
         const mockTriggerKYCFlow = jest.fn();
         const mockConfirmApproval = jest.fn();
-        const testPolicy = createRandomPolicy(1) as OnyxEntry<Policy>;
-        const testPolicyID = testPolicy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+        const testPolicy = createRandomPolicy(1);
+        const testPolicyID = testPolicy.id;
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,
@@ -202,7 +202,7 @@ describe('PaymentUtils', () => {
             mockShouldRestrict.mockReturnValue(false);
         });
 
-        it('should navigate to restricted action page when billable actions are restricted', () => {
+        it('should navigate to restricted action page when billable actions are restricted and amountOwed > 0', () => {
             mockShouldRestrict.mockReturnValue(true);
             const params = {...baseParams, amountOwed: 100};
 
@@ -212,16 +212,25 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).not.toHaveBeenCalled();
         });
 
-        it('should not restrict when amountOwed is 0', () => {
+        it('should not navigate to restricted action page when amountOwed is 0', () => {
             mockShouldRestrict.mockReturnValue(false);
+            const params = {...baseParams, amountOwed: 0};
 
-            selectPaymentType({...baseParams, amountOwed: 0});
+            selectPaymentType(params);
 
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
+        it('should pass amountOwed to shouldRestrictUserBillableActions', () => {
+            const params = {...baseParams, amountOwed: 42};
+
+            selectPaymentType(params);
+
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42);
+        });
+
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
-            const params: SelectPaymentTypeParams = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType};
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType};
 
             selectPaymentType(params);
 
@@ -229,10 +238,10 @@ describe('PaymentUtils', () => {
             expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
         });
 
-        it('should navigate to unvalidated account page for EXPENSIFY payment when user is not validated', () => {
+        it('should navigate to unvalidated account page for EXPENSIFY payment type when user is not validated', () => {
             const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
             mockGetActiveRoute.mockReturnValue('r/1');
-            const params: SelectPaymentTypeParams = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType, isUserValidated: false};
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY as PaymentMethodType, isUserValidated: false};
 
             selectPaymentType(params);
 
@@ -241,11 +250,7 @@ describe('PaymentUtils', () => {
         });
 
         it('should call confirmApproval when payment type is APPROVE and confirmApproval is provided', () => {
-            const params: SelectPaymentTypeParams = {
-                ...baseParams,
-                iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType,
-                confirmApproval: mockConfirmApproval,
-            };
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, confirmApproval: mockConfirmApproval};
 
             selectPaymentType(params);
 
@@ -254,11 +259,7 @@ describe('PaymentUtils', () => {
         });
 
         it('should call approveMoneyRequest with amountOwed when payment type is APPROVE and no confirmApproval', () => {
-            const params: SelectPaymentTypeParams = {
-                ...baseParams,
-                iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType,
-                amountOwed: 42,
-            };
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42};
 
             selectPaymentType(params);
 
@@ -278,11 +279,7 @@ describe('PaymentUtils', () => {
         });
 
         it('should pass amountOwed as undefined to approveMoneyRequest when amountOwed is undefined', () => {
-            const params: SelectPaymentTypeParams = {
-                ...baseParams,
-                iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType,
-                amountOwed: undefined,
-            };
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined};
 
             selectPaymentType(params);
 
@@ -302,18 +299,28 @@ describe('PaymentUtils', () => {
         });
 
         it('should call onPress with payment type for other payment types', () => {
-            selectPaymentType({...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE as PaymentMethodType});
+            const params = {...baseParams, iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE as PaymentMethodType};
+
+            selectPaymentType(params);
 
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
         it('should not restrict when policy is undefined', () => {
-            const params: SelectPaymentTypeParams = {...baseParams, policy: undefined, amountOwed: 100};
+            const params = {...baseParams, policy: undefined, amountOwed: 100};
 
             selectPaymentType(params);
 
             expect(mockShouldRestrict).not.toHaveBeenCalled();
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
+        });
+
+        it('should pass amountOwed as undefined when it is undefined', () => {
+            const params = {...baseParams, amountOwed: undefined};
+
+            selectPaymentType(params);
+
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined);
         });
     });
 });
