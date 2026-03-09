@@ -98,7 +98,7 @@ function ConfirmationPage({
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const isLottie = isIllustrationLottieAnimation(illustration);
-    const shouldShowStaticFallback = isLottie && isReduceMotionEnabled;
+    const shouldShowStaticFallback = isLottie && isReduceMotionEnabled && illustration === LottieAnimations.Fireworks;
 
     return (
         <View style={[styles.flex1, containerStyle]}>
