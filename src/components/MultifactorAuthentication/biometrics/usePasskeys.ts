@@ -4,7 +4,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {
     arrayBufferToBase64URL,
@@ -15,6 +14,7 @@ import {
     getPasskeyAssertion,
     isSupportedTransport,
     isWebAuthnSupported,
+    PASSKEY_AUTH_TYPE,
 } from '@libs/MultifactorAuthentication/Biometrics/WebAuthn';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
@@ -95,16 +95,13 @@ function usePasskeys(): UseBiometricsReturn {
             existingCredentials: localPasskeyCredentials ?? null,
         });
 
-        const passkeyAuthType = SECURE_STORE_VALUES.AUTH_TYPE.PASSKEY;
-
         await onResult({
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             publicKey: credentialId,
             authenticationMethod: {
-                code: passkeyAuthType.CODE,
-                name: passkeyAuthType.NAME,
-                marqetaValue: passkeyAuthType.MARQETA_VALUE,
+                name: PASSKEY_AUTH_TYPE.NAME,
+                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
             },
             attestation: {
                 rawId: credentialId,
@@ -155,8 +152,6 @@ function usePasskeys(): UseBiometricsReturn {
         const clientDataJSON = arrayBufferToBase64URL(assertionResponse.clientDataJSON);
         const signature = arrayBufferToBase64URL(assertionResponse.signature);
 
-        const passkeyAuthType = SECURE_STORE_VALUES.AUTH_TYPE.PASSKEY;
-
         await onResult({
             success: true,
             reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
@@ -170,9 +165,8 @@ function usePasskeys(): UseBiometricsReturn {
                 },
             },
             authenticationMethod: {
-                code: passkeyAuthType.CODE,
-                name: passkeyAuthType.NAME,
-                marqetaValue: passkeyAuthType.MARQETA_VALUE,
+                name: PASSKEY_AUTH_TYPE.NAME,
+                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
             },
         });
     };

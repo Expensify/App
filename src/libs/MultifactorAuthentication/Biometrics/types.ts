@@ -6,18 +6,19 @@ import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenari
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
+import type {PASSKEY_AUTH_TYPE} from './WebAuthn';
 
 type MultifactorAuthenticationMethodCode = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 
 /**
- * Authentication type name derived from secure store values.
+ * Authentication type name derived from secure store values and passkey auth type.
  */
-type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
+type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'] | (typeof PASSKEY_AUTH_TYPE)['NAME'];
 
-type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MARQETA_VALUE'];
+type MarqetaAuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['MARQETA_VALUE'] | (typeof PASSKEY_AUTH_TYPE)['MARQETA_VALUE'];
 
 type AuthTypeInfo = {
-    code: MultifactorAuthenticationMethodCode;
+    code?: MultifactorAuthenticationMethodCode;
     name: AuthTypeName;
     marqetaValue: MarqetaAuthTypeName;
 };

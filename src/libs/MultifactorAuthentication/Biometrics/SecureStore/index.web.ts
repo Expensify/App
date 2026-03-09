@@ -42,11 +42,6 @@ const SECURE_STORE_VALUES = {
             NAME: 'Optic ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.OTHER,
         },
-        PASSKEY: {
-            CODE: 100,
-            NAME: 'Passkey',
-            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
-        },
     },
     WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: -1,
 } as const satisfies SecureStoreValues;

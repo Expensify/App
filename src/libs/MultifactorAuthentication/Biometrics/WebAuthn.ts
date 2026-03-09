@@ -2,6 +2,16 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import type {AuthenticationChallenge, RegistrationChallenge} from './ED25519/types';
+import MARQETA_VALUES from './SecureStore/MarqetaValues';
+
+/**
+ * Passkey authentication type metadata.
+ * Not part of SecureStore — passkeys bypass the native secure store entirely.
+ */
+const PASSKEY_AUTH_TYPE = {
+    NAME: 'Passkey',
+    MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
+} as const;
 
 function arrayBufferToBase64URL(buffer: ArrayBuffer): string {
     return Base64URL.encode(new Uint8Array(buffer));
@@ -89,6 +99,7 @@ function buildAllowCredentials(credentials: Array<{id: string; transports?: Supp
 }
 
 export {
+    PASSKEY_AUTH_TYPE,
     arrayBufferToBase64URL,
     base64URLToArrayBuffer,
     isWebAuthnSupported,

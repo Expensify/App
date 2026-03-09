@@ -49,11 +49,6 @@ const SECURE_STORE_VALUES = {
             NAME: 'Optic ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
-        PASSKEY: {
-            CODE: 100,
-            NAME: 'Passkey',
-            MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
-        },
     },
     /**
      * A flag that ensures data is stored securely and is only accessible

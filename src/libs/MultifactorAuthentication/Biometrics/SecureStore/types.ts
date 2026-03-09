@@ -23,7 +23,6 @@ type AuthTypeMap = {
     FACE_ID: AuthTypeInfo;
     TOUCH_ID: AuthTypeInfo;
     OPTIC_ID: AuthTypeInfo;
-    PASSKEY: AuthTypeInfo;
 };
 
 /**
