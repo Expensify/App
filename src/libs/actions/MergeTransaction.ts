@@ -194,6 +194,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    destinationReportID,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -207,6 +208,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    destinationReportID: string | undefined;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -250,6 +252,7 @@ function getOnyxTargetTransactionData({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            newTransactionReportID: destinationReportID,
         });
     }
 
@@ -348,6 +351,13 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
 
+    // When the destination report differs from the target transaction's current report,
+    // pass the destination reportID so the target transaction's reportID is optimistically
+    // updated. Without this, the UI navigates to the destination report but the transaction
+    // data hasn't been moved there yet, causing infinite loading.
+    const isUnreportedDestination = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const destinationReportID = !isUnreportedDestination && mergeTransaction.reportID !== targetTransaction.reportID ? mergeTransaction.reportID : undefined;
+
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
@@ -361,6 +371,7 @@ function mergeTransactionRequest({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        destinationReportID,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
@@ -386,28 +397,32 @@ function mergeTransactionRequest({
             value: sourceTransaction,
         };
         const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
-            transactionsOfSourceReport.length === 1
-                ? [
-                      {
-                          onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                          value: null,
-                      },
-                  ]
-                : [];
+        // Don't delete the source report if it's the merge destination, because the
+        // backend will move the merged transaction there. Deleting it optimistically
+        // would cause the destination report to appear as null in Onyx, leading to
+        // infinite loading when navigating to it after the merge.
+        const isSourceReportTheMergeDestination = sourceTransaction.reportID === mergeTransaction.reportID;
+        const shouldDeleteSourceReport = transactionsOfSourceReport.length === 1 && !isSourceReportTheMergeDestination;
+        const optimisticSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = shouldDeleteSourceReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: null,
+                  },
+              ]
+            : [];
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> =
-            transactionsOfSourceReport.length === 1
-                ? [
-                      {
-                          onyxMethod: Onyx.METHOD.SET,
-                          key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                          value: getReportOrDraftReport(sourceTransaction.reportID),
-                      },
-                  ]
-                : [];
+        const failureSourceReportData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = shouldDeleteSourceReport
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                      value: getReportOrDraftReport(sourceTransaction.reportID),
+                  },
+              ]
+            : [];
         const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
         const optimisticSourceReportActionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = iouActionOfSourceTransaction
             ? [
