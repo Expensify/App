@@ -166,6 +166,9 @@ type TransactionCustomUnit = {
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 
+    /** Original system-calculated route distance in meters */
+    routeDistanceMeters?: number | string;
+
     /** Sub Rates for the custom unit */
     subRates?: Array<{
         /** Key of the sub rate */

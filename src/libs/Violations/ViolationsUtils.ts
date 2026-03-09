@@ -9,6 +9,7 @@ import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
@@ -670,6 +671,7 @@ const ViolationsUtils = {
         connectionLink?: string,
         card?: Card,
         isMarkAsCash?: boolean,
+        transaction?: OnyxEntry<Transaction>,
     ): string {
         const {
             brokenBankConnection = false,
@@ -727,8 +729,13 @@ const ViolationsUtils = {
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
-            case 'modifiedDistance':
-                return translate('violations.modifiedDistance', {formattedRouteDistance: violation.data?.formattedRouteDistance});
+            case 'modifiedDistance': {
+                const customUnit = transaction?.comment?.customUnit;
+                const routeDistanceMeters = Number(customUnit?.routeDistanceMeters) || 0;
+                const distanceUnit = customUnit?.distanceUnit;
+                const formattedRouteDistance = routeDistanceMeters > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(routeDistanceMeters, distanceUnit) : undefined;
+                return translate('violations.modifiedDistance', {formattedRouteDistance});
+            }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
