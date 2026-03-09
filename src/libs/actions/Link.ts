@@ -246,9 +246,7 @@ function isOldDotURL(url: string): boolean {
 
     // Ensure it doesn't match any New Dot prefix — if it does, it's a ND URL served from the same origin
     const hasNewDotOrigin =
-        Url.hasSameExpensifyOrigin(url, CONST.NEW_EXPENSIFY_URL) ||
-        Url.hasSameExpensifyOrigin(url, CONST.STAGING_NEW_EXPENSIFY_URL) ||
-        url.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
+        Url.hasSameExpensifyOrigin(url, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(url, CONST.STAGING_NEW_EXPENSIFY_URL) || url.startsWith(CONST.DEV_NEW_EXPENSIFY_URL);
     return !hasNewDotOrigin;
 }
 
