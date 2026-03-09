@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -20,6 +20,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -37,7 +38,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
@@ -75,19 +75,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-    const hasEndedSubmitFollowUpActionRef = useRef(false);
-
-    // Reset the layout guard on blur so the next time this page gains focus we can end the span again if targeted.
-    useFocusEffect(
-        useCallback(() => {
-            // Cleanup runs on blur.
-            return () => {
-                hasEndedSubmitFollowUpActionRef.current = false;
-            };
-        }, []),
-    );
 
     const parentReportAction = useParentReportAction(report);
+
+    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
+    );
+
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -405,18 +401,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         shouldShowAccessErrorPage,
     ]);
 
-    const handleMoneyRequestReportLayout = useCallback(() => {
-        const pending = getPendingSubmitFollowUpAction();
-        if (hasEndedSubmitFollowUpActionRef.current || !pending || pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
-            return;
-        }
-        if (pending.reportID && pending.reportID !== reportIDFromRoute) {
-            return;
-        }
-        hasEndedSubmitFollowUpActionRef.current = true;
-        endSubmitFollowUpActionSpan(pending.followUpAction, reportIDFromRoute);
-    }, [reportIDFromRoute]);
-
     return (
         <WideRHPOverlayWrapper>
             <ActionListContext.Provider value={actionListValue}>
@@ -441,7 +425,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     key={report?.reportID}
-                                    onLayout={handleMoneyRequestReportLayout}
+                                    onLayout={handleSubmitToDestinationVisibleLayout}
                                     backToRoute={route.params.backTo}
                                 />
                                 <PortalHost name="suggestions" />

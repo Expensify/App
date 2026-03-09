@@ -38,6 +38,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
+import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
@@ -83,7 +84,6 @@ import {
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
-import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
@@ -179,7 +179,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const hasEndedSubmitFollowUpActionRef = useRef(false);
 
     const parentReportAction = useParentReportAction(reportOnyx);
 
@@ -973,24 +972,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
-    // When this report is the submit destination (dismiss-and-open-report or dismiss-modal-only), end the submit-to-destination-visible span on focus; cleanup resets the ref so the next submit can end the span again.
-    useFocusEffect(
-        useCallback(() => {
-            const pending = getPendingSubmitFollowUpAction();
-            // Skip if we already ended for this mount, or we're not the target destination.
-            if (hasEndedSubmitFollowUpActionRef.current || !pending || !reportIDFromRoute || pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
-                return;
-            }
-            // Pending action targets a different report.
-            if (pending.reportID && pending.reportID !== reportIDFromRoute) {
-                return;
-            }
-            hasEndedSubmitFollowUpActionRef.current = true;
-            endSubmitFollowUpActionSpan(pending.followUpAction, reportIDFromRoute);
-            return () => {
-                hasEndedSubmitFollowUpActionRef.current = false;
-            };
-        }, [reportIDFromRoute]),
+    useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
