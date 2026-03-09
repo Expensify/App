@@ -1572,7 +1572,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Kies een werkruimte',
-        routedDueToDEW: (to: string) => `rapport doorgestuurd naar ${to} vanwege aangepast goedkeuringsworkflow`,
+        routedDueToDEW: (to: string, reason?: string) => `rapport doorgestuurd naar ${to}${reason ? ` omdat ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'uur' : 'uren'} @ ${rate} / uur`,
             hrs: 'uur',
@@ -2074,6 +2074,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Scan de QR-code met je',
         authenticatorApp: 'authenticator-app',
         addKey: 'Of voeg deze geheime sleutel toe aan je authenticator-app:',
+        secretKey: 'geheime sleutel',
         enterCode: 'Voer vervolgens de zescijferige code in die is gegenereerd door je authenticator-app.',
         stepSuccess: 'Voltooid',
         enabled: 'Authenticatie in twee stappen ingeschakeld',
@@ -7225,6 +7226,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         topMerchants: 'Topverkopers',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
+            editMultiple: 'Meerdere bewerken',
+            editMultipleTitle: 'Meerdere uitgaven bewerken',
+            editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
             pay: 'Betalen',
             delete: 'Verwijderen',
@@ -7641,6 +7645,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         notActivated: 'Niet geactiveerd',
         outOfPocket: 'Vergoedbaar',
         companySpend: 'Niet vergoedbaar',
+        personalCard: 'Persoonlijke kaart',
+        companyCard: 'Bedrijfskaart',
+        expensifyCard: 'Expensify Kaart',
     },
     distance: {
         addStop: 'Stop toevoegen',
