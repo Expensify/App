@@ -811,10 +811,22 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
 
     useEffect(
         () => () => {
             isUnmounted.current = true;
+
+            if (hasHadFirstLayout.current) {
+                return;
+            }
+
+            const activeNavigateToReportsSpan = getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            if (activeNavigateToReportsSpan !== navigateToReportsSpanOnMount.current) {
+                return;
+            }
+
+            cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
         },
         [],
     );
