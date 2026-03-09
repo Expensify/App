@@ -6318,23 +6318,23 @@ ${reportName}
         downgrade: {
             commonFeatures: {
                 title: 'Collect にダウングレード',
-                note: '次の機能が利用できなくなります',
+                note: '次の機能へのアクセス権がなくなります',
                 benefits: {
                     confirm: 'Collect レートを適用するには、すべてのワークスペースの「プランタイプ」を「Collect」に変更する必要があります。',
                     benefit1: 'NetSuite、Sage Intacct、QuickBooks Desktop、Oracle、Microsoft Dynamics',
                     benefit2: 'Workday、Certinia',
                     benefit3: 'SSO/SAML',
-                    benefit4: 'スマート経費ルール、日当、階層型承認、カスタムレポート、予算管理',
+                    benefit4: 'スマート経費ルール、日当、マルチレベル承認、カスタムレポート、予算管理',
                     headsUp: 'ご注意ください！',
                     multiWorkspaceNote: 'Collect料金でのサブスクリプションを開始するには、初回の月額支払いの前に、すべてのワークスペースをダウングレードする必要があります。クリック',
                     selectStep: '> 各ワークスペースを選択 > プランタイプを変更',
                     benefit1Label: 'ERP 連携',
-                    benefit2Label: '人事統合',
+                    benefit2Label: '人事連携',
                     benefit3Label: 'セキュリティ',
                     benefit4Label: '詳細設定',
                     important: '重要:',
                 },
-                noteAndMore: 'その他：',
+                noteAndMore: 'など：',
             },
             completed: {
                 headline: 'ワークスペースがダウングレードされました',

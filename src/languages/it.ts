@@ -6380,13 +6380,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         downgrade: {
             commonFeatures: {
                 title: 'Passa a Collect',
-                note: "Perderai l'accesso alle seguenti funzionalità",
+                note: 'Perderai l’accesso alle seguenti funzionalità',
                 benefits: {
-                    confirm: 'Dovrai cambiare il "Tipo di piano" di ogni spazio di lavoro in "Collect" per poter ottenere la tariffa Collect.',
+                    confirm: 'Dovrai cambiare il “Tipo di piano” di ogni spazio di lavoro in “Collect” per poter ottenere la tariffa Collect.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
-                    benefit4: 'Regole intelligenti per le spese, diarie, approvazioni multilivello, report personalizzati e budgeting',
+                    benefit4: 'Regole intelligenti per le spese, diarie, approvazioni multilivello, report personalizzati e budget',
                     headsUp: 'Attenzione!',
                     multiWorkspaceNote:
                         'Dovrai effettuare il downgrade di tutti i tuoi spazi di lavoro prima del primo pagamento mensile per iniziare un abbonamento alla tariffa Collect. Fai clic',

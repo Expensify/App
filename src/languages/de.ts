@@ -6395,14 +6395,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         },
         downgrade: {
             commonFeatures: {
-                title: 'Auf Collect downgraden',
+                title: 'Herabstufen auf Collect',
                 note: 'Sie verlieren den Zugriff auf die folgenden Funktionen',
                 benefits: {
-                    confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um sich den Collect-Tarif zu sichern.',
+                    confirm: 'Sie müssen den „Plantyp“ jedes Arbeitsbereichs auf „Collect“ ändern, um den Collect-Tarif zu sichern.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
-                    benefit4: 'Intelligente Ausgabenregeln, Pauschalen, mehrstufige Genehmigungen, individuelle Berichte und Budgetierung',
+                    benefit4: 'Intelligente Spesenregeln, Tagegelder, Genehmigungen mit mehreren Ebenen, benutzerdefinierte Berichte und Budgetierung',
                     headsUp: 'Achtung!',
                     multiWorkspaceNote:
                         'Sie müssen alle Ihre Workspaces herabstufen, bevor Ihre erste monatliche Zahlung fällig ist, um ein Abonnement zum Collect-Tarif zu beginnen. Klicken Sie',

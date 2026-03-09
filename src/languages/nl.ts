@@ -6363,11 +6363,11 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 title: 'Downgraden naar Collect',
                 note: 'Je verliest toegang tot de volgende functies',
                 benefits: {
-                    confirm: 'Je moet het "Planniveau" van elke workspace wijzigen naar "Collect" om het Collect-tarief veilig te stellen.',
+                    confirm: 'Je moet het “Plan type” van elke workspace wijzigen naar “Collect” om het Collect-tarief veilig te stellen.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
-                    benefit4: 'Slimme onkostregels, dagvergoedingen, meerlagige goedkeuringen, aangepaste rapportage en budgettering',
+                    benefit4: 'Slimme onkostregels, dagvergoedingen, goedkeuring op meerdere niveaus, aangepaste rapportage en budgettering',
                     headsUp: 'Let op!',
                     multiWorkspaceNote: 'Je moet al je werkruimtes downgraden vóór je eerste maandelijkse betaling om een abonnement tegen het Collect-tarief te starten. Klik',
                     selectStep: '> selecteer elke werkruimte > wijzig het abonnementstype naar',

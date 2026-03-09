@@ -6359,10 +6359,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         },
         downgrade: {
             commonFeatures: {
-                title: 'Fazer downgrade para o Collect',
+                title: 'Rebaixar para Collect',
                 note: 'Você perderá acesso aos seguintes recursos',
                 benefits: {
-                    confirm: 'Você precisará mudar o “Tipo de plano” de cada espaço de trabalho para “Collect” para garantir a tarifa Collect.',
+                    confirm: 'Você precisará alterar o “Tipo de plano” de todos os espaços de trabalho para “Collect” para garantir a tarifa Collect.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
@@ -6371,7 +6371,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     multiWorkspaceNote:
                         'Você precisará fazer o downgrade de todos os seus espaços de trabalho antes do seu primeiro pagamento mensal para começar uma assinatura na tarifa Collect. Clique',
                     selectStep: '> selecione cada espaço de trabalho > altere o tipo de plano para',
-                    benefit1Label: 'Integrações de ERP',
+                    benefit1Label: 'Integrações com ERP',
                     benefit2Label: 'Integrações de RH',
                     benefit3Label: 'Segurança',
                     benefit4Label: 'Avançado',

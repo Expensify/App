@@ -6417,14 +6417,14 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         downgrade: {
             commonFeatures: {
-                title: 'Passer à Collect',
-                note: 'Vous perdrez l’accès aux fonctionnalités suivantes',
+                title: 'Rétrograder vers Collect',
+                note: "Vous perdrez l'accès aux fonctionnalités suivantes",
                 benefits: {
-                    confirm: 'Vous devez modifier le « Type de forfait » de chaque espace de travail en « Collect » afin de bénéficier du tarif Collect.',
+                    confirm: 'Vous devrez modifier le « Type de plan » de chaque espace de travail en « Collect » afin de bénéficier du tarif Collect.',
                     benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
                     benefit2: 'Workday, Certinia',
                     benefit3: 'SSO/SAML',
-                    benefit4: 'Règles de dépenses intelligentes, indemnités journalières, approbations à plusieurs niveaux, rapports personnalisés et budgétisation',
+                    benefit4: 'Règles de dépenses intelligentes, indemnités journalières, approbations multi-niveaux, rapports personnalisés et budgétisation',
                     headsUp: 'Attention !',
                     multiWorkspaceNote: 'Vous devrez rétrograder tous vos espaces de travail avant votre premier paiement mensuel pour commencer un abonnement au tarif Collect. Cliquez',
                     selectStep: '> sélectionnez chaque espace de travail > modifiez le type d’abonnement en',
