@@ -21,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,7 +30,7 @@ import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding, shouldEnableNegative} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -45,6 +45,7 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -65,14 +66,13 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import getCompactReceiptDimensions from './MoneyRequestConfirmationListFooter/getCompactReceiptDimensions';
 import getImageCompactModeStyle from './MoneyRequestConfirmationListFooter/getImageCompactModeStyle';
 import getReceiptContainerCompactModeStyle from './MoneyRequestConfirmationListFooter/getReceiptContainerCompactModeStyle';
+import NumberWithSymbolForm from './NumberWithSymbolForm';
 import PDFThumbnail from './PDFThumbnail';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
 import Text from './Text';
-import AmountTextInput from './AmountTextInput';
-import NumberWithSymbolForm from './NumberWithSymbolForm';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -87,7 +87,7 @@ type MoneyRequestConfirmationListFooterProps = {
     /** The distance of the transaction */
     distance: number;
 
-    /** The amount of the transaction */    
+    /** The amount of the transaction */
     amount: number;
 
     /** The formatted amount of the transaction */
@@ -223,7 +223,7 @@ type MoneyRequestConfirmationListFooterProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction ID */
-    transactionID: string | undefined;
+    transactionID?: string;
 
     /** Whether the receipt can be replaced */
     isReceiptEditable?: boolean;
@@ -251,6 +251,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Toggles compact mode by showing all fields */
     setShowMoreFields?: (showMoreFields: boolean) => void;
+
+    /** Callback when amount changes in the input */
+    onAmountChange?: (amount: number | null) => void;
+
+    /** Callback when currency changes */
+    onCurrencyChange?: (currency: string) => void;
 };
 
 type ConfirmationField = {
@@ -259,7 +265,6 @@ type ConfirmationField = {
     shouldShowAboveShowMore?: boolean;
     isSupplementary?: boolean;
 };
-
 function MoneyRequestConfirmationListFooter({
     action,
     currency,
@@ -310,7 +315,7 @@ function MoneyRequestConfirmationListFooter({
     shouldShowAmountField = true,
     shouldShowTax,
     transaction,
-    transactionID,
+    transactionID = '-1',
     unit,
     onPDFLoadError,
     onPDFPassword,
@@ -320,22 +325,27 @@ function MoneyRequestConfirmationListFooter({
     isDescriptionRequired = false,
     showMoreFields = false,
     setShowMoreFields = () => {},
+    onAmountChange,
+    onCurrencyChange,
 }: MoneyRequestConfirmationListFooterProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid', 'Sparkles', 'DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
-    
+
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
+    // Local state for the new manual expense flow
     const [transactionAmount, setTransactionAmount] = useState(convertToFrontendAmountAsString(amount, currency));
+    const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -408,6 +418,8 @@ function MoneyRequestConfirmationListFooter({
         }
         return name;
     }, [isUnreported, selectedReport, reportAttributes, translate]);
+
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const outstandingReports = useOutstandingReports(undefined, isFromGlobalCreate && !isPerDiemRequest ? undefined : policyID, ownerAccountID, false);
     // When creating an expense in an individual report, the report field becomes read-only
@@ -497,18 +509,80 @@ function MoneyRequestConfirmationListFooter({
         return '';
     }, [transaction, translate, isCategoryRequired]);
 
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
+    // Track selected currency separately to allow changing it in the new manual flow
+    const [selectedCurrency, setSelectedCurrency] = useState(currency);
+    const decimals = getCurrencyDecimals(selectedCurrency || currency);
+
+    const showCurrencyPicker = useCallback(() => {
+        setIsCurrencyPickerVisible(true);
+    }, []);
+
+    const hideCurrencyPicker = useCallback(() => {
+        setIsCurrencyPickerVisible(false);
+    }, []);
+
+    /**
+     * Updates the selected currency for the transaction.
+     * Updates local display state and stores the value in the parent ref for use at submission.
+     */
+    const updateSelectedCurrency = useCallback(
+        (value: string) => {
+            setSelectedCurrency(value);
+            hideCurrencyPicker();
+            onCurrencyChange?.(value);
+        },
+        [hideCurrencyPicker, onCurrencyChange],
+    );
+
+    /**
+     * Handles amount changes in the new manual expense flow.
+     * Updates local display state and stores the backend amount (cents) in the parent ref
+     * so it can be used at submission time without triggering Onyx/re-render on every keystroke.
+     */
+    const handleAmountChange = useCallback(
+        (newAmount: string) => {
+            setTransactionAmount(newAmount);
+
+            const isNegative = newAmount.startsWith('-');
+            const cleanAmount = newAmount.replace('-', '');
+
+            if (!cleanAmount || cleanAmount.trim() === '') {
+                onAmountChange?.(null);
+                return;
+            }
+
+            const numericAmount = Number.parseFloat(cleanAmount);
+            if (!Number.isNaN(numericAmount)) {
+                const absoluteBackendAmount = convertToBackendAmount(numericAmount);
+                onAmountChange?.(isNegative ? -absoluteBackendAmount : absoluteBackendAmount);
+            }
+        },
+        [onAmountChange],
+    );
+
+    const shouldShowAmountRequiredError = useMemo(() => {
+        return formError === 'common.error.invalidAmount';
+    }, [formError, transactionAmount]);
+
     const fields: ConfirmationField[] = [
         {
             item: isNewManualExpenseFlowEnabled ? (
-                <View style={styles.mh4}>
-                <NumberWithSymbolForm
-                    displayAsTextInput
-                    value={transactionAmount}
-                    decimals={getCurrencyDecimals(currency)}
-                    currency={currency}
-                    symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                    label={translate('iou.amount')}
-                    onInputChange={setTransactionAmount}
+                <View style={[styles.mh4, styles.mb2]}>
+                    <NumberWithSymbolForm
+                        displayAsTextInput
+                        value={transactionAmount}
+                        decimals={decimals}
+                        currency={selectedCurrency}
+                        symbol={getLocalizedCurrencySymbol(preferredLocale, selectedCurrency) ?? ''}
+                        label={translate('iou.amount')}
+                        errorText={shouldShowAmountRequiredError ? translate('common.error.fieldRequired') : ''}
+                        onInputChange={handleAmountChange}
+                        allowNegativeInput={allowNegative}
+                        shouldShowFlipButton
+                        shouldShowCurrencyButton
+                        shouldShowBigNumberPad={false}
+                        onCurrencyButtonPress={showCurrencyPicker}
                     />
                 </View>
             ) : (
@@ -1195,6 +1269,13 @@ function MoneyRequestConfirmationListFooter({
 
     return (
         <View style={isCompactMode ? styles.flex1 : undefined}>
+            <IOURequestStepCurrencyModal
+                isPickerVisible={isCurrencyPickerVisible}
+                hidePickerModal={hideCurrencyPicker}
+                headerText={translate('common.selectCurrency')}
+                value={selectedCurrency}
+                onInputChange={updateSelectedCurrency}
+            />
             <View>
                 {isTypeInvoice && (
                     <MenuItem

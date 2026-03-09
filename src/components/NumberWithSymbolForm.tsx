@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -90,6 +90,15 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Whether to show the flip (+/-) button */
+    shouldShowFlipButton?: boolean;
+
+    /** Whether to show the currency selection button */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Callback when currency button is pressed */
+    onCurrencyButtonPress?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -153,6 +162,9 @@ function NumberWithSymbolForm({
     ref,
     disabled,
     onSubmitEditing,
+    shouldShowFlipButton = false,
+    shouldShowCurrencyButton = false,
+    onCurrencyButtonPress,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
@@ -372,6 +384,53 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    /**
+     * Handles pressing the flip button (+/-) to toggle negative sign
+     * Only available in displayAsTextInput mode for manual expense flow
+     */
+    const handleFlipPress = useCallback(() => {
+        if (!currentNumber) {
+            return;
+        }
+
+        // Toggle the minus sign prefix in the value
+        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        setCurrentNumber(newValue);
+        onInputChange?.(newValue);
+    }, [currentNumber, onInputChange]);
+
+    /**
+     * Creates the right-hand side component for text input mode
+     * Renders flip (+/-) button and/or currency selection button when enabled
+     * Only shown when clear button is not visible (see TextInput conditional rendering)
+     */
+    const textInputRightHandSideComponent = useMemo(() => {
+        return (
+            <View style={[styles.flexRow, styles.gap2, styles.pr2, styles.alignItemsCenter]}>
+                {shouldShowFlipButton && canUseTouchScreen && (
+                    <Button
+                        small
+                        icon={icons.PlusMinus}
+                        onPress={handleFlipPress}
+                        isContentCentered
+                        accessibilityLabel={translate('iou.flip')}
+                    />
+                )}
+                {shouldShowCurrencyButton && currency && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={icons.DownArrow}
+                        onPress={onCurrencyButtonPress}
+                        isContentCentered
+                        text={currency}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                    />
+                )}
+            </View>
+        );
+    }, [displayAsTextInput, shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -401,6 +460,7 @@ function NumberWithSymbolForm({
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
     }

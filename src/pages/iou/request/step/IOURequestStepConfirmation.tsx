@@ -134,6 +134,11 @@ function IOURequestStepConfirmation({
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const hasMultipleTransactions = transactions.length > 1;
+
+    // Holds the amount/currency the user edited inline on the confirmation screen (beta only).
+    // Set synchronously inside onConfirm so that requestMoney / trackExpense can read the
+    // fresh values without waiting for an Onyx → React state propagation cycle.
+    const betaOverridesRef = useRef<{amount?: number; currency?: string}>({});
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
@@ -567,6 +572,11 @@ function IOURequestStepConfirmation({
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
 
+                // Use the overrides from the beta manual expense flow if present;
+                // otherwise fall back to the draft transaction values.
+                const itemAmount = isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : (betaOverridesRef.current.amount ?? item.amount);
+                const itemCurrency = isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : (betaOverridesRef.current.currency ?? item.currency);
+
                 if (isTestDriveReceipt) {
                     completeTestDriveTask(
                         viewTourTaskReport,
@@ -623,10 +633,10 @@ function IOURequestStepConfirmation({
                     gpsPoint,
                     action,
                     transactionParams: {
-                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                        amount: itemAmount,
                         distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
-                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                        currency: itemCurrency,
                         created: item.created,
                         merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
@@ -830,9 +840,9 @@ function IOURequestStepConfirmation({
                         policyTagList: policyTags,
                     },
                     transactionParams: {
-                        amount: item.amount,
+                        amount: betaOverridesRef.current.amount ?? item.amount,
                         distance: itemDistance,
-                        currency: item.currency,
+                        currency: betaOverridesRef.current.currency ?? item.currency,
                         created: item.created,
                         merchant: item.merchant,
                         comment: item?.comment?.comment?.trim() ?? '',
@@ -1383,7 +1393,12 @@ function IOURequestStepConfirmation({
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
 
-    const onConfirm = (listOfParticipants: Participant[]) => {
+    const onConfirm = (listOfParticipants: Participant[], betaAmountOverride?: number, betaCurrencyOverride?: string) => {
+        // Store any inline-edited amount/currency from the new manual expense flow beta
+        // so that requestMoney / trackExpense can use them directly without waiting for
+        // an Onyx -> React state propagation cycle.
+        betaOverridesRef.current = {amount: betaAmountOverride, currency: betaCurrencyOverride};
+
         setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
 

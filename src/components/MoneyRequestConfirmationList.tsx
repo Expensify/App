@@ -86,7 +86,7 @@ import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: (selectedParticipants: Participant[], amount?: number, currency?: string) => void;
 
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
@@ -284,6 +284,7 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -401,6 +402,20 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [showMoreFields, setShowMoreFields] = useState(false);
+
+    // For the new manual expense flow (beta), track the latest amount/currency the user has typed
+    // using refs rather than state to avoid re-rendering 20+ Onyx-watching components on every
+    // keystroke. The refs are only read once on final submission to persist the value to Onyx.
+    const pendingAmountRef = useRef<number | null>(null);
+    const pendingCurrencyRef = useRef<string | null>(null);
+
+    // Callbacks passed to the footer to capture the user's edits without triggering re-renders
+    const handleAmountChange = useCallback((value: number | null) => {
+        pendingAmountRef.current = value;
+    }, []);
+    const handleCurrencyChange = useCallback((value: string) => {
+        pendingCurrencyRef.current = value;
+    }, []);
 
     useEffect(() => {
         setShowMoreFields(false);
@@ -582,6 +597,11 @@ function MoneyRequestConfirmationList({
             } else {
                 text = translate('common.next');
             }
+        } else if (isNewManualExpenseFlowEnabled) {
+            // In the new manual expense flow (beta), the user edits the amount inline so the
+            // button always reads "Create expense" with no amount — this prevents the button
+            // from re-rendering on every keystroke and avoids showing a stale/incorrect value.
+            text = translate('iou.createExpense');
         } else if (isTypeTrackExpense) {
             text = translate('iou.createExpense');
             if (iouAmount !== 0) {
@@ -621,6 +641,7 @@ function MoneyRequestConfirmationList({
         policy,
         translate,
         formattedAmount,
+        isNewManualExpenseFlowEnabled,
     ]);
 
     const onSplitShareChange = useCallback(
@@ -978,6 +999,15 @@ function MoneyRequestConfirmationList({
                 setFormError('iou.error.noParticipantSelected');
                 return;
             }
+
+            const amountForValidation = isNewManualExpenseFlowEnabled ? pendingAmountRef.current : iouAmount;
+            const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+
+            if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+                setFormError('common.error.invalidAmount');
+                return;
+            }
+
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
@@ -1064,7 +1094,12 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                onConfirm?.(selectedParticipants);
+                // For the new manual expense flow (beta) the user edits amount/currency inline.
+                // Pass the pending values directly through the callback so the caller can use
+                // them immediately — bypassing the Onyx → React state propagation delay that
+                // would otherwise cause requestMoney to read the stale draft value.
+                // Non-beta flows leave the refs as null, so the caller falls back to item.amount.
+                onConfirm?.(selectedParticipants, pendingAmountRef.current ?? undefined, pendingCurrencyRef.current ?? undefined);
             } else {
                 if (!paymentMethod) {
                     return;
@@ -1100,6 +1135,7 @@ function MoneyRequestConfirmationList({
             iouCurrencyCode,
             isDistanceRequest,
             isDistanceRequestWithPendingRoute,
+            isNewManualExpenseFlowEnabled,
             iouAmount,
             formError,
             onConfirm,
@@ -1230,8 +1266,13 @@ function MoneyRequestConfirmationList({
         iouType,
         confirm,
         iouCurrencyCode,
+        isDistanceRequest,
+        currency,
+        formattedAmount,
         policyID,
+        reportID,
         isConfirmed,
+        isConfirming,
         splitOrRequestOptions,
         errorMessage,
         expensesNumber,
@@ -1243,8 +1284,6 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
-        isConfirming,
-        reportID,
     ]);
 
     const isCompactMode = useMemo(() => !showMoreFields && isScanRequest, [isScanRequest, showMoreFields]);
@@ -1319,6 +1358,8 @@ function MoneyRequestConfirmationList({
                 isDescriptionRequired={isDescriptionRequired}
                 showMoreFields={showMoreFields}
                 setShowMoreFields={setShowMoreFields}
+                onAmountChange={handleAmountChange}
+                onCurrencyChange={handleCurrencyChange}
             />
         </View>
     );
