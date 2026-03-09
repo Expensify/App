@@ -2920,12 +2920,16 @@ function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: Rep
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
-        return translate('workspaceActions.updateTax', {
+        // The backend sends 'value' for tax rate changes, but the translation expects 'rate'
+        const normalizedUpdatedField = updatedField === 'value' ? 'rate' : updatedField;
+        const message = translate('workspaceActions.updateTax', {
             taxName,
-            updatedField,
+            updatedField: normalizedUpdatedField,
             oldValue: normalizeTaxValue(oldValue),
             newValue: normalizeTaxValue(newValue),
         });
+
+        return message || getReportActionText(action);
     }
 
     return getReportActionText(action);
