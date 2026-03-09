@@ -90,11 +90,11 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
 
     // Enhance accessibility label to include locked state when disabled
     const enhancedAccessibilityLabel = useMemo(() => {
-        if (disabled) {
+        if (disabled || showLockIcon) {
             return `${accessibilityLabel}, ${translate('common.locked')}`;
         }
         return accessibilityLabel;
-    }, [accessibilityLabel, disabled, translate]);
+    }, [accessibilityLabel, disabled, showLockIcon, translate]);
 
     return (
         <PressableWithFeedback
