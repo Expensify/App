@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -7,28 +7,24 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
-import {updateSelectedFeed} from '@libs/actions/Card';
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useBankConnection from './useBankConnection';
 
 type BankConnectionProps = {
     /** ID of the policy */
@@ -43,11 +39,17 @@ type BankConnectionProps = {
     /** Whether this is a refresh card list flow */
     isRefreshConnectionFlow?: boolean;
 
-    /** Called when re-authentication completes successfully in a refresh flow */
-    onRefreshComplete?: () => void;
+    /** Called when the assign flow succeeds */
+    onSuccess?: () => void;
+
+    /** Called when the assign flow fails due to broken connection */
+    onFailure?: () => void;
+
+    /** Called when the back button is pressed */
+    onBackButtonPress?: () => void;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConnectionFlow, onRefreshComplete}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConnectionFlow, onSuccess, onFailure, onBackButtonPress}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -65,105 +67,49 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
-    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
+    const isFeedExpired = feed ? !!isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const {isNewFeedConnected, newFeed} = useMemo(
         () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
-    const headerTitleAddCards = !backTo ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards') : undefined;
-    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
-    const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
+    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
+    const headerTitle = feed ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.assignCard') : headerTitleAddCards;
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
-    useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds || feed) {
+    const handleAssignFailure = useCallback(() => {
+        if (onFailure) {
+            onFailure();
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
-            forceReplace: true,
-        });
-    }, [isBlockedToAddNewFeeds, policyID, feed]);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    }, [onFailure, policyID]);
 
-    const handleBackButtonPress = () => {
-        // Handle assign card flow
-        if (feed) {
-            Navigation.goBack();
+    const handleComplete = useCallback(() => {
+        if (onSuccess) {
+            onSuccess();
             return;
         }
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    }, [onSuccess, policyID]);
 
-        // Handle add new card flow
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
-    };
-
-    useEffect(() => {
-        if ((!url && !isPlaid) || isNewFeedHasError) {
-            return;
-        }
-
-        // Handle assign card flow
-        if (feed && !isFeedExpired) {
-            if (isRefreshConnectionFlow && onRefreshComplete) {
-                if (isFeedConnectionBroken) {
-                    updateBrokenConnection();
-                }
-                onRefreshComplete();
-                return;
-            }
-            if (isFeedConnectionBroken) {
-                updateBrokenConnection();
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-                return;
-            }
-            setAssignCardStepAndData({
-                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                isEditing: false,
-            });
-            return;
-        }
-
-        // Handle add new card flow
-        if (isNewFeedConnected) {
-            if (newFeed) {
-                updateSelectedFeed(newFeed, policyID);
-            }
-
-            // Direct feeds (except those added via Plaid) are created with default statement period end date.
-            // Redirect the user to set a custom date.
-            if (policyID && !isPlaid) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
-                });
-            } else {
-                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-            }
-        }
-        if (isPlaid) {
-            onImportPlaidAccounts();
-        }
-    }, [
-        isNewFeedConnected,
-        newFeed,
+    const {handleBackButtonPress} = useBankConnection({
         policyID,
-        url,
         feed,
-        isFeedExpired,
-        assignCard?.cardToAssign?.dateOption,
         isPlaid,
-        onImportPlaidAccounts,
-        isFeedConnectionBroken,
-        updateBrokenConnection,
+        url,
+        isNewFeedConnected: !!isNewFeedConnected,
+        newFeed,
+        isFeedExpired,
         isNewFeedHasError,
-        isRefreshConnectionFlow,
-        onRefreshComplete,
-    ]);
+        onSuccess: handleComplete,
+        onFailure: handleAssignFailure,
+        onBackButtonPress,
+        cardFeeds,
+        shouldOpenWindow: false,
+    });
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
