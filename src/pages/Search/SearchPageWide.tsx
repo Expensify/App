@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -7,6 +7,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import Search from '@components/Search';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
@@ -16,9 +17,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 
 type SearchPageWideProps = {
@@ -33,7 +37,7 @@ type SearchPageWideProps = {
     };
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
-    scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
     initScanRequest: (e: DragEvent) => void;
     isDragDisabled: boolean;
     PDFValidationComponent: React.ReactNode;
@@ -49,7 +53,7 @@ function SearchPageWide({
     footerData,
     handleSearchAction,
     onSortPressedCallback,
-    scrollHandler,
+    route,
     initScanRequest,
     isDragDisabled,
     PDFValidationComponent,
@@ -59,6 +63,18 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {saveScrollOffset} = useContext(ScrollOffsetContext);
+
+    const scrollHandler = useCallback(
+        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            if (!e.nativeEvent.contentOffset.y) {
+                return;
+            }
+
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [saveScrollOffset, route],
+    );
 
     const offlineIndicatorStyle = useMemo(() => {
         if (shouldShowFooter) {

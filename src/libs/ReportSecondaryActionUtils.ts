@@ -69,7 +69,6 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     hasSubmissionBlockingViolations,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOdometerDistanceRequest,
@@ -782,24 +781,6 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
-/**
- * Checks if the report should show the "Report layout" option
- * Only shows for expense reports (not IOU reports) with 2 or more transactions
- */
-function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
-    if (!isExpenseReportUtils(report)) {
-        return false;
-    }
-
-    // Exclude IOU reports - only show for workspace expense reports
-    if (isIOUReportUtils(report)) {
-        return false;
-    }
-
-    // Only show if report has 2 or more transactions
-    return reportTransactions.length >= 2;
-}
-
 function isDuplicateReportAction(report: Report): boolean {
     if (!isCurrentUserSubmitter(report)) {
         return false;
@@ -819,10 +800,6 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     }
 
     const reportTransaction = reportTransactions.at(0);
-
-    if (isDistanceRequestTransactionUtils(reportTransaction)) {
-        return false;
-    }
 
     // We can't duplicate per diem expenses that don't have start & end dates.
     const dates = reportTransaction?.comment?.customUnit?.attributes?.dates;
@@ -989,10 +966,6 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-
-    if (isReportLayoutAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
-    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);

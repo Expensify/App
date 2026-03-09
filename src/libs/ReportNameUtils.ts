@@ -6,12 +6,12 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     PersonalDetails,
     PersonalDetailsList,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -25,9 +25,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal, translate as translateWithLocale} from './Localize';
+import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
-import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import {getForReportAction, getForReportActionTemp, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -92,6 +92,8 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isOldDotReportAction,
+    isOriginalReportDeleted,
+    isRejectedAction,
     isRenamedAction,
     isReportActionAttachment,
     isTagModificationAction,
@@ -142,6 +144,7 @@ import {
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
+// eslint-disable-next-line rulesdir/no-onyx-connect -- allPersonalDetails is used by the deprecated getReportName function; will be removed as part of the Onyx.connect migration
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -413,7 +416,7 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
     }
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
+    if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
@@ -671,6 +674,8 @@ function computeChatThreadReportName(
     report: Report,
     reports: OnyxCollection<Report>,
     parentReportAction?: ReportAction,
+    policyTags?: OnyxEntry<PolicyTagLists>,
+    policy?: OnyxEntry<Policy>,
 ): string | undefined {
     if (!isChatThread(report)) {
         return undefined;
@@ -732,12 +737,25 @@ function computeChatThreadReportName(
 
         const movedFromReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.FROM)}`];
         const movedToReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(parentReportAction, CONST.REPORT.MOVE_TYPE.TO)}`];
-        const modifiedMessage = getForReportAction({
-            reportAction: parentReportAction,
-            policyID,
-            movedFromReport,
-            movedToReport,
-        });
+        const modifiedMessage = policyTags
+            ? getForReportActionTemp({
+                  translate,
+                  reportAction: parentReportAction,
+                  movedFromReport,
+                  movedToReport,
+                  policyTags,
+                  policy,
+                  // currentUserLogin is not threaded through this call chain yet; the empty string
+                  // causes policy-admin checks to fall back to the non-admin message path.
+                  // This will be addressed as part of the broader Onyx.connect migration.
+                  currentUserLogin: '',
+              })
+            : getForReportAction({
+                  reportAction: parentReportAction,
+                  policyID,
+                  movedFromReport,
+                  movedToReport,
+              });
         return formatReportLastMessageText(modifiedMessage);
     }
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
@@ -763,6 +781,7 @@ function computeReportName(
     reportActions?: OnyxCollection<ReportActions>,
     currentUserAccountID?: number,
     privateIsArchived?: string,
+    allPolicyTags?: OnyxCollection<PolicyTagLists>,
 ): string {
     if (!report || !report.reportID) {
         return '';
@@ -783,6 +802,14 @@ function computeReportName(
         return report?.reportName;
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
+        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
+        const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
+        const reportName = computeReportName(originalReport, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserAccountID);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
+    }
+
     if (isTaskReport(report)) {
         const taskName = report?.reportName ?? '';
 
@@ -792,7 +819,9 @@ function computeReportName(
     const privateIsArchivedValue = privateIsArchived ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction);
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; computeReportName is non-React code that cannot use the translate hook
+    const chatThreadReportName = computeChatThreadReportName(translateLocal, !!privateIsArchivedValue, report, reports ?? {}, parentReportAction, policyTags, reportPolicy);
     if (chatThreadReportName) {
         return chatThreadReportName;
     }
@@ -871,37 +900,16 @@ function computeReportName(
 }
 
 /**
- * Check for existence of report name in derived values first, then fall back to the report object
+ * Returns the report name from OnyxDerived `reportAttributes` when available, falling back to the raw report object.
  *
- * @param report
- * @param reportAttributesDerivedValue
- * @param reports
- * @param parentReportActionParam
+ * **Always prefer passing `reportAttributesDerivedValue` from the derived Onyx key** (`ONYXKEYS.DERIVED.REPORT_ATTRIBUTES`).
+ * The fallback to `report.reportName` exists only for edge-cases where the derived value is not yet populated.
+ * Do NOT compute any part of the name here. Adjust `computeReportName` (internal) function if any change to report name are required.
  */
-function getReportName(
-    report?: Report,
-    reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports'],
-    reports?: OnyxCollection<Report>,
-    parentReportActionParam?: OnyxEntry<ReportAction> | null,
-): string {
+function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAttributesDerivedValue['reports']): string {
     if (!report || !report.reportID) {
         return '';
     }
-
-    const parentReportAction = parentReportActionParam;
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
-        const originalReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
-        const originalReportName = originalReport ? getReportName(originalReport, reportAttributesDerivedValue) : '';
-        const currentLocale = IntlStore.getCurrentLocale();
-        const translateInCurrentLocale: LocalizedTranslate = (path, ...parameters) => translateWithLocale(currentLocale, path, ...parameters);
-        return getCreatedReportForUnapprovedTransactionsMessage(originalID, originalReportName, translateInCurrentLocale);
-    }
-
-    if (isInvoiceRoom(report)) {
-        return getInvoicesChatName({report, receiverPolicy: undefined, personalDetails: allPersonalDetails});
-    }
-
     return reportAttributesDerivedValue?.[report.reportID]?.reportName ?? report.reportName ?? '';
 }
 

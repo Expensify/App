@@ -5,6 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -43,6 +44,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
@@ -148,7 +151,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
                 }}
             />
         </AccessOrNotFoundWrapper>

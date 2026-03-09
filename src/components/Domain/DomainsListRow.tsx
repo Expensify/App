@@ -56,7 +56,7 @@ function DomainsListRow({title, isHovered, badgeText, isDomainVerified, brickRoa
                         <Badge
                             text={badgeText}
                             textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered, isDomainVerified && styles.badgeSuccess]}
+                            badgeStyles={[styles.alignSelfCenter, isDomainVerified && styles.badgeSuccess]}
                         />
                     </View>
                 )}
