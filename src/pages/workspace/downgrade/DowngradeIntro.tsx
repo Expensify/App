@@ -34,7 +34,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const note = translate('workspace.downgrade.commonFeatures.note');
     const noteAndMore = translate('workspace.downgrade.commonFeatures.noteAndMore');
     const pricingPageUrl = CONST.PLAN_TYPES_AND_PRICING_HELP_URL;
-    const benefitsNoteHTML = `<muted-text>${note}<a href="${pricingPageUrl}">${noteAndMore}</a></muted-text>`;
+    const benefitsNoteHTML = `<muted-text>${note} <a href="${pricingPageUrl}">${noteAndMore}</a></muted-text>`;
 
     const benefits = [
         {
@@ -82,8 +82,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
                     <RenderHTML html={benefitsListHTML} />
                 </View>
                 <Text style={[styles.mv4, styles.textBold, styles.textSupporting]}>
-                    {translate('workspace.downgrade.commonFeatures.benefits.important')}
-                    {translate('workspace.downgrade.commonFeatures.benefits.confirm')}
+                    {translate('workspace.downgrade.commonFeatures.benefits.important')} {translate('workspace.downgrade.commonFeatures.benefits.confirm')}
                 </Text>
                 {!policyID && (
                     <Text style={[styles.mv4]}>

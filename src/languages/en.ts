@@ -6352,7 +6352,7 @@ const translations = {
         downgrade: {
             commonFeatures: {
                 title: 'Downgrade to Collect',
-                note: "You'll lose access to the following features ",
+                note: "You'll lose access to the following features",
                 noteAndMore: 'and more:',
                 benefits: {
                     important: 'IMPORTANT: ',
