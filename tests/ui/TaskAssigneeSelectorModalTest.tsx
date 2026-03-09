@@ -66,7 +66,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getDisplayNameForParticipant: jest.fn(({accountID, shouldAddCurrentUserPostfix}: {accountID?: number; shouldAddCurrentUserPostfix?: boolean}) =>
-        accountID === 1 && shouldAddCurrentUserPostfix ? 'Current User (you)' : `User ${accountID ?? ''}`,
+        accountID === 1 && shouldAddCurrentUserPostfix ? 'Current User (you)' : `User${accountID === undefined ? '' : ` ${accountID}`}`,
     ),
     isOpenTaskReport: jest.fn(() => true),
     isTaskReport: jest.fn(() => false),

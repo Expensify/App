@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,9 +11,11 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {MoneyRequestAttendeeSelector} from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: jest.fn(),
@@ -52,15 +55,62 @@ jest.mock('@libs/DeviceCapabilities', () => ({
 type MockedUseOnyx = jest.MockedFunction<typeof useOnyx>;
 type MockedUseSearchSelector = jest.MockedFunction<typeof useSearchSelector>;
 
-function buildOption(login: string, accountID: number, isSelected = false) {
+function buildOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
+    return [value, {status: 'loaded'}];
+}
+
+function buildOption(login: string, accountID: number, isSelected = false): SearchOptionData {
     return {
+        reportID: '',
         login,
         text: login,
         displayName: login,
+        alternateText: login,
         keyForList: login,
         accountID,
         isSelected,
         selected: isSelected,
+        icons: [],
+    };
+}
+
+function buildSearchSelectorResult(config: Parameters<typeof useSearchSelector>[0], overrides: Partial<ReturnType<typeof useSearchSelector>> = {}): ReturnType<typeof useSearchSelector> {
+    const emptyOptions = {
+        recentReports: [],
+        personalDetails: [],
+        workspaceChats: [],
+        selfDMChat: null,
+        userToInvite: null,
+        currentUserOption: null,
+    };
+
+    return {
+        searchTerm: '',
+        debouncedSearchTerm: '',
+        setSearchTerm: jest.fn(),
+        searchOptions: emptyOptions,
+        availableOptions: emptyOptions,
+        selectedOptions: config.initialSelected ?? [],
+        selectedOptionsForDisplay: config.initialSelected ?? [],
+        setSelectedOptions: jest.fn(),
+        toggleSelection: jest.fn(),
+        areOptionsInitialized: true,
+        contactState: undefined,
+        onListEndReached: jest.fn(),
+        ...overrides,
+    };
+}
+
+function buildAttendee(overrides: Partial<Attendee> = {}): Attendee {
+    return {
+        accountID: CONST.DEFAULT_NUMBER_ID,
+        login: '',
+        email: '',
+        displayName: '',
+        avatarUrl: '',
+        selected: true,
+        iouType: CONST.IOU.TYPE.SUBMIT,
+        ...overrides,
     };
 }
 
@@ -104,27 +154,24 @@ describe('MoneyRequestAttendeeSelector', () => {
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.NVP_ACTIVE_POLICY_ID:
-                    return ['policyID', jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult('policyID');
                 case ONYXKEYS.NVP_RECENT_ATTENDEES:
-                    return [[], jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult([]);
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.LOGIN_LIST:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorResult(config, {
                 searchOptions: {
                     recentReports: [
                         buildOption('selected@test.com', 1, true),
@@ -150,7 +197,6 @@ describe('MoneyRequestAttendeeSelector', () => {
                         buildOption('contact3@test.com', 8),
                         buildOption('contact4@test.com', 9),
                     ],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
@@ -159,20 +205,12 @@ describe('MoneyRequestAttendeeSelector', () => {
                 availableOptions: {
                     recentReports: [],
                     personalDetails: [],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
                     currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: undefined,
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
     });
 
@@ -180,14 +218,12 @@ describe('MoneyRequestAttendeeSelector', () => {
         render(
             <MoneyRequestAttendeeSelector
                 attendees={[
-                    {
+                    buildAttendee({
                         accountID: 1,
                         login: 'selected@test.com',
                         email: 'selected@test.com',
                         displayName: 'Selected User',
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                    },
+                    }),
                 ]}
                 onFinish={jest.fn()}
                 onAttendeesAdded={jest.fn()}
@@ -261,10 +297,7 @@ describe('MoneyRequestAttendeeSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorResult(config, {
                 searchOptions: {
                     recentReports: [
                         buildOption('selected-recent@test.com', 1, true),
@@ -280,7 +313,6 @@ describe('MoneyRequestAttendeeSelector', () => {
                         buildOption('contact3@test.com', 9),
                         buildOption('contact4@test.com', 10),
                     ],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
@@ -289,41 +321,29 @@ describe('MoneyRequestAttendeeSelector', () => {
                 availableOptions: {
                     recentReports: [],
                     personalDetails: [],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
                     currentUserOption: null,
                 },
-                selectedOptions: config.initialSelected ?? [],
-                selectedOptionsForDisplay: config.initialSelected ?? [],
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: undefined,
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         render(
             <MoneyRequestAttendeeSelector
                 attendees={[
-                    {
+                    buildAttendee({
                         accountID: 1,
                         login: 'selected-recent@test.com',
                         email: 'selected-recent@test.com',
                         displayName: 'Selected Recent',
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                    },
-                    {
+                    }),
+                    buildAttendee({
                         accountID: 6,
                         login: 'selected-contact@test.com',
                         email: 'selected-contact@test.com',
                         displayName: 'Selected Contact',
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                    },
+                    }),
                 ]}
                 onFinish={jest.fn()}
                 onAttendeesAdded={jest.fn()}
@@ -361,10 +381,7 @@ describe('MoneyRequestAttendeeSelector', () => {
             const firstSelectionItem: unknown = Array.isArray(selection) ? selection.at(0) : undefined;
             if (
                 Array.isArray(selection) &&
-                (selection.length === 0 ||
-                    (typeof firstSelectionItem === 'object' &&
-                        firstSelectionItem !== null &&
-                        ('email' in firstSelectionItem || 'iouType' in firstSelectionItem)))
+                (selection.length === 0 || (typeof firstSelectionItem === 'object' && firstSelectionItem !== null && ('email' in firstSelectionItem || 'iouType' in firstSelectionItem)))
             ) {
                 return [];
             }
@@ -374,26 +391,24 @@ describe('MoneyRequestAttendeeSelector', () => {
         mockedUseOnyx.mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.COUNTRY_CODE:
-                    return [CONST.DEFAULT_COUNTRY_CODE, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(CONST.DEFAULT_COUNTRY_CODE);
                 case ONYXKEYS.NVP_ACTIVE_POLICY_ID:
-                    return ['policyID', jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult('policyID');
                 case ONYXKEYS.NVP_RECENT_ATTENDEES:
-                    return [
+                    return buildOnyxResult([
                         [
-                            {
+                            buildAttendee({
                                 email: 'recent1@test.com',
                                 displayName: 'Recent User 1',
-                                avatarUrl: '',
-                            },
+                            }),
                         ],
-                        jest.fn(),
-                    ] as ReturnType<typeof useOnyx>;
+                    ]);
                 case ONYXKEYS.IS_SEARCHING_FOR_REPORTS:
-                    return [false, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(false);
                 case ONYXKEYS.LOGIN_LIST:
-                    return [{}, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult({});
                 default:
-                    return [undefined, jest.fn()] as ReturnType<typeof useOnyx>;
+                    return buildOnyxResult(undefined);
             }
         });
 
@@ -401,14 +416,15 @@ describe('MoneyRequestAttendeeSelector', () => {
         mockedUseSearchSelector.mockImplementation((config) => {
             latestSearchSelectorConfig = config;
 
-            return {
-                searchTerm: '',
-                debouncedSearchTerm: '',
-                setSearchTerm: jest.fn(),
+            return buildSearchSelectorResult(config, {
                 searchOptions: {
                     recentReports: [
                         {
-                            ...buildOption('recent1@test.com', 2, currentSelectedOptions.some((option) => option.login === 'recent1@test.com')),
+                            ...buildOption(
+                                'recent1@test.com',
+                                2,
+                                currentSelectedOptions.some((option) => option.login === 'recent1@test.com'),
+                            ),
                             text: 'Recent User 1',
                             displayName: 'Recent User 1',
                             alternateText: 'recent1@test.com',
@@ -418,7 +434,6 @@ describe('MoneyRequestAttendeeSelector', () => {
                         buildOption('recent4@test.com', 5),
                     ],
                     personalDetails: [buildOption('contact1@test.com', 6), buildOption('contact2@test.com', 7), buildOption('contact3@test.com', 8), buildOption('contact4@test.com', 9)],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
@@ -427,7 +442,6 @@ describe('MoneyRequestAttendeeSelector', () => {
                 availableOptions: {
                     recentReports: [],
                     personalDetails: [],
-                    recentAttendees: [],
                     workspaceChats: [],
                     selfDMChat: null,
                     userToInvite: null,
@@ -435,12 +449,7 @@ describe('MoneyRequestAttendeeSelector', () => {
                 },
                 selectedOptions: currentSelectedOptions,
                 selectedOptionsForDisplay: currentSelectedOptions,
-                setSelectedOptions: jest.fn(),
-                toggleSelection: jest.fn(),
-                areOptionsInitialized: true,
-                contactState: undefined,
-                onListEndReached: jest.fn(),
-            } as ReturnType<typeof useSearchSelector>;
+            });
         });
 
         const {rerender} = render(
@@ -469,14 +478,12 @@ describe('MoneyRequestAttendeeSelector', () => {
         rerender(
             <MoneyRequestAttendeeSelector
                 attendees={[
-                    {
+                    buildAttendee({
                         accountID: 2,
                         login: 'recent1@test.com',
                         email: 'recent1@test.com',
                         displayName: 'Recent User 1',
-                        selected: true,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                    },
+                    }),
                 ]}
                 onFinish={jest.fn()}
                 onAttendeesAdded={jest.fn()}

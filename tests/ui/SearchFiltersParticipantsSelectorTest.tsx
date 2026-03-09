@@ -9,7 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getEmptyOptions, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -37,9 +37,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 jest.mock('@libs/OptionsListUtils', () => {
-    const actual = jest.requireActual<typeof OptionsListUtils>('@libs/OptionsListUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/OptionsListUtils');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actual,
         getValidOptions: jest.fn(),
         filterAndOrderOptions: jest.fn((options: {personalDetails: Array<Record<string, unknown>>; recentReports: Array<Record<string, unknown>>}) => ({
@@ -57,8 +60,8 @@ jest.mock('@libs/OptionsListUtils', () => {
     };
 });
 
-type Options = OptionsListUtils.Options;
-type SearchOptionData = OptionsListUtils.SearchOptionData;
+type Options = ReturnType<typeof getEmptyOptions>;
+type SearchOptionData = Options['personalDetails'][number];
 
 function buildOnyxResult<T>(value: T): UseOnyxResult<T> {
     return [value, jest.fn()] as unknown as UseOnyxResult<T>;
@@ -81,7 +84,7 @@ function buildSearchOption(accountID: number, login: string, text: string, keyFo
 
 function buildOptions(overrides: Partial<Options> = {}): Options {
     return {
-        ...OptionsListUtils.getEmptyOptions(),
+        ...getEmptyOptions(),
         ...overrides,
     };
 }
@@ -92,7 +95,7 @@ describe('SearchFiltersParticipantsSelector', () => {
     const mockedUsePersonalDetails = jest.mocked(usePersonalDetails);
     const mockedUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
     const mockedUseOnyx = jest.mocked(useOnyx);
-    const mockedGetValidOptions = jest.mocked(OptionsListUtils.getValidOptions);
+    const mockedGetValidOptions = jest.mocked(getValidOptions);
 
     beforeEach(() => {
         jest.clearAllMocks();

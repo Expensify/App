@@ -5,9 +5,9 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelectionRef from '@hooks/useInitialSelectionRef';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {reorderItemsByInitialSelection} from '@libs/SelectionListOrderUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
@@ -49,36 +49,44 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         }))
         .sort(sortByValue);
 
-    const shouldReorderInitialSelection =
-        !searchLower && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+    const shouldReorderInitialSelection = !searchLower && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
     const orderedItems = shouldReorderInitialSelection ? reorderItemsByInitialSelection(mappedItems, initialSelectedValues) : mappedItems;
     const initialSelectedSet = new Set(initialSelectedValues);
     const initiallySelectedSectionData = orderedItems.filter((item) => initialSelectedSet.has(item.keyForList));
     const remainingSectionData = orderedItems.filter((item) => !initialSelectedSet.has(item.keyForList));
     const noResultsFound = orderedItems.length === 0;
-    const sections =
-        noResultsFound || !shouldReorderInitialSelection
-            ? noResultsFound
-                ? []
-                : [
-                      {
-                          title: pickerTitle,
-                          data: orderedItems,
-                          sectionIndex: 0,
-                      },
-                  ]
-            : [
-                  {
-                      title: undefined,
-                      data: initiallySelectedSectionData,
-                      sectionIndex: 0,
-                  },
-                  {
-                      title: pickerTitle,
-                      data: remainingSectionData,
-                      sectionIndex: 1,
-                  },
-              ];
+    let sections:
+        | Array<{
+              title: string | undefined;
+              data: typeof orderedItems;
+              sectionIndex: number;
+          }>
+        | [] = [];
+
+    if (!noResultsFound && !shouldReorderInitialSelection) {
+        sections = [
+            {
+                title: pickerTitle,
+                data: orderedItems,
+                sectionIndex: 0,
+            },
+        ];
+    }
+
+    if (!noResultsFound && shouldReorderInitialSelection) {
+        sections = [
+            {
+                title: undefined,
+                data: initiallySelectedSectionData,
+                sectionIndex: 0,
+            },
+            {
+                title: pickerTitle,
+                data: remainingSectionData,
+                sectionIndex: 1,
+            },
+        ];
+    }
 
     const onSelectItem = (item: Partial<OptionData & SearchMultipleSelectionPickerItem>) => {
         if (!item.text || !item.keyForList || !item.value) {

@@ -34,9 +34,8 @@ import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option} from '@libs/OptionsListUtils';
+import type {Option, SearchOptionData} from '@libs/OptionsListUtils';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPersonalDetailSearchTerms, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
-import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -90,6 +89,17 @@ const sanitizedSelectedParticipant = (option: Option | OptionData, iouType: IOUT
     selected: true,
     iouType,
 });
+
+function toSearchOptionData(option: SearchOptionData | (Participant & {keyForList: string})): SearchOptionData {
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for participant rows without reports.
+        reportID: option.reportID ?? '',
+        selected: option.selected ?? false,
+        isSelected: option.isSelected ?? false,
+        icons: option.icons ?? [],
+    };
+}
 
 function MoneyRequestParticipantsSelector({
     participants = CONST.EMPTY_ARRAY,
@@ -310,7 +320,7 @@ function MoneyRequestParticipantsSelector({
         !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED) &&
         inputHelperText === translate('common.noResultsFound');
 
-    const resolvedUserToInviteOption = useMemo(() => {
+    const resolvedUserToInviteOption = useMemo<SearchOptionData | null>(() => {
         const userToInvite = searchOptions.userToInvite;
 
         if (!userToInvite) {
@@ -320,7 +330,7 @@ function MoneyRequestParticipantsSelector({
         const isPolicyExpenseChat = userToInvite.isPolicyExpenseChat ?? false;
         return isPolicyExpenseChat
             ? getPolicyExpenseReportOption(userToInvite, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
-            : getParticipantsOption(userToInvite, personalDetails);
+            : toSearchOptionData(getParticipantsOption(userToInvite, personalDetails));
     }, [searchOptions.userToInvite, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived]);
 
     const initialSelectedOptions = useMemo(() => {
@@ -354,23 +364,14 @@ function MoneyRequestParticipantsSelector({
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const newSections: Array<Section<OptionWithKey>> = [];
+        const newSections: Array<Section<SearchOptionData>> = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
 
-        const formatResults = formatSectionsFromSearchTerm(
-            searchTerm,
-            selectableParticipants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
-            [],
-            [],
-            currentUserAccountID,
-            personalDetails,
-            true,
-            undefined,
-            reportAttributesDerived,
-        );
-        const selectedSectionBaseData = searchTerm.trim().length === 0 && initialSelectedOptions.length > 0 ? initialSelectedOptions : formatResults.section.data;
+        const formatResults = formatSectionsFromSearchTerm(searchTerm, selectedOptions, [], [], currentUserAccountID, personalDetails, true, undefined, reportAttributesDerived);
+        const formattedSelectedOptions = formatResults.section.data.map(toSearchOptionData);
+        const selectedSectionBaseData = searchTerm.trim().length === 0 && initialSelectedOptions.length > 0 ? initialSelectedOptions : formattedSelectedOptions;
         const selectedSectionData =
             searchTerm.trim().length === 0
                 ? selectedSectionBaseData.map((option) => {
@@ -382,7 +383,7 @@ function MoneyRequestParticipantsSelector({
                           selected: isSelected,
                       };
                   })
-                : formatResults.section.data;
+                : formattedSelectedOptions;
         const filteredLowerOptions = filterLowerParticipantSectionOptions({
             selectedSectionData,
             workspaceChats: availableOptions.workspaceChats,
@@ -453,7 +454,7 @@ function MoneyRequestParticipantsSelector({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat
                         ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
-                        : getParticipantsOption(participant, personalDetails);
+                        : toSearchOptionData(getParticipantsOption(participant, personalDetails));
                 }),
                 sectionIndex: 5,
             });
@@ -469,7 +470,6 @@ function MoneyRequestParticipantsSelector({
         areOptionsInitialized,
         didScreenTransitionEnd,
         searchTerm,
-        selectableParticipants,
         personalDetails,
         reportAttributesDerived,
         translate,
@@ -489,6 +489,7 @@ function MoneyRequestParticipantsSelector({
         inputHelperText,
         currentUserAccountID,
         currentUserEmail,
+        selectedOptions,
     ]);
 
     /**
@@ -496,7 +497,7 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addParticipantToSelection = useCallback(
-        (option: Participant) => {
+        (option: SearchOptionData) => {
             toggleSelection(option as OptionData);
         },
         [toggleSelection],
@@ -513,7 +514,7 @@ function MoneyRequestParticipantsSelector({
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
     const handleConfirmSelection = useCallback(
-        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
+        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: SearchOptionData) => {
             const shouldAddSingleParticipant = option && !selectedOptions.length;
             if (shouldShowSplitBillErrorMessage || (!selectedOptions.length && !option)) {
                 return;
@@ -611,7 +612,7 @@ function MoneyRequestParticipantsSelector({
     ]);
 
     const onSelectRow = useCallback(
-        (option: Participant) => {
+        (option: SearchOptionData) => {
             if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriodCollection)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;

@@ -1,4 +1,4 @@
-import type {OptionData} from '@libs/ReportUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {
     filterLowerParticipantSectionOptions,
     getMoneyRequestParticipantSelectionKey,
@@ -8,8 +8,9 @@ import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
-function buildOption(overrides: Partial<OptionData> = {}): OptionData {
+function buildOption(overrides: Partial<SearchOptionData> = {}): SearchOptionData {
     return {
+        reportID: '',
         text: '',
         displayName: '',
         alternateText: '',

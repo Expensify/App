@@ -123,7 +123,7 @@ describe('SelectCountryStep', () => {
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
 
         act(() => {
-            initialProps?.onSelectRow?.({value: 'GB'});
+            initialProps?.onSelectRow?.({keyForList: 'GB'});
         });
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];

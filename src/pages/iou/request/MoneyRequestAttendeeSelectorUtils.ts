@@ -1,18 +1,18 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
 type BuildMoneyRequestAttendeeSectionsParams = {
     searchTerm: string;
-    recentReports: OptionData[];
-    personalDetails: OptionData[];
-    userToInvite: OptionData | null;
-    selectedOptions: OptionData[];
-    initialSelectedOptions: OptionData[];
+    recentReports: SearchOptionData[];
+    personalDetails: SearchOptionData[];
+    userToInvite: SearchOptionData | null;
+    selectedOptions: SearchOptionData[];
+    initialSelectedOptions: SearchOptionData[];
     areOptionsInitialized: boolean;
     translate: (path: 'common.recents' | 'common.contacts') => string;
 };
@@ -23,19 +23,46 @@ type AttendeeIdentitySets = {
     displayValues: Set<string>;
 };
 
-function hasRealAccountID(option?: Partial<OptionData>) {
+type AttendeeSelectionIdentity = {
+    accountID?: number | null;
+    keyForList?: string | number | null;
+    login?: string | null;
+    reportID?: string | null;
+    text?: string | null;
+    displayName?: string | null;
+    searchText?: string | null;
+};
+
+function hasRealAccountID<TOption extends AttendeeSelectionIdentity>(option?: TOption | null): option is TOption & {accountID: number} {
     return !!option?.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID;
 }
 
-function getNormalizedAttendeeLogin(option?: Partial<OptionData>) {
+function getNormalizedAttendeeLogin(option?: AttendeeSelectionIdentity | null) {
     return option?.login?.trim().toLowerCase() ?? '';
 }
 
-function getNormalizedAttendeeDisplayValue(option?: Partial<OptionData>) {
+function getNormalizedAttendeeDisplayValue(option?: AttendeeSelectionIdentity | null) {
     return (option?.displayName ?? option?.text ?? option?.searchText)?.trim().toLowerCase() ?? '';
 }
 
-function buildAttendeeIdentitySets(options: OptionData[]): AttendeeIdentitySets {
+function getResolvedKeyForList(option: AttendeeSelectionIdentity) {
+    return (
+        option.keyForList?.toString() ?? (hasRealAccountID(option) ? option.accountID.toString() : undefined) ?? option.reportID ?? option.login ?? option.text ?? option.displayName ?? ''
+    );
+}
+
+function toSelectedAttendeeOption(option: Partial<SearchOptionData> & AttendeeSelectionIdentity): SearchOptionData {
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for attendee rows without reports.
+        reportID: option.reportID ?? '',
+        keyForList: getResolvedKeyForList(option),
+        selected: true,
+        isSelected: true,
+    };
+}
+
+function buildAttendeeIdentitySets(options: SearchOptionData[]): AttendeeIdentitySets {
     const accountIDs = new Set<number>();
     const logins = new Set<string>();
     const displayValues = new Set<string>();
@@ -64,7 +91,7 @@ function buildAttendeeIdentitySets(options: OptionData[]): AttendeeIdentitySets 
     };
 }
 
-function isOptionInAttendeeIdentitySets(option: OptionData | null | undefined, identitySets: AttendeeIdentitySets) {
+function isOptionInAttendeeIdentitySets(option: SearchOptionData | null | undefined, identitySets: AttendeeIdentitySets) {
     if (!option) {
         return false;
     }
@@ -82,8 +109,8 @@ function isOptionInAttendeeIdentitySets(option: OptionData | null | undefined, i
     return !!displayValue && identitySets.displayValues.has(displayValue);
 }
 
-function getUniqueAttendeeOptions(options: OptionData[]) {
-    const uniqueOptions: OptionData[] = [];
+function getUniqueAttendeeOptions(options: SearchOptionData[]) {
+    const uniqueOptions: SearchOptionData[] = [];
     const identitySets = buildAttendeeIdentitySets([]);
 
     for (const option of options) {
@@ -112,7 +139,7 @@ function getUniqueAttendeeOptions(options: OptionData[]) {
     return uniqueOptions;
 }
 
-function normalizeAttendeeToOption(attendee: Attendee, personalDetails: OnyxEntry<PersonalDetailsList>): OptionData {
+function normalizeAttendeeToOption(attendee: Attendee, personalDetails: OnyxEntry<PersonalDetailsList>): SearchOptionData {
     // Use || so empty email/login values still fall back to displayName for name-only attendees.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const normalizedLogin = attendee.email || attendee.login || attendee.displayName;
@@ -130,7 +157,7 @@ function normalizeAttendeeToOption(attendee: Attendee, personalDetails: OnyxEntr
         personalDetails,
     );
 
-    return {
+    return toSelectedAttendeeOption({
         ...participantOption,
         // Use || so empty login/text fall back to the best attendee identifier for name-only attendees.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -147,10 +174,10 @@ function normalizeAttendeeToOption(attendee: Attendee, personalDetails: OnyxEntr
         isSelected: true,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         keyForList: participantOption.keyForList || normalizedLogin || attendee.displayName,
-    };
+    });
 }
 
-function getAttendeeOptionIdentifier(option?: Partial<OptionData>) {
+function getAttendeeOptionIdentifier(option?: AttendeeSelectionIdentity) {
     if (!option) {
         return '';
     }
@@ -171,7 +198,7 @@ function getAttendeeOptionIdentifier(option?: Partial<OptionData>) {
     return '';
 }
 
-function areSameAttendeeOption(left?: Partial<OptionData>, right?: Partial<OptionData>) {
+function areSameAttendeeOption(left?: AttendeeSelectionIdentity | null, right?: AttendeeSelectionIdentity | null) {
     if (!left || !right) {
         return false;
     }
@@ -211,7 +238,7 @@ function buildMoneyRequestAttendeeSections({
     initialSelectedOptions,
     areOptionsInitialized,
     translate,
-}: BuildMoneyRequestAttendeeSectionsParams): Array<Section<OptionData>> {
+}: BuildMoneyRequestAttendeeSectionsParams): Array<Section<SearchOptionData>> {
     if (!areOptionsInitialized) {
         return [];
     }
@@ -230,7 +257,7 @@ function buildMoneyRequestAttendeeSections({
     const renderedSelectedIdentitySets = buildAttendeeIdentitySets(renderedSelectedOptions);
     const selectedOptionIdentitySets = buildAttendeeIdentitySets(selectedOptions);
 
-    const sections: Array<Section<OptionData>> = [];
+    const sections: Array<Section<SearchOptionData>> = [];
 
     if (shouldShowInitialSelectionSection) {
         const selectedSectionData = renderedSelectedOptions.map((option) => {
@@ -252,9 +279,7 @@ function buildMoneyRequestAttendeeSections({
         }
     }
 
-    const recentSectionData = shouldShowInitialSelectionSection
-        ? recentReports.filter((option) => !isOptionInAttendeeIdentitySets(option, renderedSelectedIdentitySets))
-        : recentReports;
+    const recentSectionData = shouldShowInitialSelectionSection ? recentReports.filter((option) => !isOptionInAttendeeIdentitySets(option, renderedSelectedIdentitySets)) : recentReports;
 
     if (recentSectionData.length > 0) {
         sections.push({

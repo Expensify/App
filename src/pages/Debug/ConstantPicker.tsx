@@ -25,11 +25,16 @@ type ConstantPickerProps = {
     onSubmit: (item: ListItem) => void;
 };
 
+type ConstantPickerItem = ListItem & {
+    value: string;
+    searchText: string;
+};
+
 function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const initialSelectedValues = useInitialSelectionRef(fieldValue ? [fieldValue] : [], {resetOnFocus: true});
-    const sections: ListItem[] = useMemo(() => {
+    const sections: ConstantPickerItem[] = useMemo(() => {
         const filteredItems = Object.entries(DETAILS_CONSTANT_FIELDS[formType as DebugForms].find((field) => field.fieldName === fieldName)?.options ?? {})
             .reduce((acc: Array<[string, string]>, [key, value]) => {
                 // Option has multiple constants, so we need to flatten these into separate options
@@ -48,7 +53,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                         value,
                         isSelected: value === fieldValue,
                         searchText: value,
-                    }) satisfies ListItem,
+                    }) satisfies ConstantPickerItem,
             )
             .filter(({searchText}) => {
                 return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;

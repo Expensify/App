@@ -1,38 +1,73 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
 type ResolveInitialSelectedParticipantOptionsParams = {
     initialSelectedParticipants: Participant[];
-    workspaceChats?: OptionData[];
-    selfDMChat?: OptionData | null;
-    recentReports?: OptionData[];
-    personalDetailsOptions?: OptionData[];
-    userToInvite?: OptionData | null;
+    workspaceChats?: SearchOptionData[];
+    selfDMChat?: SearchOptionData | null;
+    recentReports?: SearchOptionData[];
+    personalDetailsOptions?: SearchOptionData[];
+    userToInvite?: SearchOptionData | null;
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type FilterLowerParticipantSectionOptionsParams = {
-    selectedSectionData: Array<Partial<OptionData | Participant>>;
-    workspaceChats?: OptionData[];
-    selfDMChat?: OptionData | null;
-    recentReports?: OptionData[];
-    personalDetailsOptions?: OptionData[];
-    userToInvite?: OptionData | null;
+    selectedSectionData: Array<Partial<SearchOptionData | Participant>>;
+    workspaceChats?: SearchOptionData[];
+    selfDMChat?: SearchOptionData | null;
+    recentReports?: SearchOptionData[];
+    personalDetailsOptions?: SearchOptionData[];
+    userToInvite?: SearchOptionData | null;
 };
 
-function hasRealAccountID(option?: Partial<OptionData | Participant>) {
+type ParticipantSelectionIdentity = {
+    accountID?: number | null;
+    keyForList?: string | number | null;
+    login?: string | null;
+    reportID?: string | null;
+    policyID?: string | null;
+    text?: string | null;
+    displayName?: string | null;
+    searchText?: string | null;
+};
+
+function hasRealAccountID<TOption extends ParticipantSelectionIdentity>(option?: TOption | null): option is TOption & {accountID: number} {
     return !!option?.accountID && option.accountID !== CONST.DEFAULT_NUMBER_ID;
 }
 
-function getNormalizedParticipantLogin(option?: Partial<OptionData | Participant>) {
+function getNormalizedParticipantLogin(option?: ParticipantSelectionIdentity | null) {
     return option?.login?.trim().toLowerCase() ?? '';
 }
 
-function getMoneyRequestParticipantSelectionKey(option?: Partial<OptionData | Participant>) {
+function getResolvedKeyForList(option: ParticipantSelectionIdentity) {
+    return (
+        option.keyForList?.toString() ??
+        option.reportID ??
+        (hasRealAccountID(option) ? option.accountID.toString() : undefined) ??
+        option.login ??
+        option.policyID ??
+        option.text ??
+        option.displayName ??
+        ''
+    );
+}
+
+function toSelectedParticipantOption(option: Partial<SearchOptionData> & ParticipantSelectionIdentity): SearchOptionData {
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for unresolved non-report rows.
+        reportID: option.reportID ?? '',
+        keyForList: getResolvedKeyForList(option),
+        selected: true,
+        isSelected: true,
+    };
+}
+
+function getMoneyRequestParticipantSelectionKey(option?: ParticipantSelectionIdentity | null) {
     if (!option) {
         return '';
     }
@@ -66,19 +101,11 @@ function getMoneyRequestParticipantSelectionKey(option?: Partial<OptionData | Pa
     return '';
 }
 
-function getSelectedOptionData(option: OptionData): OptionData {
-    const keyForList =
-        option.keyForList?.toString() ?? option.reportID ?? (hasRealAccountID(option) ? option.accountID?.toString() : undefined) ?? option.login ?? option.policyID ?? option.text ?? '';
-
-    return {
-        ...option,
-        keyForList,
-        isSelected: true,
-        selected: true,
-    };
+function getSelectedOptionData(option: SearchOptionData): SearchOptionData {
+    return toSelectedParticipantOption(option);
 }
 
-function areSameMoneyRequestParticipant(left?: Partial<OptionData | Participant>, right?: Partial<OptionData | Participant>) {
+function areSameMoneyRequestParticipant(left?: ParticipantSelectionIdentity | null, right?: ParticipantSelectionIdentity | null) {
     if (!left || !right) {
         return false;
     }
@@ -121,7 +148,7 @@ function areSameMoneyRequestParticipant(left?: Partial<OptionData | Participant>
     return false;
 }
 
-function createFallbackSelectedParticipantOption(participant: Participant, personalDetails: OnyxEntry<PersonalDetailsList>): OptionData {
+function createFallbackSelectedParticipantOption(participant: Participant, personalDetails: OnyxEntry<PersonalDetailsList>): SearchOptionData {
     const canHydrateAsParticipant =
         !participant.isPolicyExpenseChat && (!!participant.accountID || !!participant.login || !!participant.displayName || !!participant.text || !!participant.phoneNumber);
 
@@ -135,32 +162,31 @@ function createFallbackSelectedParticipantOption(participant: Participant, perso
             personalDetails,
         );
 
-        return {
+        return toSelectedParticipantOption({
             ...participantOption,
-            reportID: participant.reportID,
-            policyID: participant.policyID,
-            isPolicyExpenseChat: participant.isPolicyExpenseChat,
-            isSelfDM: participant.isSelfDM,
+            reportID: participant.reportID ?? participantOption.reportID,
+            policyID: participant.policyID ?? participantOption.policyID,
+            isPolicyExpenseChat: participant.isPolicyExpenseChat ?? participantOption.isPolicyExpenseChat,
+            isSelfDM: participant.isSelfDM ?? participantOption.isSelfDM,
             displayName: participant.displayName ?? participantOption.text ?? participant.login ?? participant.text ?? '',
             searchText: participant.searchText ?? participantOption.searchText,
-            selected: true,
-            isSelected: true,
-        };
+        });
     }
 
-    const fallbackText = participant.text ?? participant.displayName ?? participant.login ?? participant.policyID ?? participant.reportID ?? '';
+    const fallbackIdentifier = participant.policyID ?? participant.reportID;
+    const fallbackText = participant.text ?? participant.displayName ?? participant.login ?? fallbackIdentifier;
 
-    return {
+    return toSelectedParticipantOption({
         ...participant,
-        text: fallbackText,
-        displayName: participant.displayName ?? fallbackText,
-        alternateText: participant.alternateText ?? participant.login ?? participant.policyID ?? participant.reportID ?? fallbackText,
-        keyForList: participant.keyForList ?? participant.reportID ?? participant.policyID ?? participant.login ?? fallbackText,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for participant rows without reports.
+        reportID: participant.reportID ?? '',
+        text: fallbackText ?? '',
+        displayName: participant.displayName ?? fallbackText ?? '',
+        alternateText: participant.alternateText ?? participant.login ?? fallbackIdentifier ?? fallbackText ?? '',
+        keyForList: participant.keyForList ?? fallbackIdentifier ?? participant.login ?? fallbackText ?? '',
         icons: participant.icons ?? [],
-        searchText: participant.searchText ?? fallbackText,
-        selected: true,
-        isSelected: true,
-    };
+        searchText: participant.searchText ?? fallbackText ?? '',
+    });
 }
 
 function resolveInitialSelectedParticipantOptions({
@@ -171,7 +197,7 @@ function resolveInitialSelectedParticipantOptions({
     personalDetailsOptions,
     userToInvite,
     personalDetails,
-}: ResolveInitialSelectedParticipantOptionsParams): OptionData[] {
+}: ResolveInitialSelectedParticipantOptionsParams): SearchOptionData[] {
     const normalizedWorkspaceChats = workspaceChats ?? [];
     const normalizedRecentReports = recentReports ?? [];
     const normalizedPersonalDetailsOptions = personalDetailsOptions ?? [];
@@ -199,7 +225,7 @@ function resolveInitialSelectedParticipantOptions({
             renderedSelectionKeys.add(selectionKey);
             return selectedOption;
         })
-        .filter((option): option is OptionData => !!option);
+        .filter((option): option is SearchOptionData => !!option);
 }
 
 function filterLowerParticipantSectionOptions({
@@ -211,17 +237,17 @@ function filterLowerParticipantSectionOptions({
     userToInvite,
 }: FilterLowerParticipantSectionOptionsParams) {
     const selectedOptionKeys = new Set(selectedSectionData.map(getMoneyRequestParticipantSelectionKey).filter(Boolean));
-    const shouldKeepOption = (option?: Partial<OptionData | Participant> | null) => {
+    const shouldKeepOption = (option?: Partial<SearchOptionData | Participant>) => {
         const selectionKey = getMoneyRequestParticipantSelectionKey(option);
         return !selectionKey || !selectedOptionKeys.has(selectionKey);
     };
 
     return {
         workspaceChats: (workspaceChats ?? []).filter(shouldKeepOption),
-        selfDMChat: shouldKeepOption(selfDMChat) ? (selfDMChat ?? null) : null,
+        selfDMChat: shouldKeepOption(selfDMChat ?? undefined) ? (selfDMChat ?? null) : null,
         recentReports: (recentReports ?? []).filter(shouldKeepOption),
         personalDetails: (personalDetailsOptions ?? []).filter(shouldKeepOption),
-        userToInvite: shouldKeepOption(userToInvite) ? (userToInvite ?? null) : null,
+        userToInvite: shouldKeepOption(userToInvite ?? undefined) ? (userToInvite ?? null) : null,
     };
 }
 

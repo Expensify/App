@@ -74,6 +74,7 @@ function ValuePicker({
                 </>
             ) : (
                 <ValueSelectionList
+                    isVisible
                     items={items}
                     selectedItem={selectedItem}
                     onItemSelected={updateInput}

@@ -1,8 +1,8 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
-import SelectionList from '@components/SelectionList';
 import YearPickerModal from '@components/DatePicker/CalendarPicker/YearPickerModal';
+import SelectionList from '@components/SelectionList';
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -69,7 +69,7 @@ describe('YearPickerModal', () => {
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
         expect(initialProps).toBeDefined();
-        expect(initialProps?.data.at(0)?.value).toBe(2018);
+        expect(initialProps?.data.at(0)?.keyForList).toBe('2018');
         expect(initialProps?.initiallyFocusedItemKey).toBe('2018');
         expect(initialProps?.shouldScrollToFocusedIndex).toBe(false);
         expect(initialProps?.shouldScrollToFocusedIndexOnMount).toBe(false);
@@ -79,7 +79,7 @@ describe('YearPickerModal', () => {
         const {rerender} = renderYearPicker(2018);
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(initialProps?.data.at(0)?.value).toBe(2018);
+        expect(initialProps?.data.at(0)?.keyForList).toBe('2018');
         expect(initialProps?.initiallyFocusedItemKey).toBe('2018');
 
         rerender(
@@ -93,9 +93,9 @@ describe('YearPickerModal', () => {
         );
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(updatedProps?.data.at(0)?.value).toBe(2018);
+        expect(updatedProps?.data.at(0)?.keyForList).toBe('2018');
         expect(updatedProps?.initiallyFocusedItemKey).toBe('2018');
-        expect(updatedProps?.data.find((item) => item.value === 2020)?.isSelected).toBe(true);
+        expect(updatedProps?.data.find((item) => item.keyForList === '2020')?.isSelected).toBe(true);
     });
 
     it('refreshes the pinned year and focus target when the modal is reopened', () => {
@@ -106,7 +106,7 @@ describe('YearPickerModal', () => {
         renderYearPicker(2020);
 
         const reopenedProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(reopenedProps?.data.at(0)?.value).toBe(2020);
+        expect(reopenedProps?.data.at(0)?.keyForList).toBe('2020');
         expect(reopenedProps?.initiallyFocusedItemKey).toBe('2020');
     });
 
@@ -120,7 +120,7 @@ describe('YearPickerModal', () => {
         });
 
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(searchedProps?.data.at(0)?.value).toBe(2019);
-        expect(searchedProps?.data.findIndex((item) => item.value === 2018)).toBeGreaterThan(0);
+        expect(searchedProps?.data.at(0)?.keyForList).toBe('2019');
+        expect(searchedProps?.data.findIndex((item) => item.keyForList === '2018')).toBeGreaterThan(0);
     });
 });

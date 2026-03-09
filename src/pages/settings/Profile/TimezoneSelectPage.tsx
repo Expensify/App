@@ -89,10 +89,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         return moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues);
     }, [initialSelectedValues, timezone.selected, timezoneInputText, timezoneOptions]);
 
-    const initiallyFocusedItemKey = useMemo(
-        () => orderedTimezoneOptions.find((tz) => tz.value === initiallyFocusedTimezone)?.keyForList,
-        [initiallyFocusedTimezone, orderedTimezoneOptions],
-    );
+    const initiallyFocusedItemKey = useMemo(() => orderedTimezoneOptions.find((tz) => tz.value === initiallyFocusedTimezone)?.keyForList, [initiallyFocusedTimezone, orderedTimezoneOptions]);
 
     return (
         <ScreenWrapper

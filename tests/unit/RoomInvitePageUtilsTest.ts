@@ -4,6 +4,7 @@ import {areRoomInviteSelectionsEqual, areSameRoomInviteOption, rehydrateRoomInvi
 
 function createOption(keyForList: string, overrides: Partial<OptionData> = {}): OptionData {
     return {
+        reportID: '',
         keyForList,
         text: keyForList,
         login: `${keyForList}@example.com`,
@@ -15,6 +16,7 @@ function createOption(keyForList: string, overrides: Partial<OptionData> = {}): 
 
 function createSearchOption(keyForList: string, overrides: Partial<SearchOptionData> = {}): SearchOptionData {
     return {
+        reportID: '',
         keyForList,
         text: keyForList,
         login: `${keyForList}@example.com`,

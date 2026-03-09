@@ -6,6 +6,7 @@ import {buildAddDelegateSections, buildInitialDelegateOption} from '@src/pages/s
 
 function buildOption(overrides: Partial<OptionData> & Pick<OptionData, 'login' | 'keyForList' | 'text'>): OptionData {
     return {
+        reportID: '',
         accountID: overrides.accountID ?? (Number(overrides.keyForList) || 1),
         alternateText: overrides.login,
         ...overrides,

@@ -85,13 +85,13 @@ jest.mock('@src/types/utils/isLoadingOnyxValue', () => jest.fn(() => false));
 type PageProps = React.ComponentProps<typeof WorkspaceWorkflowsApprovalsApproverPage>;
 
 function buildPageProps(routeName: typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE): PageProps {
-    const employeeList = {} as NonNullable<PageProps['policy']>['employeeList'];
+    const employeeList = {} as NonNullable<NonNullable<PageProps['policy']>['employeeList']>;
     employeeList['selected@test.com'] = {email: 'selected@test.com', role: 'admin'};
     employeeList['other@test.com'] = {email: 'other@test.com', role: 'user'};
 
-    const personalDetails = {} as PageProps['personalDetails'];
-    personalDetails[1] = {avatar: '', displayName: 'Selected User', login: 'selected@test.com'};
-    personalDetails[2] = {avatar: '', displayName: 'Other User', login: 'other@test.com'};
+    const personalDetails = {} as NonNullable<PageProps['personalDetails']>;
+    personalDetails[1] = {accountID: 1, avatar: '', displayName: 'Selected User', login: 'selected@test.com'};
+    personalDetails[2] = {accountID: 2, avatar: '', displayName: 'Other User', login: 'other@test.com'};
 
     return {
         policy: {
@@ -100,6 +100,8 @@ function buildPageProps(routeName: typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_
             owner: 'owner@test.com',
             preventSelfApproval: false,
         } as PageProps['policy'],
+        policyDraft: undefined,
+        isLoadingPolicy: false,
         personalDetails,
         isLoadingReportData: false,
         route: {
@@ -124,6 +126,8 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         render(
             <WorkspaceWorkflowsApprovalsApproverPage
                 policy={pageProps.policy}
+                policyDraft={pageProps.policyDraft}
+                isLoadingPolicy={pageProps.isLoadingPolicy}
                 personalDetails={pageProps.personalDetails}
                 isLoadingReportData={pageProps.isLoadingReportData}
                 route={pageProps.route}
@@ -142,6 +146,8 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         render(
             <WorkspaceWorkflowsApprovalsApproverPage
                 policy={pageProps.policy}
+                policyDraft={pageProps.policyDraft}
+                isLoadingPolicy={pageProps.isLoadingPolicy}
                 personalDetails={pageProps.personalDetails}
                 isLoadingReportData={pageProps.isLoadingReportData}
                 route={pageProps.route}

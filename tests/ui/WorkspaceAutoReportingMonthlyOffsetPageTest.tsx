@@ -52,6 +52,8 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
         const {rerender} = render(
             <WorkspaceAutoReportingMonthlyOffsetPage
                 policy={buildPolicy(10)}
+                policyDraft={undefined}
+                isLoadingPolicy={false}
                 route={{key: '', name: '', params: {policyID: 'policyID'}} as never}
                 navigation={{} as never}
             />,
@@ -67,6 +69,8 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
         rerender(
             <WorkspaceAutoReportingMonthlyOffsetPage
                 policy={buildPolicy(20)}
+                policyDraft={undefined}
+                isLoadingPolicy={false}
                 route={{key: '', name: '', params: {policyID: 'policyID'}} as never}
                 navigation={{} as never}
             />,
@@ -83,6 +87,8 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
         const {unmount} = render(
             <WorkspaceAutoReportingMonthlyOffsetPage
                 policy={buildPolicy(10)}
+                policyDraft={undefined}
+                isLoadingPolicy={false}
                 route={{key: '', name: '', params: {policyID: 'policyID'}} as never}
                 navigation={{} as never}
             />,
@@ -93,6 +99,8 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
         render(
             <WorkspaceAutoReportingMonthlyOffsetPage
                 policy={buildPolicy(CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH)}
+                policyDraft={undefined}
+                isLoadingPolicy={false}
                 route={{key: '', name: '', params: {policyID: 'policyID'}} as never}
                 navigation={{} as never}
             />,
@@ -108,6 +116,8 @@ describe('WorkspaceAutoReportingMonthlyOffsetPage', () => {
         render(
             <WorkspaceAutoReportingMonthlyOffsetPage
                 policy={buildPolicy(12)}
+                policyDraft={undefined}
+                isLoadingPolicy={false}
                 route={{key: '', name: '', params: {policyID: 'policyID'}} as never}
                 navigation={{} as never}
             />,

@@ -57,6 +57,7 @@ function toSelectedSearchOption(option: Partial<SearchOptionData> & SelectionIde
         ...option,
         accountID: option.accountID ?? undefined,
         login: option.login ?? undefined,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for unresolved non-report rows.
         reportID: option.reportID ?? '',
         keyForList: getResolvedKeyForList(option),
         selected: true,

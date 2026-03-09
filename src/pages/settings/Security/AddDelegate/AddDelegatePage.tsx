@@ -1,21 +1,21 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getHeaderMessage} from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import {getUrlWithParams} from '@libs/Url';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,7 +89,8 @@ function AddDelegatePage({route}: AddDelegatePageProps) {
     );
 
     const hasVisibleOptions = sections.some((section) => section.data.length > 0);
-    const visibleUserToInvite = !!searchOptions.userToInvite && sections.some((section) => section.data.some((option) => areSameDelegateOption(option, searchOptions.userToInvite ?? undefined)));
+    const visibleUserToInvite =
+        !!searchOptions.userToInvite && sections.some((section) => section.data.some((option) => areSameDelegateOption(option, searchOptions.userToInvite ?? undefined)));
     const headerMessage = getHeaderMessage(hasVisibleOptions, visibleUserToInvite, debouncedSearchTerm, countryCode);
 
     useEffect(() => {

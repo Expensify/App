@@ -31,12 +31,13 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyFn} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import SafeString from '@src/utils/SafeString';
 import {buildMoneyRequestAttendeeSections, getAttendeeOptionIdentifier, normalizeAttendeeToOption} from './MoneyRequestAttendeeSelectorUtils';
@@ -57,6 +58,17 @@ type MoneyRequestAttendeesSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 };
+
+function toSearchOptionData(option: SearchOptionData | (Participant & {keyForList: string})): SearchOptionData {
+    return {
+        ...option,
+        // eslint-disable-next-line rulesdir/no-default-id-values -- SearchOptionData requires a structural reportID for participant rows without reports.
+        reportID: option.reportID ?? '',
+        selected: option.selected ?? false,
+        isSelected: option.isSelected ?? false,
+        icons: option.icons ?? [],
+    };
+}
 
 function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, action}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
@@ -101,7 +113,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             action,
             recentAttendees: recentAttendeeLists,
         },
-        initialSelected: initialSelectedOptions,
+        initialSelected: initialSelectedOptions as OptionData[],
         prioritizeSelectedOnToggle: false,
         initialSelectedKeys,
         shouldInitialize: didScreenTransitionEnd,
@@ -167,7 +179,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const shouldShowErrorMessage = selectedOptions.length < 1;
 
-    const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
+    const handleConfirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: SearchOptionData) => {
         if (shouldShowErrorMessage || (!selectedOptions.length && !option)) {
             return;
         }
@@ -207,7 +219,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const hasInitializedSections = areOptionsInitialized && didScreenTransitionEnd;
-    const userToInvite = useMemo(() => {
+    const userToInvite = useMemo<SearchOptionData | null>(() => {
         if (
             !dedupedSearchOptions.userToInvite ||
             isCurrentUser(
@@ -225,18 +237,16 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         const isPolicyExpenseChat = dedupedSearchOptions.userToInvite?.isPolicyExpenseChat ?? false;
         return isPolicyExpenseChat
-            ? getPolicyExpenseReportOption(dedupedSearchOptions.userToInvite, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
-            : getParticipantsOption(dedupedSearchOptions.userToInvite, personalDetails);
-    }, [
-        currentUserAccountID,
-        currentUserEmail,
-        loginList,
-        dedupedSearchOptions.userToInvite,
-        personalDetails,
-        reportAttributesDerived,
-        userToInviteChatReport,
-        userToInviteExpenseReport,
-    ]);
+            ? getPolicyExpenseReportOption(
+                  dedupedSearchOptions.userToInvite,
+                  currentUserAccountID,
+                  personalDetails,
+                  userToInviteExpenseReport,
+                  userToInviteChatReport,
+                  reportAttributesDerived,
+              )
+            : toSearchOptionData(getParticipantsOption(dedupedSearchOptions.userToInvite, personalDetails));
+    }, [currentUserAccountID, currentUserEmail, loginList, dedupedSearchOptions.userToInvite, personalDetails, reportAttributesDerived, userToInviteChatReport, userToInviteExpenseReport]);
 
     const sections = useMemo(
         () =>
@@ -288,7 +298,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     return (
         <SelectionListWithSections
-            sections={areOptionsInitialized ? sections : getEmptyArray<Section<OptionData>>()}
+            sections={areOptionsInitialized ? sections : getEmptyArray<Section<SearchOptionData>>()}
             ListItem={InviteMemberListItem}
             onSelectRow={toggleSelection}
             textInputOptions={textInputOptions}

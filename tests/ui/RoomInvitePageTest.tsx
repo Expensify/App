@@ -90,6 +90,8 @@ describe('RoomInvitePage', () => {
             <RoomInvitePage
                 betas={[]}
                 report={report}
+                reportMetadata={undefined}
+                isLoadingReportData={false}
                 policy={undefined}
                 didScreenTransitionEnd
                 route={{params: {reportID: report.reportID, backTo: ''}, key: '', name: ''} as never}

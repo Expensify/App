@@ -101,7 +101,7 @@ describe('SingleSelectPopup', () => {
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
         expect(initialProps?.data.at(0)).toEqual(
             expect.objectContaining({
-                value: 'BRL',
+                keyForList: 'BRL',
                 isSelected: true,
             }),
         );
@@ -126,13 +126,13 @@ describe('SingleSelectPopup', () => {
         expect(updatedProps?.initiallyFocusedItemKey).toBe('BRL');
         expect(updatedProps?.data.at(0)).toEqual(
             expect.objectContaining({
-                value: 'BRL',
+                keyForList: 'BRL',
                 isSelected: false,
             }),
         );
-        expect(updatedProps?.data.find((item) => item.value === 'CAD')).toEqual(
+        expect(updatedProps?.data.find((item) => item.keyForList === 'CAD')).toEqual(
             expect.objectContaining({
-                value: 'CAD',
+                keyForList: 'CAD',
                 isSelected: true,
             }),
         );
@@ -148,7 +148,7 @@ describe('SingleSelectPopup', () => {
         const reopenedProps = mockedSelectionList.mock.lastCall?.[0];
         expect(reopenedProps?.data.at(0)).toEqual(
             expect.objectContaining({
-                value: 'EUR',
+                keyForList: 'EUR',
                 isSelected: true,
             }),
         );
@@ -166,7 +166,7 @@ describe('SingleSelectPopup', () => {
         });
 
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
-        expect(searchedProps?.data.at(0)?.value).toBe('CAD');
-        expect(searchedProps?.data.at(1)?.value).toBe('CHF');
+        expect(searchedProps?.data.at(0)?.keyForList).toBe('CAD');
+        expect(searchedProps?.data.at(1)?.keyForList).toBe('CHF');
     });
 });

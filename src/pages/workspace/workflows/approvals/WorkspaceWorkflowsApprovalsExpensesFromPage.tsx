@@ -121,10 +121,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         [activeSelectedMemberEmailSet, baseApprovers],
     );
 
-    const selectedApproversForSave = useMemo(
-        () => baseApprovers.filter((member) => activeSelectedMemberEmailSet.has(member.login ?? '')),
-        [activeSelectedMemberEmailSet, baseApprovers],
-    );
+    const selectedApproversForSave = useMemo(() => baseApprovers.filter((member) => activeSelectedMemberEmailSet.has(member.login ?? '')), [activeSelectedMemberEmailSet, baseApprovers]);
 
     const goBack = () => {
         let backTo;

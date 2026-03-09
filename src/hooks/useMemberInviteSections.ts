@@ -13,7 +13,7 @@ type BuildMemberInviteSectionsParams = {
     translate: (path: 'common.contacts') => string;
 };
 
-function areSameMemberInviteOption(left?: Partial<OptionData>, right?: Partial<OptionData>) {
+function areSameMemberInviteOption(left?: Partial<OptionData> | null, right?: Partial<OptionData> | null) {
     if (!left || !right) {
         return false;
     }

@@ -5,6 +5,7 @@ import ApproverSelectionList from '@components/ApproverSelectionList';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {WorkspaceWorkflowsApprovalsExpensesFromPage} from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsExpensesFromPage';
+import SCREENS from '@src/SCREENS';
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
@@ -93,11 +94,17 @@ jest.mock('@src/types/utils/isLoadingOnyxValue', () => jest.fn(() => false));
 type PageProps = React.ComponentProps<typeof WorkspaceWorkflowsApprovalsExpensesFromPage>;
 
 function buildPageProps(): PageProps {
-    const employeeList = {} as NonNullable<PageProps['policy']>['employeeList'];
+    const employeeList = {} as NonNullable<NonNullable<PageProps['policy']>['employeeList']>;
     employeeList['selected@test.com'] = {email: 'selected@test.com', role: 'admin'};
     employeeList['available@test.com'] = {email: 'available@test.com', role: 'user'};
     employeeList['other@test.com'] = {email: 'other@test.com', role: 'user'};
     employeeList['approver@test.com'] = {email: 'approver@test.com', role: 'admin'};
+
+    const personalDetails = {} as NonNullable<PageProps['personalDetails']>;
+    personalDetails[1] = {accountID: 1, avatar: 'selected-avatar', displayName: 'Selected User', login: 'selected@test.com'};
+    personalDetails[2] = {accountID: 2, avatar: 'available-avatar', displayName: 'Available User', login: 'available@test.com'};
+    personalDetails[3] = {accountID: 3, avatar: 'other-avatar', displayName: 'Other User', login: 'other@test.com'};
+    personalDetails[4] = {accountID: 4, avatar: '', displayName: 'Approver User', login: 'approver@test.com'};
 
     return {
         policy: {
@@ -106,10 +113,13 @@ function buildPageProps(): PageProps {
             owner: 'owner@test.com',
             preventSelfApproval: true,
         } as PageProps['policy'],
+        policyDraft: undefined,
+        isLoadingPolicy: false,
+        personalDetails,
         isLoadingReportData: false,
         route: {
             key: '',
-            name: '',
+            name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM,
             params: {policyID: 'policyID'},
         } as never,
         navigation: {} as never,
@@ -138,6 +148,9 @@ describe('WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         render(
             <WorkspaceWorkflowsApprovalsExpensesFromPage
                 policy={pageProps.policy}
+                policyDraft={pageProps.policyDraft}
+                isLoadingPolicy={pageProps.isLoadingPolicy}
+                personalDetails={pageProps.personalDetails}
                 isLoadingReportData={pageProps.isLoadingReportData}
                 route={pageProps.route}
                 navigation={pageProps.navigation}
@@ -147,12 +160,16 @@ describe('WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         const initialProps = mockedApproverSelectionList.mock.lastCall?.[0];
         expect(getApproverEmails(initialProps)).toEqual(['selected@test.com', 'available@test.com', 'other@test.com']);
         expect(initialProps?.allApprovers.map((approver) => approver.isSelected)).toEqual([true, false, false]);
+        const selectedApprover = initialProps?.allApprovers.at(0);
+        const availableApprover = initialProps?.allApprovers.at(1);
+        expect(selectedApprover).toBeDefined();
+        expect(availableApprover).toBeDefined();
+        if (!selectedApprover || !availableApprover) {
+            throw new Error('Expected approvers to be defined');
+        }
 
         act(() => {
-            initialProps?.onSelectApprover?.([
-                initialProps.allApprovers.at(0),
-                {...initialProps.allApprovers.at(1), isSelected: true},
-            ]);
+            initialProps?.onSelectApprover?.([selectedApprover, {...availableApprover, isSelected: true}]);
         });
 
         const updatedProps = mockedApproverSelectionList.mock.lastCall?.[0];
@@ -166,6 +183,9 @@ describe('WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         render(
             <WorkspaceWorkflowsApprovalsExpensesFromPage
                 policy={pageProps.policy}
+                policyDraft={pageProps.policyDraft}
+                isLoadingPolicy={pageProps.isLoadingPolicy}
+                personalDetails={pageProps.personalDetails}
                 isLoadingReportData={pageProps.isLoadingReportData}
                 route={pageProps.route}
                 navigation={pageProps.navigation}
@@ -189,6 +209,9 @@ describe('WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         render(
             <WorkspaceWorkflowsApprovalsExpensesFromPage
                 policy={pageProps.policy}
+                policyDraft={pageProps.policyDraft}
+                isLoadingPolicy={pageProps.isLoadingPolicy}
+                personalDetails={pageProps.personalDetails}
                 isLoadingReportData={pageProps.isLoadingReportData}
                 route={pageProps.route}
                 navigation={pageProps.navigation}
@@ -196,12 +219,16 @@ describe('WorkspaceWorkflowsApprovalsExpensesFromPage', () => {
         );
 
         const initialProps = mockedApproverSelectionList.mock.lastCall?.[0];
+        const selectedApprover = initialProps?.allApprovers.at(0);
+        const availableApprover = initialProps?.allApprovers.at(1);
+        expect(selectedApprover).toBeDefined();
+        expect(availableApprover).toBeDefined();
+        if (!selectedApprover || !availableApprover) {
+            throw new Error('Expected approvers to be defined');
+        }
 
         act(() => {
-            initialProps?.onSelectApprover?.([
-                initialProps.allApprovers.at(0),
-                {...initialProps.allApprovers.at(1), isSelected: true},
-            ]);
+            initialProps?.onSelectApprover?.([selectedApprover, {...availableApprover, isSelected: true}]);
         });
 
         const updatedProps = mockedApproverSelectionList.mock.lastCall?.[0];

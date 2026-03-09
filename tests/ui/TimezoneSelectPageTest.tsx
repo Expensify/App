@@ -52,16 +52,16 @@ describe('TimezoneSelectPage', () => {
 
         const initialProps = mockedSelectionList.mock.lastCall?.[0];
         expect(initialProps).toBeDefined();
-        expect(initialProps?.data.at(0)?.value).toBe(initialTimezone);
-        expect(initialProps?.initiallyFocusedItemKey).toBe(initialProps?.data.find((item) => item.value === initialTimezone)?.keyForList);
+        expect(initialProps?.data.at(0)?.text).toBe(initialTimezone);
+        expect(initialProps?.initiallyFocusedItemKey).toBe(initialProps?.data.find((item) => item.text === initialTimezone)?.keyForList);
 
         rerender(<TimezoneSelectPage currentUserPersonalDetails={buildCurrentUserPersonalDetails(updatedTimezone)} />);
 
         const updatedProps = mockedSelectionList.mock.lastCall?.[0];
         expect(updatedProps).toBeDefined();
-        expect(updatedProps?.data.at(0)?.value).toBe(initialTimezone);
+        expect(updatedProps?.data.at(0)?.text).toBe(initialTimezone);
         expect(updatedProps?.initiallyFocusedItemKey).toBe(initialProps?.initiallyFocusedItemKey);
-        expect(updatedProps?.data.find((item) => item.value === updatedTimezone)?.isSelected).toBe(true);
+        expect(updatedProps?.data.find((item) => item.text === updatedTimezone)?.isSelected).toBe(true);
     });
 
     it('should refresh the initial focus target when the page is reopened', () => {
@@ -76,7 +76,7 @@ describe('TimezoneSelectPage', () => {
 
         const reopenedProps = mockedSelectionList.mock.lastCall?.[0];
         expect(reopenedProps).toBeDefined();
-        expect(reopenedProps?.data.at(0)?.value).toBe(updatedTimezone);
-        expect(reopenedProps?.initiallyFocusedItemKey).toBe(reopenedProps?.data.find((item) => item.value === updatedTimezone)?.keyForList);
+        expect(reopenedProps?.data.at(0)?.text).toBe(updatedTimezone);
+        expect(reopenedProps?.initiallyFocusedItemKey).toBe(reopenedProps?.data.find((item) => item.text === updatedTimezone)?.keyForList);
     });
 });

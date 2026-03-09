@@ -22,13 +22,13 @@ function RuleSelectionPicker({items, initiallySelectedItem, onSaveSelection, bac
     });
 
     const onSelectRow = useCallback(
-        (item: {text?: string; keyForList?: string; value?: string; isSelected?: boolean}) => {
-            if (!item.text || !item.keyForList || !item.value) {
+        (item: {text?: string; keyForList?: string; isSelected?: boolean}) => {
+            if (!item.text || !item.keyForList) {
                 return;
             }
 
             const isRemovingSelection = !!item.isSelected;
-            const newValue = isRemovingSelection ? '' : item.value;
+            const newValue = isRemovingSelection ? '' : item.keyForList;
 
             onSaveSelection(newValue);
             Navigation.goBack(backToRoute);

@@ -113,13 +113,13 @@ function getTaxRatesSection({
         return policyRatesSections;
     }
 
-    const selectedTaxRatesOutsideSortedTaxRates = selectedTaxRateWithDisabledState.filter((taxRate) => !sortedTaxRateNames.has(taxRate.modifiedName));
+    const selectedTaxRatesOutsideSortedTaxRates = selectedTaxRateWithDisabledState.filter((taxRate) => !taxRate.modifiedName || !sortedTaxRateNames.has(taxRate.modifiedName));
     const totalVisibleTaxRates = sortedTaxRates.length + selectedTaxRatesOutsideSortedTaxRates.length;
 
     if (totalVisibleTaxRates <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
         const sortedTaxRatesWithSelectionState = sortedTaxRates.map((taxRate) => ({
             ...taxRate,
-            isSelected: selectedOptionNames.has(taxRate.modifiedName),
+            isSelected: !!taxRate.modifiedName && selectedOptionNames.has(taxRate.modifiedName),
         }));
 
         policyRatesSections.push({

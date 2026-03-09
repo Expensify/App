@@ -1,19 +1,21 @@
-import type {OptionData} from '@libs/ReportUtils';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {buildMoneyRequestAttendeeSections, normalizeAttendeeToOption} from '@pages/iou/request/MoneyRequestAttendeeSelectorUtils';
 import CONST from '@src/CONST';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
-function buildOption(login: string, accountID: number, isSelected = false): OptionData {
+function buildOption(login: string, accountID: number, isSelected = false): SearchOptionData {
     return {
+        reportID: '',
         login,
         text: login,
         displayName: login,
+        alternateText: login,
         keyForList: login,
         accountID,
         isSelected,
         selected: isSelected,
-        reportID: undefined,
+        icons: [],
     };
 }
 
@@ -26,12 +28,7 @@ function buildLargeOptions() {
             buildOption('delta@test.com', 4),
             buildOption('epsilon@test.com', 5),
         ],
-        personalDetails: [
-            buildOption('zeta@test.com', 6),
-            buildOption('eta@test.com', 7),
-            buildOption('theta@test.com', 8),
-            buildOption('iota@test.com', 9),
-        ],
+        personalDetails: [buildOption('zeta@test.com', 6), buildOption('eta@test.com', 7), buildOption('theta@test.com', 8), buildOption('iota@test.com', 9)],
     };
 }
 
@@ -142,9 +139,7 @@ describe('MoneyRequestAttendeeSelectorUtils', () => {
         });
 
         expect(result).toHaveLength(3);
-        expect(result.at(0)?.data).toEqual(
-            expect.arrayContaining([expect.objectContaining({login: 'alpha@test.com'}), expect.objectContaining({login: 'selected-contact@test.com'})]),
-        );
+        expect(result.at(0)?.data).toEqual(expect.arrayContaining([expect.objectContaining({login: 'alpha@test.com'}), expect.objectContaining({login: 'selected-contact@test.com'})]));
         expect(result.at(1)?.data).toHaveLength(4);
         expect(result.at(1)?.data).toEqual(
             expect.arrayContaining([

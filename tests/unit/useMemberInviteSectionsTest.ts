@@ -13,6 +13,7 @@ const translate = (path: 'common.contacts') => {
 
 function createOption(key: string, overrides: Partial<OptionData> = {}): OptionData {
     return {
+        reportID: '',
         keyForList: key,
         text: key,
         login: `${key}@example.com`,

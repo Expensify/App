@@ -39,9 +39,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
         const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         const sortedYears = [...yearsList].sort((a, b) => b.value - a.value);
         const orderedYears =
-            searchText || sortedYears.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD
-                ? sortedYears
-                : reorderItemsByInitialSelection(sortedYears, initialSelectedValues);
+            searchText || sortedYears.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD ? sortedYears : reorderItemsByInitialSelection(sortedYears, initialSelectedValues);
         return {
             headerMessage: !orderedYears.length ? translate('common.noResultsFound') : '',
             data: orderedYears,
@@ -93,7 +91,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     ListItem={RadioListItem}
                     onSelectRow={(option) => {
                         Keyboard.dismiss();
-                        onYearChange?.(option.value);
+                        onYearChange?.(Number(option.keyForList));
                     }}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={initiallyFocusedYear}

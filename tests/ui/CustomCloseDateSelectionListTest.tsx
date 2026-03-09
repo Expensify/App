@@ -62,7 +62,6 @@ describe('CustomCloseDateSelectionList', () => {
 
         act(() => {
             initialProps?.onSelectRow?.({
-                value: 14,
                 keyForList: '14',
                 text: '14',
                 isSelected: false,

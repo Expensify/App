@@ -35,6 +35,7 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {BaseOnboardingWorkspaceInviteProps} from './types';
 
 type Sections = Array<Section<OptionData>>;
@@ -93,7 +94,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         searchTerm: debouncedSearchTerm,
         searchOptions,
         selectedOptions,
-        initialSelectedOptions: CONST.EMPTY_ARRAY as OptionData[],
+        initialSelectedOptions: getEmptyArray<OptionData>(),
         areOptionsInitialized,
         translate,
     });

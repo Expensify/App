@@ -117,8 +117,7 @@ function buildAddDelegateSections({
         });
     }
 
-    const userToInvite =
-        shouldShowInitialSelectionSection && searchOptions.userToInvite && isInitiallySelected(searchOptions.userToInvite) ? null : searchOptions.userToInvite;
+    const userToInvite = shouldShowInitialSelectionSection && searchOptions.userToInvite && isInitiallySelected(searchOptions.userToInvite) ? null : searchOptions.userToInvite;
 
     if (userToInvite) {
         sections.push({

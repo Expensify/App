@@ -44,7 +44,6 @@ describe('ConstantPicker', () => {
         expect(selectionListProps?.data.at(0)).toEqual(
             expect.objectContaining({
                 text: CONST.REPORT.CHAT_TYPE.GROUP,
-                value: CONST.REPORT.CHAT_TYPE.GROUP,
                 isSelected: true,
             }),
         );

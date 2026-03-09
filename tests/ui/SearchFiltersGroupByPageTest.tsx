@@ -1,6 +1,7 @@
 import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
+import type {UseOnyxResult} from 'react-native-onyx';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import useOnyx from '@hooks/useOnyx';
@@ -47,11 +48,13 @@ describe('SearchFiltersGroupByPage', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
     let mockGroupBy: string | undefined;
 
+    const buildOnyxResult = <T,>(value: NonNullable<T> | undefined): UseOnyxResult<T> => [value, {status: 'loaded'}];
+
     beforeEach(() => {
         mockedSelectionList.mockClear();
         mockedButton.mockClear();
         mockGroupBy = CONST.SEARCH.GROUP_BY.MERCHANT;
-        mockedUseOnyx.mockImplementation(() => [{groupBy: mockGroupBy}, jest.fn()] as ReturnType<typeof useOnyx>);
+        mockedUseOnyx.mockImplementation(() => buildOnyxResult({groupBy: mockGroupBy}) as ReturnType<typeof useOnyx>);
     });
 
     it('pins the saved group by value to the top on reopen', () => {

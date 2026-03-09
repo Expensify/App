@@ -136,7 +136,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 data={searchResults}
                 ListItem={RadioListItem}
                 onSelectRow={(countryOption) => {
-                    setSelectedCountry(countryOption.value ?? null);
+                    setSelectedCountry(countryOption.keyForList?.toString() ?? null);
                 }}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}

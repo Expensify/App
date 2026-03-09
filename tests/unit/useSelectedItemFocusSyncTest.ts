@@ -7,11 +7,7 @@ type TestItem = {
 };
 
 describe('useSelectedItemFocusSync', () => {
-    const data: TestItem[] = [
-        {keyForList: 'first', isSelected: true},
-        {keyForList: 'second'},
-        {keyForList: 'third'},
-    ];
+    const data: TestItem[] = [{keyForList: 'first', isSelected: true}, {keyForList: 'second'}, {keyForList: 'third'}];
 
     it('should keep focus on the keyed item when selection changes but the focused key does not', () => {
         const setFocusedIndex = jest.fn();
@@ -33,11 +29,7 @@ describe('useSelectedItemFocusSync', () => {
         );
 
         rerender({
-            items: [
-                {keyForList: 'first'},
-                {keyForList: 'second', isSelected: true},
-                {keyForList: 'third'},
-            ],
+            items: [{keyForList: 'first'}, {keyForList: 'second', isSelected: true}, {keyForList: 'third'}],
             focusedIndex: 0,
         });
 
