@@ -695,6 +695,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 faceId: 'Face ID',
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
+                passkey: 'Passkey',
             },
         },
         pleaseEnableInSystemSettings: {
@@ -710,9 +711,11 @@ const translations: TranslationDeepObject<typeof en> = {
         letsAuthenticateYou: 'We gaan je authenticeren...',
         verifyYourself: {
             biometrics: 'Verifieer jezelf met je gezicht of vingerafdruk',
+            passkeys: 'Verify yourself with a passkey',
         },
         enableQuickVerification: {
             biometrics: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk. Geen wachtwoorden of codes nodig.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
         revoke: {
             title: 'Gezicht/vingerafdruk & passkeys',

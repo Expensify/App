@@ -1,5 +1,6 @@
+import type {PasskeyAttestationResponse} from '@components/MultifactorAuthentication/biometrics/common/types';
 import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MarqetaAuthTypeName, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason, PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Biometrics/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
@@ -135,5 +136,33 @@ async function processScenarioAction(
     };
 }
 
-export {processRegistration, processScenarioAction};
-export type {ProcessResult, RegistrationParams};
+type PasskeyRegistrationParams = {
+    attestation: PasskeyAttestationResponse;
+    authenticationMethod: MarqetaAuthTypeName;
+};
+
+async function processPasskeyRegistration(params: PasskeyRegistrationParams): Promise<ProcessResult> {
+    const keyInfo: PasskeyRegistrationKeyInfo = {
+        rawId: params.attestation.rawId,
+        type: CONST.PASSKEY_CREDENTIAL_TYPE,
+        response: {
+            clientDataJSON: params.attestation.clientDataJSON,
+            attestationObject: params.attestation.attestationObject,
+        },
+    };
+
+    const {httpStatusCode, reason, message} = await registerAuthenticationKey({
+        keyInfo,
+        authenticationMethod: params.authenticationMethod,
+    });
+
+    return {
+        success: isHttpSuccess(httpStatusCode),
+        reason,
+        httpStatusCode,
+        message,
+    };
+}
+
+export {processRegistration, processPasskeyRegistration, processScenarioAction};
+export type {ProcessResult, RegistrationParams, PasskeyRegistrationParams};

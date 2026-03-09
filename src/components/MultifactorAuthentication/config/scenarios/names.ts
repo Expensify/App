@@ -16,6 +16,7 @@ const SCENARIO_NAMES = {
  */
 const PROMPT_NAMES = {
     BIOMETRICS: 'biometrics',
+    PASSKEYS: 'passkeys',
 };
 
 export {SCENARIO_NAMES, PROMPT_NAMES};

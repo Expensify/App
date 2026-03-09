@@ -77,6 +77,17 @@ type MultifactorAuthenticationKeyInfo = {
     };
 };
 
+type PasskeyRegistrationKeyInfo = {
+    rawId: string;
+    type: 'public-key';
+    response: {
+        clientDataJSON: string;
+        attestationObject: string;
+    };
+};
+
+type RegistrationKeyInfo = MultifactorAuthenticationKeyInfo | PasskeyRegistrationKeyInfo;
+
 /**
  * Configuration options for multifactor key store operations.
  */
@@ -125,6 +136,8 @@ export type {
     AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationKeyStoreStatus,
     MultifactorAuthenticationKeyInfo,
+    PasskeyRegistrationKeyInfo,
+    RegistrationKeyInfo,
     MultifactorAuthenticationActionParams,
     MultifactorKeyStoreOptions,
     MultifactorAuthenticationReason,

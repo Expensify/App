@@ -16,6 +16,7 @@ const AUTH_TYPE_TRANSLATION_KEY = {
     'Face ID': 'multifactorAuthentication.biometricsTest.authType.faceId',
     'Touch ID': 'multifactorAuthentication.biometricsTest.authType.touchId',
     'Optic ID': 'multifactorAuthentication.biometricsTest.authType.opticId',
+    Passkey: 'multifactorAuthentication.biometricsTest.authType.passkey',
 } as const satisfies Record<AuthTypeName, TranslationPaths>;
 /* eslint-enable @typescript-eslint/naming-convention */
 

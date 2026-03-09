@@ -12,4 +12,9 @@ export default {
         title: 'multifactorAuthentication.verifyYourself.biometrics',
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
     },
+    [VALUES.PROMPT.PASSKEYS]: {
+        animation: LottieAnimations.Fingerprint,
+        title: 'multifactorAuthentication.verifyYourself.passkeys',
+        subtitle: 'multifactorAuthentication.enableQuickVerification.passkeys',
+    },
 } as const satisfies MultifactorAuthenticationPrompt;

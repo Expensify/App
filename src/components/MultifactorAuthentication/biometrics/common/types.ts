@@ -1,10 +1,17 @@
-import type {AuthenticationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {AuthenticationChallenge, RegistrationChallenge, SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+
+type PasskeyAttestationResponse = {
+    rawId: string;
+    clientDataJSON: string;
+    attestationObject: string;
+};
 
 type BaseRegisterResult = {
     privateKey: string;
     publicKey: string;
     authenticationMethod: AuthTypeInfo;
+    attestation?: PasskeyAttestationResponse;
 };
 
 type RegisterResult =
@@ -52,7 +59,7 @@ type UseBiometricsReturn = {
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
 
     /** Register biometrics on device */
-    register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
+    register: (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => Promise<void>;
 
     /** Authorize using biometrics */
     authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
@@ -61,4 +68,4 @@ type UseBiometricsReturn = {
     resetKeysForAccount: () => Promise<void>;
 };
 
-export type {BaseRegisterResult, RegisterResult, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};
+export type {BaseRegisterResult, RegisterResult, PasskeyAttestationResponse, AuthorizeParams, AuthorizeResultSuccess, AuthorizeResultFailure, AuthorizeResult, UseBiometricsReturn};
