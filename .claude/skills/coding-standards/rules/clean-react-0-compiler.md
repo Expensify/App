@@ -7,7 +7,7 @@ title: React Compiler compliance
 
 ### Reasoning
 
-React Compiler is enabled in this codebase (`babel-plugin-react-compiler` runs first in both webpack and metro configs, targeting React 19). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
+React Compiler is enabled in this codebase (`babel-plugin-react-compiler` runs first in both webpack and metro configs). It automatically memoizes components and hooks at the AST level — analyzing data flow, tracking dependencies, and inserting fine-grained caching that is more precise than any hand-written `useMemo`, `useCallback`, or `React.memo`.
 
 Manual memoization is therefore:
 
@@ -89,17 +89,6 @@ function Avatar({source, size}: AvatarProps) {
 }
 ```
 
-#### Escape hatch — `"use no memo";`
-
-In rare cases where the compiler produces incorrect output for a specific function, add the `"use no memo";` directive to opt that single function out. This must include a comment explaining why.
-
-```tsx
-function ProblematicComponent({data}: Props) {
-    "use no memo"; // Compiler mishandles the ref pattern in this component — see [link to issue]
-    // ...
-}
-```
-
 ---
 
 ### Review Metadata
@@ -112,7 +101,7 @@ Flag when ANY of these are true in new or modified code:
 2. **`useMemo`** — A value is wrapped in `useMemo`. The compiler automatically caches derived values.
 3. **`React.memo`** — A component is wrapped in `React.memo` (or `memo` imported from React). The compiler automatically skips re-rendering components whose props haven't changed.
 
-**Response:** Challenge the author: "React Compiler is enabled — why isn't this compiler-compliant? Remove the manual memoization and restructure the code so the compiler can handle it. If the compiler can't handle this pattern, add `"use no memo";` with a justification."
+**Response:** Challenge the author: "React Compiler is enabled — remove the manual memoization and restructure the code so the compiler can handle it."
 
 The goal is to fix the root cause (make code compiler-friendly) rather than slap on manual memoization as a workaround.
 
@@ -123,6 +112,5 @@ The goal is to fix the root cause (make code compiler-friendly) rather than slap
 - Import statements: `useCallback`, `useMemo` from `react`
 
 **DO NOT flag if:**
-- The code contains `"use no memo";` with a documented justification
 - The code is inside `node_modules/`, `patches/`, or test fixtures
 - The manual memoization exists in unchanged lines (pre-existing code not touched by the diff)
