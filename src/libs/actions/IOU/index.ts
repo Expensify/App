@@ -1351,7 +1351,7 @@ function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation = false, draftTransactionIDs: string[] | undefined) {
+function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] | undefined, skipConfirmation = false) {
     removeDraftTransactionsByIDs(draftTransactionIDs);
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
 }
@@ -1376,7 +1376,7 @@ function startMoneyRequest(
             [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: sourceRoute || 'unknown',
         },
     });
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactionIDs);
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
     }
@@ -1407,7 +1407,7 @@ function startDistanceRequest(
     backToReport?: string,
     isFromFloatingActionButton?: boolean,
 ) {
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactionIDs);
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
     if (isFromFloatingActionButton) {
         Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
     }

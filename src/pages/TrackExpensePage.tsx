@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -28,6 +29,7 @@ function TrackExpensePage() {
     const {isOffline} = useNetwork();
     const [hasSeenTrackTraining, hasSeenTrackTrainingResult] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING);
     const isLoadingHasSeenTrackTraining = isLoadingOnyxValue(hasSeenTrackTrainingResult);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
@@ -41,6 +43,7 @@ function TrackExpensePage() {
                     CONST.IOU.TYPE.TRACK,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     findSelfDMReportID() || generateReportID(),
+                    draftTransactionIDs,
                 );
 
                 if (!hasSeenTrackTraining && !isOffline) {

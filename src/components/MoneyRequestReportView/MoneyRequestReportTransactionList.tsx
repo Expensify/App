@@ -198,19 +198,17 @@ function MoneyRequestReportTransactionList({
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(
+            getAddExpenseDropdownOptions({
                 translate,
-                expensifyIcons,
-                report?.reportID,
+                icons: expensifyIcons,
+                iouReportID: report?.reportID,
                 policy,
                 userBillingGraceEndPeriodCollection,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
-                undefined,
-                undefined,
                 lastDistanceExpenseType,
-            ),
+            }),
         [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod, draftTransactionIDs],
     );
 

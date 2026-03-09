@@ -1,9 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /*
  * This is a "utility page", that does this:
@@ -20,6 +23,7 @@ import CONST from '@src/CONST';
 function SubmitExpensePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
@@ -29,7 +33,7 @@ function SubmitExpensePage() {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, ReportUtils.generateReportID());
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, ReportUtils.generateReportID(), draftTransactionIDs);
             });
         });
     });
