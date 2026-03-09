@@ -1,10 +1,11 @@
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useNetwork from '@hooks/useNetwork';
+import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
@@ -44,7 +45,25 @@ export default function useBankConnection({
     const {isOffline} = useNetwork();
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const shouldBlockWindowOpen = useRef(false);
+
+    const fallbackNavigation = useCallback(() => {
+        Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : undefined);
+    }, [policyID]);
+
+    const handleSuccess = useCallback(
+        (connectedFeed?: CompanyCardFeedWithDomainID) => {
+            if (onSuccess) {
+                onSuccess(connectedFeed);
+                return;
+            }
+            fallbackNavigation();
+        },
+        [onSuccess, fallbackNavigation],
+    );
+
+    const handleFailure = useMemo(() => onFailure ?? fallbackNavigation, [onFailure, fallbackNavigation]);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url || !shouldOpenWindow) {
@@ -88,12 +107,11 @@ export default function useBankConnection({
                 if (shouldOpenWindow) {
                     customWindow?.close();
                 }
-                const hasBrokenConnection = !!cardFeeds?.[feed]?.errors;
-                if (hasBrokenConnection) {
-                    onFailure?.();
+                if (isFeedConnectionBroken) {
+                    handleFailure();
                     return;
                 }
-                onSuccess?.();
+                handleSuccess();
                 return;
             }
             if (!isPlaid && url && shouldOpenWindow) {
@@ -108,7 +126,7 @@ export default function useBankConnection({
             if (shouldOpenWindow) {
                 customWindow?.close();
             }
-            onSuccess?.(newFeed);
+            handleSuccess(newFeed);
             return;
         }
 
@@ -134,8 +152,9 @@ export default function useBankConnection({
         isPlaid,
         onImportPlaidAccounts,
         isNewFeedHasError,
-        onSuccess,
-        onFailure,
+        isFeedConnectionBroken,
+        handleSuccess,
+        handleFailure,
         cardFeeds,
         shouldOpenWindow,
     ]);

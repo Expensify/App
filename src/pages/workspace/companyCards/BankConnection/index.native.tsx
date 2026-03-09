@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -14,7 +14,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -79,22 +78,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
-    const handleAssignFailure = useCallback(() => {
-        if (onFailure) {
-            onFailure();
-            return;
-        }
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    }, [onFailure, policyID]);
-
-    const handleComplete = useCallback(() => {
-        if (onSuccess) {
-            onSuccess();
-            return;
-        }
-        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    }, [onSuccess, policyID]);
-
     const {handleBackButtonPress} = useBankConnection({
         policyID,
         feed,
@@ -104,8 +87,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
         newFeed,
         isFeedExpired,
         isNewFeedHasError,
-        onSuccess: handleComplete,
-        onFailure: handleAssignFailure,
+        onSuccess,
+        onFailure,
         onBackButtonPress,
         cardFeeds,
         shouldOpenWindow: false,

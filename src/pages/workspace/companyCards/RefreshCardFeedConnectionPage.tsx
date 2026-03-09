@@ -48,6 +48,8 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const handleAssignFailure = useCallback(() => {
         updateBrokenConnection();
+        // Re-auth itself succeeded (user completed bank login), so we show the same
+        // confirmation. The backend will re-scrape with the updated credentials.
         handleRefreshComplete();
     }, [handleRefreshComplete, updateBrokenConnection]);
 
