@@ -250,53 +250,7 @@ describe('NavigationFocusManager Gap Tests', () => {
         });
     });
 
-    describe('Phase 1 metadata scaffolding', () => {
-        it('should write pointer metadata for interaction capture and keep retrieval mode legacy', () => {
-            const button = document.createElement('button');
-            button.setAttribute('aria-label', 'Pointer anchor');
-            document.body.appendChild(button);
-
-            NavigationFocusManager.registerFocusedRoute('pointer-metadata-route');
-            const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
-            Object.defineProperty(pointerEvent, 'target', {value: button});
-            document.dispatchEvent(pointerEvent);
-            NavigationFocusManager.unregisterFocusedRoute('pointer-metadata-route');
-
-            NavigationFocusManager.captureForRoute('pointer-metadata-route');
-            const metadata = NavigationFocusManager.getRouteFocusMetadata('pointer-metadata-route');
-
-            expect(metadata).toEqual({
-                interactionType: 'pointer',
-                interactionTrigger: 'pointer',
-                elementRefCandidate: {source: 'interactionValidated', confidence: 3},
-                identifierCandidate: {source: 'identifierMatchReady', confidence: 2},
-            });
-            expect(NavigationFocusManager.getRetrievalModeForRoute('pointer-metadata-route')).toBe('legacy');
-        });
-
-        it('should write keyboard metadata for Enter captures', () => {
-            const button = document.createElement('button');
-            button.setAttribute('aria-label', 'Keyboard anchor');
-            document.body.appendChild(button);
-            button.focus();
-
-            NavigationFocusManager.registerFocusedRoute('keyboard-metadata-route');
-            const keyEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
-            document.dispatchEvent(keyEvent);
-            NavigationFocusManager.unregisterFocusedRoute('keyboard-metadata-route');
-
-            NavigationFocusManager.captureForRoute('keyboard-metadata-route');
-            const metadata = NavigationFocusManager.getRouteFocusMetadata('keyboard-metadata-route');
-
-            expect(metadata).toEqual({
-                interactionType: 'keyboard',
-                interactionTrigger: 'enterOrSpace',
-                elementRefCandidate: {source: 'interactionValidated', confidence: 3},
-                identifierCandidate: {source: 'identifierMatchReady', confidence: 2},
-            });
-            expect(NavigationFocusManager.getRetrievalModeForRoute('keyboard-metadata-route')).toBe('keyboardSafe');
-        });
-
+    describe('Phase 1 provenance scaffolding', () => {
         it('should record escape provenance without creating an Escape interaction capture', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
@@ -314,61 +268,18 @@ describe('NavigationFocusManager Gap Tests', () => {
             });
 
             NavigationFocusManager.captureForRoute('escape-metadata-route');
-            const metadata = NavigationFocusManager.getRouteFocusMetadata('escape-metadata-route');
-
-            expect(metadata).toEqual({
-                interactionType: 'keyboard',
-                interactionTrigger: 'escape',
-                elementRefCandidate: {source: 'activeElementFallback', confidence: 1},
-                identifierCandidate: null,
-            });
-            expect(NavigationFocusManager.getRetrievalModeForRoute('escape-metadata-route')).toBe('keyboardSafe');
+            expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
         });
 
-        it('should classify fallback from provenance, not from global keyboard flag', () => {
-            const button = document.createElement('button');
-            document.body.appendChild(button);
-            button.focus();
-
-            NavigationFocusManager.registerFocusedRoute('source-route');
-            const enterEvent = new KeyboardEvent('keydown', {key: 'Enter', bubbles: true});
-            document.dispatchEvent(enterEvent);
-
-            // Capture for a different route to force interaction mismatch + fallback path.
-            // If classification used wasRecentKeyboardInteraction, this would incorrectly
-            // become keyboard metadata despite route mismatch.
-            NavigationFocusManager.captureForRoute('target-route');
-
-            const metadata = NavigationFocusManager.getRouteFocusMetadata('target-route');
-            expect(metadata).toEqual({
-                interactionType: 'unknown',
-                interactionTrigger: 'unknown',
-                elementRefCandidate: {source: 'activeElementFallback', confidence: 1},
-                identifierCandidate: null,
-            });
-            expect(NavigationFocusManager.getRetrievalModeForRoute('target-route')).toBe('legacy');
-        });
-
-        it('should default to legacy retrieval mode when metadata is missing', () => {
-            expect(NavigationFocusManager.getRouteFocusMetadata('missing-route')).toBeNull();
-            expect(NavigationFocusManager.getRetrievalModeForRoute('missing-route')).toBe('legacy');
-        });
-
-        it('should clear metadata and provenance in cleanupRemovedRoutes and destroy', () => {
+        it('should clear provenance in cleanupRemovedRoutes and destroy', () => {
             const button = document.createElement('button');
             document.body.appendChild(button);
             button.focus();
 
             NavigationFocusManager.registerFocusedRoute('lifecycle-route');
-            const pointerEvent = new PointerEvent('pointerdown', {bubbles: true, cancelable: true});
-            Object.defineProperty(pointerEvent, 'target', {value: button});
-            document.dispatchEvent(pointerEvent);
-            NavigationFocusManager.captureForRoute('lifecycle-route');
-
             const escapeEvent = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true});
             document.dispatchEvent(escapeEvent);
 
-            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).not.toBeNull();
             expect(NavigationFocusManager.getInteractionProvenanceForTests()).not.toBeNull();
 
             const mockNavigationState = {
@@ -381,12 +292,10 @@ describe('NavigationFocusManager Gap Tests', () => {
             };
             NavigationFocusManager.cleanupRemovedRoutes(mockNavigationState);
 
-            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).toBeNull();
             expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
 
             NavigationFocusManager.destroy();
             NavigationFocusManager.initialize();
-            expect(NavigationFocusManager.getRouteFocusMetadata('lifecycle-route')).toBeNull();
             expect(NavigationFocusManager.getInteractionProvenanceForTests()).toBeNull();
         });
 
@@ -400,7 +309,6 @@ describe('NavigationFocusManager Gap Tests', () => {
             document.dispatchEvent(escapeEvent);
             NavigationFocusManager.unregisterFocusedRoute('escape-only-route');
 
-            expect(NavigationFocusManager.getRouteFocusMetadata('escape-only-route')).toBeNull();
             expect(NavigationFocusManager.getInteractionProvenanceForTests()).toEqual({
                 interactionType: 'keyboard',
                 interactionTrigger: 'escape',

@@ -17,7 +17,7 @@
 import Log from '@libs/Log';
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import type {State} from '@libs/Navigation/types';
-import type {ElementRefCandidateMetadata, InteractionProvenance, InteractionTrigger, InteractionType, NavigationFocusManagerModule, RetrievalMode, RouteFocusMetadata} from './types';
+import type {InteractionProvenance, NavigationFocusManagerModule} from './types';
 
 /**
  * Scoring weights for element matching during focus restoration.
@@ -74,8 +74,6 @@ type CapturedFocus = {
     forRoute: string | null;
 };
 
-type ElementRefCandidateSource = 'interactionValidated' | 'activeElementFallback';
-
 type ElementQueryStrategy = (tagNameSelector: string) => readonly HTMLElement[];
 
 type CandidateMatch = {
@@ -122,8 +120,6 @@ let lastInteractionCapture: CapturedFocus | null = null;
 const routeElementIdentifierMap = new Map<string, ElementIdentifier>();
 /** Legacy: stores element references for persistent screens (that stay mounted) */
 const routeFocusMap = new Map<string, CapturedFocus>();
-/** Metadata scaffolding for retrieval-mode and confidence model migration */
-const routeFocusMetadataMap = new Map<string, RouteFocusMetadata>();
 let isInitialized = false;
 let elementQueryStrategy: ElementQueryStrategy = defaultElementQueryStrategy;
 
@@ -146,7 +142,6 @@ function logFocusDebug(message: string, metadata?: Record<string, unknown>): voi
 type RouteFocusEntryUpdate = {
     element?: CapturedFocus | null;
     identifier?: ElementIdentifier | null;
-    metadata?: RouteFocusMetadata | null;
 };
 
 function updateRouteFocusEntry(routeKey: string, update: RouteFocusEntryUpdate): void {
@@ -165,18 +160,10 @@ function updateRouteFocusEntry(routeKey: string, update: RouteFocusEntryUpdate):
             routeElementIdentifierMap.delete(routeKey);
         }
     }
-
-    if (update.metadata !== undefined) {
-        if (update.metadata) {
-            routeFocusMetadataMap.set(routeKey, update.metadata);
-        } else {
-            routeFocusMetadataMap.delete(routeKey);
-        }
-    }
 }
 
 function clearRouteFocusEntry(routeKey: string): void {
-    updateRouteFocusEntry(routeKey, {element: null, identifier: null, metadata: null});
+    updateRouteFocusEntry(routeKey, {element: null, identifier: null});
 }
 
 function setInteractionProvenance(provenance: InteractionProvenance): void {
@@ -192,55 +179,6 @@ function clearInteractionProvenanceForRoute(routeKey: string): void {
         return;
     }
     clearInteractionProvenance();
-}
-
-function resolveInteractionMetadataForRoute(routeKey: string): Pick<RouteFocusMetadata, 'interactionType' | 'interactionTrigger'> {
-    if (!lastInteractionProvenance || lastInteractionProvenance.routeKey !== routeKey) {
-        return {
-            interactionType: 'unknown',
-            interactionTrigger: 'unknown',
-        };
-    }
-
-    return {
-        interactionType: lastInteractionProvenance.interactionType,
-        interactionTrigger: lastInteractionProvenance.interactionTrigger,
-    };
-}
-
-function createRouteFocusMetadata({
-    interactionType,
-    interactionTrigger,
-    elementRefCandidateSource,
-    hasIdentifierCandidate,
-}: {
-    interactionType: InteractionType;
-    interactionTrigger: InteractionTrigger;
-    elementRefCandidateSource: ElementRefCandidateSource;
-    hasIdentifierCandidate: boolean;
-}): RouteFocusMetadata {
-    const elementRefCandidate: ElementRefCandidateMetadata =
-        elementRefCandidateSource === 'interactionValidated'
-            ? {
-                  source: 'interactionValidated',
-                  confidence: 3,
-              }
-            : {
-                  source: 'activeElementFallback',
-                  confidence: 1,
-              };
-
-    return {
-        interactionType,
-        interactionTrigger,
-        elementRefCandidate,
-        identifierCandidate: hasIdentifierCandidate
-            ? {
-                  source: 'identifierMatchReady',
-                  confidence: 2,
-              }
-            : null,
-    };
 }
 
 function buildCandidateMatch(candidate: HTMLElement, identifier: ElementIdentifier): CandidateMatch {
@@ -428,12 +366,6 @@ function handleInteraction(event: PointerEvent): void {
                     forRoute: currentFocusedRouteKey,
                 },
                 identifier,
-                metadata: createRouteFocusMetadata({
-                    interactionType: 'pointer',
-                    interactionTrigger: 'pointer',
-                    elementRefCandidateSource: 'interactionValidated',
-                    hasIdentifierCandidate: true,
-                }),
             });
         }
 
@@ -498,12 +430,6 @@ function handleKeyDown(event: KeyboardEvent): void {
                     forRoute: currentFocusedRouteKey,
                 },
                 identifier,
-                metadata: createRouteFocusMetadata({
-                    interactionType: 'keyboard',
-                    interactionTrigger: 'enterOrSpace',
-                    elementRefCandidateSource: 'interactionValidated',
-                    hasIdentifierCandidate: true,
-                }),
             });
         }
 
@@ -520,7 +446,6 @@ function clearLocalStateOnDestroy(): void {
     isInitialized = false;
     routeFocusMap.clear();
     routeElementIdentifierMap.clear();
-    routeFocusMetadataMap.clear();
     lastInteractionCapture = null;
     clearInteractionProvenance();
     currentFocusedRouteKey = null;
@@ -603,7 +528,6 @@ function destroy(): void {
 function captureForRoute(routeKey: string): void {
     let elementToStore: HTMLElement | null = null;
     let captureSource: 'interaction' | 'activeElement' | 'none' = 'none';
-    let metadataForStore: RouteFocusMetadata | null = null;
 
     // Try to use the element captured during user interaction if it belongs to this route
     if (lastInteractionCapture) {
@@ -630,15 +554,8 @@ function captureForRoute(routeKey: string): void {
                 capturedLabel: capturedElement.getAttribute('aria-label'),
             });
         } else {
-            const interactionMetadata = resolveInteractionMetadataForRoute(routeKey);
             elementToStore = capturedElement;
             captureSource = 'interaction';
-            metadataForStore = createRouteFocusMetadata({
-                interactionType: interactionMetadata.interactionType,
-                interactionTrigger: interactionMetadata.interactionTrigger,
-                elementRefCandidateSource: 'interactionValidated',
-                hasIdentifierCandidate: routeElementIdentifierMap.has(routeKey),
-            });
         }
     }
 
@@ -653,15 +570,8 @@ function captureForRoute(routeKey: string): void {
         //   all focusable elements are removed, or in certain browser/JSDOM states.
         //   Neither represents a meaningful focus target for restoration.
         if (activeElement && activeElement !== document.body && activeElement !== document.documentElement) {
-            const interactionMetadata = resolveInteractionMetadataForRoute(routeKey);
             elementToStore = activeElement;
             captureSource = 'activeElement';
-            metadataForStore = createRouteFocusMetadata({
-                interactionType: interactionMetadata.interactionType,
-                interactionTrigger: interactionMetadata.interactionTrigger,
-                elementRefCandidateSource: 'activeElementFallback',
-                hasIdentifierCandidate: routeElementIdentifierMap.has(routeKey),
-            });
         }
     }
 
@@ -672,7 +582,6 @@ function captureForRoute(routeKey: string): void {
                 element: elementToStore,
                 forRoute: routeKey,
             },
-            metadata: metadataForStore,
         });
         logFocusDebug('[NavigationFocusManager] Stored focus for route', {
             routeKey,
@@ -772,18 +681,6 @@ function hasStoredFocus(routeKey: string): boolean {
     return routeFocusMap.has(routeKey) || routeElementIdentifierMap.has(routeKey);
 }
 
-function getRetrievalModeForRoute(routeKey: string): RetrievalMode {
-    const metadata = routeFocusMetadataMap.get(routeKey);
-    if (!metadata || metadata.interactionType !== 'keyboard') {
-        return 'legacy';
-    }
-    return 'keyboardSafe';
-}
-
-function getRouteFocusMetadata(routeKey: string): RouteFocusMetadata | null {
-    return routeFocusMetadataMap.get(routeKey) ?? null;
-}
-
 /**
  * Register the currently focused screen's route key.
  * This enables immediate capture to routeFocusMap during interactions,
@@ -865,7 +762,7 @@ function getCapturedAnchorElement(): HTMLElement | null {
  */
 function cleanupRemovedRoutes(state: State): void {
     const activeKeys = extractNavigationKeys(state.routes);
-    const knownRouteKeys = new Set<string>([...routeFocusMap.keys(), ...routeElementIdentifierMap.keys(), ...routeFocusMetadataMap.keys()]);
+    const knownRouteKeys = new Set<string>([...routeFocusMap.keys(), ...routeElementIdentifierMap.keys()]);
     const provenanceRouteKey = lastInteractionProvenance?.routeKey;
     if (provenanceRouteKey) {
         knownRouteKeys.add(provenanceRouteKey);
@@ -901,8 +798,6 @@ const NavigationFocusManager: NavigationFocusManagerModule = {
     retrieveForRoute,
     clearForRoute,
     hasStoredFocus,
-    getRetrievalModeForRoute,
-    getRouteFocusMetadata,
     registerFocusedRoute,
     unregisterFocusedRoute,
     wasRecentKeyboardInteraction,
