@@ -261,7 +261,9 @@ function MultifactorAuthenticationRevokePage() {
                 confirmText={translate(confirmMode === 'all' ? 'multifactorAuthentication.revoke.ctaAll' : 'multifactorAuthentication.revoke.cta')}
                 cancelText={translate('common.cancel')}
                 isVisible={isConfirmModalVisible}
-                onConfirm={handleRevokeConfirm}
+                onConfirm={() => {
+                    handleRevokeConfirm();
+                }}
                 onCancel={hideConfirmModal}
                 shouldShowCancelButton
                 isConfirmLoading={isThisDeviceLoading || isOtherDevicesLoading}
