@@ -9,9 +9,9 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as App from '@userActions/App';
-import * as IOU from '@userActions/IOU';
+import {generateReportID} from '@libs/ReportUtils';
+import {confirmReadyToOpenApp} from '@userActions/App';
+import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,13 +27,13 @@ function SubmitExpensePage() {
 
     useFocusEffect(() => {
         interceptAnonymousUser(() => {
-            App.confirmReadyToOpenApp();
+            confirmReadyToOpenApp();
             Navigation.isNavigationReady().then(() => {
                 if (isUnmounted.current) {
                     return;
                 }
                 Navigation.goBack();
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, ReportUtils.generateReportID(), draftTransactionIDs);
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, generateReportID(), draftTransactionIDs);
             });
         });
     });
