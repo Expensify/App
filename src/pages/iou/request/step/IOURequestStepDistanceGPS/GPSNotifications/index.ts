@@ -10,8 +10,11 @@ function stopGpsTripNotification() {}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function updateGpsTripNotification(_distanceInMeters: number) {}
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationUnit(_unit: Unit, _translate: LocalizedTranslate) {}
+
 async function checkAndCleanGpsNotification(): Promise<void> {
     // no-op
 }
 
-export {startGpsTripNotification, stopGpsTripNotification, updateGpsTripNotification, checkAndCleanGpsNotification};
+export {startGpsTripNotification, stopGpsTripNotification, updateGpsTripNotification, updateGpsTripNotificationUnit, checkAndCleanGpsNotification};

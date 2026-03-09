@@ -9,11 +9,17 @@ const ATTRIBUTES_TYPE = 'GpsTripAttributes';
 
 let activityId: string | null = null;
 let distanceUnit: Unit | null = null;
+let distanceUnitLongStr: string | null = null;
+let lastDistanceInMeters = 0;
+
+function getDistanceUnitLong(unit: Unit, translate: LocalizedTranslate): string {
+    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+}
 
 function startGpsTripNotification(translate: LocalizedTranslate, reportID: string, unit: Unit, distanceInMeters = 0) {
     const subtitle = translate('gps.liveActivity.subtitle');
     const buttonText = translate('gps.liveActivity.button');
-    const distanceUnitLong = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const distanceUnitLong = getDistanceUnitLong(unit, translate);
 
     const deepLink = ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID);
 
@@ -23,24 +29,27 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
         .start({
             attributesType: ATTRIBUTES_TYPE,
             content: {
-                state: {distance},
+                state: {distance, distanceUnit: unit, distanceUnitLong},
                 relevanceScore: 100,
             },
-            attributes: {deepLink, subtitle, distanceUnit: unit, distanceUnitLong, buttonText},
+            attributes: {deepLink, subtitle, buttonText},
         })
         .then((activity) => {
             activityId = activity.id;
             distanceUnit = unit;
+            distanceUnitLongStr = distanceUnitLong;
+            lastDistanceInMeters = distanceInMeters;
         })
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to start', error));
 }
 
 function updateGpsTripNotification(distanceInMeters: number) {
-    if (activityId === null || distanceUnit === null) {
+    if (activityId === null || distanceUnit === null || distanceUnitLongStr === null) {
         console.error('[GPS Live Activity] Failed to start update: activityId or distanceUnit is null');
         return;
     }
 
+    lastDistanceInMeters = distanceInMeters;
     const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit);
 
     Airship.iOS.liveActivityManager
@@ -48,11 +57,33 @@ function updateGpsTripNotification(distanceInMeters: number) {
             attributesType: ATTRIBUTES_TYPE,
             activityId,
             content: {
-                state: {distance},
+                state: {distance, distanceUnit, distanceUnitLong: distanceUnitLongStr},
                 relevanceScore: 100,
             },
         })
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to update', error));
+}
+
+function updateGpsTripNotificationUnit(unit: Unit, translate: LocalizedTranslate) {
+    if (activityId === null) {
+        return;
+    }
+
+    distanceUnit = unit;
+    distanceUnitLongStr = getDistanceUnitLong(unit, translate);
+
+    const distance = DistanceRequestUtils.convertDistanceUnit(lastDistanceInMeters, unit);
+
+    Airship.iOS.liveActivityManager
+        .update({
+            attributesType: ATTRIBUTES_TYPE,
+            activityId,
+            content: {
+                state: {distance, distanceUnit: unit, distanceUnitLong: distanceUnitLongStr},
+                relevanceScore: 100,
+            },
+        })
+        .catch((error: unknown) => console.error('[GPS Live Activity] Failed to update unit', error));
 }
 
 function stopGpsTripNotification() {
@@ -70,6 +101,8 @@ function stopGpsTripNotification() {
 
     activityId = null;
     distanceUnit = null;
+    distanceUnitLongStr = null;
+    lastDistanceInMeters = 0;
 }
 
 async function checkAndCleanGpsNotification() {
@@ -90,4 +123,4 @@ async function checkAndCleanGpsNotification() {
     }
 }
 
-export {startGpsTripNotification, updateGpsTripNotification, stopGpsTripNotification, checkAndCleanGpsNotification};
+export {startGpsTripNotification, updateGpsTripNotification, updateGpsTripNotificationUnit, stopGpsTripNotification, checkAndCleanGpsNotification};

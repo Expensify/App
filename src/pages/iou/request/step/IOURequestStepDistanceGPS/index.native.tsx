@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
+import {updateGpsTripNotificationUnit} from './GPSNotifications';
 import type IOURequestStepDistanceGPSProps from './types';
 import Waypoints from './Waypoints';
 
@@ -77,6 +78,14 @@ function IOURequestStepDistanceGPS({
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+
+    const prevUnitRef = useRef(unit);
+    useEffect(() => {
+        if (prevUnitRef.current !== unit && gpsDraftDetails?.isTracking) {
+            updateGpsTripNotificationUnit(unit, translate);
+        }
+        prevUnitRef.current = unit;
+    }, [unit, gpsDraftDetails?.isTracking, translate]);
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 

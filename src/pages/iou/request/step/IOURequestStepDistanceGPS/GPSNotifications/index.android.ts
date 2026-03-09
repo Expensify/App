@@ -42,4 +42,7 @@ async function checkAndCleanGpsNotification() {
     }
 }
 
-export {startGpsTripNotification, stopGpsTripNotification, checkAndCleanGpsNotification};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateGpsTripNotificationUnit(_unit: Unit, _translate: LocalizedTranslate) {}
+
+export {startGpsTripNotification, stopGpsTripNotification, updateGpsTripNotificationUnit, checkAndCleanGpsNotification};
