@@ -128,19 +128,14 @@ function handleActionButtonPress({
         return;
     }
 
-    if (
-        [CONST.SEARCH.ACTION_TYPES.PAY, CONST.SEARCH.ACTION_TYPES.APPROVE, CONST.SEARCH.ACTION_TYPES.SUBMIT].some((action) => action === item.action) &&
-        snapshotReport.policyID &&
-        shouldRestrictUserBillableActions(snapshotReport.policyID)
-    ) {
-        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
-        return;
-    }
-
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
             if (isDelegateAccessRestricted) {
                 onDelegateAccessRestricted?.();
+                return;
+            }
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, personalPolicyID);
@@ -150,6 +145,10 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
@@ -157,6 +156,10 @@ function handleActionButtonPress({
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
