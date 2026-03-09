@@ -2759,6 +2759,15 @@ function shouldReuseInitialTransaction(
     return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
 }
 
+/**
+ * Check if the transaction has a smartscan failed with missing fields before violation is written
+ */
+function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.some(
+        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
+    );
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -2896,6 +2905,7 @@ export {
     isTimeRequest,
     getExpenseTypeTranslationKey,
     isDistanceTypeRequest,
+    hasSmartScanFailedWithMissingFields,
 };
 
 export type {TransactionChanges};
