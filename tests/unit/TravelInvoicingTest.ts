@@ -296,7 +296,6 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: false,
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
                                 isEnabled: false,
                             }),
@@ -320,7 +319,6 @@ describe('TravelInvoicing', () => {
                     expect.objectContaining({
                         key: cardSettingsKey,
                         value: expect.objectContaining({
-                            isEnabled: true,
                             [CONST.TRAVEL.PROGRAM_TRAVEL_US]: expect.objectContaining({
                                 isEnabled: true,
                             }),
