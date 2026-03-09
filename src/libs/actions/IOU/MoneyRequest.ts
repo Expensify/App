@@ -1,33 +1,49 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Beta, IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {
+    Beta,
+    IntroSelected,
+    LastSelectedDistanceRates,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    QuickAction,
+    RecentWaypoint,
+    Report,
+    Transaction,
+    TransactionViolation,
+} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
-    getRecentWaypoints,
+    getPolicyTags,
     requestMoney,
-    resetSplitShares,
     setCustomUnitRateID,
+    setMoneyRequestDistance,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
@@ -35,7 +51,7 @@ import {
     setMultipleMoneyRequestParticipantsFromReport,
     trackExpense,
 } from './index';
-import {startSplitBill} from './Split';
+import {resetSplitShares, startSplitBill} from './Split';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -57,9 +73,11 @@ type CreateTransactionParams = {
     policyParams?: {policy: OnyxEntry<Policy>};
     billable?: boolean;
     reimbursable?: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
 };
 
 type InitialTransactionParams = {
@@ -103,7 +121,10 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     shouldGenerateTransactionThreadReport: boolean;
     selfDMReport: OnyxEntry<Report>;
     isSelfTourViewed: boolean;
+    allTransactionDrafts: OnyxCollection<Transaction>;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    amountOwed: OnyxEntry<number>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -140,7 +161,14 @@ type MoneyRequestStepDistanceNavigationParams = {
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
     gpsDistance?: number;
+    odometerStart?: number;
+    odometerEnd?: number;
+    odometerDistance?: number;
     betas: OnyxEntry<Beta[]>;
+    recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    unit?: Unit;
+    personalOutputCurrency?: string;
+    amountOwed: OnyxEntry<number>;
 };
 
 function createTransaction({
@@ -163,11 +191,13 @@ function createTransaction({
     policyParams,
     billable,
     reimbursable = true,
+    allTransactionDrafts,
     isSelfTourViewed,
     betas,
     personalDetails,
+    recentWaypoints,
 }: CreateTransactionParams) {
-    const recentWaypoints = getRecentWaypoints();
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -204,6 +234,9 @@ function createTransaction({
                 betas,
             });
         } else {
+            const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+            const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
+
             requestMoney({
                 report,
                 betas,
@@ -233,6 +266,8 @@ function createTransaction({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                existingTransactionDraft,
+                draftTransactionIDs,
                 isSelfTourViewed,
                 personalDetails,
             });
@@ -288,7 +323,10 @@ function handleMoneyRequestStepScanParticipants({
     locationPermissionGranted = false,
     selfDMReport,
     isSelfTourViewed,
+    allTransactionDrafts,
     betas,
+    recentWaypoints,
+    amountOwed,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -296,7 +334,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID) ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();
@@ -325,11 +363,23 @@ function handleMoneyRequestStepScanParticipants({
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             const firstReceiptFile = files.at(0);
             if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
                 const splitReceipt: Receipt = firstReceiptFile.file ?? {};
                 splitReceipt.source = firstReceiptFile.source;
                 splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
+                const allPolicyTags: OnyxCollection<PolicyTagLists> = getPolicyTags();
+                const participantsPolicyTags = participants.reduce<Record<string, PolicyTagLists>>((acc, participant) => {
+                    if (participant.policyID) {
+                        acc[participant.policyID] = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`] ?? {};
+                    }
+                    return acc;
+                }, {});
                 startSplitBill({
                     participants,
                     currentUserLogin: currentUserLogin ?? '',
@@ -347,6 +397,7 @@ function handleMoneyRequestStepScanParticipants({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     // No need to update recently used tags because no tags are used when the confirmation step is skipped
                     policyRecentlyUsedTags: undefined,
+                    participantsPolicyTags,
                 });
                 return;
             }
@@ -390,8 +441,10 @@ function handleMoneyRequestStepScanParticipants({
                             billable: false,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                     (errorData) => {
@@ -415,8 +468,10 @@ function handleMoneyRequestStepScanParticipants({
                             participant,
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
+                            allTransactionDrafts,
                             betas,
                             personalDetails,
+                            recentWaypoints,
                         });
                     },
                 );
@@ -440,8 +495,10 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
+                allTransactionDrafts,
                 betas,
                 personalDetails,
+                recentWaypoints,
             });
             return;
         }
@@ -454,7 +511,7 @@ function handleMoneyRequestStepScanParticipants({
 
     // If there was no reportID, then that means the user started this flow from the global + menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -523,19 +580,28 @@ function handleMoneyRequestStepDistanceNavigation({
     gpsCoordinates,
     gpsDistance,
     policyForMovingExpenses,
+    odometerStart,
+    odometerEnd,
+    odometerDistance,
     betas,
+    recentWaypoints,
+    unit,
+    personalOutputCurrency,
+    amountOwed,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
+    const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
-    const recentWaypoints = getRecentWaypoints();
 
-    if (transaction?.splitShares && !isManualDistance) {
+    if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction);
     }
     if (backTo) {
         Navigation.goBack(backTo);
         return;
     }
+
+    const distance = manualDistance ?? gpsDistance ?? odometerDistance;
 
     // If a reportID exists in the report object, it's because either:
     // - The user started this flow from using the + button in the composer inside a report.
@@ -546,17 +612,13 @@ function handleMoneyRequestStepDistanceNavigation({
     if (report?.reportID && !isArchivedExpenseReport && iouType !== CONST.IOU.TYPE.CREATE) {
         const participants = getMoneyRequestParticipantOptions(currentUserAccountID, report, policy, personalDetails, privateIsArchived, reportAttributesDerived);
 
-        let validWaypoints: WaypointCollection | undefined;
-        if (!isManualDistance) {
-            if (isGPSDistance) {
-                validWaypoints = waypoints;
-            } else {
-                validWaypoints = getValidWaypoints(waypoints, true);
-            }
-        }
-
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
+            cancelSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
+            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
             setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -569,6 +631,8 @@ function handleMoneyRequestStepDistanceNavigation({
                 participant,
                 transactionReportID: transaction?.reportID,
             });
+
+            const validWaypoints = !isManualDistance && !isOdometerDistance ? getValidWaypoints(waypoints, true, isGPSDistance) : undefined;
 
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
@@ -584,7 +648,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     },
                     transactionParams: {
                         amount: 0,
-                        distance: manualDistance ?? gpsDistance,
+                        distance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: translate('iou.fieldPending'),
@@ -595,6 +659,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         customUnitRateID,
                         attendees: transaction?.comment?.attendees,
                         gpsCoordinates,
+                        odometerStart,
+                        odometerEnd,
                     },
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -617,7 +683,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 existingTransaction: transaction,
                 transactionParams: {
                     amount: 0,
-                    distance: manualDistance ?? gpsDistance,
+                    distance,
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
@@ -629,12 +695,15 @@ function handleMoneyRequestStepDistanceNavigation({
                     splitShares: transaction?.splitShares,
                     attendees: transaction?.comment?.attendees,
                     gpsCoordinates,
+                    odometerStart,
+                    odometerEnd,
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                personalDetails,
                 recentWaypoints,
                 betas,
             });
@@ -648,10 +717,11 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
-        const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+        const isSelfDMReport = isSelfDM(targetReport);
+        const transactionReportID = isSelfDMReport ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
         const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -665,6 +735,18 @@ function handleMoneyRequestStepDistanceNavigation({
         // as it is set for Manual requests before this function is called and transaction may have
         // obsolete customUnit values
         setCustomUnitRateID(transactionID, rateID, undefined, undefined);
+
+        // Update distance and distance unit in transaction object as it is usually set before this function is called using
+        // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
+        // and because of this this report is converted to selfDM here
+        if (isSelfDMReport && distance !== undefined && unit) {
+            const personalCurrency = personalOutputCurrency ?? CONST.CURRENCY.USD;
+            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction).unit;
+            const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
+            const distanceUsingPersonalDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, personalDistanceUnit));
+            setMoneyRequestDistance(transactionID, distanceUsingPersonalDistanceUnit, true, personalDistanceUnit);
+        }
+
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserAccountID).then(() => {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
         });

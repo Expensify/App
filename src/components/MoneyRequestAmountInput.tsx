@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -96,6 +96,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether to allow direct negative input (for split amounts where value is already negative) */
+    allowNegativeInput?: boolean;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 
@@ -162,6 +165,7 @@ function MoneyRequestAmountInput({
     shouldWrapInputInContainer = true,
     isNegative = false,
     allowFlippingAmount = false,
+    allowNegativeInput = false,
     toggleNegative,
     clearNegative,
     ref,
@@ -169,7 +173,7 @@ function MoneyRequestAmountInput({
     ...props
 }: MoneyRequestAmountInputProps) {
     const {preferredLocale, translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyList();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -257,6 +261,7 @@ function MoneyRequestAmountInput({
             autoGrowExtraSpace={autoGrowExtraSpace}
             submitBehavior={submitBehavior}
             allowFlippingAmount={allowFlippingAmount}
+            allowNegativeInput={allowNegativeInput}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
             onFocus={props.onFocus}

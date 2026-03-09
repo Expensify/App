@@ -302,6 +302,60 @@ describe('SidebarLinksData', () => {
             expect(screen.getByTestId('RBR Icon', {includeHiddenElements: true})).toBeOnTheScreen();
         });
 
+        it('should display the GBR on the parent task when it has an open subtask', async () => {
+            // Given the SidebarLinks are rendered.
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            const parentTaskReport: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                reportID: 'parent-task-report',
+                reportName: 'Parent task report',
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: TEST_USER_ACCOUNT_ID,
+                hasOutstandingChildTask: true,
+            };
+
+            const subtaskReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID: 'parent-task-action',
+                childReportID: 'subtask-report',
+                childType: CONST.REPORT.TYPE.TASK,
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const subtaskReport: Report = {
+                ...createReport(false, [TEST_USER_ACCOUNT_ID, 2], 0),
+                reportID: 'subtask-report',
+                reportName: 'Subtask report',
+                type: CONST.REPORT.TYPE.TASK,
+                parentReportID: parentTaskReport.reportID,
+                parentReportActionID: subtaskReportAction.reportActionID,
+                managerID: TEST_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // When the Onyx state includes a parent task and an open subtask that is waiting on the assignee.
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentTaskReport.reportID}`]: parentTaskReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${subtaskReport.reportID}`]: subtaskReport,
+            });
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentTaskReport.reportID}`, {
+                    [subtaskReportAction.reportActionID]: subtaskReportAction,
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // That the GBR icon should be shown.
+            expect(screen.getAllByTestId('GBR Icon', {includeHiddenElements: true})).toHaveLength(1);
+        });
+
         it('should display the report awaiting user action', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();

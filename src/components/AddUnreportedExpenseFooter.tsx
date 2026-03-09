@@ -36,17 +36,18 @@ type AddUnreportedExpenseFooterProps = {
 };
 
 function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, reportNextStep, policy, policyCategories, errorMessage, setErrorMessage}: AddUnreportedExpenseFooterProps) {
-    const {translate} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
-    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -57,18 +58,19 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU(
-                    [...selectedIds],
-                    report.reportID,
+                convertBulkTrackedExpensesToIOU({
+                    transactionIDs: [...selectedIds],
+                    iouReport: report,
+                    chatReport,
                     isASAPSubmitBetaEnabled,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
+                    currentUserAccountIDParam: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmailParam: session?.email ?? '',
                     transactionViolations,
-                    policyRecentlyUsedCurrencies ?? [],
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     personalDetails,
                     betas,
-                );
+                });
             } else {
                 changeTransactionsReport({
                     transactionIDs: [...selectedIds],
@@ -79,6 +81,8 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     policy,
                     reportNextStep,
                     policyCategories,
+                    translate,
+                    toLocaleDigit,
                     allTransactions,
                 });
             }

@@ -25,7 +25,6 @@ import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -78,7 +77,7 @@ function WorkspaceCompanyCardsTable({
         feedName,
         bankName,
         assignedCards,
-        cardNamesToEncryptedCardNumberMapping,
+        companyCardEntries,
         workspaceCardFeedsStatus,
         selectedFeed,
         isInitiallyLoadingFeeds,
@@ -87,14 +86,18 @@ function WorkspaceCompanyCardsTable({
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
 
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
 
     const areWorkspaceCardFeedsLoading = !!workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.isLoading;
-    const workspaceCardFeedsErrors = workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
+    // Synthesize error locally since Onyx discards writes to collection keys with member ID '0'.
+    const shouldShowWorkspaceFeedsLoadError = domainOrWorkspaceAccountID === CONST.DEFAULT_NUMBER_ID && isPolicyLoaded && !isOffline;
+    const workspaceCardFeedsErrors = shouldShowWorkspaceFeedsLoadError
+        ? {[CONST.COMPANY_CARDS.WORKSPACE_FEEDS_LOAD_ERROR]: translate('workspace.companyCards.error.workspaceFeedsCouldNotBeLoadedMessage')}
+        : workspaceCardFeedsStatus?.[domainOrWorkspaceAccountID]?.errors;
 
     const selectedFeedStatus = selectedFeed?.status;
     const selectedFeedErrors = selectedFeedStatus?.errors;
@@ -112,12 +115,15 @@ function WorkspaceCompanyCardsTable({
         feedErrorReloadAction = onReloadFeed;
     }
 
-    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading;
-    const isLoadingCards = Object.keys(cardNamesToEncryptedCardNumberMapping ?? {}).length === 0 ? isLoadingOnyxValue(cardListMetadata) : false;
-    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+    // If we already have fetched cards, then do not show skeleton loader (let the remaining updates refresh in the background), else show it
+    const hasCards = (companyCardEntries ?? []).length > 0;
+    const isLoadingFeed = !hasCards && ((!feedName && isInitiallyLoadingFeeds) || !isPolicyLoaded || isLoadingOnyxValue(lastSelectedFeedMetadata) || !!selectedFeedStatus?.isLoading);
+    const isLoadingCards = !hasCards ? isLoadingOnyxValue(cardListMetadata) : false;
+    const isLoadingPage = !isOffline && !hasCards && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata) || areWorkspaceCardFeedsLoading);
+
     const isLoading = isLoadingPage || isLoadingFeed;
 
-    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed && !hasFeedErrors;
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoading && !hasFeedErrors;
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards && !hasFeedErrors;
     const showTableHeaderButtons = (showTableControls || isLoadingPage || isFeedPending || feedErrorKey === CONST.COMPANY_CARDS.FEED_LOAD_ERROR) && !!feedName;
 
@@ -150,8 +156,7 @@ function WorkspaceCompanyCardsTable({
 
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
-        : (Object.entries(cardNamesToEncryptedCardNumberMapping ?? {}).map(([cardName, encryptedCardNumber]) => {
-              const assignedCard = Object.values(assignedCards ?? {}).find((card: Card) => card.encryptedCardNumber === encryptedCardNumber || card.cardName === cardName);
+        : (companyCardEntries ?? []).map(({cardName, encryptedCardNumber, isAssigned, assignedCard}) => {
               const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
               return {
@@ -159,14 +164,14 @@ function WorkspaceCompanyCardsTable({
                   encryptedCardNumber,
                   customCardName: assignedCard?.cardID && customCardNames?.[assignedCard.cardID] ? customCardNames?.[assignedCard.cardID] : getDefaultCardName(cardholder?.displayName ?? ''),
                   isCardDeleted: assignedCard?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  isAssigned: !!assignedCard,
+                  isAssigned,
                   assignedCard,
                   cardholder,
                   errors: assignedCard?.errors,
                   pendingAction: assignedCard?.pendingAction,
                   onDismissError: () => resetFailedWorkspaceCompanyCardUnassignment(domainOrWorkspaceAccountID, bankName, assignedCard?.cardID),
               };
-          }) ?? []);
+          });
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 

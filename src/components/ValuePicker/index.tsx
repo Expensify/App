@@ -20,6 +20,8 @@ function ValuePicker({
     ref,
     forwardedFSClass,
     addBottomSafeAreaPadding = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
 }: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -67,6 +69,7 @@ function ValuePicker({
                         onBackdropPress={Navigation.dismissModal}
                         shouldEnableKeyboardAvoidingView={false}
                         addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                     />
                 </>
             ) : (
@@ -76,6 +79,8 @@ function ValuePicker({
                     onItemSelected={updateInput}
                     shouldShowTooltips={shouldShowTooltips}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             )}
         </View>

@@ -3,6 +3,7 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
     createTransactionPreviewConditionals,
+    getReviewNavigationRoute,
     getTransactionPreviewTextAndTranslationPaths,
     getUniqueActionErrorsForTransaction,
     getViolationTranslatePath,
@@ -12,6 +13,7 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
+import type ReportViolations from '@src/types/onyx/ReportViolation';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -47,6 +49,7 @@ const basicProps = {
     areThereDuplicates: false,
     currentUserEmail: '',
     currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+    reportViolations: undefined,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -74,7 +77,7 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toContain('iou.expenseWasPutOnHold');
+            expect(result.RBRMessage.translationPath).toContain('violations.reviewRequired');
         });
 
         it('returns correct receipt error message when the transaction has receipt error', () => {
@@ -511,6 +514,100 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowRBR).toBeFalsy();
         });
 
+        it('should show RBR when report has violations and user is the report owner', () => {
+            const reportID = basicProps.iouReport.reportID || '1';
+            const iouReport = {
+                ...basicProps.iouReport,
+                reportID,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    field1: {},
+                    field2: {},
+                },
+            } as unknown as ReportViolations;
+
+            const functionArgs = {
+                ...basicProps,
+                iouReport,
+                reportViolations,
+                violations: [],
+                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
+            };
+
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeTruthy();
+        });
+
+        it('should not show RBR from report violations when user is not the report owner', () => {
+            const reportID = basicProps.iouReport.reportID || '1';
+            const otherUserAccountID = 888;
+            const iouReport = {
+                ...basicProps.iouReport,
+                reportID,
+                ownerAccountID: otherUserAccountID,
+            };
+
+            // First, test without violations
+            const functionArgsWithoutViolations = {
+                ...basicProps,
+                iouReport,
+                reportViolations: undefined,
+                violations: [],
+                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
+            };
+
+            const resultWithoutViolations = createTransactionPreviewConditionals(functionArgsWithoutViolations);
+            const shouldShowRBRWithoutViolations = resultWithoutViolations.shouldShowRBR;
+
+            // Then, test with violations
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    field1: {},
+                },
+            } as unknown as ReportViolations;
+
+            const functionArgsWithViolations = {
+                ...basicProps,
+                iouReport,
+                reportViolations,
+                violations: [],
+                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
+            };
+
+            const resultWithViolations = createTransactionPreviewConditionals(functionArgsWithViolations);
+            // RBR should be the same with or without violations when user is not the owner
+            expect(resultWithViolations.shouldShowRBR).toBe(shouldShowRBRWithoutViolations);
+        });
+
+        it('should show RBR when report has violations even if transaction violations are absent', () => {
+            const reportID = basicProps.iouReport.reportID || '1';
+            const iouReport = {
+                ...basicProps.iouReport,
+                reportID,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const reportViolations: ReportViolations = {
+                fieldRequired: {
+                    merchant: {},
+                },
+            } as unknown as ReportViolations;
+
+            const functionArgs = {
+                ...basicProps,
+                iouReport,
+                reportViolations,
+                violations: [], // No transaction violations
+                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
+            };
+
+            const result = createTransactionPreviewConditionals(functionArgs);
+            expect(result.shouldShowRBR).toBeTruthy();
+        });
+
         it('should show description if no merchant is presented and is not scanning', () => {
             const functionArgs = {...basicProps, transactionDetails: {comment: 'A valid comment', merchant: ''}};
             const result = createTransactionPreviewConditionals(functionArgs);
@@ -688,6 +785,113 @@ describe('TransactionPreviewUtils', () => {
 
         test('returns text when only receiptRequired exists', () => {
             expect(getViolationTranslatePath([receiptRequiredViolation], false, message, false, false)).toEqual({text: message});
+        });
+    });
+
+    describe('getReviewNavigationRoute', () => {
+        const threadReportID = 'threadReport123';
+        const backTo = 'backRoute';
+        const fakeReportID = 'fakeReportID';
+        const fakeReport = {
+            reportID: fakeReportID,
+            policyID: 'fakePolicyID',
+            ownerAccountID: 123,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('should navigate to confirmation page when all fields match', () => {
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+            });
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+            });
+
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            expect(route).toContain('duplicates/confirm');
+        });
+
+        it('should navigate to merchant review page when merchants differ', () => {
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                merchant: 'Merchant A',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                merchant: 'Merchant B',
+            };
+
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], undefined, undefined, {}, fakeReport);
+            expect(route).toContain('duplicates/review/merchant');
+        });
+
+        it('should navigate to tag review page when tags differ with single-level policyTags', () => {
+            const policyTags = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: true},
+                    },
+                },
+            };
+
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Engineering',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Marketing',
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            expect(route).toContain('duplicates/review/tag');
+        });
+
+        it('should skip tag review when policyTags filters out disabled tags', () => {
+            const policyTags = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    orderWeight: 0,
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                        Marketing: {name: 'Marketing', enabled: false},
+                    },
+                },
+            };
+
+            const transaction1 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Engineering',
+            };
+            const transaction2 = {
+                ...buildOptimisticTransaction({
+                    transactionParams: {amount: 100, currency: 'USD', reportID: fakeReportID, comment: '', attendees: [], created: '2024-01-01'},
+                }),
+                tag: 'Marketing',
+            };
+
+            const fakePolicy = {...createRandomPolicy(0), id: 'fakePolicyID', areTagsEnabled: true};
+            const route = getReviewNavigationRoute(backTo, threadReportID, transaction1, [transaction2], fakePolicy, undefined, policyTags, fakeReport);
+            // Since Marketing is disabled, only 1 enabled tag available, so tag review is skipped
+            expect(route).toContain('duplicates/confirm');
         });
     });
 

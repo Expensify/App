@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {View} from 'react-native';
@@ -9,54 +9,18 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
 
 const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
 
-type TabSelectorItemProps = {
-    /** Function to call when onPress */
-    onPress?: () => void;
-
-    /** Icon to display on tab */
-    icon?: IconAsset;
-
-    /** Title of the tab */
-    title?: string;
-
-    /** Animated background color value for the tab button */
-    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
-
-    /** Animated opacity value while the tab is in inactive state */
-    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Animated opacity value while the tab is in active state */
-    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Whether this tab is active */
-    isActive?: boolean;
-
-    /** Whether to show the label when the tab is inactive */
-    shouldShowLabelWhenInactive?: boolean;
-
-    /** Test identifier used to find elements in unit and e2e tests */
-    testID?: string;
-
-    /** Determines whether the product training tooltip should be displayed to the user. */
-    shouldShowProductTrainingTooltip?: boolean;
-
-    /** Function to render the content of the product training tooltip. */
-    renderProductTrainingTooltip?: () => React.JSX.Element;
-
+type TabSelectorItemProps = BaseTabSelectorItemProps & {
     /** Parent horizontal location, for computing tooltip placement */
     parentX?: number;
 
     /** Parent width, for computing tooltip placement */
     parentWidth?: number;
-
-    /** Whether tabs should have equal width */
-    equalWidth?: boolean;
 };
 
 function TabSelectorItem({
@@ -69,6 +33,7 @@ function TabSelectorItem({
     isActive = false,
     shouldShowLabelWhenInactive = true,
     testID,
+    sentryLabel,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
     parentX = 0,
@@ -79,40 +44,32 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const childRef = useRef<View | null>(null);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
-    const [shiftHorizontal, setShiftHorizontal] = useState(0);
+    // Store only the measured value from mobile measurement
+    const [measuredShift, setMeasuredShift] = useState(0);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    // Compute horizontal shift for EducationalTooltip:
-    //  - on desktop, ignore RHP bounds and center tooltip on the tab (no shift needed)
-    //  - on mobile (aka small screen) center tooltip within the panel
+    // Derive effective shift: 0 on desktop, measured value on mobile
+    const shiftHorizontal = isActive && !isSmallScreenWidth ? 0 : measuredShift;
+
     useLayoutEffect(() => {
-        // only active tab gets tooltip
-        if (!isActive) {
+        if (!isActive || !isSmallScreenWidth) {
             return;
         }
 
-        if (!isSmallScreenWidth) {
-            // no shift needed on desktop (note: not "shouldUseNarrowLayout")
-            setShiftHorizontal(0);
-            return;
-        }
-
-        // must allow animation to complete before taking measurement
         const timerID = setTimeout(() => {
             childRef.current?.measureInWindow((x, _y, width) => {
-                // To center tooltip in parent:
-                const parentCenter = parentX + parentWidth / 2; // ... where it should be...
-                const currentCenter = x + width / 2; // ... minus where it is now...
-                setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
+                const parentCenter = parentX + parentWidth / 2;
+                const currentCenter = x + width / 2;
+                setMeasuredShift(parentCenter - currentCenter);
             });
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
-    }, [isActive, childRef, isSmallScreenWidth, parentX, parentWidth]);
+    }, [isActive, isSmallScreenWidth, parentX, parentWidth]);
 
-    const accessibilityState = useMemo(() => ({selected: isActive}), [isActive]);
+    const accessibilityState = {selected: isActive};
 
     const children = (
         <AnimatedPressableWithFeedback
@@ -127,6 +84,7 @@ function TabSelectorItem({
             role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
+            sentryLabel={sentryLabel}
             ref={childRef}
         >
             <TabIcon

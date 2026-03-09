@@ -52,12 +52,11 @@ function ScheduleCallPage() {
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
     const session = useSession();
 
-    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
+    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const reportID = route.params?.reportID;
 
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: adminReportNameValuePairsSelector,
-        canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 

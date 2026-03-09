@@ -14,6 +14,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {ConnectExistingBankAccountNavigatorParamList} from '@navigation/types';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
+import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
 import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -25,8 +26,9 @@ type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<Conn
 function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusinessBankAccountPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -35,7 +37,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const {translate} = useLocalize();
 
     const handleAddBankAccountPress = () => {
-        navigateToBankAccountRoute(policyID);
+        navigateToBankAccountRoute({policyID});
     };
 
     const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
@@ -44,23 +46,29 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
         }
 
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
-        setWorkspaceReimbursement({
-            policyID,
-            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-            bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
-            reimburserEmail: newReimburserEmail,
-            accountNumber: accountData?.accountNumber,
-            addressName: accountData?.addressName,
-            bankName: accountData?.additionalData?.bankName,
-            state: accountData?.state,
-            lastPaymentMethod: lastPaymentMethod?.[policyID],
-            shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
-        });
+
+        if (bankAccountList && methodID && !bankAccountList[methodID]?.accountData?.policyIDs?.includes(policyID)) {
+            setWorkspaceReimbursement({
+                policyID,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: methodID ?? CONST.DEFAULT_NUMBER_ID,
+                reimburserEmail: newReimburserEmail,
+                accountNumber: accountData?.accountNumber,
+                addressName: accountData?.addressName,
+                bankName: accountData?.additionalData?.bankName,
+                state: accountData?.state,
+                lastPaymentMethod: lastPaymentMethod?.[policyID],
+                shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
+                bankAccountList,
+            });
+            setReimbursementAccountLoading(true);
+        }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute(route.params.policyID);
+                navigateToBankAccountRoute({policyID: route.params.policyID, navigationOptions: {forceReplace: true}});
             } else {
+                setReimbursementAccountLoading(false);
                 Navigation.closeRHPFlow();
             }
         });
