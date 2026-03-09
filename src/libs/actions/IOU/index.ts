@@ -3797,11 +3797,12 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
 
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     let mergedCurrencies: string[];
+    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
     if (currency) {
-        const currenciesWithNew = [currency, ...policyRecentlyUsedCurrencies];
+        const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));
     } else {
-        mergedCurrencies = policyRecentlyUsedCurrencies;
+        mergedCurrencies = currenciesArray;
     }
     return mergedCurrencies.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
