@@ -148,6 +148,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         setShowPopupButton(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
     const onFocus = useCallback(() => {
@@ -236,7 +237,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                    submitSearch(item.searchQuery, item.keyForList !== 'findItem');
+                    submitSearch(item.searchQuery, item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM);
                 }
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
@@ -255,7 +256,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                       singleIcon: expensifyIcons.MagnifyingGlass,
                       searchQuery: textInputValue,
                       itemStyle: styles.activeComponentBG,
-                      keyForList: 'findItem',
+                      keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                       searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
                   }
                 : undefined,

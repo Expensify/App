@@ -43,6 +43,7 @@ import {
     getPolicyExpenseChat,
     isCurrentUserSubmitter,
     isDM,
+    isOpenReport,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -51,6 +52,7 @@ import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    hasMultipleSplitChildren,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDistanceRequest,
     isDuplicate as isDuplicateTransactionUtils,
@@ -164,6 +166,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const {currentSearchHash} = useSearchStateContext();
     const {removeTransaction} = useSearchActionsContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const hasMultipleSplits = useMemo(
+        () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
+    const isReportOpen = isOpenReport(parentReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
@@ -207,6 +217,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
     }, [reportID, transaction?.transactionID, transactionViolations]);
 
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
             if (!transactions.length) {
@@ -241,6 +254,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     betas,
                     personalDetails,
                     recentWaypoints,
+                    targetPolicyTags,
                 });
             }
         },
@@ -260,6 +274,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             betas,
             personalDetails,
             recentWaypoints,
+            targetPolicyTags,
         ],
     );
 
@@ -470,7 +485,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT]: {
-            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
+            text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             onSelected: () => {

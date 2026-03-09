@@ -55,7 +55,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
@@ -80,7 +80,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
@@ -156,7 +156,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-            // CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, // Temporarily hidden
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
         ],
     ],
@@ -206,13 +206,49 @@ const availablePolicyCategoriesSelector = (policyCategories: OnyxCollection<Poli
         }),
     );
 
+/**
+ * Extracts only the fields needed for advanced search filter visibility checks.
+ * Strips heavyweight fields like connections, customUnits, rules, exportLayouts, etc.
+ */
+function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            type: policy.type,
+            role: policy.role,
+            employeeList: policy.employeeList,
+            owner: policy.owner,
+            avatarURL: policy.avatarURL,
+            isJoinRequestPending: policy.isJoinRequestPending,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            taxRates: policy.taxRates,
+            tax: policy.tax,
+            areCategoriesEnabled: policy.areCategoriesEnabled,
+            areTagsEnabled: policy.areTagsEnabled,
+            areInvoicesEnabled: policy.areInvoicesEnabled,
+            isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
+            fieldList: policy.fieldList,
+        } as Policy;
+    }
+    return result;
+}
+
 function useAdvancedSearchFilters() {
     const {localeCompare} = useLocalize();
     const [searchAdvancedFilters = getEmptyObject<SearchAdvancedFiltersForm>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID;
     const [allSearchCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const searchCards = filterCardsHiddenFromSearch(allSearchCards);
-    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: advancedSearchPoliciesSelector});
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: availablePolicyCategoriesSelector,
     });
@@ -309,3 +345,4 @@ function useAdvancedSearchFilters() {
 }
 
 export default useAdvancedSearchFilters;
+export {advancedSearchPoliciesSelector};

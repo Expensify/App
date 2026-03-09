@@ -301,6 +301,7 @@
         "gpgsign",
         "gradlew",
         "Grantmaking",
+        "groupmonth",
         "gscb",
         "gsib",
         "gsst",
@@ -385,6 +386,7 @@
         "libexec",
         "licence",
         "LIGHTBOXES",
+        "lightningcss",
         "Limpich",
         "linecap",
         "linejoin",
@@ -679,6 +681,7 @@
         "strikethrough",
         "Strikethrough",
         "subcomponents",
+        "subfolders",
         "sublicensees",
         "sublocality",
         "subpremise",
@@ -708,7 +711,6 @@
         "tabindex",
         "Talkspace",
         "TBUM",
-        "THRESHHOLD",
         "teachersunite",
         "Tele",
         "Teleproduction",
@@ -855,8 +857,10 @@
         "skia",
         "canvaskit",
         "Invoicify",
+        "liveupdate",
         "UKEU",
-        "USCA"
+        "USCA",
+        "widgetkit"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
