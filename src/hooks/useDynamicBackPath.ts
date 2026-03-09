@@ -1,4 +1,5 @@
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
+import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/getPathWithoutDynamicSuffix';
 import splitPathAndQuery from '@libs/Navigation/helpers/splitPathAndQuery';
 import type {State} from '@libs/Navigation/types';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
@@ -27,13 +28,10 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
     // Remove leading slashes for consistent processing
     const pathWithoutLeadingSlash = path.replace(/^\/+/, '');
 
-    const [normalizedPath, query] = splitPathAndQuery(pathWithoutLeadingSlash);
+    const [normalizedPath] = splitPathAndQuery(pathWithoutLeadingSlash);
 
     if (normalizedPath?.endsWith(`/${dynamicRouteSuffix}`)) {
-        const backPathWithoutQuery = normalizedPath.slice(0, -(dynamicRouteSuffix.length + 1));
-        const backPath = `${backPathWithoutQuery}${query ? `?${query}` : ''}`;
-
-        return backPath as Route;
+        return getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, dynamicRouteSuffix);
     }
 
     // If suffix is not the last segment, return the original path

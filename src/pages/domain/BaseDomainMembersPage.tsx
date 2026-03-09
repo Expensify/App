@@ -214,7 +214,7 @@ function BaseDomainMembersPage({
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.pl5, styles.pr5]}>{headerContent}</View>}
 
                 <SelectionListWithModal
                     data={filteredData}
@@ -228,7 +228,7 @@ function BaseDomainMembersPage({
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     shouldHeaderBeInsideList
                     customListHeader={getCustomListHeader()}
