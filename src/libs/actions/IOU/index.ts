@@ -3794,7 +3794,7 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
 
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     let mergedCurrencies: string[];
-    const currenciesArray = Array.isArray(policyRecentlyUsedCurrencies) ? policyRecentlyUsedCurrencies : [];
+    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
     if (currency) {
         const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));
