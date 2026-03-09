@@ -193,5 +193,9 @@ describe('SearchAutocompleteList', () => {
         await waitFor(() => {
             expect(screen.getByText('Recent searches')).toBeTruthy();
         });
+
+        // Verify the recent search items themselves are also displayed
+        expect(screen.getByText('type:expense status:approved')).toBeTruthy();
+        expect(screen.getByText('type:chat')).toBeTruthy();
     });
 });
