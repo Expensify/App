@@ -1,5 +1,5 @@
-import {useCallback, useEffect} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useEffect} from 'react';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {openSearch, search} from '@libs/actions/Search';
