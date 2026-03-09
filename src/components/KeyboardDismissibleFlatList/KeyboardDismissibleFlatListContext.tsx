@@ -26,7 +26,7 @@ const KeyboardDismissibleFlatListStateContext = createContext<KeyboardDismissibl
 const KeyboardDismissibleFlatListActionsContext = createContext<KeyboardDismissibleFlatListActionsContextValue>(defaultActionsValue);
 
 function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildren) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isModalVisible = !!modal?.isPopover;
 
     const [listBehavior, setListBehavior] = useState<ListBehavior>(CONST.LIST_BEHAVIOR.INVERTED);

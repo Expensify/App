@@ -31,7 +31,7 @@ function SentryDebugToggle({isEnabled}: SentryDebugToggleProps) {
 function HighlightedSpanOpsInput() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [highlightedSpanOps] = useOnyx(ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS, {canBeMissing: true});
+    const [highlightedSpanOps] = useOnyx(ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS);
     const [inputValue, setInputValue] = useState(() => highlightedSpanOps?.join(', '));
 
     const handleChange = (text: string) => {
@@ -60,7 +60,7 @@ function HighlightedSpanOpsInput() {
 function SentryDebugToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isSentryDebugEnabled = false] = useOnyx(ONYXKEYS.IS_SENTRY_DEBUG_ENABLED, {canBeMissing: true});
+    const [isSentryDebugEnabled = false] = useOnyx(ONYXKEYS.IS_SENTRY_DEBUG_ENABLED);
 
     return (
         <>

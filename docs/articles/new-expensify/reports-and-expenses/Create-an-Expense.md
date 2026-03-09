@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload]
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
@@ -22,8 +22,6 @@ If you're submitting expenses for a personal payment, you can send them directly
 # How to create an expense 
 
 You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
-
-**Note:** When creating an expense, Workspace Merchant Rules set by your workspace may automatically apply categories, tags, descriptions, reimbursable status, billable status, and other fields based on the merchant name.
 
 ## How to use SmartScan to create an expense
 
@@ -47,7 +45,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ---
 
-## How to manually create an expense
+## How to manually create a cash expense
 
 1. Click the **➕ Create** button.
 2. Select **Create Expense** then **Manual**.
@@ -58,9 +56,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ---
 
-## How to create a distance expense
-
-To create a distance expense: 
+## How to create a Distance expense from a map (Web and Mobile)
 
 1. Click the **➕ Create** button.
 2. Select **Track distance**.
@@ -69,6 +65,18 @@ To create a distance expense:
 5. Click **Next**.
 6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
+
+## How to create a Distance expense from a GPS (Mobile only)
+
+1. Tap the **➕ Create** button.
+2. Select **Track distance**.
+3. Select **GPS** and tap **Start**.
+4. Drive to your destination — tracking runs in the background.
+5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
+6. Review the route summary, then tap **Next**.
+7. Review the expense details, then tap **Create expense**.
+
+For more details on all distance methods including manual entry, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
 ---
 
@@ -112,7 +120,6 @@ The total amount will be calculated automatically using the hourly rate set for 
 ## What happens after submitting an expense to a workspace
 
 - Expenses are automatically added to a report.
-- [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
 - Workspace rules check for violations or missing fields.
 - Approvers are notified to review and approve.
 - Reports can be submitted manually or automatically.

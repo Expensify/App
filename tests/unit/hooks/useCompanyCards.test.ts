@@ -65,7 +65,6 @@ const mockCardsList = {
         card1: 'card1',
         card2: 'card2',
     },
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     '21570652': {
         accountID: 18439984,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -83,16 +82,22 @@ const mockCardsList = {
 const entry = (cardName: string, encryptedCardNumber?: string, isAssigned = false) => expect.objectContaining({cardName, encryptedCardNumber: encryptedCardNumber ?? cardName, isAssigned});
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@hooks/useCardsList', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
+
+const mockUseCardFeedsHook = (feedData: unknown, metadata: Record<string, unknown> = {status: 'loaded'}) => {
+    (useCardFeeds as jest.Mock).mockReturnValue([feedData, metadata, undefined]);
+};
+
+const mockUseCardsListHook = (cardsList: unknown, metadata: Record<string, unknown> = {status: 'loaded'}) => {
+    (useCardsList as jest.Mock).mockReturnValue([cardsList, metadata]);
+};
 
 describe('useCompanyCards', () => {
     beforeAll(() => {
@@ -112,8 +117,8 @@ describe('useCompanyCards', () => {
     describe('companyCardEntries derivation', () => {
         it('should derive entries from cardList for custom feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([mockCardsList, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(mockCardsList);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -123,8 +128,8 @@ describe('useCompanyCards', () => {
 
         it('should derive entries from accountList for OAuth feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockOAuthFeedData);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -134,8 +139,8 @@ describe('useCompanyCards', () => {
 
         it('should derive entries from accountList for Plaid feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockPlaidFeedData);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -145,8 +150,8 @@ describe('useCompanyCards', () => {
 
         it('should return empty entries when no cardList or accountList', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -169,8 +174,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, feedWithBoth);
-            (useCardFeeds as jest.Mock).mockReturnValue([feedDataWithAccountList, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithEncrypted, {status: 'loaded'}]);
+            mockUseCardFeedsHook(feedDataWithAccountList);
+            mockUseCardsListHook(cardsListWithEncrypted);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -184,8 +189,8 @@ describe('useCompanyCards', () => {
 
     describe('policyID handling', () => {
         it('should return only onyxMetadata when policyID is undefined', () => {
-            (useCardFeeds as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(undefined);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: undefined}));
 
@@ -200,8 +205,8 @@ describe('useCompanyCards', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
 
             const combinedFeeds = {...mockCustomFeedData, ...mockOAuthFeedData};
-            (useCardFeeds as jest.Mock).mockReturnValue([combinedFeeds, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(combinedFeeds);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID, feedName: mockOAuthFeed}));
 
@@ -216,8 +221,8 @@ describe('useCompanyCards', () => {
 
             const cardListMetadata = {status: 'loaded'};
             const allCardFeedsMetadata = {status: 'loaded'};
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, allCardFeedsMetadata, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([mockCardsList, cardListMetadata]);
+            mockUseCardFeedsHook(mockCustomFeedData, allCardFeedsMetadata);
+            mockUseCardsListHook(mockCardsList, cardListMetadata);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -237,8 +242,8 @@ describe('useCompanyCards', () => {
 
         it('should return entries with encrypted card numbers for commercial feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([mockCardsListWithEncryptedNumbers, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(mockCardsListWithEncryptedNumbers);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -251,8 +256,8 @@ describe('useCompanyCards', () => {
 
         it('should have entries where cardName differs from encryptedCardNumber for commercial feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([mockCardsListWithEncryptedNumbers, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(mockCardsListWithEncryptedNumbers);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -263,8 +268,8 @@ describe('useCompanyCards', () => {
 
         it('should have entries where cardName equals encryptedCardNumber for direct feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockPlaidFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockPlaidFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockPlaidFeedData);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -291,8 +296,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([staleCardsList, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(staleCardsList);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -320,8 +325,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([oAuthFeedWithPartialList, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithExtraAssigned, {status: 'loaded'}]);
+            mockUseCardFeedsHook(oAuthFeedWithPartialList);
+            mockUseCardsListHook(cardsListWithExtraAssigned);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -348,8 +353,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithMatchingEncrypted, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cardsListWithMatchingEncrypted);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -377,8 +382,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([oAuthFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithMatchingName, {status: 'loaded'}]);
+            mockUseCardFeedsHook(oAuthFeedData);
+            mockUseCardsListHook(cardsListWithMatchingName);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -420,8 +425,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([staleCardsList, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(staleCardsList);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -445,8 +450,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithMissingName, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cardsListWithMissingName);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -467,8 +472,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListNoEncrypted, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cardsListNoEncrypted);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -499,8 +504,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithDuplicateNames, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cardsListWithDuplicateNames);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -535,8 +540,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([oAuthFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([cardsListWithSpecialChar, {status: 'loaded'}]);
+            mockUseCardFeedsHook(oAuthFeedData);
+            mockUseCardsListHook(cardsListWithSpecialChar);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -544,11 +549,197 @@ describe('useCompanyCards', () => {
         });
     });
 
+    describe('CDF stale card name resolution via cascading lookup', () => {
+        it('should keep card name when encryptedCardNumber matches a cardList entry', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '888222XXXX74444': 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                },
+                '8341': {
+                    cardID: 8341,
+                    accountID: 8393,
+                    bank: 'gl1025',
+                    cardName: '888222XXXXX4444',
+                    encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                    lastFourPAN: '4444',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // Linked by encryptedCardNumber — card keeps its own name, no duplicate from cardList
+            expect(result.current.companyCardEntries).toEqual([entry('888222XXXXX4444', 'v1:148EECFC15D818ACBC0D707FD0C44CC3', true)]);
+        });
+
+        it('should resolve encryptedCardNumber via lastFourPAN when no other match exists', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '111222XXXX31234': 'v1:2D0EF0C3C834A6C5721225BAB4996799',
+                },
+                '8340': {
+                    cardID: 8340,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: 'XXXXXXXXXXX1234',
+                    lastFourPAN: '1234',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // lastFourPAN resolves both cardName and encryptedCardNumber from cardList
+            expect(result.current.companyCardEntries).toEqual([entry('111222XXXX31234', 'v1:2D0EF0C3C834A6C5721225BAB4996799', true)]);
+        });
+
+        it('should resolve mixed CDF cards without creating duplicates', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '111222XXXX31234': 'v1:2D0EF0C3C834A6C5721225BAB4996799',
+                    '888222XXXX74444': 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                },
+                '8340': {
+                    cardID: 8340,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: 'XXXXXXXXXXX1234',
+                    lastFourPAN: '1234',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                '8341': {
+                    cardID: 8341,
+                    accountID: 8393,
+                    bank: 'gl1025',
+                    cardName: '888222XXXXX4444',
+                    encryptedCardNumber: 'v1:148EECFC15D818ACBC0D707FD0C44CC3',
+                    lastFourPAN: '4444',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // 8341 linked by encrypted (keeps its name), 8340 resolved via lastFourPAN (gets cardList name)
+            expect(entries).toEqual(
+                expect.arrayContaining([entry('888222XXXXX4444', 'v1:148EECFC15D818ACBC0D707FD0C44CC3', true), entry('111222XXXX31234', 'v1:2D0EF0C3C834A6C5721225BAB4996799', true)]),
+            );
+            // No duplicate unassigned entries from cardList
+            expect(entries).toHaveLength(2);
+        });
+
+        it('should not resolve via lastFourPAN when multiple cardList entries share the same last 4 digits', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '111222XXXX64444': 'v1:ENCRYPTED_A',
+                    '333222XXXX44444': 'v1:ENCRYPTED_B',
+                },
+                '9000': {
+                    cardID: 9000,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: 'XXXXXXXXXXX4444',
+                    lastFourPAN: '4444',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // Ambiguous lastFourPAN — falls back to original card name
+            expect(entries.map((e) => e.cardName)).toContain('XXXXXXXXXXX4444');
+            // The two cardList entries should also appear as unassigned
+            expect(entries).toHaveLength(3);
+        });
+
+        it('should return the card unchanged when nothing in cardList matches', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '999888XXXX77777': 'v1:COMPLETELY_DIFFERENT',
+                },
+                '6000': {
+                    cardID: 6000,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: 'XXXXXXXXXXX5555',
+                    encryptedCardNumber: 'v1:UNRELATED_ENCRYPTED',
+                    lastFourPAN: '5555',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // The assigned card keeps its original cardName and encryptedCardNumber
+            expect(entries).toEqual(expect.arrayContaining([entry('XXXXXXXXXXX5555', 'v1:UNRELATED_ENCRYPTED', true), entry('999888XXXX77777', 'v1:COMPLETELY_DIFFERENT')]));
+            expect(entries).toHaveLength(2);
+        });
+
+        it('should cascade to lastFourPAN even when card has a non-matching encryptedCardNumber', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '111222XXXX31234': 'v1:NEW_ENCRYPTED',
+                },
+                '7000': {
+                    cardID: 7000,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: 'XXXXXXXXXXX1234',
+                    encryptedCardNumber: 'v1:OLD_ENCRYPTED',
+                    lastFourPAN: '1234',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // lastFourPAN resolves both cardName and encryptedCardNumber from cardList
+            expect(result.current.companyCardEntries).toEqual([entry('111222XXXX31234', 'v1:NEW_ENCRYPTED', true)]);
+        });
+    });
+
     describe('card ID consistency', () => {
         it('should have entries where cardName equals encryptedCardNumber for direct feeds', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockOAuthFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockOAuthFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([undefined, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockOAuthFeedData);
+            mockUseCardsListHook(undefined);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 
@@ -569,8 +760,8 @@ describe('useCompanyCards', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
-            (useCardFeeds as jest.Mock).mockReturnValue([mockCustomFeedData, {status: 'loaded'}, undefined]);
-            (useCardsList as jest.Mock).mockReturnValue([commercialCardsList, {status: 'loaded'}]);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(commercialCardsList);
 
             const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
 

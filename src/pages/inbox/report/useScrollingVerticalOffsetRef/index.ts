@@ -1,10 +1,7 @@
-import {useRef} from 'react';
 import {useAnimatedReaction} from 'react-native-reanimated';
 import type UseScrollingVerticalOffsetRefParams from './types';
 
-export default function useScrollingVerticalOffsetRef({scrollY}: UseScrollingVerticalOffsetRefParams) {
-    const scrollingVerticalOffsetRef = useRef(0);
-
+export default function useScrollingVerticalOffsetRef({scrollOffsetRef, scrollY}: UseScrollingVerticalOffsetRefParams) {
     // The previous scroll tracking implementation was made via ref. This is
     // to ensure it will behave the same as before.
     useAnimatedReaction(
@@ -14,9 +11,10 @@ export default function useScrollingVerticalOffsetRef({scrollY}: UseScrollingVer
             };
         },
         ({offsetY}) => {
-            scrollingVerticalOffsetRef.current = offsetY;
+            // eslint-disable-next-line no-param-reassign
+            scrollOffsetRef.current = offsetY;
         },
     );
 
-    return scrollingVerticalOffsetRef;
+    return scrollOffsetRef;
 }

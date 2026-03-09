@@ -1,4 +1,5 @@
-import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
+import type {FlatListRefType, ScrollPosition} from '@pages/inbox/ReportScreenContext';
+import type {RefObject} from 'react';
 
 type ReportScrollManagerData = {
     ref: FlatListRefType;
@@ -19,7 +20,7 @@ type ScrollToOffsetHandlerParams = ScrollToCommonParams & {
 };
 
 type ScrollToBottomHandlerParams = ScrollToCommonParams & {
-    setScrollPosition: (position: {offset: number}) => void;
+    scrollPositionRef: RefObject<ScrollPosition>;
 };
 
 export type {ScrollToBottomHandlerParams, ScrollToOffsetHandlerParams};

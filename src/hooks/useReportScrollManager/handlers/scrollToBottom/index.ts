@@ -1,11 +1,12 @@
 import type {ScrollToBottomHandlerParams} from '@hooks/useReportScrollManager/types';
 
-function scrollToBottomHandler({flatListRef, setScrollPosition}: ScrollToBottomHandlerParams) {
+function scrollToBottomHandler({flatListRef, scrollPositionRef}: ScrollToBottomHandlerParams) {
     if (!flatListRef?.current) {
         return;
     }
 
-    setScrollPosition({offset: 0});
+    // eslint-disable-next-line no-param-reassign
+    scrollPositionRef.current = {offset: 0};
 
     flatListRef.current?.scrollToOffset({animated: false, offset: 0});
 }

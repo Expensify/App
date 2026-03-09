@@ -49,6 +49,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -118,6 +119,10 @@ function isSubmitAction(
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 
@@ -246,7 +251,7 @@ function isExportAction(report: Report, currentUserLogin: string, policy?: Polic
     }
 
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const isExported = isExportedUtil(reportActions);
+    const isExported = isExportedUtil(reportActions, report);
     if (isExported) {
         return false;
     }
@@ -556,4 +561,5 @@ export {
     isPrimaryMarkAsResolvedAction,
     getAllExpensesToHoldIfApplicable,
     isReviewDuplicatesAction,
+    isMarkAsCashActionForTransaction,
 };

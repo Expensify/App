@@ -6,18 +6,20 @@ import type {ScrollToBottomHandlerParams} from '@hooks/useReportScrollManager/ty
  * covered by the keyboard when it is visible.
  * */
 
-function scrollToBottomHandler({flatListRef, keyboardHeight, isKeyboardActive, setScrollPosition}: ScrollToBottomHandlerParams) {
+function scrollToBottomHandler({flatListRef, keyboardHeight, isKeyboardActive, scrollPositionRef}: ScrollToBottomHandlerParams) {
     if (!flatListRef?.current) {
         return;
     }
 
     if (isKeyboardActive) {
-        setScrollPosition({offset: -keyboardHeight});
+        // eslint-disable-next-line no-param-reassign
+        scrollPositionRef.current = {offset: -keyboardHeight};
         flatListRef.current?.scrollToOffset({animated: false, offset: -keyboardHeight});
         return;
     }
 
-    setScrollPosition({offset: 0});
+    // eslint-disable-next-line no-param-reassign
+    scrollPositionRef.current = {offset: 0};
 
     flatListRef.current?.scrollToOffset({animated: false, offset: 0});
 }

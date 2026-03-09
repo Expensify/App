@@ -48,7 +48,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const policy = usePolicy(policyID);
 
     const {translate} = useLocalize();
-    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -137,6 +137,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                             title={translate('workspace.companyCards.addCards')}
                             icon={icons.Plus}
                             onPress={onAddCardsPress}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
                         />
                     }
                 />

@@ -1,4 +1,4 @@
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -8,36 +8,29 @@ import scrollToOffsetHandler from './handlers/scrollToOffset';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, setScrollPosition} = useContext(ActionListContext);
+    const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
     const {isKeyboardActive, keyboardHeight} = useKeyboardState();
 
     /**
      * Scroll to the provided index.
      */
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToIndex({index});
-        },
-        [flatListRef],
-    );
+    const scrollToIndex = (index: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
+        flatListRef.current.scrollToIndex({index});
+    };
 
     /**
      * Scroll to the bottom of the inverted FlatList.
      * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(
-        () => scrollToBottomHandler({flatListRef, isKeyboardActive, keyboardHeight, setScrollPosition}),
-        [flatListRef, setScrollPosition, isKeyboardActive, keyboardHeight],
-    );
+    const scrollToBottom = () => scrollToBottomHandler({flatListRef, isKeyboardActive, keyboardHeight, scrollPositionRef});
 
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = useCallback(() => {
+    const scrollToEnd = () => {
         if (!flatListRef?.current) {
             return;
         }
@@ -50,9 +43,9 @@ function useReportScrollManager(): ReportScrollManagerData {
         }
 
         flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef]);
+    };
 
-    const scrollToOffset = useCallback((offset: number) => scrollToOffsetHandler({flatListRef, isKeyboardActive, keyboardHeight, offset}), [flatListRef, isKeyboardActive, keyboardHeight]);
+    const scrollToOffset = (offset: number) => scrollToOffsetHandler({flatListRef, isKeyboardActive, keyboardHeight, offset});
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }

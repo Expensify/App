@@ -1,6 +1,6 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -25,6 +25,7 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
@@ -59,6 +60,8 @@ const SET_UP_2FA_SCREENS = new Set<string>([
     SCREENS.TWO_FACTOR_AUTH.DISABLE,
 ]);
 
+const MFA_FLOW_SCREENS = new Set<string>(Object.values(SCREENS.MULTIFACTOR_AUTHENTICATION));
+
 let account: OnyxEntry<Account>;
 // We have used `connectWithoutView` here because it is not connected to any UI
 Onyx.connectWithoutView({
@@ -80,6 +83,10 @@ Onyx.connectWithoutView({
 
 function isTwoFactorSetupScreen(screen: string | undefined): boolean {
     return screen ? SET_UP_2FA_SCREENS.has(screen) : false;
+}
+
+function isMFAFlowScreen(screen: string | undefined): boolean {
+    return screen ? MFA_FLOW_SCREENS.has(screen) : false;
 }
 
 function shouldShowRequire2FAPage() {
@@ -185,12 +192,25 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 /**
  * Close the side panel on narrow layout when navigating to a different screen.
  */
-function closeSidePanelOnNarrowScreen() {
+function closeSidePanelOnNarrowScreen(route: Route) {
     const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
 
     if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
         return;
     }
+
+    // Split "r/:reportID/attachment/add" by ":reportID" to get the prefix "r/" and suffix "/attachment/add"
+    const addAttachmentPrefix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(0) ?? '';
+    const addAttachmentSuffix = ROUTES.REPORT_ADD_ATTACHMENT.route.split(':reportID').at(1) ?? '';
+    const attachmentPreviewRoute = ROUTES.REPORT_ATTACHMENTS.route;
+    const isAddingAttachment = typeof route === 'string' && route.startsWith(addAttachmentPrefix) && route.includes(addAttachmentSuffix);
+    const isPreviewingAttachment = typeof route === 'string' && route.startsWith(attachmentPreviewRoute);
+    // If the user is navigating to an attachment route (previewing or adding), keep the side panel open
+    // so they still have access to the chat.
+    if (isAddingAttachment || isPreviewingAttachment) {
+        return;
+    }
+
     SidePanelActions.closeSidePanel(true);
 }
 
@@ -207,7 +227,7 @@ function getActiveRoute(): string {
         return '';
     }
 
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+    const routeFromState = getPathFromState(navigationRef.getRootState());
 
     if (routeFromState) {
         return routeFromState;
@@ -308,7 +328,7 @@ function navigate(route: Route, options?: LinkToOptions) {
 
     const targetRoute = route.startsWith(CONST.SAML_REDIRECT_URL) ? ROUTES.HOME : route;
     linkTo(navigationRef.current, targetRoute, options);
-    closeSidePanelOnNarrowScreen();
+    closeSidePanelOnNarrowScreen(route);
 }
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
@@ -940,4 +960,4 @@ export default {
     navigateBackToLastSuperWideRHPScreen,
 };
 
-export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, shouldShowRequire2FAPage};
+export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, isMFAFlowScreen, shouldShowRequire2FAPage};

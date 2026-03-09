@@ -33,6 +33,10 @@ type ReportAttributes = {
      * The errors of the report.
      */
     reportErrors: Errors;
+    /**
+     * The reportID of the one-transaction thread report, if applicable.
+     */
+    oneTransactionThreadReportID?: string;
 };
 
 /**
@@ -72,6 +76,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
 
 /**
  * The errors of a card.
@@ -169,6 +178,11 @@ type CardFeedErrors = {
     cardsWithBrokenFeedConnection: Record<string, Card>;
 
     /**
+     * The personal cards with a broken connection.
+     */
+    personalCardsWithBrokenConnection: Record<string, Card>;
+
+    /**
      * Whether to show the RBR for each workspace account ID.
      */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
@@ -192,6 +206,11 @@ type CardFeedErrors = {
      * The errors of expensify card.
      */
     expensifyCard: CardFeedErrorState;
+
+    /**
+     * The errors of personal card.
+     */
+    personalCard: CardFeedErrorState;
 };
 
 /**
@@ -232,6 +251,11 @@ type TodosDerivedValue = {
     transactionsByReportID: Record<string, Transaction[]>;
 };
 
+/**
+ * The derived value for merged personal and workspace card feeds.
+ */
+type PersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -239,7 +263,9 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,

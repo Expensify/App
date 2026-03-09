@@ -6,7 +6,7 @@ import useOnyx from './useOnyx';
 import usePolicy from './usePolicy';
 
 function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const policy = usePolicy(policyID);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
 
@@ -15,7 +15,7 @@ function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
 
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const [adminAccess] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${selectedFeedData?.domainID}`, {canBeMissing: true});
+    const [adminAccess] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${selectedFeedData?.domainID}`);
 
     if (selectedFeedData?.domainID === policy?.workspaceAccountID) {
         return isPolicyAdmin;

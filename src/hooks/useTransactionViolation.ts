@@ -26,7 +26,6 @@ function useTransactionViolation(eligibleTransactionIDs?: Set<string>) {
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         {
             selector: transactionViolationSelector,
-            canBeMissing: true,
         },
         [transactionViolationSelector],
     );

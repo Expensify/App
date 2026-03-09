@@ -544,6 +544,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 icon: 'string',
                 actorAccountID: 'number',
                 eta: 'object',
+                iconFill: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -717,6 +718,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'isAttachmentWithText':
         case 'isNewestReportAction':
         case 'isOptimisticAction':
+        case 'isOriginalReportDeleted':
             return validateBoolean(value);
         case 'created':
         case 'lastModified':
@@ -768,6 +770,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 childReportNotificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isNewestReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOptimisticAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOriginalReportDeleted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 adminAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1278,6 +1281,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
                 isNewestReportAction: 'boolean',
                 isOptimisticAction: 'boolean',
+                isOriginalReportDeleted: 'boolean',
                 adminAccountID: 'number',
                 whisperedToAccountIDs: 'array',
                 reportActionTimestamp: 'string',
@@ -1328,6 +1332,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 field: 'string',
                 prohibitedExpenseRule: 'string',
                 comment: 'string',
+                cardID: 'number',
             });
         case 'showInReview':
             return validateBoolean(value);

@@ -14,20 +14,20 @@ type Args = {
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
     isInverted: boolean;
 
-    /** The current offset of scrolling from either top or bottom of chat list */
-    currentVerticalScrollingOffset: SharedValue<number>;
-
-    /** The current keyboard height, updated on every keyboard movement frame */
-    keyboardHeight: SharedValue<number>;
-
     /** Ref for whether read action was skipped */
     readActionSkippedRef: RefObject<boolean>;
 
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
-    /** Whether the unread marker is displayed for any report action */
-    hasUnreadMarkerReportAction: boolean;
+    /** Whether the report actions have been loaded at least once */
+    hasOnceLoadedReportActions: boolean;
+
+    /** The current offset of scrolling from either top or bottom of chat list */
+    currentVerticalScrollingOffset: SharedValue<number>;
+
+    /** The current keyboard height, updated on every keyboard movement frame */
+    keyboardHeight: SharedValue<number>;
 };
 
 export default function useReportUnreadMessageScrollTracking({
@@ -35,16 +35,18 @@ export default function useReportUnreadMessageScrollTracking({
     readActionSkippedRef,
     unreadMarkerReportActionIndex,
     isInverted,
+    hasOnceLoadedReportActions,
     currentVerticalScrollingOffset,
     keyboardHeight,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const isFocused = useIsFocused();
-    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean}>({
+    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean; hasOnceLoadedReportActions: boolean}>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
+        hasOnceLoadedReportActions,
     });
     const wasManuallySetRef = useRef(false);
 
@@ -67,6 +69,10 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.isFocused = isFocused;
     }, [isFocused]);
+
+    useEffect(() => {
+        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
+    }, [hasOnceLoadedReportActions]);
 
     /**
      * On every scroll event we want to:
@@ -124,7 +130,7 @@ export default function useReportUnreadMessageScrollTracking({
         if (unreadActionVisible && readActionSkippedRef.current) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
-            readNewestAction(ref.current.reportID);
+            readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
         }
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.

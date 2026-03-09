@@ -229,7 +229,11 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
-    return formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz');
+    if (abbreviation === 'GMT') {
+        return formatInTimeZone(datetime, selectedTimezone, 'O');
+    }
+    return abbreviation;
 }
 
 /**
@@ -501,16 +505,16 @@ function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, in
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, CONST.DATE.LOCAL_TIME_FORMAT)});
+        return translate('statusPage.untilTime', format(input, CONST.DATE.LOCAL_TIME_FORMAT));
     }
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+        return translate('statusPage.untilTime', format(input, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`));
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', {time: format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`)});
+    return translate('statusPage.untilTime', format(input, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`));
 }
 
 /**
@@ -899,7 +903,7 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
     const end = new Date(endDate);
     const daysCount = differenceInDays(end, start) + 1;
 
-    return translateParam('iou.splitDateRange', {startDate, endDate, count: daysCount});
+    return translateParam('iou.splitDateRange', startDate, endDate, daysCount);
 }
 
 /**

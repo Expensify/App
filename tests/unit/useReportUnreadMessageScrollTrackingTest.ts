@@ -70,9 +70,9 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
+                    hasOnceLoadedReportActions: true,
                     currentVerticalScrollingOffset: offsetY,
                     keyboardHeight,
-                    hasUnreadMarkerReportAction: false,
                 }),
             );
 
@@ -99,9 +99,9 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     isInverted: true,
                     unreadMarkerReportActionIndex: -1,
+                    hasOnceLoadedReportActions: true,
                     currentVerticalScrollingOffset: offsetY,
                     keyboardHeight,
-                    hasUnreadMarkerReportAction: false,
                 }),
             );
 
@@ -127,7 +127,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     isInverted: true,
                     unreadMarkerReportActionIndex: 1,
-                    hasUnreadMarkerReportAction: false,
+                    hasOnceLoadedReportActions: true,
                     keyboardHeight,
                 }),
             );
@@ -159,7 +159,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     unreadMarkerReportActionIndex: -1,
                     isInverted: true,
                     currentVerticalScrollingOffset: offsetY,
-                    hasUnreadMarkerReportAction: false,
+                    hasOnceLoadedReportActions: true,
                     keyboardHeight,
                 }),
             );
@@ -184,7 +184,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: readActionRefFalse,
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
-                    hasUnreadMarkerReportAction: false,
+                    hasOnceLoadedReportActions: true,
                     keyboardHeight,
                 }),
             );
@@ -214,7 +214,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
                     readActionSkippedRef: {current: true},
                     unreadMarkerReportActionIndex: 1,
                     isInverted: true,
-                    hasUnreadMarkerReportAction: false,
+                    hasOnceLoadedReportActions: true,
                     keyboardHeight,
                 }),
             );

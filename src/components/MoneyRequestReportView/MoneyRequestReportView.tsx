@@ -18,9 +18,9 @@ import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
@@ -30,6 +30,7 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, 
 import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
@@ -108,12 +109,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
 
@@ -121,12 +121,24 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         return getFilteredReportActionsForReportView(unfilteredReportActions);
     }, [unfilteredReportActions]);
 
-    const {transactions: reportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportID);
-    const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactions = useReportTransactionsCollection(reportID);
+    const hasPendingDeletionTransaction = Object.values(reportTransactions ?? {}).some((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const transactions = useMemo(() => getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true), [reportTransactions, reportActions, isOffline]);
 
-    const visibleTransactions = transactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
+    const visibleTransactions = useMemo(() => {
+        if (isOffline) {
+            return transactions;
+        }
+
+        // When there are no pending delete transactions, which is most of the time, we can return the same transactions keeping the same reference avoiding extra work
+        const hasPendingDelete = transactions.some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (!hasPendingDelete) {
+            return transactions;
+        }
+
+        return transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    }, [transactions, isOffline]);
+    const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
 
@@ -136,7 +148,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
-
     const dismissReportCreationError = useCallback(() => {
         goBackFromSearchMoneyRequest();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -151,6 +162,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, transactions, reportMetadata, isOffline);
 
+    const shouldShowOpenReportLoadingSkeleton = !!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions;
+
     const isEmptyTransactionReport = visibleTransactions && visibleTransactions.length === 0 && transactionThreadReportID === undefined;
     const shouldDisplayMoneyRequestActionsList = !!isEmptyTransactionReport || shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
@@ -159,7 +172,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         setHeaderHeight(e.nativeEvent.layout.height);
     }, []);
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const shouldShowWideRHPReceipt = visibleTransactions.length === 1 && !isSmallScreenWidth && !!transactionThreadReport;
 
     const reportHeaderView = useMemo(
@@ -204,7 +217,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         };
     }, [reportID]);
 
-    if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
+    useEffect(() => {
+        if (!shouldShowOpenReportLoadingSkeleton || !report) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
+
+    if (shouldShowOpenReportLoadingSkeleton) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
@@ -224,10 +244,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
                         report={report}
-                        reportMetadata={reportMetadata}
-                        policy={policy}
-                        pendingAction={reportPendingAction}
-                        isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
                         onLayout={onComposerLayout}
                         headerHeight={headerHeight}
@@ -269,7 +285,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
                             <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollViewContainer}>
                                 <MoneyRequestReceiptView
-                                    allReports={allReports}
                                     report={transactionThreadReport}
                                     fillSpace
                                     isDisplayedInWideRHP
@@ -286,9 +301,9 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                 newTransactions={newTransactions}
                                 reportActions={reportActions}
-                                violations={allReportViolations}
                                 hasOlderActions={hasOlderActions}
                                 hasNewerActions={hasNewerActions}
+                                isComposerFullSize={isComposerFullSize}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
                                 composerHeight={composerHeight}
@@ -309,10 +324,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             <>
                                 <ReportFooter
                                     report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
-                                    pendingAction={reportPendingAction}
-                                    isComposerFullSize={!!isComposerFullSize}
                                     lastReportAction={lastReportAction}
                                     reportTransactions={transactions}
                                     // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)

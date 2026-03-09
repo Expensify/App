@@ -1,6 +1,5 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,8 +29,7 @@ type RegisterResult =
           reason: MultifactorAuthenticationReason;
       } & Partial<BaseRegisterResult>);
 
-type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
-    scenario: T;
+type AuthorizeParams = {
     challenge: AuthenticationChallenge;
 };
 
@@ -72,7 +70,7 @@ type UseNativeBiometricsReturn = {
     register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
 
     /** Authorize using biometrics */
-    authorize: <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
+    authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
 
     /** Reset keys for account */
     resetKeysForAccount: () => Promise<void>;
@@ -118,7 +116,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
 
-    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs, canBeMissing: true});
+    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
     const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
     const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
 
@@ -198,7 +196,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         });
     };
 
-    const authorize = async <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
+    const authorize = async (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
         const {challenge} = params;
 
         // Extract public keys from challenge.allowCredentials
