@@ -10,9 +10,10 @@ function useTimeSensitiveOffers() {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     // Use the same logic as the subscription page to determine if discount banner should be shown
-    const shouldShowDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
+    const shouldShowDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
     const discountInfo = getEarlyDiscountInfo(firstDayFreeTrial);
 
     // Determine which offer to show based on discount type (they are mutually exclusive)

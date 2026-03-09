@@ -15,12 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const selectedCategoriesItems = searchAdvancedFiltersForm?.category?.map((category) => {
         if (category === CONST.SEARCH.CATEGORY_EMPTY_VALUE) {
@@ -97,12 +98,14 @@ function SearchFiltersCategoryPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={categoryItems}
-                    initiallySelectedItems={selectedCategoriesItems}
-                    onSaveSelection={onSaveSelection}
-                    shouldShowTextInput={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={categoryItems}
+                        initiallySelectedItems={selectedCategoriesItems}
+                        onSaveSelection={onSaveSelection}
+                        shouldShowTextInput={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
