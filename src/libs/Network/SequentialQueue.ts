@@ -16,6 +16,7 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import NetworkConnection from '@libs/NetworkConnection';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -25,6 +26,8 @@ import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Requ
 import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
+const reportsWithProcessedOfflineComments = new Set<string>();
+const OFFLINE_COMMENT_COMMANDS = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 // Use connectWithoutView since this is for network data and don't affect to any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -148,6 +151,29 @@ function process(): Promise<void> {
     if (!requestToProcess) {
         Log.info('[SequentialQueue] Unable to process. No next request to handle.');
         return Promise.resolve();
+    }
+
+    // Track offline comments so we can reconcile the following ReadNewestAction.
+    if (requestToProcess.initiatedOffline && OFFLINE_COMMENT_COMMANDS.has(requestToProcess.command)) {
+        const reportID = requestToProcess.data?.reportID;
+        if (typeof reportID === 'string') {
+            reportsWithProcessedOfflineComments.add(reportID);
+        }
+    }
+
+    // Offline ReadNewestAction carries a stale lastReadTime from when the user opened the report
+    // offline. If the user also sent messages offline, those messages get server-assigned timestamps
+    // that are later than the stale lastReadTime, causing the report to appear unread after reconnect.
+    // Only bump when we know the same report had offline comments processed earlier in this queue flush.
+    if (requestToProcess.command === WRITE_COMMANDS.READ_NEWEST_ACTION && requestToProcess.initiatedOffline) {
+        const reportID = requestToProcess.data?.reportID;
+        if (typeof reportID === 'string' && reportsWithProcessedOfflineComments.has(reportID)) {
+            requestToProcess.data = {
+                ...requestToProcess.data,
+                lastReadTime: NetworkConnection.getDBTimeWithSkew(),
+            };
+            reportsWithProcessedOfflineComments.delete(reportID);
+        }
     }
 
     Log.info('[SequentialQueue] Starting to process request', false, {
