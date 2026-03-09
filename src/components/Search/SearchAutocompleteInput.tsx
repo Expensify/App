@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
