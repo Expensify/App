@@ -4,6 +4,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DomainGroupEditNameForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 
 type DomainGroupEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_EDIT_NAME>;
 
@@ -32,7 +32,6 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
     const {translate} = useLocalize();
 
     const [group] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-        canBeMissing: true,
         selector: selectGroupByID(groupID),
     });
 

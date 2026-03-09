@@ -1,5 +1,5 @@
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**

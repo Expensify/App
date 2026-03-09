@@ -1,31 +1,35 @@
 import Onyx from 'react-native-onyx';
-import { addAdminToDomain, addMemberToDomain, clearDefaultSecurityGroupError, clearDomainErrors, clearDomainMemberError, clearTwoFactorAuthExemptEmailsErrors, clearUpdateDomainSecurityGroupNameError, clearVacationDelegateError, closeUserAccount, createDomain, deleteDomainVacationDelegate, resetCreateDomainForm, resetDomain, resetDomainMemberTwoFactorAuth, setDefaultSecurityGroup, setDomainVacationDelegate, setTwoFactorAuthExemptEmailForDomain, updateDomainSecurityGroupName } from '@libs/actions/Domain';
-import { SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
-import { generateAccountID } from '@libs/UserUtils';
+import {
+    addAdminToDomain,
+    addMemberToDomain,
+    clearDefaultSecurityGroupError,
+    clearDomainErrors,
+    clearDomainMemberError,
+    clearTwoFactorAuthExemptEmailsErrors,
+    clearUpdateDomainSecurityGroupNameError,
+    clearVacationDelegateError,
+    closeUserAccount,
+    createDomain,
+    deleteDomainVacationDelegate,
+    resetCreateDomainForm,
+    resetDomain,
+    resetDomainMemberTwoFactorAuth,
+    setDefaultSecurityGroup,
+    setDomainVacationDelegate,
+    setTwoFactorAuthExemptEmailForDomain,
+    updateDomainSecurityGroupName,
+} from '@libs/actions/Domain';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Domain, DomainSecurityGroup, UserSecurityGroupData } from '@src/types/onyx';
-import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 OnyxUpdateManager();
 describe('actions/Domain', () => {

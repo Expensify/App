@@ -2,10 +2,12 @@ import type {DomainSecurityGroupWithID} from '@selectors/Domain';
 import {defaultSecurityGroupIDSelector, groupsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -21,8 +23,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import Badge from '@components/Badge';
 
 type GroupOption = Omit<ListItem, 'groupID'> & {
     /** Group ID */
