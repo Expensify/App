@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
