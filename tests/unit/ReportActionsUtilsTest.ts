@@ -1638,23 +1638,23 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+            const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
                     lastModified: '2025-09-29',
-                    mentionedAccountIDs: [],
+                    mentionedAccountIDs: [] as number[],
                     automaticAction: true,
                 },
-            };
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(false);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+            const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
                 reportActionID: '1',
                 created: '2025-09-29',
@@ -1664,31 +1664,31 @@ describe('ReportActionsUtils', () => {
                     mentionedAccountIDs: [123],
                     automaticAction: true,
                 },
-            };
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+            const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
                 reportActionID: '1',
                 created: '2025-09-29',
                 message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
                 originalMessage: {
                     lastModified: '2025-09-29',
-                    mentionedAccountIDs: [],
+                    mentionedAccountIDs: [] as number[],
                     automaticAction: false,
                 },
-            };
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
 
         it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> = {
+            const reportAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
                 reportActionID: '1',
                 created: '2025-09-29',
@@ -1697,7 +1697,7 @@ describe('ReportActionsUtils', () => {
                     lastModified: '2025-09-29',
                     mentionedAccountIDs: [456],
                 },
-            };
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
