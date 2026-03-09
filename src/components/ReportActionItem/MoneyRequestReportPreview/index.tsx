@@ -129,6 +129,8 @@ function MoneyRequestReportPreview({
     // We only want to highlight the new expenses if the screen is focused.
     const newTransactionIDs = isFocused ? new Set(newTransactions.map((transaction) => transaction.transactionID)) : undefined;
 
+    const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
+
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
@@ -141,14 +143,14 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
+            containerStyles={transactionPreviewContainerStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
-            shouldHighlight={newTransactionIDs?.has(item.transactionID)}
+            shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
         />
     );
 
