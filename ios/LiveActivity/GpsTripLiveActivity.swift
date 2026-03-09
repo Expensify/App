@@ -33,7 +33,7 @@ struct GpsTripLiveActivity: Widget {
                         Text(distanceString(distance: context.state.distance))
                             .font(.custom("ExpensifyNeue-Bold", size: 45))
                             .foregroundColor(.expensifyGreen)
-                        Text(context.attributes.distanceUnitLong)
+                        Text(context.state.distanceUnitLong)
                             .font(.custom("ExpensifyNeue-Regular", size: 15))
                             .foregroundColor(.white)
                     }
@@ -76,7 +76,7 @@ struct GpsTripLiveActivity: Widget {
                             .foregroundColor(.expensifyGreen)
                             .lineLimit(1)
                             .minimumScaleFactor(0.3)
-                        Text(context.attributes.distanceUnitLong)
+                        Text(context.state.distanceUnitLong)
                             .font(.custom("ExpensifyNeue-Regular", size: 15))
                             .foregroundColor(.white)
                     }
@@ -99,7 +99,7 @@ struct GpsTripLiveActivity: Widget {
                     .frame(maxWidth: 23, maxHeight: 23)
                     .clipShape(RoundedRectangle(cornerRadius: 7))
             } compactTrailing: {
-                Text(distanceStringShort(distance: context.state.distance, distanceUnit: context.attributes.distanceUnit))
+                Text(distanceStringShort(distance: context.state.distance, distanceUnit: context.state.distanceUnit))
                     .font(.custom("ExpensifyNeue-Bold", size: 15))
                     .foregroundColor(.white)
                     .minimumScaleFactor(0.5)
