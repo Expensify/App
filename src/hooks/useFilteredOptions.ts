@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
@@ -63,13 +63,12 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
 
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -91,30 +90,23 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
               })
             : null;
 
-    // Reset loading state after options are computed
-    useEffect(() => {
-        if (!isLoadingMore || !options) {
-            return;
-        }
-        setIsLoadingMore(false);
-    }, [options, isLoadingMore]);
+    const hasMore = options ? reportsLimit < totalReports : false;
 
     const loadMore = () => {
-        if (!options || isLoadingMore) {
+        if (!hasMore) {
             return;
         }
-        setIsLoadingMore(true);
         setReportsLimit((prev) => prev + batchSize);
     };
-
-    const hasMore = options ? reportsLimit < totalReports : false;
 
     return {
         options,
         isLoading: !options,
         loadMore,
         hasMore,
-        isLoadingMore,
+        // Options are derived synchronously from reportsLimit, so there is no
+        // intermediate "loading" state between calling loadMore and the recomputed options.
+        isLoadingMore: false,
     };
 }
 

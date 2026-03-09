@@ -150,7 +150,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport(reportID, introSelected);
+        openReport({reportID, introSelected});
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -328,7 +328,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, []);
 
     const saveCrop = useCallback(() => {
-        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect) {
+        if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
+            exitCropMode();
             return;
         }
 
@@ -380,13 +381,12 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     });
                 }
                 setIsCropSaving(false);
-                setIsCropping(false);
-                setCropRect(null);
+                exitCropMode();
             })
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy]);
+    }, [transaction?.transactionID, isDraftTransaction, sourceUri, isImage, cropRect, receiptFilename, policyCategories, transaction?.receipt?.type, policy, exitCropMode]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {

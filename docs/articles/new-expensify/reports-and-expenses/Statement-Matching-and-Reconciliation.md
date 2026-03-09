@@ -23,8 +23,9 @@ Workspace Admins with:
 
 ## Where to find Statement Matching and Reconciliation
 Go to:
-- **Reports > Accounting > Statement** — compare card statement totals against recorded spend
-- **Reports > Accounting > Reconciliation** — match bank withdrawals for reimbursements or Expensify Card charges
+- **Reports > Reconciliation > Card statements** — compare card statement totals against recorded spend
+- **Reports > Reconciliation > Expensify Card** — match Expensify Card withdrawals with your bank statement
+- **Reports > Reconciliation > Reimbursements** — match reimbursement payments with your bank statement
 
 ---
 
@@ -38,7 +39,7 @@ The Statement Matching view shows:
 - **Total footer** showing the sum of transactions for the statement period
 
 **Steps:**
-1. Open **Reports > Accounting > Statement**.
+1. Open **Reports > Reconciliation > Card statements**.
 2. Apply the **Feed** filter for the correct card account.
 3. Use the **Posted** filter with **Last statement**.
 4. Compare the **Total** footer with your card statement.
@@ -53,18 +54,12 @@ The Statement Matching view shows:
 Reconciliation helps you match payments and withdrawals to ensure your books reflect reality.
 
 **Expensify Card Reconciliation**
-1. Open **Reports > Accounting > Reconciliation**.
-2. Group expenses by **Withdrawal ID**.
-3. Use the **Withdrawal type** filter and select **Expensify Card**.
-4. Apply the **Withdrawn** filter with **Last month**.
-5. Compare totals per withdrawal against your bank statement.
+1. Open **Reports > Reconciliation > Expensify Card**.
+2. Group expenses by **Withdrawal ID**, apply the **Withdrawn** filter (e.g. **Last month**), and compare totals per withdrawal against your bank statement.
 
 **Out-of-pocket Reconciliation**
-1. Open **Reports > Accounting > Reconciliation**.
-2. Group expenses by **Withdrawal ID**.
-3. Use the **Withdrawal type** filter and select **Reimbursement**.
-4. Apply the **Withdrawn** filter with **Last month**.
-5. Compare totals per reimbursement against your bank statement.
+1. Open **Reports > Reconciliation > Reimbursements**.
+2. Group expenses by **Withdrawal ID**, apply the **Withdrawn** filter (e.g. **Last month**), and compare totals per reimbursement against your bank statement.
 
 ---
 
@@ -84,8 +79,8 @@ Reconciliation ensures payments (card withdrawals or reimbursements) match what 
 ## Can I expand grouped results to see individual transactions?
 Yes. You can expand or collapse groups (by card or withdrawal ID) inline to view the underlying transactions.
 
-## Why don’t I see the Reconciliation view?
-The **Reconciliation** shortcut in the Accounting section only appears if your workspace has reimbursements enabled (verified business bank account) or an approved Expensify Card connected.
+## Why don’t I see the Reconciliation section or some of its options?
+The **Reconciliation** section appears only when your workspace has at least one of: company card feeds, Expensify Card, or reimbursements (verified business bank account). Under Reconciliation, only the options that apply to your workspace are shown: **Card statements** (card feeds), **Expensify Card**, and **Reimbursements**.
 
 ## What’s the default Statement close date?
 For new card feeds, the last day of the month is automatically selected. You can update the statement close date anytime in **Settings > Workspaces > [Workspace Name] > Company Cards**.

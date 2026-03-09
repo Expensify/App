@@ -163,7 +163,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onSelectRow={() => {}}
                 ListItem={UserListItem}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
-                showLoadingPlaceholder={joinablePoliciesLoading}
+                shouldShowLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
                 customListHeader={

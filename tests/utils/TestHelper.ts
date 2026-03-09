@@ -120,6 +120,10 @@ function getNvpDismissedProductTraining(): OnyxEntry<DismissedProductTraining> {
             timestamp: '',
             dismissedMethod: 'click',
         },
+        [CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION]: {
+            timestamp: '',
+            dismissedMethod: 'click',
+        },
     };
 }
 

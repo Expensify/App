@@ -63,6 +63,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -267,6 +268,56 @@ type ReportError = {
     type?: string;
 };
 
+type OpenReportActionParams = {
+    /** The ID of the report to open */
+    reportID: string | undefined;
+
+    /** The intro selected by the user */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
+    reportActionID?: string;
+
+    /** The list of users that are included in a new chat, not including the user creating it */
+    participantLoginList?: string[];
+
+    /** The optimistic report object created when making a new chat, saved as optimistic data */
+    newReportObject?: OptimisticChatReport;
+
+    /** The parent report action that a thread was created from (only passed for new threads) */
+    parentReportActionID?: string;
+
+    /** Whether or not this report is being opened from a deep link */
+    isFromDeepLink?: boolean;
+
+    /** The list of accountIDs that are included in a new chat, not including the user creating it */
+    participantAccountIDList?: number[];
+
+    /** Whether this is a new thread being created */
+    isNewThread?: boolean;
+
+    /** The transaction object for legacy transactions that don't have a transaction thread or money request preview yet */
+    transaction?: Transaction;
+
+    /** The violations for the transaction, if any */
+    transactionViolations?: TransactionViolations;
+
+    /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
+    parentReportID?: string;
+
+    /** Whether to add pending fields to the report */
+    shouldAddPendingFields?: boolean;
+
+    /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
+    optimisticSelfDMReport?: Report;
+
+    /** The current user's login */
+    currentUserLogin?: string;
+
+    /** The current user's account ID */
+    currentUserAccountID?: number;
+};
+
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;
     pregeneratedResponse: string;
@@ -311,23 +362,6 @@ type AddAttachmentWithCommentParams = {
 };
 
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-let deprecatedCurrentUserAccountID = -1;
-/** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
-let deprecatedCurrentUserLogin: string | undefined;
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        // When signed out, val is undefined
-        if (!value?.accountID) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserLogin = value.email;
-        deprecatedCurrentUserAccountID = value.accountID;
-    },
-});
-
 // map of reportID to all reportActions for that report
 const allReportActions: OnyxCollection<ReportActions> = {};
 
@@ -360,6 +394,9 @@ Onyx.connect({
 });
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
+
+// Track subscriptions to conciergeReasoning Pusher events to avoid duplicates
+const reasoningSubscriptions = new Set<string>();
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
@@ -534,6 +571,50 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
+}
+
+/**
+ * Subscribe to conciergeReasoning Pusher events for a report.
+ * Tracks subscriptions to avoid duplicates and updates ConciergeReasoningStore with reasoning data.
+ */
+function subscribeToReportReasoningEvents(reportID: string) {
+    if (!reportID || reasoningSubscriptions.has(reportID)) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+
+    // Add to subscriptions immediately to prevent duplicate subscriptions
+    reasoningSubscriptions.add(reportID);
+
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
+        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
+
+        ConciergeReasoningStore.addReasoning(reportID, {
+            reasoning: eventData.reasoning,
+            agentZeroRequestID: eventData.agentZeroRequestID,
+            loopCount: eventData.loopCount,
+        });
+    }).catch((error: ReportError) => {
+        Log.hmmm('[Report] Failed to subscribe to Pusher concierge reasoning events', {errorType: error.type, pusherChannelName, reportID});
+        // Remove from subscriptions if subscription failed
+        reasoningSubscriptions.delete(reportID);
+    });
+}
+
+/**
+ * Unsubscribe from conciergeReasoning Pusher events for a report.
+ * Clears reasoning state and removes from subscription tracking.
+ */
+function unsubscribeFromReportReasoningChannel(reportID: string) {
+    if (!reportID || !reasoningSubscriptions.has(reportID)) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+    Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING);
+    ConciergeReasoningStore.clearReasoning(reportID);
+    reasoningSubscriptions.delete(reportID);
 }
 
 // New action subscriber array for report pages
@@ -1150,37 +1231,26 @@ function getGuidedSetupDataForOpenReport(introSelected: OnyxEntry<IntroSelected>
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
- *
- * @param reportID The ID of the report to open
- * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
- * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
- * @param newReportObject The optimistic report object created when making a new chat, saved as optimistic data
- * @param parentReportActionID The parent report action that a thread was created from (only passed for new threads)
- * @param isFromDeepLink Whether or not this report is being opened from a deep link
- * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
- * @param isNewThread Whether this is a new thread being created
- * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
- * @param transactionViolations The violations for the transaction, if any
- * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
- * @param optimisticSelfDMReport The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet)
  */
-// eslint-disable-next-line @typescript-eslint/max-params
-function openReport(
-    reportID: string | undefined,
-    introSelected: OnyxEntry<IntroSelected>,
-    reportActionID?: string,
-    participantLoginList: string[] = [],
-    newReportObject?: OptimisticChatReport,
-    parentReportActionID?: string,
-    isFromDeepLink = false,
-    participantAccountIDList: number[] = [],
-    isNewThread = false,
-    transaction?: Transaction,
-    transactionViolations?: TransactionViolations,
-    parentReportID?: string,
-    shouldAddPendingFields = true,
-    optimisticSelfDMReport?: Report,
-) {
+function openReport(params: OpenReportActionParams) {
+    const {
+        reportID,
+        introSelected,
+        reportActionID,
+        participantLoginList = [],
+        newReportObject,
+        parentReportActionID,
+        isFromDeepLink = false,
+        participantAccountIDList = [],
+        isNewThread = false,
+        transaction,
+        transactionViolations,
+        parentReportID,
+        shouldAddPendingFields = true,
+        optimisticSelfDMReport,
+        currentUserLogin,
+        currentUserAccountID,
+    } = params;
     if (!reportID) {
         return;
     }
@@ -1321,9 +1391,8 @@ function openReport(
         // Use optimisticSelfDMReport if provided (when selfDM exists but wasn't in allReports)
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
-        const submitterAccountID = parentReport?.ownerAccountID ?? deprecatedCurrentUserAccountID;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? deprecatedCurrentUserLogin ?? '';
+        const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserLogin ?? '';
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
@@ -1796,6 +1865,8 @@ function getOptimisticChatReport(accountID: number, currentUserAccountID: number
 
 function createTransactionThreadReport(
     introSelected: OnyxEntry<IntroSelected>,
+    currentUserLogin: string,
+    currentUserAccountID: number,
     iouReport?: OnyxEntry<Report>,
     iouReportAction?: OnyxEntry<ReportAction>,
     transaction?: Transaction,
@@ -1834,24 +1905,20 @@ function createTransactionThreadReport(
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    openReport(
-        optimisticTransactionThreadReportID,
+    openReport({
+        reportID: optimisticTransactionThreadReportID,
         introSelected,
-        undefined,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedCurrentUserLogin ? [deprecatedCurrentUserLogin] : [],
-
-        optimisticTransactionThread,
-        iouReportAction?.reportActionID,
-        false,
-        [],
-        false,
+        participantLoginList: currentUserLogin ? [currentUserLogin] : [],
+        newReportObject: optimisticTransactionThread,
+        parentReportActionID: iouReportAction?.reportActionID,
         transaction,
         transactionViolations,
-        selfDMReportID,
+        parentReportID: selfDMReportID,
         shouldAddPendingFields,
         optimisticSelfDMReport,
-    );
+        currentUserLogin,
+        currentUserAccountID,
+    });
     return optimisticTransactionThread;
 }
 
@@ -1888,7 +1955,7 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
  * @param currentUserAccountID the account ID of the current user.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, shouldDismissModal = true) {
+function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, shouldDismissModal = true) {
     let newChat: OptimisticChatReport | undefined;
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
@@ -1899,7 +1966,7 @@ function navigateToAndOpenReport(userLogins: string[], currentUserAccountID: num
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, deprecatedIntroSelected, '', userLogins, newChat);
+        openReport({reportID: newChat?.reportID, introSelected, reportActionID: '', participantLoginList: userLogins, newReportObject: newChat});
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1937,7 +2004,13 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, deprecatedIntroSelected, '', [], newChat, '0', false, participantAccountIDs);
+        openReport({
+            reportID: newChat?.reportID,
+            introSelected: deprecatedIntroSelected,
+            newReportObject: newChat,
+            parentReportActionID: '0',
+            participantAccountIDList: participantAccountIDs,
+        });
     }
     const report = chat ?? newChat;
 
@@ -1984,7 +2057,14 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, true);
+        openReport({
+            reportID: newChat.reportID,
+            introSelected: deprecatedIntroSelected,
+            participantLoginList: participantLogins,
+            newReportObject: newChat,
+            parentReportActionID: parentReportAction.reportActionID,
+            isNewThread: true,
+        });
     } else {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
@@ -2770,7 +2850,7 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID, deprecatedIntroSelected);
+        openReport({reportID: childReportID, introSelected: deprecatedIntroSelected});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -2805,7 +2885,13 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, deprecatedIntroSelected, '', participantLogins, newChat, parentReportAction.reportActionID);
+        openReport({
+            reportID: newChat.reportID,
+            introSelected: deprecatedIntroSelected,
+            participantLoginList: participantLogins,
+            newReportObject: newChat,
+            parentReportActionID: parentReportAction.reportActionID,
+        });
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, currentUserAccountID, parentReport?.reportID, parentReportAction.reportActionID);
     }
@@ -3211,6 +3297,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
  */
 function navigateToConciergeChat(
     conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     shouldDismissModal = false,
     checkIfCurrentPageActive = () => true,
@@ -3227,7 +3314,7 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3691,7 +3778,7 @@ function navigateToConciergeChatAndDeleteReport(
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportID, currentUserAccountID, false);
+    navigateToConciergeChat(conciergeReportID, deprecatedIntroSelected, currentUserAccountID, false);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -4061,7 +4148,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>, conciergeR
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(conciergeReportID, currentUserAccountID, false, () => true, {forceReplace: true});
+        navigateToConciergeChat(conciergeReportID, deprecatedIntroSelected, currentUserAccountID, false, () => true, {forceReplace: true});
     }
 }
 
@@ -4798,7 +4885,7 @@ async function completeOnboarding({
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = onboardingData;
+    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters, bespokeWelcomeMessage, optimisticConciergeReportActionID} = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -4812,6 +4899,8 @@ async function completeOnboarding({
         policyID: onboardingPolicyID,
         selfDMReportID: selfDMParameters.reportID,
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
+        bespokeWelcomeMessage,
+        optimisticConciergeReportActionID,
     };
 
     // We should only set testDriveModalDismissed to false if it's not already true (i.e., if the modal hasn't been dismissed yet).
@@ -6929,7 +7018,7 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
     addAttachmentWithComment,
@@ -7012,12 +7101,14 @@ export {
     startNewChat,
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
+    subscribeToReportReasoningEvents,
     subscribeToReportTypingEvents,
     toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
     unsubscribeFromLeavingRoomReportChannel,
     unsubscribeFromReportChannel,
+    unsubscribeFromReportReasoningChannel,
     updateDescription,
     updateGroupChatAvatar,
     updatePolicyRoomAvatar,

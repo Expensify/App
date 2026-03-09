@@ -145,12 +145,6 @@ function InternationalDepositAccountContent({
             return true;
         }
 
-        // Clicking back on the success screen should dismiss the modal
-        if (pageIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
-            clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
-            goBack();
-            return true;
-        }
         prevPage();
         return true;
     };
@@ -177,6 +171,7 @@ function InternationalDepositAccountContent({
                 <>
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
+                        shouldShowBackButton={pageIndex !== CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS}
                         onBackButtonPress={handleBackButtonPress}
                     />
                     <CurrentPage
