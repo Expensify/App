@@ -12394,6 +12394,11 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Repor
 
     if (isPolicyExpenseChat || shouldAddAsReport) {
         participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat, selected: true, policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined}];
+    } else if (isEmptyObject(chatReport) && isMoneyRequestReportReportUtils(report) && report?.chatReportID && report?.policyID) {
+        // When the policy expense chat is not in Onyx (e.g., vacation delegate doesn't have the owner's
+        // policy expense chat), construct the participant from the expense report's own metadata to avoid
+        // returning an empty array that leads to phantom self-DM reports.
+        participants = [{accountID: 0, reportID: report.chatReportID, isPolicyExpenseChat: true, selected: true, policyID: report.policyID}];
     } else if (isInvoiceRoom(chatReport)) {
         participants = [
             {reportID: chatReport?.reportID, selected: true},
