@@ -362,6 +362,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: '每',
         mi: '英里',
         km: '千米',
+        milesAbbreviated: '英里',
+        kilometersAbbreviated: '千米',
         copied: '已复制！',
         someone: '某人',
         total: '总计',

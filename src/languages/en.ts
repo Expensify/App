@@ -372,6 +372,8 @@ const translations = {
         // @context Unit label for “mile.” Should be treated as a measurement unit and may require capitalization depending on locale conventions.
         mi: 'mile',
         km: 'kilometer',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copied!',
         someone: 'Someone',
         total: 'Total',

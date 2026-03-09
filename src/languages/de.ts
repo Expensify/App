@@ -362,6 +362,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'pro',
         mi: 'Meile',
         km: 'Kilometer',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Kopiert!',
         someone: 'Jemand',
         total: 'Gesamt',
