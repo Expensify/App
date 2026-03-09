@@ -22,6 +22,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUActionForReportID,
     getLastVisibleAction,
     getOriginalMessage,
     getReportAction,
@@ -1054,16 +1055,13 @@ function updateSplitTransactions({
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
 
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
-    const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
-    const allCommentActionsFromOriginalTransactionThread = Object.values(transactionReportActions ?? {})
-        .filter((action) => isAddCommentAction(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .sort((a, b) => (a.created > b.created ? 1 : -1));
 
     // Get all children once (including orphaned), then filter for non-orphaned
     const allChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID, true);
@@ -1147,7 +1145,13 @@ function updateSplitTransactions({
     }
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
-    const originalReportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
+    const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
+    const addCommentActionsFilter = (reportActions?: OnyxTypes.ReportActions) =>
+        Object.values(reportActions ?? {})
+            .filter((action) => isAddCommentAction(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .sort((a, b) => (a.created > b.created ? 1 : -1));
+    const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+    const allCommentActionsFromOriginalTransactionThread = addCommentActionsFilter(transactionReportActions);
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
@@ -1264,7 +1268,7 @@ function updateSplitTransactions({
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
             quickAction,
-            shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
+            shouldGenerateTransactionThreadReport: true,
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
@@ -1350,27 +1354,26 @@ function updateSplitTransactions({
             currentSplit.splitReportActionID = iouAction.reportActionID;
         }
 
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
+            const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
+
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport);
+        }
+        const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction);
         // Copy comments to the transaction report thread of the split expense
         const optimisticDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-        const sucessDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+        const successDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
         const failureDataComments: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
-        if (!isReverseSplitOperation && transactionThreadReportID && firstIOU?.childReportID) {
-            const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-            let canUserPerformWriteAction = true;
-            if (chatReport) {
-                const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-                const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
-
-                canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport);
-            }
-            const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction);
+        let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
+        if (isCreationOfSplits && transactionThreadReportID && firstIOU?.childReportID) {
             const isTransactionOnHold = isOnHold(originalTransaction);
             const holdReportAction = getReportAction(firstIOU.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
 
-            let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
             for (const commentAction of allCommentActionsFromOriginalTransactionThread) {
-                if (isCreationOfSplits && isTransactionOnHold && holdReportAction && commentAction.timestamp === holdReportAction.timestamp) {
+                if (isTransactionOnHold && holdReportAction && commentAction.timestamp === holdReportAction.timestamp) {
                     // Generate new IDs and timestamps for each split
                     const newHoldReportActionID = NumberUtils.rand64();
                     const newHoldReportActionCommentID = NumberUtils.rand64();
@@ -1404,7 +1407,7 @@ function updateSplitTransactions({
                     });
 
                     // Add successData to clear pendingAction after API call succeeds
-                    sucessDataComments.push({
+                    successDataComments.push({
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
                         value: {
@@ -1457,26 +1460,61 @@ function updateSplitTransactions({
                     updatedReportPreviewAction.reportActionID = originalReportPreviewAction.reportActionID;
                 }
             }
+        }
 
-            if (updatedIOUAction) {
+        if (isReverseSplitOperation && transactionThreadReportID) {
+            const remainTransactionThreadReportAction = getIOUActionForReportID(splitExpense.reportID, splitExpense.transactionID);
+            const remainTransactionThreadReportActionID = remainTransactionThreadReportAction?.childReportID;
+            const allReportActions = getAllReportActions(remainTransactionThreadReportActionID);
+            for (const commentAction of addCommentActionsFilter(allReportActions)) {
+                const newReportActionID = NumberUtils.rand64();
+                const reportComment = buildOptimisticAddCommentReportAction('', undefined, commentAction.actorAccountID, undefined, transactionThreadReportID, newReportActionID);
+                const reportActionComment = {
+                    ...reportComment.reportAction,
+                    created: DateUtils.getDBTime(),
+                    message: commentAction.message,
+                    originalMessage: getOriginalMessage(commentAction),
+                };
+
                 optimisticDataComments.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                    value: {[iouAction.reportActionID]: updatedIOUAction},
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                    value: {[newReportActionID]: reportActionComment},
                 });
-                failureDataComments.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                    value: {
-                        [iouAction.reportActionID]: {
-                            childVisibleActionCount: iouAction.childVisibleActionCount,
-                            childCommenterCount: iouAction.childCommenterCount,
-                            childLastVisibleActionCreated: null,
-                            childOldestFourAccountIDs: null,
-                        },
-                    },
-                });
+
+                failureDataComments.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, value: {[newReportActionID]: null}});
+
+                updatedIOUAction = updateOptimisticParentReportAction((updatedIOUAction ?? iouAction) as OnyxTypes.ReportAction, iouAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+                if (originalReportPreviewAction) {
+                    updatedReportPreviewAction = updateOptimisticParentReportAction(
+                        (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
+                        lastVisibleAction?.childLastVisibleActionCreated ?? lastVisibleAction?.created ?? '',
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    );
+                    updatedReportPreviewAction.reportActionID = originalReportPreviewAction.reportActionID;
+                }
             }
+        }
+
+        if (updatedIOUAction) {
+            optimisticDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                value: {[iouAction.reportActionID]: updatedIOUAction},
+            });
+            failureDataComments.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                value: {
+                    [iouAction.reportActionID]: {
+                        childVisibleActionCount: iouAction.childVisibleActionCount,
+                        childCommenterCount: iouAction.childCommenterCount,
+                        childLastVisibleActionCreated: null,
+                        childOldestFourAccountIDs: null,
+                    },
+                },
+            });
         }
 
         // Ensure merchant from splitExpense is preserved in optimisticData for new and existing transactions
@@ -1497,7 +1535,7 @@ function updateSplitTransactions({
         }
 
         onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
-        onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []), ...sucessDataComments);
+        onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
         onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
     }
 
@@ -1539,6 +1577,16 @@ function updateSplitTransactions({
             undefined,
             isReportArchived || undeletedTransaction?.transactionID === forceDeleteSplitTransactionID,
         );
+
+        if (originalReportPreviewAction) {
+            const cleanUpTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
+                shouldDeleteTransactionThread: false,
+                reportAction: currentReportAction,
+                updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
+                shouldAddUpdatedReportPreviewActionToOnyxData: false,
+            });
+            updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
+        }
 
         onyxData.optimisticData?.push(...(deleteExpenseOptimisticData ?? []));
         onyxData.successData?.push(...(deleteExpenseSuccessData ?? []));
@@ -1611,6 +1659,27 @@ function updateSplitTransactions({
                 },
             });
             onyxData.failureData?.push(...failureData);
+        } else if (updatedReportPreviewAction) {
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: updatedReportPreviewAction,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: {
+                        childVisibleActionCount: originalReportPreviewAction?.childVisibleActionCount,
+                        childCommenterCount: originalReportPreviewAction?.childCommenterCount,
+                        childLastVisibleActionCreated: originalReportPreviewAction?.childLastVisibleActionCreated,
+                        childOldestFourAccountIDs: originalReportPreviewAction?.childOldestFourAccountIDs,
+                    },
+                },
+            });
         }
 
         onyxData.optimisticData?.push({
@@ -1641,6 +1710,28 @@ function updateSplitTransactions({
                 errors: null,
             },
         });
+        if (updatedReportPreviewAction) {
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: updatedReportPreviewAction,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [updatedReportPreviewAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID]: {
+                        childVisibleActionCount: originalReportPreviewAction?.childVisibleActionCount,
+                        childCommenterCount: originalReportPreviewAction?.childCommenterCount,
+                        childLastVisibleActionCreated: originalReportPreviewAction?.childLastVisibleActionCreated,
+                        childOldestFourAccountIDs: originalReportPreviewAction?.childOldestFourAccountIDs,
+                    },
+                },
+            });
+        }
         const isLastTransactionInReport = Object.values(allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID).length === 1;
         if (isLastTransactionInReport) {
             onyxData.optimisticData?.push({
