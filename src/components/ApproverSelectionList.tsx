@@ -171,10 +171,10 @@ function ApproverSelectionList({
                     canSelectMultiple={allowMultipleSelection}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
-                    showListEmptyContent={shouldShowListEmptyContent}
+                    shouldShowListEmptyContent={shouldShowListEmptyContent}
                     initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     shouldShowTextInput={shouldShowTextInput}
-                    showLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
