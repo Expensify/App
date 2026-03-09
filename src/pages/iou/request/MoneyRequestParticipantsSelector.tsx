@@ -333,9 +333,7 @@ function MoneyRequestParticipantsSelector({
             if ((shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
                 newSections.push({
                     title: translate('common.recents'),
-                    data: shouldFilterRecentReportsToWorkspaceOnly
-                        ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat)
-                        : availableOptions.recentReports,
+                    data: shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
                     sectionIndex: 3,
                 });
             }
