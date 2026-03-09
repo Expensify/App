@@ -1296,6 +1296,8 @@ type OriginalMessageTakeControl = {
     lastModified: string;
     /** Tagged account IDs of new approvers */
     mentionedAccountIDs: number[];
+    /** Whether this action was triggered automatically (e.g., during auto-pay) */
+    automaticAction?: boolean;
 };
 
 /**

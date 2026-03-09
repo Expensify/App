@@ -1149,6 +1149,14 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) {
+        const takeControlOriginalMessage = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>);
+        if (takeControlOriginalMessage && 'automaticAction' in takeControlOriginalMessage && takeControlOriginalMessage.automaticAction) {
+            return false;
+        }
+    }
+
     if (isWhisperActionTargetedToOthers(reportAction)) {
         return false;
     }
