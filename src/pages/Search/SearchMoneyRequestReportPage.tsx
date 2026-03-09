@@ -41,6 +41,7 @@ import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionD
 import {isDefaultAvatar, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import includeSafeAreaPaddingBottomInReportScreen from '@pages/inbox/report/includeSafeAreaPaddingBottomInReportScreen';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -48,6 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import shouldEnableKeyboardAvoidingView from './shouldEnableKeyboardAvoidingView';
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
@@ -407,6 +409,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
+                        shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
+                        includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottomInReportScreen}
                     >
                         <FullPageNotFoundView
                             shouldShow={shouldShowAccessErrorPage}

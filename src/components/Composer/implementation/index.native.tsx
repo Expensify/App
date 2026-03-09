@@ -33,6 +33,7 @@ function Composer({
     selection,
     value,
     isGroupPolicyReport = false,
+    nativeID,
     ref,
     ...props
 }: ComposerProps) {
@@ -112,7 +113,7 @@ function Composer({
 
     return (
         <RNMarkdownTextInput
-            id={CONST.COMPOSER.NATIVE_ID}
+            id={nativeID ?? CONST.COMPOSER.NATIVE_ID}
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}

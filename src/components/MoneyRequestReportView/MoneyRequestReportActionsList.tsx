@@ -3,8 +3,8 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {ListRenderItemInfo, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type {ListRenderItemInfo} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -35,7 +35,9 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU';
@@ -68,7 +70,6 @@ import getInitialNumToRender from '@pages/inbox/report/getInitialNumReportAction
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
-import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
 import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -78,6 +79,9 @@ import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {useAnimatedReaction} from 'react-native-reanimated';
+import useKeyboardDismissibleFlatListValues from '@components/KeyboardDismissibleFlatList/useKeyboardDismissibleFlatListValues';
+import useKeyboardState from '@hooks/useKeyboardState';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -121,7 +125,12 @@ type MoneyRequestReportListProps = {
 
     /** The type of action that's pending  */
     reportPendingAction?: PendingAction | null;
+
+    /** The current composer height */
+    composerHeight: number;
 };
+
+const ON_SCROLL_TO_LIMITS_THRESHOLD = 0.75;
 
 function MoneyRequestReportActionsList({
     report,
@@ -134,6 +143,7 @@ function MoneyRequestReportActionsList({
     hasPendingDeletionTransaction,
     showReportActionsLoadingState,
     reportPendingAction,
+    composerHeight,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -143,6 +153,10 @@ function MoneyRequestReportActionsList({
     const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
+    const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const {isKeyboardActive} = useKeyboardState();
+    const StyleUtils = useStyleUtils();
+    const {contentSizeHeight, layoutMeasurementHeight, keyboardHeight, scrollY} = useKeyboardDismissibleFlatListValues();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     // wrapped in useMemo to avoid unnecessary re-renders and improve performance
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
@@ -155,6 +169,7 @@ function MoneyRequestReportActionsList({
 
     const parentReportAction = useParentReportAction(report);
 
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report.reportID}`);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
@@ -354,7 +369,6 @@ function MoneyRequestReportActionsList({
     const lastActionIndex = lastAction?.reportActionID;
     const previousLastIndex = useRef(lastActionIndex);
 
-    const {scrollOffsetRef} = useContext(ActionListContext);
     const scrollingVerticalBottomOffset = useRef(0);
     const scrollingVerticalTopOffset = useRef(0);
     const wrapperViewRef = useRef<View>(null);
@@ -390,6 +404,28 @@ function MoneyRequestReportActionsList({
     const onEndReached = useCallback(() => {
         loadNewerChats(false);
     }, [loadNewerChats]);
+
+    // The previous scroll tracking implementation was made via ref. This is
+    // to ensure it will behave the same as before.
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: scrollY.get(),
+                csHeight: contentSizeHeight.get(),
+                lmHeight: layoutMeasurementHeight.get(),
+            };
+        },
+        ({offsetY, csHeight, lmHeight}) => {
+            /**
+             * Count the diff between current scroll position and the bottom of the list.
+             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
+             */
+            scrollingVerticalBottomOffset.current = csHeight - lmHeight - offsetY;
+
+            // We additionally track the top offset to be able to scroll to the new transaction when it's added
+            scrollingVerticalTopOffset.current = offsetY;
+        },
+    );
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
 
@@ -529,26 +565,13 @@ function MoneyRequestReportActionsList({
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollingVerticalBottomOffset,
+        currentVerticalScrollingOffset: scrollY,
         readActionSkippedRef: readActionSkipped,
+        keyboardHeight,
         unreadMarkerReportActionIndex,
         isInverted: false,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
-            const fullContentHeight = contentSize.height;
-
-            /**
-             * Count the diff between current scroll position and the bottom of the list.
-             * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
-             */
-            scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
-            scrollOffsetRef.current = scrollingVerticalBottomOffset.current;
-
-            // We additionally track the top offset to be able to scroll to the new transaction when it's added
-            scrollingVerticalTopOffset.current = contentOffset.y;
-        },
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
 
@@ -734,7 +757,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
@@ -765,6 +788,8 @@ function MoneyRequestReportActionsList({
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
     const keyExtractor = useCallback((item: OnyxTypes.ReportAction) => item.reportActionID, []);
+
+    const paddingBottom = StyleUtils.getReportPaddingBottom({composerHeight, isKeyboardActive, safePaddingBottom: unmodifiedPaddings.bottom ?? 0, isComposerFullSize});
 
     const {windowHeight} = useWindowDimensions();
     /**
@@ -829,7 +854,7 @@ function MoneyRequestReportActionsList({
                     </View>
                 </OfflineWithFeedback>
             )}
-            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+            <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, {paddingBottom}]}>
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
                     isActive={isFloatingMessageCounterVisible}
@@ -848,6 +873,7 @@ function MoneyRequestReportActionsList({
                     </ScrollView>
                 ) : (
                     <FlatListWithScrollKey
+                        enableAnimatedKeyboardDismissal
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
@@ -857,10 +883,10 @@ function MoneyRequestReportActionsList({
                         onViewableItemsChanged={onViewableItemsChanged}
                         keyExtractor={keyExtractor}
                         onLayout={recordTimeToMeasureItemLayout}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
+                        onStartReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={ON_SCROLL_TO_LIMITS_THRESHOLD}
                         ListHeaderComponent={
                             <>
                                 <MoneyRequestViewReportFields
@@ -880,8 +906,8 @@ function MoneyRequestReportActionsList({
                                 />
                             </>
                         }
+                        keyboardDismissMode="interactive"
                         keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
                         contentContainerStyle={[shouldUseNarrowLayout ? styles.pt4 : styles.pt3]}
                         ref={reportScrollManager.ref}
                         ListEmptyComponent={!isOffline && showReportActionsLoadingState ? <ReportActionsListLoadingSkeleton /> : undefined} // This skeleton component is only used for loading state, the empty state is handled by SearchMoneyRequestReportEmptyState

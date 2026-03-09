@@ -141,6 +141,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the main composer was hidden */
         didHideComposerInput?: boolean;
 
+        /** The native ID for this component */
+        nativeID?: string;
+
         /** Reference to the outer element */
         ref?: Ref<ComposerRef | null>;
     };
@@ -228,6 +231,7 @@ function ComposerWithSuggestions({
     raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
     onLayout,
+    nativeID,
 
     // Refs
     suggestionsRef,
@@ -969,6 +973,7 @@ function ComposerWithSuggestions({
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                     forwardedFSClass={forwardedFSClass}
+                    nativeID={nativeID}
                 />
             </View>
 

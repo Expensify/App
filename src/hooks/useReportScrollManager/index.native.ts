@@ -1,11 +1,15 @@
 import {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import scrollToBottomHandler from './handlers/scrollToBottom';
+import scrollToOffsetHandler from './handlers/scrollToOffset';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
+    const {isKeyboardActive, keyboardHeight} = useKeyboardState();
 
     /**
      * Scroll to the provided index.
@@ -21,14 +25,7 @@ function useReportScrollManager(): ReportScrollManagerData {
      * Scroll to the bottom of the inverted FlatList.
      * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = () => {
-        if (!flatListRef?.current) {
-            return;
-        }
-
-        scrollPositionRef.current = {offset: 0};
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    };
+    const scrollToBottom = () => scrollToBottomHandler({flatListRef, isKeyboardActive, keyboardHeight, scrollPositionRef});
 
     /**
      * Scroll to the end of the FlatList.
@@ -48,12 +45,7 @@ function useReportScrollManager(): ReportScrollManagerData {
         flatListRef.current.scrollToEnd({animated: false});
     };
 
-    const scrollToOffset = (offset: number) => {
-        if (!flatListRef?.current) {
-            return;
-        }
-        flatListRef.current.scrollToOffset({offset, animated: false});
-    };
+    const scrollToOffset = (offset: number) => scrollToOffsetHandler({flatListRef, isKeyboardActive, keyboardHeight, offset});
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }

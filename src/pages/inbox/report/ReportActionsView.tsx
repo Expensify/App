@@ -76,6 +76,9 @@ type ReportActionsViewProps = {
 
     /** Concierge status label */
     conciergeStatusLabel?: string;
+
+    /** The current composer height */
+    composerHeight: number;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -92,6 +95,7 @@ function ReportActionsView({
     isConciergeProcessing,
     conciergeReasoningHistory,
     conciergeStatusLabel,
+    composerHeight,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     usePendingConciergeResponse(report.reportID);
@@ -370,6 +374,7 @@ function ReportActionsView({
                 isConciergeProcessing={isConciergeProcessing}
                 conciergeReasoningHistory={conciergeReasoningHistory}
                 conciergeStatusLabel={conciergeStatusLabel}
+                composerHeight={composerHeight}
             />
             <UserTypingEventListener report={report} />
         </>

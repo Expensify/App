@@ -1,15 +1,16 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Animated from 'react-native-reanimated';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
 import BlockedReportFooter from '@components/BlockedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import SwipeableView from '@components/SwipeableView';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -42,6 +43,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useReportFooterStyles from './useReportFooterStyles';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 const isLoadingInitialReportActionsSelector = (reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>) => reportMetadata?.isLoadingInitialReportActions;
@@ -70,6 +72,15 @@ type ReportFooterProps = {
 
     /** Function to trigger optimistic waiting indicator for Concierge */
     kickoffWaitingIndicator?: () => void;
+
+    /** The native ID for this component */
+    nativeID?: string;
+
+    /** Callback when layout of composer changes */
+    onLayout: (height: number) => void;
+
+    /** The current fixed header height of the chat */
+    headerHeight: number;
 };
 
 function ReportFooter({
@@ -81,6 +92,9 @@ function ReportFooter({
     transactionThreadReportID,
     isInSidePanel,
     kickoffWaitingIndicator,
+    onLayout,
+    headerHeight,
+    nativeID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -88,6 +102,10 @@ function ReportFooter({
     const {windowWidth} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [composerHeight, setComposerHeight] = useState<number>(CONST.CHAT_FOOTER_MIN_HEIGHT);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report.reportID}`);
+    const reportFooterStyles = useReportFooterStyles({composerHeight, headerHeight, isComposerFullSize});
+
     const personalDetail = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
@@ -97,7 +115,6 @@ function ReportFooter({
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${report.reportID}`);
     const [policyRole] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {
         selector: policyRoleSelector,
     });
@@ -211,6 +228,16 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
+    const onLayoutInternal = useCallback(
+        (event: LayoutChangeEvent) => {
+            const {height} = event.nativeEvent.layout;
+
+            setComposerHeight(height);
+            onLayout(height);
+        },
+        [onLayout],
+    );
+
     return (
         <>
             {!!shouldHideComposer && (
@@ -249,25 +276,25 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
-                <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onSubmit={onSubmitComment}
-                            onComposerFocus={onComposerFocus}
-                            onComposerBlur={onComposerBlur}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
-                            reportTransactions={reportTransactions}
-                            transactionThreadReportID={transactionThreadReportID}
-                            isInSidePanel={isInSidePanel}
-                            kickoffWaitingIndicator={kickoffWaitingIndicator}
-                        />
-                    </SwipeableView>
-                </View>
+                <Animated.View style={[chatFooterStyles, reportFooterStyles]}>
+                    <ReportActionCompose
+                        onSubmit={onSubmitComment}
+                        onComposerFocus={onComposerFocus}
+                        onComposerBlur={onComposerBlur}
+                        reportID={report.reportID}
+                        report={report}
+                        lastReportAction={lastReportAction}
+                        pendingAction={reportPendingAction}
+                        isComposerFullSize={isComposerFullSize}
+                        didHideComposerInput={didHideComposerInput}
+                        reportTransactions={reportTransactions}
+                        transactionThreadReportID={transactionThreadReportID}
+                        isInSidePanel={isInSidePanel}
+                        kickoffWaitingIndicator={kickoffWaitingIndicator}
+                        nativeID={nativeID}
+                        onLayout={onLayoutInternal}
+                    />
+                </Animated.View>
             )}
         </>
     );

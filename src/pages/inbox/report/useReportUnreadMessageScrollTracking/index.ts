@@ -1,9 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {ViewToken} from 'react-native';
+import {useAnimatedReaction} from 'react-native-reanimated';
+import type {SharedValue} from 'react-native-reanimated';
 import {readNewestAction} from '@userActions/Report';
-import CONST from '@src/CONST';
+import floatingMessageCounterVisibilityHandler from './floatingMessageCounterVisibilityHandler';
 
 type Args = {
     /** The report ID */
@@ -12,30 +14,30 @@ type Args = {
     /** Whether the FlatList is inverted, we need it to determine if the current unread message is visible. */
     isInverted: boolean;
 
-    /** The current offset of scrolling from either top or bottom of chat list */
-    currentVerticalScrollingOffsetRef: RefObject<number>;
-
     /** Ref for whether read action was skipped */
     readActionSkippedRef: RefObject<boolean>;
 
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
-    /** Callback to call on every scroll event */
-    onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
     /** Whether the report actions have been loaded at least once */
     hasOnceLoadedReportActions: boolean;
+
+    /** The current offset of scrolling from either top or bottom of chat list */
+    currentVerticalScrollingOffset: SharedValue<number>;
+
+    /** The current keyboard height, updated on every keyboard movement frame */
+    keyboardHeight: SharedValue<number>;
 };
 
 export default function useReportUnreadMessageScrollTracking({
     reportID,
-    currentVerticalScrollingOffsetRef,
     readActionSkippedRef,
-    onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
     hasOnceLoadedReportActions,
+    currentVerticalScrollingOffset,
+    keyboardHeight,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -46,6 +48,17 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: true,
         hasOnceLoadedReportActions,
     });
+    const wasManuallySetRef = useRef(false);
+
+    const updateFloatingMessageCounterVisibility = useCallback((visible: boolean) => {
+        wasManuallySetRef.current = true;
+        setIsFloatingMessageCounterVisible(visible);
+
+        requestAnimationFrame(() => {
+            wasManuallySetRef.current = false;
+        });
+    }, []);
+
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
     useEffect(() => {
@@ -66,30 +79,25 @@ export default function useReportUnreadMessageScrollTracking({
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
      * Call any other callback that the component might need
      */
-    const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => {
-        if (event) {
-            onTrackScrolling(event);
-        }
-        const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
-        // display floating button if we're scrolled more than the offset
-        if (
-            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
-            !isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
-        ) {
-            setIsFloatingMessageCounterVisible(true);
-        }
-
-        // hide floating button if we're scrolled closer than the offset
-        if (
-            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
-            isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
-        ) {
-            setIsFloatingMessageCounterVisible(false);
-        }
-    };
+    useAnimatedReaction(
+        () => {
+            return {
+                offsetY: currentVerticalScrollingOffset.get(),
+                kHeight: keyboardHeight.get(),
+            };
+        },
+        ({offsetY, kHeight}) =>
+            floatingMessageCounterVisibilityHandler({
+                isFloatingMessageCounterVisible,
+                kHeight,
+                offsetY,
+                setIsFloatingMessageCounterVisible,
+                unreadMarkerReportActionIndex,
+                wasManuallySetRef,
+            }),
+        [isFloatingMessageCounterVisible, reportID, readActionSkippedRef, unreadMarkerReportActionIndex],
+    );
 
     const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
@@ -142,8 +150,7 @@ export default function useReportUnreadMessageScrollTracking({
 
     return {
         isFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible,
-        trackVerticalScrolling,
+        setIsFloatingMessageCounterVisible: updateFloatingMessageCounterVisibility,
         onViewableItemsChanged,
     };
 }
