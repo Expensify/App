@@ -35,6 +35,51 @@ jest.mock(
         },
 );
 
+jest.mock('@components/ReportActionItem/ReportActionItemImage', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const {useEffect} = require('react');
+    function MockReportActionItemImage({onLoad}: {onLoad?: () => void}) {
+        (useEffect as typeof React.useEffect)(() => {
+            onLoad?.();
+        }, [onLoad]);
+        return null;
+    }
+    return MockReportActionItemImage;
+});
+
+jest.mock('@src/languages/IntlStore', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const en: Record<string, unknown> = require('@src/languages/en').default;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
+    const cache = new Map<string, Record<string, unknown>>();
+    cache.set('en', flatten(en));
+    return {
+        getCurrentLocale: jest.fn(() => 'en'),
+        load: jest.fn(() => Promise.resolve()),
+        get: jest.fn((key: string, locale?: string) => {
+            const translations = cache.get(locale ?? 'en');
+            return translations?.[key] ?? null;
+        }),
+    };
+});
+
+jest.mock('@assets/emojis', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@assets/emojis');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        default: actual.default,
+        importEmojiLocale: jest.fn(() => Promise.resolve()),
+    };
+});
+
+jest.mock('@libs/EmojiTrie', () => ({
+    buildEmojisTrie: jest.fn(),
+}));
+
 // Override IDs so we control Onyx keys and can use evictableKeys for REPORT_ACTIONS
 const TEST_PARENT_REPORT_ID = 'testParentReportID';
 const TEST_REPORT_ID = 'testReportID';
@@ -122,6 +167,22 @@ const transactionWithoutReceipt: Transaction = {
     originalCurrency: '',
 };
 
+const transactionWithReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+        source: 'https://example.com/receipt.jpg',
+    },
+};
+
+const transactionWithScanningReceipt: Transaction = {
+    ...transactionWithoutReceipt,
+    receipt: {
+        state: CONST.IOU.RECEIPT_STATE.SCANNING,
+        source: 'https://example.com/receipt.jpg',
+    },
+};
+
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
@@ -173,6 +234,74 @@ describe('MoneyRequestReceiptView', () => {
             const firstCall = (mockOpenPicker.mock.calls as Array<[{onPicked: (files: FileObject[]) => void}]>).at(0);
             const onPicked = firstCall?.at(0)?.onPicked;
             expect(onPicked).toBeDefined();
+        });
+    });
+
+    describe('receipt action buttons visibility', () => {
+        it('does not show action buttons when transaction has no receipt', async () => {
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
+        });
+
+        it('shows action buttons when transaction has a receipt', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+        });
+
+        it('shows action buttons when receipt is scanning', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithScanningReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView report={testReport} />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeTruthy();
+            expect(screen.getByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeTruthy();
+        });
+
+        it('does not show action buttons in readonly mode', async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithReceipt);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            render(
+                <Wrapper>
+                    <MoneyRequestReceiptView
+                        report={testReport}
+                        readonly
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByLabelText(translateLocal('accessibilityHints.viewAttachment'))).toBeNull();
+            expect(screen.queryByLabelText(translateLocal('reportActionCompose.addAttachment'))).toBeNull();
         });
     });
 });

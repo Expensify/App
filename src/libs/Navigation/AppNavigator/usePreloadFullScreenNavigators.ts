@@ -24,8 +24,8 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently the Inbox, Workspaces and Account tabs are preloaded, while Search is not preloaded due to its potential complexity.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.INBOX, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
+// Currently the Workspaces and Account tabs are preloaded, while Search and Inbox are not preloaded due to their potential complexity.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
@@ -134,7 +134,6 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                const currentRoutes = navigation.getState().routes;
                 for (const tabName of TABS_TO_PRELOAD) {
                     // Don't preload the current tab
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
@@ -145,13 +144,6 @@ function usePreloadFullScreenNavigators() {
                     // Don't preload tabs that are already preloaded
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     if (isRouteAlreadyPreloaded) {
-                        continue;
-                    }
-
-                    // Don't preload tabs whose navigator is already in the regular routes stack
-                    const isRouteInStack = currentRoutes.some((r) => TAB_TO_FULLSCREEN[tabName].includes(r.name as FullScreenName));
-
-                    if (isRouteInStack) {
                         continue;
                     }
 
