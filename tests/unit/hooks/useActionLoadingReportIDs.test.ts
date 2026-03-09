@@ -24,6 +24,32 @@ describe('useActionLoadingReportIDs', () => {
         expect(result.current).toEqual(new Set());
     });
 
+    it('should keep the same set instance across rerenders until report metadata changes', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`, {isActionLoading: false});
+        await waitForBatchedUpdates();
+
+        const {result, rerender} = renderHook(() => useActionLoadingReportIDs());
+
+        await waitFor(() => {
+            expect(result.current).toEqual(new Set());
+        });
+
+        const initialSet = result.current;
+
+        rerender();
+
+        expect(result.current).toBe(initialSet);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`, {isActionLoading: true});
+        await waitForBatchedUpdates();
+
+        await waitFor(() => {
+            expect(result.current).toEqual(new Set([`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]));
+        });
+
+        expect(result.current).not.toBe(initialSet);
+    });
+
     it('should return a set containing a report ID when isActionLoading is true', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`, {isActionLoading: true});
         await waitForBatchedUpdates();
