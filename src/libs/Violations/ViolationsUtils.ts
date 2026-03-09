@@ -838,7 +838,7 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, transaction);
                 if (!message) {
                     return;
                 }
