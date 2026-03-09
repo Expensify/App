@@ -252,9 +252,15 @@ function SearchAutocompleteList({
         prevQueryRef.current = autocompleteQueryValue;
 
         if (queryChanged) {
-            // When query changes, focus on the search query item (index 0) and scroll to top
-            // onHighlightFirstItem will switch focus to the first result when there's a good match
-            innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            if (autocompleteQueryValue === '') {
+                // When query is cleared, reset the initial focus guard so the initial focus
+                // effect can re-fire and correctly focus the first focusable item (skipping section headers).
+                hasSetInitialFocusRef.current = false;
+            } else {
+                // When query changes to a non-empty value, focus on the search query item (index 0) and scroll to top
+                // onHighlightFirstItem will switch focus to the first result when there's a good match
+                innerListRef.current?.updateAndScrollToFocusedIndex(0, true);
+            }
         }
     }, [autocompleteQueryValue, isInitialRender]);
 
