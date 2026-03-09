@@ -57,6 +57,19 @@ function buildOptimizedRoutes(routesToRender: StateRoutes, state: StackNavigatio
             return route;
         }
 
+        // Prevent reordering of native views: skip remap if there are routes between existingRoute
+        // and the current route in the full state that are also being rendered. Remapping in this
+        // case would swap their positions in the array and cause a blank screen in the native stack.
+        const existingRouteIndexInFull = state.routes.findIndex((r) => r.key === existingRoute.key);
+        const currentRouteIndexInFull = state.routes.findIndex((r) => r.key === route.key);
+        const hasIntermediateRenderedRoutes = state.routes
+            .slice(existingRouteIndexInFull + 1, currentRouteIndexInFull)
+            .some((routeBetween) => routesToRender.some((r) => r.key === routeBetween.key));
+
+        if (hasIntermediateRenderedRoutes) {
+            return route;
+        }
+
         // Move the entering-animation marker to the reused route key
         // so the animation runs on the existing navigator instance
         if (screensWithEnteringAnimation.has(route.key)) {
