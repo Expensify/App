@@ -7630,6 +7630,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         notActivated: 'Nieaktywne',
         outOfPocket: 'Zwrotne',
         companySpend: 'Niezgodne z refundacją',
+        personalCard: 'Karta osobista',
+        companyCard: 'Karta firmowa',
+        expensifyCard: 'Karta Expensify',
     },
     distance: {
         addStop: 'Dodaj przystanek',

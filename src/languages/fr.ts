@@ -7699,6 +7699,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         notActivated: 'Non activé',
         outOfPocket: 'Remboursable',
         companySpend: 'Non remboursable',
+        personalCard: 'Carte personnelle',
+        companyCard: 'Carte d’entreprise',
+        expensifyCard: 'Carte Expensify',
     },
     distance: {
         addStop: 'Ajouter un arrêt',

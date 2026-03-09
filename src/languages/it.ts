@@ -7663,6 +7663,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         notActivated: 'Non attivato',
         outOfPocket: 'Rimborsabile',
         companySpend: 'Non rimborsabile',
+        personalCard: 'Carta personale',
+        companyCard: 'Carta aziendale',
+        expensifyCard: 'Carta Expensify',
     },
     distance: {
         addStop: 'Aggiungi fermata',

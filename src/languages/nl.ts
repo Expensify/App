@@ -7642,6 +7642,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         notActivated: 'Niet geactiveerd',
         outOfPocket: 'Vergoedbaar',
         companySpend: 'Niet vergoedbaar',
+        personalCard: 'Persoonlijke kaart',
+        companyCard: 'Bedrijfskaart',
+        expensifyCard: 'Expensify Kaart',
     },
     distance: {
         addStop: 'Stop toevoegen',
