@@ -119,7 +119,14 @@ function IOURequestStepDestination({
         let transactionReportID;
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(targetReport, selfDMReport, targetIouType, defaultExpensePolicy, personalPolicy));
+                ({targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
+                    targetReport,
+                    selfDMReport,
+                    targetIouType,
+                    defaultExpensePolicy,
+                    personalPolicy,
+                    transaction?.isFromGlobalCreate ?? false,
+                ));
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);

@@ -108,6 +108,12 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Configuration for the confirm button */
     confirmButtonOptions?: ConfirmButtonOptions<TItem>;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to set the hover style */
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 /**
@@ -173,12 +179,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
-
-        /** Whether hover style should be disabled */
-        shouldDisableHoverStyle?: boolean;
-
-        /** Whether to set the hover style */
-        setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
 type SelectionListStyle = {
