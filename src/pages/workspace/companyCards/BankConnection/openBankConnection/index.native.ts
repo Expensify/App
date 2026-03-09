@@ -1,4 +1,4 @@
-const handleOpenBankConnectionFlow = (url: string) => {
+const handleOpenBankConnectionFlow = () => {
     // No-op for native
     return null;
 };

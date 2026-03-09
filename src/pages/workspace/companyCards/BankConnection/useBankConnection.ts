@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useNetwork from '@hooks/useNetwork';
@@ -44,7 +44,7 @@ export default function useBankConnection({
     const {isOffline} = useNetwork();
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
+    const shouldBlockWindowOpen = useRef(false);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url || !shouldOpenWindow) {
@@ -77,7 +77,7 @@ export default function useBankConnection({
 
     useEffect(() => {
         const hasConnectionSource = !!url || isPlaid;
-        const shouldWaitForData = isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
+        const shouldWaitForData = isOffline || (isNewFeedHasError ?? false) || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
         if (!hasConnectionSource || shouldWaitForData) {
             return;
         }
@@ -104,7 +104,7 @@ export default function useBankConnection({
 
         // Handle new feed flow
         if (isNewFeedConnected) {
-            setShouldBlockWindowOpen(true);
+            shouldBlockWindowOpen.current = true;
             if (shouldOpenWindow) {
                 customWindow?.close();
             }
@@ -112,7 +112,7 @@ export default function useBankConnection({
             return;
         }
 
-        if (!shouldBlockWindowOpen) {
+        if (!shouldBlockWindowOpen.current) {
             if (isPlaid) {
                 onImportPlaidAccounts();
                 return;
@@ -124,7 +124,6 @@ export default function useBankConnection({
     }, [
         isNewFeedConnected,
         isAllFeedsResultLoading,
-        shouldBlockWindowOpen,
         isBlockedToAddNewFeeds,
         newFeed,
         policyID,
