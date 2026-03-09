@@ -38,10 +38,12 @@ jest.mock('@src/libs/API', () => ({
 // The jest-expo preset resolves to the .native.tsx file which defers rendering via onLayout (which never fires in tests).
 // Mock the deferred wrapper to directly render SearchAutocompleteList.
 jest.mock('@components/Search/DeferredSearchAutocompleteList', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const module = jest.requireActual<{default: React.ComponentType}>('@components/Search/SearchAutocompleteList');
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         default: module.default,
     };
 });
@@ -170,10 +172,9 @@ describe('SearchAutocompleteList', () => {
     it('should display Recent searches section when query is empty and recent searches exist', async () => {
         const timestampOne = '2024-01-01T00:00:00';
         const timestampTwo = '2024-01-02T00:00:00';
-        const recentSearches = {
-            [timestampOne]: {query: 'type:expense status:approved', timestamp: timestampOne},
-            [timestampTwo]: {query: 'type:chat', timestamp: timestampTwo},
-        };
+        const recentSearches: Record<string, {query: string; timestamp: string}> = {};
+        recentSearches[timestampOne] = {query: 'type:expense status:approved', timestamp: timestampOne};
+        recentSearches[timestampTwo] = {query: 'type:chat', timestamp: timestampTwo};
 
         await waitForBatchedUpdates();
         await Onyx.multiSet({
