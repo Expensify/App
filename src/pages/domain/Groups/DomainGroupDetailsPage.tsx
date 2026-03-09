@@ -11,7 +11,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {closeUpdateDomainSecurityGroupNameError} from '@userActions/Domain';
+import {clearUpdateDomainSecurityGroupNameError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,7 +51,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         pendingAction={domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.name}
                         errors={domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.nameErrors}
                         errorRowStyles={styles.mh5}
-                        onClose={() => closeUpdateDomainSecurityGroupNameError(domainAccountID, groupID)}
+                        onClose={() => clearUpdateDomainSecurityGroupNameError(domainAccountID, groupID)}
                     >
                         <MenuItemWithTopDescription
                             description={translate('common.name')}

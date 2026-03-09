@@ -1695,6 +1695,10 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
 
 /**
  * Updates the name of a domain security group
+ * @param domainAccountID - The account ID of the domain
+ * @param groupID - The ID of the security group to update
+ * @param newGroupName - The new name for the security group
+ * @param currentSecurityGroup - The current security group data
  */
 function updateDomainSecurityGroupName(domainAccountID: number, groupID: string, newGroupName: string, currentSecurityGroup: DomainSecurityGroup) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
@@ -1790,7 +1794,10 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
     API.write(WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
-function closeUpdateDomainSecurityGroupNameError(domainAccountID: number, groupID: string) {
+/**
+ * Removes an error after trying to change the security group name
+ */
+function clearUpdateDomainSecurityGroupNameError(domainAccountID: number, groupID: string) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         [SECURITY_GROUP_KEY]: {
@@ -1801,6 +1808,10 @@ function closeUpdateDomainSecurityGroupNameError(domainAccountID: number, groupI
 
 /**
  * Sets the default security group for a domain
+ * @param domainAccountID - The account ID of the domain
+ * @param groupID - The ID of the security group to set as default
+ * @param domainName - The name of the domain
+ * @param previousGroupID - The ID of the previously default security group
  */
 function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domainName: string, previousGroupID: string | undefined) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
@@ -1889,7 +1900,10 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domai
     API.write(WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
-function closeDefaultSecurityGroupError(domainAccountID: number, groupID: string) {
+/**
+ * Removes an error after trying to set default security group
+ */
+function clearDefaultSecurityGroupError(domainAccountID: number, groupID: string) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         [SECURITY_GROUP_KEY]: {
@@ -1936,6 +1950,6 @@ export {
     exportMembersToCSV,
     updateDomainSecurityGroupName,
     setDefaultSecurityGroup,
-    closeUpdateDomainSecurityGroupNameError,
-    closeDefaultSecurityGroupError,
+    clearUpdateDomainSecurityGroupNameError,
+    clearDefaultSecurityGroupError,
 };

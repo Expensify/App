@@ -1,31 +1,31 @@
 import Onyx from 'react-native-onyx';
-import {
-    addAdminToDomain,
-    addMemberToDomain,
-    clearDomainErrors,
-    clearDomainMemberError,
-    clearTwoFactorAuthExemptEmailsErrors,
-    clearVacationDelegateError,
-    closeUserAccount,
-    createDomain,
-    deleteDomainVacationDelegate,
-    resetCreateDomainForm,
-    resetDomain,
-    resetDomainMemberTwoFactorAuth,
-    setDomainVacationDelegate,
-    setTwoFactorAuthExemptEmailForDomain,
-} from '@libs/actions/Domain';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {generateAccountID} from '@libs/UserUtils';
+import { addAdminToDomain, addMemberToDomain, clearDefaultSecurityGroupError, clearDomainErrors, clearDomainMemberError, clearTwoFactorAuthExemptEmailsErrors, clearUpdateDomainSecurityGroupNameError, clearVacationDelegateError, closeUserAccount, createDomain, deleteDomainVacationDelegate, resetCreateDomainForm, resetDomain, resetDomainMemberTwoFactorAuth, setDefaultSecurityGroup, setDomainVacationDelegate, setTwoFactorAuthExemptEmailForDomain, updateDomainSecurityGroupName } from '@libs/actions/Domain';
+import { SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import { generateAccountID } from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type { Domain, DomainSecurityGroup, UserSecurityGroupData } from '@src/types/onyx';
+import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 OnyxUpdateManager();
 describe('actions/Domain', () => {
@@ -858,6 +858,219 @@ describe('actions/Domain', () => {
             );
 
             apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('updateDomainSecurityGroupName', () => {
+        it('sends UPDATE_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const groupID = '456';
+            const accountID = 789;
+            const newGroupName = 'New Group Name';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const currentSecurityGroup: DomainSecurityGroup = {
+                name: 'Old Group Name',
+                shared: {[accountID]: 'read'},
+                enableRestrictedPolicyCreation: false,
+                enableRestrictedPrimaryLogin: false,
+            };
+
+            updateDomainSecurityGroupName(domainAccountID, groupID, newGroupName, currentSecurityGroup);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP,
+                {domainAccountID, name: SECURITY_GROUP_KEY, value: JSON.stringify({...currentSecurityGroup, name: newGroupName})},
+                {
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {...currentSecurityGroup, name: newGroupName}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {nameErrors: null}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {name: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {nameErrors: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: currentSecurityGroup},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {name: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {[SECURITY_GROUP_KEY]: {nameErrors: expect.any(Object)}},
+                        }),
+                    ]),
+                },
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('clearUpdateDomainSecurityGroupNameError', () => {
+        it('clears nameErrors for the given security group', async () => {
+            const domainAccountID = 123;
+            const groupID = '456';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const timestamp = 789;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+                [SECURITY_GROUP_KEY]: {
+                    nameErrors: {[timestamp]: 'error'},
+                },
+            });
+
+            clearUpdateDomainSecurityGroupNameError(domainAccountID, groupID);
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                waitForCollectionCallback: false,
+                callback: (errors) => {
+                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as {nameErrors?: Record<string, string>} | undefined;
+                    expect(groupErrors?.nameErrors).toBeFalsy();
+                },
+            });
+        });
+    });
+
+    describe('setDefaultSecurityGroup', () => {
+        it('sends SET_DEFAULT_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const groupID = '456';
+            const domainName = 'test.com';
+            const previousGroupID = '789';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+            setDefaultSecurityGroup(domainAccountID, groupID, domainName, previousGroupID);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP,
+                {domainAccountID, groupID, domainName},
+                {
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_defaultSecurityGroupID: groupID},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupIDErrors: null}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupID: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupIDErrors: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_defaultSecurityGroupID: previousGroupID},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupID: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupIDErrors: expect.any(Object)}},
+                        }),
+                    ]),
+                },
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('handles undefined previousGroupID in failure data', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const groupID = '456';
+            const domainName = 'test.com';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+            setDefaultSecurityGroup(domainAccountID, groupID, domainName, undefined);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP,
+                {domainAccountID, groupID, domainName},
+                expect.objectContaining({
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_defaultSecurityGroupID: undefined},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {[SECURITY_GROUP_KEY]: {defaultSecurityGroupIDErrors: expect.any(Object)}},
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('clearDefaultSecurityGroupError', () => {
+        it('clears defaultSecurityGroupIDErrors for the given security group', async () => {
+            const domainAccountID = 123;
+            const groupID = '456';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const timestamp = 789;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+                [SECURITY_GROUP_KEY]: {
+                    defaultSecurityGroupIDErrors: {[timestamp]: 'error'},
+                },
+            });
+
+            clearDefaultSecurityGroupError(domainAccountID, groupID);
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                waitForCollectionCallback: false,
+                callback: (errors) => {
+                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as {defaultSecurityGroupIDErrors?: Record<string, string>} | undefined;
+                    expect(groupErrors?.defaultSecurityGroupIDErrors).toBeFalsy();
+                },
+            });
         });
     });
 });

@@ -1,10 +1,19 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
+import { Str } from 'expensify-common';
+import type { OnyxEntry } from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
-import type {SecurityGroupKey, UserSecurityGroupData} from '@src/types/onyx/Domain';
-import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
+import type { CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata } from '@src/types/onyx';
+import type { SecurityGroupKey, UserSecurityGroupData } from '@src/types/onyx/Domain';
+import type { BaseVacationDelegate } from '@src/types/onyx/VacationDelegate';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+
+
+
+
+
+
+
+
 
 type DomainSecurityGroupWithID = {
     id: string;
@@ -159,10 +168,7 @@ const defaultSecurityGroupIDSelector = (domain: OnyxEntry<Domain>) => domain?.do
  * Creates a selector that finds a single security group by its ID.
  */
 function selectGroupByID(groupID?: string) {
-    return (domain: OnyxEntry<Domain>): DomainSecurityGroup | undefined => {
-        const key: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
-        return domain?.[key];
-    };
+    return (domain: OnyxEntry<Domain>): DomainSecurityGroup | undefined => domain?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`];
 }
 
 function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] {
@@ -180,12 +186,14 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
 
+/** Creates a selector that extracts the pending action for a security group's default security group ID. */
 function defaultSecurityGroupIDPendingActionSelector(groupID?: string) {
     return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
         return domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.defaultSecurityGroupID;
     };
 }
 
+/** Creates a selector that extracts the errors for a security group's default security group ID. */
 function defaultSecurityGroupIDErrorsSelector(groupID?: string) {
     return (domainErrors: OnyxEntry<DomainErrors>) => {
         return domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.defaultSecurityGroupIDErrors;

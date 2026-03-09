@@ -1,7 +1,7 @@
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import React from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {closeDefaultSecurityGroupError, setDefaultSecurityGroup} from '@userActions/Domain';
+import {clearDefaultSecurityGroupError, setDefaultSecurityGroup} from '@userActions/Domain';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultSecurityGroupIDErrorsSelector, defaultSecurityGroupIDPendingActionSelector, defaultSecurityGroupIDSelector, domainNameSelector, selectGroupByID} from '@selectors/Domain';
@@ -73,7 +73,7 @@ function DefaultGroupToggle({domainAccountID, groupID, groupName}: DefaultGroupT
             wrapperStyle={[styles.mv3, styles.ph5]}
             errors={defaultSecurityGroupIDErrors}
             pendingAction={defaultSecurityGroupIDPendingAction}
-            onCloseError={() => closeDefaultSecurityGroupError(domainAccountID, groupID)}
+            onCloseError={() => clearDefaultSecurityGroupError(domainAccountID, groupID)}
         />
     );
 }
