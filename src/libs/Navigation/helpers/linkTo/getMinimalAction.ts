@@ -15,7 +15,7 @@ type MinimalAction = {
  * @param state The root state
  * @param getStateForRouteKey optional fallback to look up a navigator's state by route key
  *        when the route has no embedded state in the root state (e.g. because it is rendered
- *        via a remapped key from reuseNavigatorKey and never mounted under its own key).
+ *        via a remapped key from buildOptimizedRoutes and never mounted under its own key).
  * @returns minimalAction minimal action is the action that we should dispatch
  */
 function getMinimalAction(action: NavigationAction, state: NavigationState, getStateForRouteKey?: (key: string) => State | undefined): MinimalAction {

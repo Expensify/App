@@ -1,15 +1,57 @@
-import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
-import type {ParamListBase, Router} from '@react-navigation/routers';
+import type { CommonActions, RouterConfigOptions, StackActionType, StackNavigationState } from '@react-navigation/native';
+import { StackActions } from '@react-navigation/native';
+import type { ParamListBase, Router } from '@react-navigation/routers';
 import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import { isSplitNavigatorName } from '@libs/Navigation/helpers/isNavigatorName';
+import { SPLIT_TO_SIDEBAR } from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType} from './types';
+import type { OpenDomainSplitActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, ToggleSidePanelWithHistoryActionType } from './types';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -120,9 +162,10 @@ function handlePushFullscreenAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const navigatorName = action.payload.name;
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
+    const navigatorName = action.payload.name;
 
+    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
         getIsNarrowLayout() &&
         isSplitNavigatorName(navigatorName) &&
@@ -130,7 +173,6 @@ function handlePushFullscreenAction(
         state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
 
     const adjustedState = shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
-
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -138,6 +180,7 @@ function handlePushFullscreenAction(
         return null;
     }
 
+    // Transitioning to all central screens in each split should be animated
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);

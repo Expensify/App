@@ -138,7 +138,6 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
 
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
             const parentRouteKey: string = (options.parentRoute as {originalKey?: string}).originalKey ?? options.parentRoute.key;
-            debugger;
             const initialState = getPreservedNavigatorState(parentRouteKey) ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
             const maybeAdaptedState = adaptStateIfNecessary({state: initialState, options});
 

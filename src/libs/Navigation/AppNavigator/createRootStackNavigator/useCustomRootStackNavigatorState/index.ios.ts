@@ -4,7 +4,7 @@ import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationRoute, SplitNavigatorName} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
-import reuseNavigatorKey from './reuseNavigatorKey';
+import buildOptimizedRoutes from './reuseNavigatorKey';
 
 // Swiping back on iOS does not work properly when the preloaded route has gestureEnabled set to false.
 // Therefore, on screens where swiping should work, preloadedRoutes will be an empty array during rendering to ensure swiping works properly.
@@ -37,7 +37,7 @@ function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
 export default function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
     const lastSplitIndex = state.routes.findLastIndex((route) => isFullScreenName(route.name));
     const routesToRender = state.routes.slice(Math.max(0, lastSplitIndex - 1), state.routes.length);
-    const remappedRoutes = reuseNavigatorKey(routesToRender, state);
+    const remappedRoutes = buildOptimizedRoutes(routesToRender, state);
     const stateToRender = {...state, routes: remappedRoutes, index: remappedRoutes.length - 1};
     if (getShouldHidePreloadedRoutes(stateToRender.routes.at(-1))) {
         return {...stateToRender, preloadedRoutes: []};

@@ -113,6 +113,7 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
+
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {

@@ -184,7 +184,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    // When a route has no embedded state (e.g. because reuseNavigatorKey is rendering it
+    // When a route has no embedded state (e.g. because buildOptimizedRoutes is rendering it
     // via a different key), look up the preserved state of the actually mounted navigator.
     const getStateForRouteKey = (key: string) => {
         const mountedKey = getRemappedNavigatorKey(key) ?? key;

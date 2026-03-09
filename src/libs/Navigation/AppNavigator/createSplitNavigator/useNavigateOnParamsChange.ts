@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**
- * When reuseNavigatorKey remaps a new route to reuse an existing navigator component,
+ * When buildOptimizedRoutes remaps a new route to reuse an existing navigator component,
  * the component keeps its old internal navigation state but receives new parentRoute.params
  * pointing to a different screen. This hook detects that change and dispatches a navigate
  * action within the split navigator so the correct screen is shown.
