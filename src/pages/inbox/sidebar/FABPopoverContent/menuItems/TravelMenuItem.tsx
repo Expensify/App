@@ -30,13 +30,13 @@ function TravelMenuItem() {
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isVisible = !!activePolicy?.isTravelEnabled;
 
-    const isTravelEnabled = (() => {
-        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
-            return false;
-        }
-        const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
-        return activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    })();
+    const isPolicyProvisioned = activePolicy?.travelSettings?.spotnanaCompanyID ?? activePolicy?.travelSettings?.associatedTravelDomainAccountID;
+    const isTravelEnabled =
+        !isBlockedFromSpotnanaTravel &&
+        !!primaryContactMethod &&
+        !Str.isSMSLogin(primaryContactMethod) &&
+        isPaidGroupPolicy(activePolicy) &&
+        (activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
 
     const openTravel = () => {
         if (isTravelEnabled) {
