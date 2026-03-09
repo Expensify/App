@@ -1,6 +1,5 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -71,15 +70,10 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            // This makes sure that cursor does not appear in the TextInput when we open the DatePicker
-            event?.preventDefault();
-            calculatePopoverPosition();
-            setIsModalVisible(true);
-        },
-        [calculatePopoverPosition],
-    );
+    const handlePress = useCallback(() => {
+        calculatePopoverPosition();
+        setIsModalVisible(true);
+    }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
         textInputRef.current?.blur();
@@ -139,7 +133,7 @@ function DatePicker({
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ROLE.COMBOBOX}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
                     errorText={errorText}
@@ -151,7 +145,7 @@ function DatePicker({
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
-                    disableKeyboard
+                    readOnly
                 />
             </View>
 

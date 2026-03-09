@@ -192,7 +192,7 @@ function BaseTextInput({
 
         inputProps.onPress?.(event);
 
-        if ('isDefaultPrevented' in event && !event?.isDefaultPrevented()) {
+        if ('isDefaultPrevented' in event && !event?.isDefaultPrevented() && !isReadOnly) {
             input.current?.focus();
         }
     };
