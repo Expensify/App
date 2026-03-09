@@ -33,8 +33,6 @@ function useReceiptScanDrop() {
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-
     const newReportID = generateReportID();
     const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`);
@@ -51,7 +49,6 @@ function useReceiptScanDrop() {
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

@@ -57,7 +57,6 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -121,7 +120,6 @@ function DistanceRequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
-                draftTransactions,
             });
         },
         [
@@ -138,7 +136,6 @@ function DistanceRequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
         ],
     );
 

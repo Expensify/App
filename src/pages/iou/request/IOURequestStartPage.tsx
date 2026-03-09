@@ -84,7 +84,6 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
@@ -196,7 +195,6 @@ function IOURequestStartPage({
                 lastSelectedDistanceRates,
                 currentUserPersonalDetails,
                 hasOnlyPersonalPolicies,
-                draftTransactions,
             });
         },
         [
@@ -213,7 +211,6 @@ function IOURequestStartPage({
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
-            draftTransactions,
         ],
     );
 

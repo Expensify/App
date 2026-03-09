@@ -36,7 +36,6 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const reportID = useMemo(() => generateReportID(), []);
 
@@ -61,7 +60,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
         });
     };
 

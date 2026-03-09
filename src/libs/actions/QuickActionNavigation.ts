@@ -48,15 +48,15 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.PER_DIEM:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, reportID, requestType, true, undefined, isFromFloatingActionButton), true);
             break;
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true, undefined, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, reportID, undefined, true, undefined, isFromFloatingActionButton), false);
             break;
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             selectOption(() => startOutCreateTaskQuickAction(currentUserAccountID, isValidReport ? reportID : '', targetAccountPersonalDetails), false);
@@ -64,7 +64,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
         case CONST.QUICK_ACTIONS.TRACK_PER_DIEM:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, undefined, isFromFloatingActionButton), false);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
@@ -73,7 +73,7 @@ function navigateToQuickAction(params: NavigateToQuickActionParams) {
             selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, reportID, requestType, true, undefined, isFromFloatingActionButton), false);
             break;
         case CONST.QUICK_ACTIONS.REQUEST_TIME:
-            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, false, undefined, undefined, isFromFloatingActionButton), true);
+            selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, false, undefined, isFromFloatingActionButton), true);
             break;
         default:
     }
