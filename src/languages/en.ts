@@ -6780,6 +6780,14 @@ const translations = {
             return `${allEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}", making all options ${allEnabled ? 'enabled' : 'disabled'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removed ${fieldType} Report Field "${fieldName}"`,
+        addedCardFeed: (feedName: string) => `added card feed "${feedName}"`,
+        removedCardFeed: (feedName: string) => `removed card feed "${feedName}"`,
+        renamedCardFeed: (oldName: string, newName: string) => `renamed card feed "${oldName}" to "${newName}"`,
+        assignedCompanyCard: (cardLastFour: string, email: string) => `assigned a company card ending in ${cardLastFour} to ${email}`,
+        unassignedCompanyCard: (cardLastFour: string, email: string) => `unassigned a company card ending in ${cardLastFour} from ${email}`,
+        updatedCardFeedLiability: (feedName: string, liabilityType: string) => `changed card feed "${feedName}" transaction liability to ${liabilityType}`,
+        updatedCardFeedStatementPeriod: (feedName: string, statementPeriodEndDay?: string) =>
+            `changed card feed "${feedName}" statement period end day${statementPeriodEndDay ? ` to ${statementPeriodEndDay}` : ''}`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
