@@ -71,7 +71,6 @@ function AssignedCardsSection() {
                                                 fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                                                 width={variables.iconSizeNormal}
                                                 height={variables.iconSizeNormal}
-                                                additionalStyles={styles.opacitySemiTransparent}
                                             />
                                         </View>
                                     }
