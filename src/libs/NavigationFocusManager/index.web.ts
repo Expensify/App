@@ -14,9 +14,10 @@
  * Focus restoration uses `initialFocus` (trap activation), not `setReturnFocus`
  * (trap deactivation), because we restore focus when RETURNING to a screen.
  */
-import Log from './Log';
-import extractNavigationKeys from './Navigation/helpers/extractNavigationKeys';
-import type {State} from './Navigation/types';
+import Log from '@libs/Log';
+import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
+import type {State} from '@libs/Navigation/types';
+import type {ElementRefCandidateMetadata, InteractionProvenance, InteractionTrigger, InteractionType, NavigationFocusManagerModule, RetrievalMode, RouteFocusMetadata} from './types';
 
 /**
  * Scoring weights for element matching during focus restoration.
@@ -73,42 +74,7 @@ type CapturedFocus = {
     forRoute: string | null;
 };
 
-type InteractionType = 'keyboard' | 'pointer' | 'unknown';
-
-type InteractionTrigger = 'enterOrSpace' | 'escape' | 'pointer' | 'unknown';
-
-type RetrievalMode = 'keyboardSafe' | 'legacy';
-
-type ElementRefCandidateMetadata =
-    | {
-          source: 'interactionValidated';
-          confidence: 3;
-      }
-    | {
-          source: 'activeElementFallback';
-          confidence: 1;
-      }
-    | null;
-
 type ElementRefCandidateSource = 'interactionValidated' | 'activeElementFallback';
-
-type IdentifierCandidateMetadata = {
-    source: 'identifierMatchReady';
-    confidence: 2;
-} | null;
-
-type RouteFocusMetadata = {
-    interactionType: InteractionType;
-    interactionTrigger: InteractionTrigger;
-    elementRefCandidate: ElementRefCandidateMetadata;
-    identifierCandidate: IdentifierCandidateMetadata;
-};
-
-type InteractionProvenance = {
-    interactionType: InteractionType;
-    interactionTrigger: InteractionTrigger;
-    routeKey: string | null;
-};
 
 type ElementQueryStrategy = (tagNameSelector: string) => readonly HTMLElement[];
 
@@ -928,7 +894,7 @@ function getInteractionProvenanceForTests(): InteractionProvenance | null {
     return lastInteractionProvenance;
 }
 
-export default {
+const NavigationFocusManager: NavigationFocusManagerModule = {
     initialize,
     destroy,
     captureForRoute,
@@ -946,3 +912,5 @@ export default {
     setElementQueryStrategyForTests,
     getInteractionProvenanceForTests,
 };
+
+export default NavigationFocusManager;

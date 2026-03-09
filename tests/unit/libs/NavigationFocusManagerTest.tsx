@@ -34,7 +34,7 @@ if (typeof global.PointerEvent === 'undefined') {
 // ============================================================================
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type NavigationFocusManagerType = typeof import('@libs/NavigationFocusManager').default;
+type NavigationFocusManagerType = typeof import('@libs/NavigationFocusManager/index.web').default;
 
 describe('NavigationFocusManager Gap Tests', () => {
     // Module-level state for testing
@@ -46,7 +46,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
         // Fresh import for each test
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        NavigationFocusManager = require('@libs/NavigationFocusManager').default;
+        NavigationFocusManager = require('@libs/NavigationFocusManager/index.web').default;
 
         // Initialize the manager
         NavigationFocusManager.initialize();
@@ -1909,7 +1909,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 jest.resetModules();
                 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                const newManager = require('@libs/NavigationFocusManager/index.web').default as NavigationFocusManagerType;
                 newManager.initialize();
 
                 const button = document.createElement('button');
@@ -1939,7 +1939,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 jest.resetModules();
                 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                const newManager = require('@libs/NavigationFocusManager/index.web').default as NavigationFocusManagerType;
                 newManager.initialize();
 
                 oldManager.destroy();
@@ -1965,7 +1965,7 @@ describe('NavigationFocusManager Gap Tests', () => {
 
                 jest.resetModules();
                 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-                const newManager = require('@libs/NavigationFocusManager').default as NavigationFocusManagerType;
+                const newManager = require('@libs/NavigationFocusManager/index.web').default as NavigationFocusManagerType;
                 newManager.initialize();
 
                 oldManager.initialize();

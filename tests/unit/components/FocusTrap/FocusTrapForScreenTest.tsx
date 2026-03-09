@@ -14,7 +14,7 @@
  * - `wasNavigatedTo` ref prevents focus restoration on initial page load (#46109)
  *
  * The fix has been applied to:
- * - `src/libs/NavigationFocusManager.ts` (new file)
+ * - `src/libs/NavigationFocusManager/index.web.ts` (web implementation)
  * - `src/components/FocusTrap/FocusTrapForScreen/index.web.tsx`
  * - `src/App.tsx` (initialize NavigationFocusManager)
  *
@@ -35,6 +35,7 @@ import React from 'react';
 
 // eslint-disable-next-line import/first
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
+import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
 
 // ============================================================================
 // Test-specific configurable mocks (kept inline as they need per-test values)
@@ -74,6 +75,12 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 jest.mock('@libs/Navigation/helpers/isNavigatorName', () => ({
     isSidebarScreenName: (name: string) => name === 'SidebarScreen',
 }));
+
+// This suite exercises web-only focus behavior.
+jest.mock('@libs/NavigationFocusManager', () => {
+    const webNavigationFocusManager = jest.requireActual<{default: NavigationFocusManagerModule}>('@libs/NavigationFocusManager/index.web');
+    return webNavigationFocusManager;
+});
 
 // Mock Log to break the import chain that causes CONST-related issues
 // (NavigationFocusManager -> Log -> Console -> CONFIG -> CONST causes issues with partial mocks)

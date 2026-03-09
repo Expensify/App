@@ -1,6 +1,6 @@
 import {render, waitFor} from '@testing-library/react-native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import NavigationFocusManager from '@libs/NavigationFocusManager';
+import NavigationFocusManager from '@libs/NavigationFocusManager/index.web';
 
 type NavigationFocusManagerType = typeof NavigationFocusManager;
 
