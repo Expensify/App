@@ -458,7 +458,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport(REPORT_ID, TEST_INTRO_SELECTED);
+                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1153,8 +1153,13 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, TEST_INTRO_SELECTED, undefined, ['test@user.com'], {
+            Report.openReport({
                 reportID: REPORT_ID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: ['test@user.com'],
+                newReportObject: {
+                    reportID: REPORT_ID,
+                },
             });
         }
 
@@ -1207,7 +1212,7 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
-        Report.openReport(CHILD_REPORT_ID, undefined, undefined, [], undefined, undefined, false, [], false, transaction ?? undefined, undefined, SELF_DM_ID);
+        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1251,8 +1256,13 @@ describe('actions/Report', () => {
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, TEST_INTRO_SELECTED, undefined, ['test@user.com'], {
-                reportID: REPORT_ID,
+            Report.openReport({
+                reportID,
+                introSelected: TEST_INTRO_SELECTED,
+                participantLoginList: ['test@user.com'],
+                newReportObject: {
+                    reportID: REPORT_ID,
+                },
             });
         }
 
@@ -1989,18 +1999,17 @@ describe('actions/Report', () => {
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
-        Report.openReport(
-            REPORT_ID,
-            TEST_INTRO_SELECTED,
-            undefined,
-            ['test@user.com'],
-            {
+        Report.openReport({
+            reportID: REPORT_ID,
+            introSelected: TEST_INTRO_SELECTED,
+            participantLoginList: ['test@user.com'],
+            newReportObject: {
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
                 reportID: '2',
             },
-            reportActionID,
-        );
+            parentReportActionID: reportActionID,
+        });
 
         await waitForBatchedUpdates();
 
@@ -2691,7 +2700,12 @@ describe('actions/Report', () => {
                     enabled: false,
                 },
             };
-            const chatReport: OnyxTypes.Report = {...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), policyID: fakePolicy.id, hasOutstandingChildRequest: true};
+            const chatReport: OnyxTypes.Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: fakePolicy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
 
             const expenseReport1: OnyxTypes.Report = {
                 ...createRandomReport(5, undefined),
@@ -3709,7 +3723,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport(REPORT_ID, TEST_INTRO_SELECTED);
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3720,7 +3734,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport(REPORT_ID, TEST_INTRO_SELECTED);
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3731,7 +3745,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport(REPORT_ID, undefined);
+            Report.openReport({reportID: REPORT_ID, introSelected: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -4985,13 +4999,13 @@ describe('actions/Report', () => {
         });
 
         it('should return undefined when no valid report is provided', () => {
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, undefined, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, undefined);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when report has no reportID', () => {
             const reportWithoutID = {} as OnyxTypes.Report;
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, reportWithoutID, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, reportWithoutID, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -5011,7 +5025,7 @@ describe('actions/Report', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             };
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
 
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
@@ -5040,7 +5054,7 @@ describe('actions/Report', () => {
             };
 
             // Should not throw when called with introSelected and return a valid thread report
-            const result = Report.createTransactionThreadReport(introSelected, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(introSelected, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
@@ -5063,7 +5077,7 @@ describe('actions/Report', () => {
             };
 
             // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
-            const result = Report.createTransactionThreadReport(undefined, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
         });
@@ -5092,7 +5106,7 @@ describe('actions/Report', () => {
                 },
             ];
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, parentReport, reportAction, transaction, violations);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction, transaction, violations);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
