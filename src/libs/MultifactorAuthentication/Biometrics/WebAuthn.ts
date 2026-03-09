@@ -1,13 +1,7 @@
-import type { ValueOf } from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
-import type { AuthenticationChallenge, RegistrationChallenge } from './ED25519/types';
-
-
-
-
-
-
+import type {AuthenticationChallenge, RegistrationChallenge} from './ED25519/types';
 
 function arrayBufferToBase64URL(buffer: ArrayBuffer): string {
     return Base64URL.encode(new Uint8Array(buffer));
@@ -94,4 +88,14 @@ function buildAllowCredentials(credentials: Array<{id: string; transports?: Supp
     }));
 }
 
-export {arrayBufferToBase64URL, base64URLToArrayBuffer, isWebAuthnSupported, buildCreationOptions, buildRequestOptions, createPasskey, getPasskeyAssertion, buildAllowCredentials};
+export {
+    arrayBufferToBase64URL,
+    base64URLToArrayBuffer,
+    isWebAuthnSupported,
+    buildCreationOptions,
+    buildRequestOptions,
+    createPasskey,
+    getPasskeyAssertion,
+    buildAllowCredentials,
+    isSupportedTransport,
+};

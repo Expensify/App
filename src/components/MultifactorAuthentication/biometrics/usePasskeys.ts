@@ -13,6 +13,7 @@ import {
     buildRequestOptions,
     createPasskey,
     getPasskeyAssertion,
+    isSupportedTransport,
     isWebAuthnSupported,
 } from '@libs/MultifactorAuthentication/Biometrics/WebAuthn';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
@@ -76,12 +77,15 @@ function usePasskeys(): UseBiometricsReturn {
             return;
         }
 
-        const attestationResponse = credential.response as AuthenticatorAttestationResponse;
+        if (!(credential.response instanceof AuthenticatorAttestationResponse)) {
+            throw new Error('credential.response is not an AuthenticatorAttestationResponse');
+        }
+        const attestationResponse = credential.response;
         const credentialId = arrayBufferToBase64URL(credential.rawId);
         const clientDataJSON = arrayBufferToBase64URL(attestationResponse.clientDataJSON);
         const attestationObject = arrayBufferToBase64URL(attestationResponse.attestationObject);
 
-        const transports = (attestationResponse.getTransports?.() ?? []) as PasskeyCredential['transports'];
+        const transports = attestationResponse.getTransports?.().filter(isSupportedTransport);
 
         addLocalPasskeyCredential({
             userId,
@@ -148,7 +152,10 @@ function usePasskeys(): UseBiometricsReturn {
             return;
         }
 
-        const assertionResponse = assertion.response as AuthenticatorAssertionResponse;
+        if (!(assertion.response instanceof AuthenticatorAssertionResponse)) {
+            throw new Error('assertion.response is not an AuthenticatorAssertionResponse');
+        }
+        const assertionResponse = assertion.response;
         const rawId = arrayBufferToBase64URL(assertion.rawId);
         const authenticatorData = arrayBufferToBase64URL(assertionResponse.authenticatorData);
         const clientDataJSON = arrayBufferToBase64URL(assertionResponse.clientDataJSON);
