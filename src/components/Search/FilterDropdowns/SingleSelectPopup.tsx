@@ -59,33 +59,41 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     const initialSelectedValues = useInitialSelectionRef(value ? [value.value] : [], {resetDeps: [isVisible]});
     const initialFocusedItemKey = initialSelectedValues.at(0);
 
-    const {options, noResultsFound} = useMemo(() => {
-        const filteredItems = items.filter((item) => {
-            if (!isSearchable) {
-                return true;
-            }
-            const term = debouncedSearchTerm?.toLowerCase();
-            return item.text.toLowerCase().includes(term);
-        });
+    const filteredItems = useMemo(
+        () =>
+            items.filter((item) => {
+                if (!isSearchable) {
+                    return true;
+                }
+                const term = debouncedSearchTerm?.toLowerCase();
+                return item.text.toLowerCase().includes(term);
+            }),
+        [debouncedSearchTerm, isSearchable, items],
+    );
 
+    const orderedItems = useMemo(() => {
         const mappedItems = filteredItems.map((item) => ({
             text: item.text,
             keyForList: item.value,
             value: item.value,
-            isSelected: item.value === selectedItem?.value,
         }));
 
         const shouldReorderInitialSelection =
             isVisible && !debouncedSearchTerm && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
-        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
-        const isEmpty = orderedItems.length === 0 && !!debouncedSearchTerm;
+        return shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
+    }, [debouncedSearchTerm, filteredItems, initialSelectedValues, isVisible]);
 
-        return {
-            options: orderedItems,
-            noResultsFound: isEmpty,
-        };
-    }, [isSearchable, items, selectedItem?.value, debouncedSearchTerm, isVisible, initialSelectedValues]);
+    const options = useMemo(
+        () =>
+            orderedItems.map((item) => ({
+                ...item,
+                isSelected: item.value === selectedItem?.value,
+            })),
+        [orderedItems, selectedItem?.value],
+    );
+
+    const noResultsFound = options.length === 0 && !!debouncedSearchTerm;
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {

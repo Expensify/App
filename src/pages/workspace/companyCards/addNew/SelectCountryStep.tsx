@@ -94,16 +94,16 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     );
 
     const orderedCountries = useMemo(() => {
-        const shouldReorderInitialSelection = !debouncedSearchValue && initialSelectedValues.length > 0 && countries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = initialSelectedValues.length > 0 && countries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return countries;
         }
 
         return moveInitialSelectionToTopByValue(countries, initialSelectedValues);
-    }, [countries, debouncedSearchValue, initialSelectedValues]);
+    }, [countries, initialSelectedValues]);
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, orderedCountries), [debouncedSearchValue, orderedCountries]);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries), [debouncedSearchValue, countries, orderedCountries]);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = {

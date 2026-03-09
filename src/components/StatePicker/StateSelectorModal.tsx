@@ -61,16 +61,19 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     );
 
     const orderedCountryStates = useMemo(() => {
-        const shouldReorderInitialSelection = !debouncedSearchValue && initialSelectedValues.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = initialSelectedValues.length > 0 && countryStates.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return countryStates;
         }
 
         return moveInitialSelectionToTopByValue(countryStates, initialSelectedValues);
-    }, [countryStates, debouncedSearchValue, initialSelectedValues]);
+    }, [countryStates, initialSelectedValues]);
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, orderedCountryStates), [orderedCountryStates, debouncedSearchValue]);
+    const searchResults = useMemo(
+        () => searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates),
+        [countryStates, orderedCountryStates, debouncedSearchValue],
+    );
 
     const textInputOptions = useMemo(
         () => ({

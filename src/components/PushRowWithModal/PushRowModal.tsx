@@ -50,26 +50,30 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
 
     const optionKeys = useMemo(() => Object.keys(optionsList), [optionsList]);
 
-    const options = useMemo(() => {
-        const baseOptions = optionKeys.map((key) => {
-            const value = optionsList[key];
-            return {
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: key === selectedOption,
-                searchValue: StringUtils.sanitizeString(value),
-            };
-        });
+    const options = useMemo(
+        () =>
+            optionKeys.map((key) => {
+                const value = optionsList[key];
+                return {
+                    value: key,
+                    text: value,
+                    keyForList: key,
+                    isSelected: key === selectedOption,
+                    searchValue: StringUtils.sanitizeString(value),
+                };
+            }),
+        [optionKeys, optionsList, selectedOption],
+    );
 
-        const shouldReorderInitialSelection = !debouncedSearchValue && initialSelectedValues.length > 0 && baseOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+    const orderedOptions = useMemo(() => {
+        const shouldReorderInitialSelection = initialSelectedValues.length > 0 && options.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
-            return baseOptions;
+            return options;
         }
 
-        return moveInitialSelectionToTopByValue(baseOptions, initialSelectedValues);
-    }, [debouncedSearchValue, initialSelectedValues, optionKeys, optionsList, selectedOption]);
+        return moveInitialSelectionToTopByValue(options, initialSelectedValues);
+    }, [initialSelectedValues, options]);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
@@ -81,7 +85,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         setSearchValue('');
     };
 
-    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, options), [debouncedSearchValue, options]);
+    const searchResults = useMemo(() => searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions), [debouncedSearchValue, options, orderedOptions]);
 
     const textInputOptions = useMemo(
         () => ({

@@ -47,23 +47,23 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const initialSelectedValues = useInitialSelectionRef(initiallySelectedItem ? [initiallySelectedItem.value] : [], {resetOnFocus: true});
 
-    const {sections, noResultsFound} = useMemo(() => {
-        const normalizedSearch = debouncedSearchTerm?.toLowerCase() ?? '';
+    const normalizedSearch = debouncedSearchTerm?.toLowerCase() ?? '';
 
-        const filteredItems = items
-            .filter((item) => item.name.toLowerCase().includes(normalizedSearch))
-            .sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare));
+    const sortedItems = useMemo(
+        () => items.filter((item) => item.name.toLowerCase().includes(normalizedSearch)).sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare)),
+        [items, localeCompare, normalizedSearch],
+    );
 
-        const mappedItems: RuleSelectionListItem[] = filteredItems.map((item) => ({
+    const orderedItems = useMemo(() => {
+        const mappedItems = sortedItems.map((item) => ({
             text: item.name,
             keyForList: item.value,
-            isSelected: initiallySelectedItem?.value === item.value,
             value: item.value,
         }));
 
         const shouldShowStaleSelectedItem =
             !!initiallySelectedItem &&
-            !filteredItems.some((item) => item.value === initiallySelectedItem.value) &&
+            !sortedItems.some((item) => item.value === initiallySelectedItem.value) &&
             (!normalizedSearch || initiallySelectedItem.name.toLowerCase().includes(normalizedSearch));
 
         const itemsForDisplay = shouldShowStaleSelectedItem
@@ -71,7 +71,6 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
                   {
                       text: initiallySelectedItem.name,
                       keyForList: initiallySelectedItem.value,
-                      isSelected: true,
                       value: initiallySelectedItem.value,
                   },
                   ...mappedItems,
@@ -80,22 +79,33 @@ function useRuleSelectionList({items, initiallySelectedItem}: UseRuleSelectionLi
 
         const shouldReorderInitialSelection = !normalizedSearch && initialSelectedValues.length > 0 && itemsForDisplay.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
-        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(itemsForDisplay, initialSelectedValues) : itemsForDisplay;
+        return shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(itemsForDisplay, initialSelectedValues) : itemsForDisplay;
+    }, [initialSelectedValues, initiallySelectedItem, normalizedSearch, sortedItems]);
 
-        const hasNoItems = orderedItems.length === 0;
+    const listData = useMemo<RuleSelectionListItem[]>(
+        () =>
+            orderedItems.map((item) => ({
+                ...item,
+                isSelected: initiallySelectedItem?.value === item.value,
+            })),
+        [initiallySelectedItem?.value, orderedItems],
+    );
+
+    const {sections, noResultsFound} = useMemo(() => {
+        const hasNoItems = listData.length === 0;
         const isSearchMiss = !!normalizedSearch && hasNoItems;
 
         const preparedSections: Array<Section<RuleSelectionListItem>> = hasNoItems
             ? []
             : [
                   {
-                      data: orderedItems,
+                      data: listData,
                       sectionIndex: 0,
                   },
               ];
 
         return {sections: preparedSections, noResultsFound: isSearchMiss};
-    }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, initiallySelectedItem]);
+    }, [listData, normalizedSearch]);
 
     return {
         sections,

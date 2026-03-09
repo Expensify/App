@@ -46,24 +46,33 @@ function SearchSingleSelectionPicker({
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
 
-    const {listData, noResultsFound} = useMemo(() => {
+    const sortedItems = useMemo(() => {
         const filteredItems = items.filter((item) => item.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()));
-        const sortedItems = filteredItems.sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare));
+        return filteredItems.sort((a, b) => sortOptionsWithEmptyValue(a.name.toString(), b.name.toString(), localeCompare));
+    }, [debouncedSearchTerm, items, localeCompare]);
 
+    const orderedItems = useMemo(() => {
         const mappedItems = sortedItems.map((item) => ({
             text: item.name,
             keyForList: item.value,
-            isSelected: selectedItem?.value === item.value,
             value: item.value,
         }));
 
         const shouldReorderInitialSelection = !debouncedSearchTerm && initialSelectedValues.length > 0 && mappedItems.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
-        const orderedItems = shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
-        const isEmpty = orderedItems.length === 0 && !!debouncedSearchTerm;
+        return shouldReorderInitialSelection ? moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues) : mappedItems;
+    }, [debouncedSearchTerm, initialSelectedValues, sortedItems]);
 
-        return {listData: orderedItems, noResultsFound: isEmpty};
-    }, [debouncedSearchTerm, initialSelectedValues, items, localeCompare, selectedItem?.value]);
+    const listData = useMemo(
+        () =>
+            orderedItems.map((item) => ({
+                ...item,
+                isSelected: selectedItem?.value === item.value,
+            })),
+        [orderedItems, selectedItem?.value],
+    );
+
+    const noResultsFound = orderedItems.length === 0 && !!debouncedSearchTerm;
 
     const sections = noResultsFound
         ? []

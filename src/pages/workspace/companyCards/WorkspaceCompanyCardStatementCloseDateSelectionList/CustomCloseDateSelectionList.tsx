@@ -29,35 +29,44 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const initialSelectedValues = useInitialSelectionRef(initiallySelectedDay ? [initiallySelectedDay.toString()] : [], {resetOnFocus: true});
     const initiallyFocusedDay = initialSelectedValues.at(0);
 
-    const data = useMemo(() => {
-        const mappedDays = CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
-            const day = {
-                value: dayValue,
-                text: dayValue.toString(),
-                keyForList: dayValue.toString(),
-                isSelected: dayValue === selectedDay,
-            };
+    const filteredDays = useMemo(
+        () =>
+            CONST.DATE.MONTH_DAYS.reduce<Array<Omit<CustomCloseDateListItem, 'isSelected'>>>((days, dayValue) => {
+                const day = {
+                    value: dayValue,
+                    text: dayValue.toString(),
+                    keyForList: dayValue.toString(),
+                };
 
-            if (debouncedSearchValue) {
-                if (day.text.includes(debouncedSearchValue)) {
-                    days.push(day);
+                if (debouncedSearchValue && !day.text.includes(debouncedSearchValue)) {
+                    return days;
                 }
-            } else {
+
                 days.push(day);
-            }
+                return days;
+            }, []),
+        [debouncedSearchValue],
+    );
 
-            return days;
-        }, []);
-
+    const orderedDays = useMemo(() => {
         if (debouncedSearchValue || initialSelectedValues.length === 0) {
-            return mappedDays;
+            return filteredDays;
         }
 
         return moveInitialSelectionToTopByValue(
-            mappedDays.map((day) => ({...day, value: day.value.toString()})),
+            filteredDays.map((day) => ({...day, value: day.keyForList})),
             initialSelectedValues,
         ).map((day) => ({...day, value: Number(day.value)}));
-    }, [debouncedSearchValue, initialSelectedValues, selectedDay]);
+    }, [debouncedSearchValue, filteredDays, initialSelectedValues]);
+
+    const data = useMemo(
+        () =>
+            orderedDays.map((day) => ({
+                ...day,
+                isSelected: day.value === selectedDay,
+            })),
+        [orderedDays, selectedDay],
+    );
 
     const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);

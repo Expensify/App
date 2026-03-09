@@ -44,16 +44,16 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     );
 
     const orderedCountries = useMemo(() => {
-        const shouldReorderInitialSelection = !searchValue && initialSelectedValues.length > 0 && baseCountries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = initialSelectedValues.length > 0 && baseCountries.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
             return baseCountries;
         }
 
         return moveInitialSelectionToTopByValue(baseCountries, initialSelectedValues);
-    }, [baseCountries, initialSelectedValues, searchValue]);
+    }, [baseCountries, initialSelectedValues]);
 
-    const searchResults = useMemo(() => searchOptions(searchValue, orderedCountries), [orderedCountries, searchValue]);
+    const searchResults = useMemo(() => searchOptions(searchValue, searchValue ? baseCountries : orderedCountries), [baseCountries, orderedCountries, searchValue]);
 
     const selectCountry = useCallback(
         (option: Option) => {

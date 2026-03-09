@@ -75,21 +75,25 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     );
 
     const orderedTimezoneOptions = useMemo(() => {
-        const mappedOptions = timezoneOptions.map((option) => ({
-            ...option,
-            isSelected: option.value === timezone.selected,
-        }));
-
-        const shouldReorderInitialSelection = !timezoneInputText && initialSelectedValues.length > 0 && mappedOptions.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
+        const shouldReorderInitialSelection = initialSelectedValues.length > 0 && allTimezones.length > CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD;
 
         if (!shouldReorderInitialSelection) {
-            return mappedOptions;
+            return allTimezones;
         }
 
-        return moveInitialSelectionToTopByValue(mappedOptions, initialSelectedValues);
-    }, [initialSelectedValues, timezone.selected, timezoneInputText, timezoneOptions]);
+        return moveInitialSelectionToTopByValue(allTimezones, initialSelectedValues);
+    }, [allTimezones, initialSelectedValues]);
 
-    const initiallyFocusedItemKey = useMemo(() => orderedTimezoneOptions.find((tz) => tz.value === initiallyFocusedTimezone)?.keyForList, [initiallyFocusedTimezone, orderedTimezoneOptions]);
+    const displayTimezoneOptions = useMemo(
+        () =>
+            (timezoneInputText ? timezoneOptions : orderedTimezoneOptions).map((option) => ({
+                ...option,
+                isSelected: option.value === timezone.selected,
+            })),
+        [orderedTimezoneOptions, timezone.selected, timezoneInputText, timezoneOptions],
+    );
+
+    const initiallyFocusedItemKey = useMemo(() => displayTimezoneOptions.find((tz) => tz.value === initiallyFocusedTimezone)?.keyForList, [displayTimezoneOptions, initiallyFocusedTimezone]);
 
     return (
         <ScreenWrapper
@@ -101,7 +105,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                data={orderedTimezoneOptions}
+                data={displayTimezoneOptions}
                 ListItem={RadioListItem}
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}

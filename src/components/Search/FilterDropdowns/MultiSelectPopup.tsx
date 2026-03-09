@@ -72,14 +72,18 @@ function MultiSelectPopup<T extends string>({
         value.map((item) => item.value),
         {resetDeps: [isVisible]},
     );
+    const selectedValues = useMemo(() => new Set(selectedItems.map((item) => item.value)), [selectedItems]);
 
-    const listData: ListItem[] = useMemo(() => {
-        const filteredItems = isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items;
+    const filteredItems = useMemo(
+        () => (isSearchable ? items.filter((item) => item.text.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : items),
+        [debouncedSearchTerm, isSearchable, items],
+    );
+
+    const orderedItems = useMemo(() => {
         const mappedItems = filteredItems.map((item) => ({
             text: item.text,
             keyForList: item.value,
             value: item.value,
-            isSelected: !!selectedItems.find((i) => i.value === item.value),
             icons: item.icons,
         }));
 
@@ -95,7 +99,16 @@ function MultiSelectPopup<T extends string>({
         }
 
         return moveInitialSelectionToTopByValue(mappedItems, initialSelectedValues);
-    }, [items, selectedItems, isSearchable, debouncedSearchTerm, shouldMoveSelectedItemsToTopOnOpen, isVisible, initialSelectedValues]);
+    }, [debouncedSearchTerm, filteredItems, initialSelectedValues, isVisible, shouldMoveSelectedItemsToTopOnOpen]);
+
+    const listData: ListItem[] = useMemo(
+        () =>
+            orderedItems.map((item) => ({
+                ...item,
+                isSelected: selectedValues.has(item.value),
+            })),
+        [orderedItems, selectedValues],
+    );
 
     const headerMessage = isSearchable && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
