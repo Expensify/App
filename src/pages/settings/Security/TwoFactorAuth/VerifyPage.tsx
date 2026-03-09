@@ -131,7 +131,7 @@ function VerifyPage({route}: VerifyPageProps) {
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
-                            accessible={false}
+                            accessibilityLabel={translate('twoFactorAuth.copy')}
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}
                         />
                     </View>

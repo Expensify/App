@@ -21,6 +21,7 @@ type ReportActionItemCreatedProps = {
     reportID: string | undefined;
 
     /** The id of the policy */
+    // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
 };
 function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
@@ -31,6 +32,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (!isChatReport(report)) {
@@ -44,7 +46,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report, conciergeReportID, currentUserAccountID)}
+            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID)}
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
