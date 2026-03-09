@@ -93,9 +93,19 @@ function Avatar({source, size}: AvatarProps) {
 
 ### Review Metadata
 
+#### Verification
+
+Before flagging, verify that the file actually compiles with React Compiler:
+
+```bash
+npx react-compiler-healthcheck --src "<filepath>" --verbose
+```
+
+If the output contains **"Failed to compile"** for the file under review, the rule **does not apply** — the author may have no alternative to manual memoization until the compilation issue is resolved.
+
 #### Condition
 
-Flag when ANY of these are true in new or modified code:
+The verification step above is a prerequisite. Only flag when the file compiles successfully AND any of these are true in new or modified code:
 
 1. **`useCallback`** — A function is wrapped in `useCallback`. The compiler automatically memoizes closures based on their captured variables.
 2. **`useMemo`** — A value is wrapped in `useMemo`. The compiler automatically caches derived values.
@@ -112,5 +122,6 @@ The goal is to fix the root cause (make code compiler-friendly) rather than slap
 - Import statements: `useCallback`, `useMemo` from `react`
 
 **DO NOT flag if:**
+- The file does not compile with React Compiler (verified by the compliance check in the Verification section above)
 - The code is inside `node_modules/`, `patches/`, or test fixtures
 - The manual memoization exists in unchanged lines (pre-existing code not touched by the diff)
