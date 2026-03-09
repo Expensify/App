@@ -20,6 +20,7 @@ import type {
     CompanyCardFeed,
     CurrencyList,
     ExpensifyCardSettings,
+    ExpensifyCardSettingsBase,
     PersonalDetailsList,
     Policy,
     PrivatePersonalDetails,
@@ -40,6 +41,7 @@ import type {
 } from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -388,7 +390,10 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
-    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
+    );
 }
 
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
@@ -399,6 +404,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
+            !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
             (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
     );
@@ -937,8 +943,15 @@ function filterAllInactiveCards(cards: CardList | undefined) {
         return {};
     }
 
-    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    const filteredCards = filterObject(cards, (_key, card) => !closedStates.has(card.state));
+    const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
+    const filteredCards = filterObject(cards, (_key, card) => {
+        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
+            // Only include suspended cards that are frozen.
+            return !!card.nameValuePairs?.frozen;
+        }
+
+        return !closedStates.has(card.state);
+    });
 
     return filteredCards;
 }
@@ -1071,6 +1084,36 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCountry?: string): ExpensifyCardSettingsBase | undefined {
+    if (!cardSettings) {
+        return undefined;
+    }
+
+    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
+        const programSettings = cardSettings[programKey as keyof typeof cardSettings];
+        if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
+            // Nested program values take precedence — they are the authoritative source for
+            // program-specific fields once the backend sends the full nested format (Phase 2).
+            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
+        }
+        return undefined;
+    };
+
+    if (feedCountry) {
+        return getMergedProgramSettings(feedCountry) ?? cardSettings;
+    }
+
+    // Auto-detect: try known card programs in priority order so callers that
+    // don't pass feedCountry still get the right program sub-object when the
+    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
+    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    if (result) {
+        return result;
+    }
+
+    return cardSettings;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1168,7 +1211,7 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
 type SplitMaskedCardNumberResult = {
@@ -1183,6 +1226,14 @@ type SplitMaskedCardNumberResult = {
  * @param maskChar the character used to mask the card number
  * @returns the first and last digits of the card number
  */
+function formatMaskedCardName(cardName: string): string {
+    if (!/^[0-9X]+$/.test(cardName)) {
+        return cardName;
+    }
+    const padded = cardName.padStart(16, 'X');
+    return padded.match(/.{1,4}/g)?.join('-') ?? padded;
+}
+
 function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string = CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR): SplitMaskedCardNumberResult {
     if (!cardNumber) {
         return {
@@ -1197,23 +1248,42 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
+
+    const isDirectFeedType = isDirectFeed(feedName);
 
     return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
         }
 
-        const cardFeedKeyParts = key.split('_');
-        const feedDomainID = Number(cardFeedKeyParts.at(1));
-        if (cardFeedKeyParts.length !== 3 || cardFeedKeyParts.at(0) !== ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST || Number.isNaN(feedDomainID)) {
+        // Strip the collection prefix and split on the first underscore only,
+        // so feed names containing underscores (e.g., "plaid.ins_123456") are preserved.
+        const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const separatorIndex = feedKey.indexOf('_');
+        if (separatorIndex === -1) {
             return false;
         }
 
-        if (feedDomainID !== domainOrWorkspaceAccountID) {
+        const feedDomainID = Number(feedKey.substring(0, separatorIndex));
+        const feedBankName = feedKey.substring(separatorIndex + 1);
+
+        if (Number.isNaN(feedDomainID) || !feedBankName) {
+            return false;
+        }
+
+        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
+        // because the same Plaid card should not be assignable to multiple workspaces.
+        // For commercial feeds: restrict to the current domain only, because different domains
+        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
+        if (isDirectFeedType) {
+            if (feedName && feedBankName !== feedName) {
+                return false;
+            }
+        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
             return false;
         }
 
@@ -1368,6 +1438,7 @@ export {
     normalizeCardName,
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
+    getCardSettings,
     filterAllInactiveCards,
     filterInactiveCards,
     isCardPendingIssue,
@@ -1393,6 +1464,7 @@ export {
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
+    formatMaskedCardName,
     splitMaskedCardNumber,
     isCardAlreadyAssigned,
     generateCardID,
