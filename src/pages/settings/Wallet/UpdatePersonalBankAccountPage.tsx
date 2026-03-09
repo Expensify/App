@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -84,12 +84,6 @@ function UpdatePersonalBankAccountPage() {
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
 
-    useEffect(() => {
-        if (!bankAccountID && !shouldShowSuccess) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        }
-    }, [bankAccountID, shouldShowSuccess]);
-
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
     const exitFlow = () => {
@@ -100,6 +94,10 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const submitPersonalInfo = () => {
+        if (!personalBankAccount?.bankAccountID) {
+            return;
+        }
+
         const accountData: Partial<PersonalBankAccountForm> = {};
 
         if (!completedSteps.includes(PERSONAL_INFO_STEP.NAME)) {
@@ -122,9 +120,7 @@ function UpdatePersonalBankAccountPage() {
             accountData.phoneNumber = parsed.number?.significant ?? '';
         }
 
-        if (personalBankAccount?.bankAccountID) {
-            updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
-        }
+        updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
     };
     const skipPageCandidates = completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
