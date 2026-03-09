@@ -507,18 +507,17 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                                     });
                                                 }}
                                                 style={styles.receiptActionButton}
+                                                hoverStyle={styles.buttonDefaultHovered}
                                                 accessibilityLabel={translate('reportActionCompose.addAttachment')}
                                                 role={CONST.ROLE.BUTTON}
                                                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
                                             >
-                                                <View style={styles.primaryMediumIcon}>
-                                                    <Icon
-                                                        src={lazyIcons.ReceiptPlus}
-                                                        height={variables.iconSizeSmall}
-                                                        width={variables.iconSizeSmall}
-                                                        fill={theme.icon}
-                                                    />
-                                                </View>
+                                                <Icon
+                                                    src={lazyIcons.ReceiptPlus}
+                                                    height={variables.iconSizeSmall}
+                                                    width={variables.iconSizeSmall}
+                                                    fill={theme.icon}
+                                                />
                                             </PressableWithoutFeedback>
                                         )}
                                     </AttachmentPicker>
@@ -529,18 +528,17 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                                             )
                                         }
                                         style={[styles.receiptActionButton, styles.noOutline]}
+                                        hoverStyle={styles.buttonDefaultHovered}
                                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                                         role={CONST.ROLE.BUTTON}
                                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
                                     >
-                                        <View style={styles.primaryMediumIcon}>
-                                            <Icon
-                                                src={lazyIcons.Expand}
-                                                height={variables.iconSizeSmall}
-                                                width={variables.iconSizeSmall}
-                                                fill={theme.icon}
-                                            />
-                                        </View>
+                                        <Icon
+                                            src={lazyIcons.Expand}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                            fill={theme.icon}
+                                        />
                                     </PressableWithoutFocus>
                                 </View>
                             )}
