@@ -152,7 +152,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 1. Check if there's an error - stop processing
         if (error) {
-            console.debug('[MFA] process: error detected, navigating to failure', error);
             if (error.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.REGISTRATION_REQUIRED) {
                 clearLocalMFAPublicKeyList();
                 dispatch({type: 'REREGISTER'});
@@ -175,7 +174,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 reason = CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS;
             }
 
-            console.debug('[MFA] process: device does not support biometrics', {reason, isWeb});
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
@@ -201,7 +199,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const {challenge, reason: challengeReason} = await requestRegistrationChallenge(validateCode);
 
                 if (!challenge) {
-                    console.debug('[MFA] process: registration challenge request failed', {challengeReason});
                     dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
                     return;
                 }
@@ -214,7 +211,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 // ever changes the structure of these challenges, update getChallengeType() accordingly.
                 const challengeType = getChallengeType(challenge);
                 if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.REGISTRATION) {
-                    console.debug('[MFA] process: unexpected challenge type for registration', {challengeType, challenge});
                     dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
@@ -231,7 +227,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             await biometrics.register(async (result: RegisterResult) => {
                 if (!result.success) {
-                    console.debug('[MFA] process: biometrics.register failed', {reason: result.reason});
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
@@ -253,7 +248,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                       });
 
                 if (!registrationResponse.success) {
-                    console.debug('[MFA] process: backend registration failed', registrationResponse);
                     dispatch({
                         type: 'SET_ERROR',
                         payload: {
@@ -289,7 +283,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 const {challenge, reason: challengeReason} = await requestAuthorizationChallenge();
 
                 if (!challenge) {
-                    console.debug('[MFA] process: authorization challenge request failed', {challengeReason});
                     dispatch({type: 'SET_ERROR', payload: {reason: challengeReason}});
                     return;
                 }
@@ -297,7 +290,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 // Validate that we received an authentication challenge
                 const challengeType = getChallengeType(challenge);
                 if (challengeType !== CONST.MULTIFACTOR_AUTHENTICATION.CHALLENGE_TYPE.AUTHENTICATION) {
-                    console.debug('[MFA] process: unexpected challenge type for authorization', {challengeType, challenge});
                     dispatch({type: 'SET_ERROR', payload: {reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_CHALLENGE_TYPE}});
                     return;
                 }
@@ -312,7 +304,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
                 async (result: AuthorizeResult) => {
                     if (!result.success) {
-                        console.debug('[MFA] process: biometrics.authorize failed', {reason: result.reason});
                         // Re-registration may be needed even though we checked credentials above, because:
                         // - The local public key was deleted between the check and authorization
                         // - The server no longer accepts the local public key (not in allowCredentials)
@@ -339,7 +330,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     });
 
                     if (!scenarioAPIResponse.success) {
-                        console.debug('[MFA] process: scenario action failed', scenarioAPIResponse);
                         dispatch({
                             type: 'SET_ERROR',
                             payload: {

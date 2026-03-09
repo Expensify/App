@@ -55,7 +55,6 @@ function usePasskeys(): UseBiometricsReturn {
 
     const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => {
         if (!registrationChallenge) {
-            console.debug('[Passkeys] register: registrationChallenge is missing');
             onResult({
                 success: false,
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_MISSING,
@@ -69,7 +68,6 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             credential = await createPasskey(publicKeyOptions);
         } catch (error) {
-            console.debug('[Passkeys] register: WebAuthn create error', error);
             onResult({
                 success: false,
                 reason: decodeWebAuthnError(error),
@@ -98,7 +96,6 @@ function usePasskeys(): UseBiometricsReturn {
         });
 
         const passkeyAuthType = SECURE_STORE_VALUES.AUTH_TYPE.PASSKEY;
-        console.debug('[Passkeys] register: success', {credentialId, authType: passkeyAuthType});
 
         await onResult({
             success: true,
@@ -128,7 +125,6 @@ function usePasskeys(): UseBiometricsReturn {
         });
 
         if (reconciled.length === 0) {
-            console.debug('[Passkeys] authorize: no reconciled credentials, registration required', {backendCredentials, localCredentials: localPasskeyCredentials});
             onResult({
                 success: false,
                 reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED,
@@ -143,7 +139,6 @@ function usePasskeys(): UseBiometricsReturn {
         try {
             assertion = await getPasskeyAssertion(publicKeyOptions);
         } catch (error) {
-            console.debug('[Passkeys] authorize: WebAuthn get error', error);
             onResult({
                 success: false,
                 reason: decodeWebAuthnError(error),
@@ -161,7 +156,6 @@ function usePasskeys(): UseBiometricsReturn {
         const signature = arrayBufferToBase64URL(assertionResponse.signature);
 
         const passkeyAuthType = SECURE_STORE_VALUES.AUTH_TYPE.PASSKEY;
-        console.debug('[Passkeys] authorize: success', {rawId, authType: passkeyAuthType});
 
         await onResult({
             success: true,
