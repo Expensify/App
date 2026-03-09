@@ -198,7 +198,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
-                        badgeSuccess: isUber,
+                        isBadgeSuccess: isUber,
                         shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
@@ -270,6 +270,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         shouldShowBackButton={shouldUseNarrowLayout}
                         icon={ReceiptPartners}
                         shouldUseHeadlineHeader
+                        shouldDisplayHelpButton
                         onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView

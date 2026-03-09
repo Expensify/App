@@ -50,7 +50,8 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
         <TextWithTooltip
             text={taskItem.reportName}
             shouldShowTooltip={showTooltip}
-            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
+            numberOfLines={2}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }
@@ -62,13 +63,13 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={taskItem.description}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            numberOfLines={2}
+            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -85,20 +86,15 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
-                    success
+                    isCondensed
                     text={translate('task.completed')}
-                    icon={icons.Checkmark}
-                    iconStyles={styles.mr0}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[
                         styles.ml0,
-                        styles.ph2,
-                        styles.gap1,
+                        styles.borderNone,
                         isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
-                        StyleUtils.getHeight(variables.h20),
-                        StyleUtils.getMinimumHeight(variables.h20),
-                        StyleUtils.getBorderColorStyle(theme.border),
+                        StyleUtils.getBackgroundColorStyle(theme.reportStatusBadge.paid.backgroundColor),
                     ]}
+                    textStyles={StyleUtils.getColorStyle(theme.reportStatusBadge.paid.textColor)}
                 />
             </View>
         );

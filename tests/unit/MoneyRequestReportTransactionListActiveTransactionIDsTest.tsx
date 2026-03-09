@@ -1,7 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import {useEffect} from 'react';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import {useEffect, useMemo} from 'react';
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import SCREENS from '@src/SCREENS';
@@ -30,20 +29,21 @@ jest.mock('@react-navigation/native', () => ({
  * to allow isolated testing of the useEffect behavior.
  */
 function useActiveTransactionIDsEffect(visualOrderTransactionIDs: string[]) {
-    const visualOrderTransactionIDsDeepCompare = useDeepCompareRef(visualOrderTransactionIDs);
+    const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
             return;
         }
-        setActiveTransactionIDs(visualOrderTransactionIDsDeepCompare ?? []);
+        setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
         };
-    }, [visualOrderTransactionIDsDeepCompare]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array
+    }, [visualOrderTransactionIDsKey]);
 
-    return {visualOrderTransactionIDsDeepCompare};
+    return {visualOrderTransactionIDsKey};
 }
 
 describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', () => {
@@ -123,11 +123,11 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
 
         unmount();
 
-        // Then clearActiveTransactionIDs should NOT be called (since the effect returned early)
+        // Then clearActiveTransactionIDs should NOT be called (since the effect returned early, no cleanup was registered)
         expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
-    it('should update active transaction IDs when the list changes (deep comparison)', () => {
+    it('should update active transaction IDs when the list changes', () => {
         // Given the focused route is SEARCH_REPORT
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
 
@@ -150,7 +150,7 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         expect(mockSetActiveTransactionIDs).toHaveBeenLastCalledWith(newTransactionIDs);
     });
 
-    it('should NOT update when transaction IDs array has same content (deep comparison)', () => {
+    it('should NOT re-fire when array reference changes but content is the same', () => {
         // Given the focused route is SEARCH_REPORT
         mockFindFocusedRoute.mockReturnValue({name: SCREENS.RIGHT_MODAL.SEARCH_REPORT, key: 'test-key'});
 
@@ -167,8 +167,10 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
         const sameContentNewArray = ['trans1', 'trans2'];
         rerender({ids: sameContentNewArray});
 
-        // Then setActiveTransactionIDs should NOT be called again (deep comparison prevents it)
+        // Then the effect should NOT re-fire because the join(',') key hasn't changed.
+        // This prevents overwriting IDs set by other callers (e.g. TransactionDuplicateReview.onPreviewPressed).
         expect(mockSetActiveTransactionIDs).toHaveBeenCalledTimes(1);
+        expect(mockClearActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should handle empty transaction IDs array', () => {

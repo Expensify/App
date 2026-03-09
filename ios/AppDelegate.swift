@@ -12,6 +12,8 @@ import ReactAppDependencyProvider
 import ExpoModulesCore
 import Firebase
 import Expo
+import ActivityKit
+import AirshipFrameworkProxy
 
 @main
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
@@ -20,6 +22,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeFactory: RCTReactNativeFactory?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    let appStartTimePreferencesKey = "AppStartTime"
+    UserDefaults.standard.set(Date().timeIntervalSince1970 * 1000, forKey: appStartTimePreferencesKey)
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -58,9 +62,29 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 
     RNBackgroundTaskManager.setup()
 
+    // Register GPS trip Live Activity with Airship
+    if #available(iOS 16.1, *) {
+        try? LiveActivityManager.shared.setup { configurator in
+            await configurator.register(
+                forType: Activity<GpsTripAttributes>.self,
+                airshipNameExtractor: nil
+            )
+        }
+    }
+
     return true
   }
 
+
+  override func applicationWillTerminate(_ application: UIApplication) {
+    if #available(iOS 16.2, *) {
+        for activity in Activity<GpsTripAttributes>.activities {
+            Task.detached {
+                await activity.end(nil, dismissalPolicy: .immediate)
+            }
+        }
+    }
+  }
 
   override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
       return RCTLinkingManager.application(application, open: url, options: options)

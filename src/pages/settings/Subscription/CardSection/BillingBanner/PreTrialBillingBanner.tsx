@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,12 +19,14 @@ function PreTrialBillingBanner() {
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding(onboarding, conciergeReportID);
 
         if (!reportUsedForOnboarding) {
-            navigateToConciergeChat(conciergeReportID, false);
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
             return;
         }
 
