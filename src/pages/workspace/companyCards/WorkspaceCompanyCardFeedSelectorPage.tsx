@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
@@ -22,6 +24,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CardFeedForDisplay} from '@libs/CardFeedUtils';
 import {getCardFeedIcon, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl} from '@libs/CardUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
@@ -61,8 +64,12 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {companyCardFeeds, feedName: selectedFeedName} = useCompanyCards({policyID});
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const primaryLogin = account?.primaryLogin ?? '';
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
 
-    console.log(companyCardFeeds);
+    const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
 
     const feeds: CardFeedListItem[] = (Object.entries(companyCardFeeds ?? {}) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([feedName, feedSettings]) => {
         const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
@@ -102,11 +109,11 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         const otherPolicyFeeds: CardFeedListItem[] = [];
         for (const [feedPolicyID, cardFeeds] of Object.entries(cardFeedsByPolicy ?? {}) as Array<[CompanyCardFeedWithDomainID, CardFeedForDisplay[]]>) {
             if (feedPolicyID === policyID) {
-                // continue;
+                continue;
             }
             for (const feed of cardFeeds) {
                 const feedName = feed.feed;
-                const plaidUrl = getPlaidInstitutionIconUrl(feed.feed);
+                const plaidUrl = getPlaidInstitutionIconUrl(feedName);
                 const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
                 const feedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedPolicyID}`];
                 const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
@@ -114,10 +121,10 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
                 otherPolicyFeeds.push({
-                    value: feed.id,
-                    feed: feed.feed as CompanyCardFeedWithNumber,
+                    value: feed.id as CompanyCardFeedWithDomainID,
+                    feed: feedName as CompanyCardFeedWithNumber,
                     alternateText: domainName ?? feedPolicy?.name,
-                    text: getCustomOrFormattedFeedName(translate, feed.feed, feed.name),
+                    text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
                     keyForList: feed.id,
                     isSelected: feed.id === selectedFeedName,
                     brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -161,8 +168,13 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         goBack();
     };
 
-    console.log('otherFeeds');
-    console.log(otherFeeds);
+    const selectOtherFeed = (feed: CardFeedListItem) => {
+        if (isUserFromPublicDomain) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+        // link feed
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -194,14 +206,20 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                 onPress={onAddCardsPress}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CARD_SECTION_ADD_BUTTON}
                             />
-                            {otherFeeds.length > 0 &&
-                                otherFeeds.map((feed) => (
-                                    <RadioListItem
-                                        key={feed.value}
-                                        item={feed}
-                                        onPress={onAddCardsPress}
-                                    />
-                                ))}
+                            {otherFeeds.length > 0 && (
+                                <>
+                                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('workspace.companyCards.fromOtherWorkspaces')}</Text>
+                                    {otherFeeds.map((feed) => (
+                                        <RadioListItem
+                                            key={feed.value}
+                                            keyForList={feed.value}
+                                            showTooltip={false}
+                                            item={feed}
+                                            onSelectRow={selectOtherFeed}
+                                        />
+                                    ))}
+                                </>
+                            )}
                         </>
                     }
                 />

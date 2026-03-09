@@ -878,6 +878,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
                         },

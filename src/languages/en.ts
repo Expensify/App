@@ -4943,6 +4943,10 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            fromOtherWorkspaces: 'From other workspaces',
+            addWorkEmail: 'Add work email',
+            addWorkEmailTitle: 'Add work email to use this feed',
+            addWorkEmailDescription: 'To be able to use feeds across workspaces you first need to add your work email',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',

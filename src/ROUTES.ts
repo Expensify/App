@@ -2478,6 +2478,14 @@ const ROUTES = {
         getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
             `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
     },
+    WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/work-email` as const,
+    },
+    WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/verify-work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/verify-work-email` as const,
+    },
     WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE: {
         route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/transaction-start-date',
         getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>

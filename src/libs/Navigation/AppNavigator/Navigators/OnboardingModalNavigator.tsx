@@ -53,7 +53,7 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
     }
 
-    if (account?.isFromPublicDomain) {
+    if (!account?.isFromPublicDomain) {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
