@@ -93,6 +93,7 @@ function useOnboardingFlowRouter() {
         isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
+        isLoadingApp,
     };
 }
 
