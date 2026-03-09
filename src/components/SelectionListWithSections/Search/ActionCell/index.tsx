@@ -41,8 +41,7 @@ function ActionCell({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const shouldUseViewAction =
-        action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
+    const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
 
     if (shouldUseViewAction || isChildListItem) {
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
