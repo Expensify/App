@@ -1201,7 +1201,7 @@ function getFeedConnectionBrokenCard(feedCards: CardList | undefined, feedToExcl
     }
 
     return Object.values(feedCards).find(
-        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult),
+        (card) => !isEmptyObject(card) && card.bank !== feedToExclude && isCardConnectionBroken(card),
     );
 }
 
