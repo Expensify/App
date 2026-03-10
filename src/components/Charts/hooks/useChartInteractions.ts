@@ -94,7 +94,7 @@ function findClosestPoint(xValues: number[], targetX: number): number {
 
 /**
  * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
- * Uses RNGH gestures directly — no dependency on Victory's actionsRef/handleTouch.
+ * Uses react native gesture handler gestures directly — no dependency on Victory's actionsRef/handleTouch.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
 function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
