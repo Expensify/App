@@ -314,6 +314,16 @@ function setPersonalBankAccountID(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
 }
 
+/**
+ * Atomically resets personal bank account state and sets the bankAccountID using a single Onyx.set,
+ * avoiding the race condition between set(null) and merge({bankAccountID}) on the same key.
+ */
+function resetPersonalBankAccountForUpdate(bankAccountID: number) {
+    clearPlaid();
+    Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+}
+
 function clearOnfidoToken() {
     Onyx.merge(ONYXKEYS.ONFIDO_TOKEN, '');
     Onyx.merge(ONYXKEYS.ONFIDO_APPLICANT_ID, '');
@@ -1650,6 +1660,7 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
+    resetPersonalBankAccountForUpdate,
     setPersonalBankAccountID,
     setPlaidEvent,
     openPlaidView,

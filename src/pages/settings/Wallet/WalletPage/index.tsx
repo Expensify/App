@@ -44,13 +44,7 @@ import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAd
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {getFirstPageName} from '@pages/settings/Wallet/UpdatePersonalBankAccountPage';
-import {
-    clearPersonalBankAccount,
-    deletePaymentBankAccount,
-    openPersonalBankAccountSetupView,
-    setPersonalBankAccountContinueKYCOnSuccess,
-    setPersonalBankAccountID,
-} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, resetPersonalBankAccountForUpdate, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {close as closeModal} from '@userActions/Modal';
@@ -182,9 +176,8 @@ function WalletPage() {
         if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
             const [street1, street2] = additionalData?.addressStreet?.split('\n') ?? [];
-            clearPersonalBankAccount();
+            resetPersonalBankAccountForUpdate(accountData.bankAccountID);
             clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-            setPersonalBankAccountID(accountData.bankAccountID);
             Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
                     legalFirstName: additionalData?.firstName,
