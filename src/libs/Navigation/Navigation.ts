@@ -314,7 +314,7 @@ function navigate(route: Route, options?: LinkToOptions) {
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
                 });
             }
-            span.setAttributes({
+            span?.setAttributes({
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
