@@ -553,7 +553,6 @@ describe('TransactionPreviewUtils', () => {
             const resultWithoutViolations = createTransactionPreviewConditionals(functionArgsWithoutViolations);
             const shouldShowRBRWithoutViolations = resultWithoutViolations.shouldShowRBR;
 
-
             const functionArgsWithViolations = {
                 ...basicProps,
                 iouReport,

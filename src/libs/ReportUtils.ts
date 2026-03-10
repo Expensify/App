@@ -12328,7 +12328,6 @@ function getFieldViolation(reportField: PolicyReportField): ReportViolationName 
     }
 
     return (reportField.value ?? reportField.defaultValue) ? undefined : CONST.REPORT_VIOLATIONS.FIELD_REQUIRED;
-
 }
 
 /**

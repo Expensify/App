@@ -151,19 +151,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [
-        report,
-        transactionViolations,
-        isReportArchived,
-        chatReport,
-        reportActions,
-        transactions,
-        reportAttributes?.reportErrors,
-        betas,
-        priorityMode,
-        draftComment,
-        translate,
-    ]);
+    }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
