@@ -13,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem, SelectionListWithSectionsHandle} from './SelectionList/types';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type DestinationPickerProps = {
     policyID: string;

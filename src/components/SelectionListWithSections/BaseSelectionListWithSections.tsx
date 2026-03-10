@@ -34,6 +34,8 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
+const getDefaultItemHeight = () => variables.optionRowHeight;
+
 function BaseSelectionListWithSections<TItem extends ListItem>({
     sections,
     ListItem,
@@ -44,7 +46,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     onCheckboxPress,
     onSelectAll,
     onDismissError,
-    getItemHeight,
+    getItemHeight = getDefaultItemHeight,
     textInputLabel = '',
     textInputPlaceholder = '',
     textInputValue = '',
@@ -289,7 +291,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
             someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
-    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight, ListItem]);
+    }, [customListHeader, customListHeaderHeight, sections, canSelectMultiple, isItemSelected, getItemHeight]);
 
     const wasIncrementPageCancelledRef = useRef(false);
 

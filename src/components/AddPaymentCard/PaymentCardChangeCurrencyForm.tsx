@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 import PaymentCardCurrencyHeader from './PaymentCardCurrencyHeader';
 import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type PaymentCardFormProps = {
     initialCurrency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;

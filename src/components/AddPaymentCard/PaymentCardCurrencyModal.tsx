@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 type PaymentCardCurrencyModalProps = {
     /** Whether the modal is visible */

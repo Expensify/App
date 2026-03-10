@@ -38,7 +38,7 @@ function MultiSelectListItem<TItem extends ListItem>({
                 onSelectRow={onSelectRow}
             />
         );
-    }, [item, onSelectRow, styles.m0]);
+    }, [item, onSelectRow]);
 
     const {itemWithAvatar, computedWrapperStyle} = useMemo(() => {
         if (!icon) {

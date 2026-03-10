@@ -12,7 +12,6 @@ import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 
 type CountrySelectorModalProps = {
     /** Whether the modal is visible */

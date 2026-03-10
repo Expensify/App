@@ -42,7 +42,6 @@ function BaseListItem<TItem extends ListItem>({
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
-    accessibilityState,
     shouldShowRightCaret = false,
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
@@ -81,9 +80,6 @@ function BaseListItem<TItem extends ListItem>({
     const defaultAccessibilityLabel = item.text === item.alternateText ? (item.text ?? '') : [item.text, item.alternateText].filter(Boolean).join(', ');
     const accessibilityLabel = item.accessibilityLabel ?? defaultAccessibilityLabel;
 
-    const accessibilityState =
-        accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
-
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -113,7 +109,6 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={accessibilityLabel}
-                accessibilityState={accessibilityState}
                 role={accessibilityRole}
                 isNested
                 hoverDimmingValue={1}
@@ -136,7 +131,6 @@ function BaseListItem<TItem extends ListItem>({
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
-                    accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
                         wrapperStyle,
                         isFocused &&
