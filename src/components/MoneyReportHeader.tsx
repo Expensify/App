@@ -72,6 +72,7 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
+    getLinkedIOUTransaction,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
@@ -1247,9 +1248,7 @@ function MoneyReportHeader({
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            const actionIOUTransactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-                            const linkedTransaction = actionIOUTransactionID ? transactions.find((item) => item.transactionID === actionIOUTransactionID) : undefined;
-                            changeMoneyRequestHoldStatus(action, linkedTransaction);
+                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
                         }
                         return;
                     }
@@ -1258,9 +1257,7 @@ function MoneyReportHeader({
                     if (!moneyRequestAction) {
                         return;
                     }
-                    const actionIOUTransactionID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUTransactionID : undefined;
-                    const linkedTransaction = actionIOUTransactionID ? transactions.find((item) => item.transactionID === actionIOUTransactionID) : undefined;
-                    changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction);
+                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
                 }}
             />
         ),
