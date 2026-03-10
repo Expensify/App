@@ -13,19 +13,6 @@ let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let offline = false;
 let authenticating = false;
 
-// Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
-let reconnectCallback: () => void;
-function triggerReconnectCallback() {
-    if (typeof reconnectCallback !== 'function') {
-        return;
-    }
-    return reconnectCallback();
-}
-
-function onReconnection(callbackFunction: () => void) {
-    reconnectCallback = callbackFunction;
-}
-
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -70,19 +57,12 @@ Onyx.connectWithoutView({
     },
 });
 
-// We subscribe to the online/offline status of the network to determine when we should fire off API calls
-// vs queueing them for later.
-// Use connectWithoutView since this doesn't affect to any UI
+// Subscribe to offline state — simplified to just track the flag
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
-        }
-
-        // Client becomes online emit connectivity resumed event
-        if (offline && !network.isOffline) {
-            triggerReconnectCallback();
         }
 
         offline = !!network.shouldForceOffline || !!network.isOffline;
@@ -136,7 +116,6 @@ export {
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
     isOffline,
-    onReconnection,
     isAuthenticating,
     setIsAuthenticating,
     getCredentials,

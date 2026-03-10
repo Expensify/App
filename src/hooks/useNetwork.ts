@@ -1,6 +1,5 @@
 import {networkStatusSelector} from '@selectors/Network';
 import {useEffect, useRef} from 'react';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
@@ -18,9 +17,7 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         selector: networkStatusSelector,
     });
 
-    // Extract values with proper defaults
     const isOffline = network?.isOffline ?? false;
-    const networkStatus = network?.networkStatus;
     const lastOfflineAt = network?.lastOfflineAt;
 
     const prevOfflineStatusRef = useRef(isOffline);
@@ -35,10 +32,8 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
     }, [isOffline]);
 
     useEffect(() => {
-        // Used to store previous prop values to compare on next render
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
-    return {isOffline: networkStatus === CONST.NETWORK.NETWORK_STATUS.UNKNOWN ? false : isOffline, lastOfflineAt};
+    return {isOffline, lastOfflineAt};
 }

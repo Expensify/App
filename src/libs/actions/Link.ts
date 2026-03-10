@@ -15,7 +15,6 @@ import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoo
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {NetworkStatus} from '@libs/NetworkConnection';
 import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -34,13 +33,11 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let isNetworkOffline = false;
-let networkStatus: NetworkStatus;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         isNetworkOffline = value?.isOffline ?? false;
-        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
     },
 });
 
@@ -247,7 +244,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
         openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true});
 
         // Show the sign-in page if the app is offline
-        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+        if (isNetworkOffline) {
             endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
             doneCheckingPublicRoom();
         }

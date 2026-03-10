@@ -1,12 +1,12 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import NetworkConnection from '@libs/NetworkConnection';
+import NetworkState from '@libs/NetworkState';
 import Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import {getReportIDFromLink} from '@libs/ReportUtils';
@@ -54,23 +54,6 @@ function AuthScreensInitHandler() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
-    const isLoadingAppRef = useRef(isLoadingApp);
-
-    lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
-    isLoadingAppRef.current = isLoadingApp;
-
-    const handleNetworkReconnect = () => {
-        if (isLoadingAppRef.current) {
-            App.openApp();
-        } else {
-            Log.info('[handleNetworkReconnect] Sending ReconnectApp');
-            App.reconnectApp(lastUpdateIDAppliedToClientRef.current);
-        }
-    };
-
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
@@ -89,8 +72,8 @@ function AuthScreensInitHandler() {
             return;
         }
 
-        NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => handleNetworkReconnect());
+        // Wire app foreground listener for recovery probing and reconnection
+        NetworkState.initAppForegroundListener();
 
         // Pusher initialization span
         startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT, {

@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
-import {isOffline, onReconnection} from './NetworkStore';
+import {isOffline} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -124,11 +124,6 @@ function process(): Promise<void> {
     // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to process. Queue is paused.');
-        return Promise.resolve();
-    }
-
-    if (isOffline()) {
-        Log.info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
 
@@ -340,14 +335,14 @@ function flush(shouldResetPromise = true) {
                 const remainingRequests = getAllPersistedRequests().length;
                 Log.info('[SequentialQueue] Finished processing queue.', false, {
                     remainingRequests,
-                    isOffline: isOffline(),
-                    willResolvePromise: isOffline() || remainingRequests === 0,
+                    isQueuePaused,
+                    willResolvePromise: isQueuePaused || remainingRequests === 0,
                 });
 
                 isSequentialQueueRunning = false;
-                if (isOffline() || remainingRequests === 0) {
+                if (isQueuePaused || remainingRequests === 0) {
                     Log.info('[SequentialQueue] Resolving isReadyPromise', false, {
-                        reason: isOffline() ? 'offline' : 'queue empty',
+                        reason: isQueuePaused ? 'queue paused' : 'queue empty',
                     });
                     resolveIsReadyPromise?.();
                 }
@@ -429,9 +424,6 @@ function isPaused(): boolean {
 function getShouldFailAllRequests(): boolean {
     return shouldFailAllRequests;
 }
-
-// Flush the queue when the connection resumes
-onReconnection(flush);
 
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
@@ -517,15 +509,6 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         });
         // Add request to Persisted Requests so that it can be retried if it fails
         savePersistedRequest(newRequest);
-    }
-
-    // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
-    if (isOffline()) {
-        Log.info('[SequentialQueue] Unable to push request due to offline status', false, {
-            command: newRequest.command,
-            queueLength: getAllPersistedRequests().length,
-        });
-        return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch

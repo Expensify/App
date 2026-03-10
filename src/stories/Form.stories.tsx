@@ -13,9 +13,9 @@ import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import NetworkConnection from '@libs/NetworkConnection';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions/FormActions';
+import {setIsOffline} from '@userActions/Network';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import {defaultStyles} from '@src/styles';
@@ -66,7 +66,7 @@ const story: Meta<typeof FormProvider> = {
 
 function Template(props: FormProviderProps & FormProviderOnyxProps) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
+    setIsOffline(false);
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
 
@@ -180,7 +180,7 @@ function WithNativeEventHandler(props: FormProviderProps & FormProviderOnyxProps
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
-    NetworkConnection.setOfflineStatus(false);
+    setIsOffline(false);
     setIsLoading(props.formID, !!props.formState?.isLoading);
     setDraftValues(props.formID, props.draftValues);
 

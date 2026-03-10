@@ -2027,17 +2027,15 @@ const CONST = {
         },
         MIN_RETRY_WAIT_TIME_MS: 10,
         MAX_RANDOM_RETRY_WAIT_TIME_MS: 100,
-        MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
+        MAX_RETRY_WAIT_TIME_MS: 30 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
-        NETWORK_STATUS: {
-            ONLINE: 'online',
-            OFFLINE: 'offline',
-            UNKNOWN: 'unknown',
-        },
+        SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
+        SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
+        RECOVERY_PROBE_INITIAL_MS: 5 * 1000,
+        RECOVERY_PROBE_CAP_MS: 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours

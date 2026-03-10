@@ -4,7 +4,7 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import {FailureTracking, handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import SentryServerTiming from '@libs/Middleware/SentryServerTiming';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -26,8 +26,8 @@ import {READ_COMMANDS} from './types';
 // Logging - Logs request details and errors.
 addMiddleware(Logging);
 
-// RecheckConnection - Sets a timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
-addMiddleware(RecheckConnection);
+// FailureTracking - Observes request outcomes and feeds them to FailureTracker for sustained failure detection.
+addMiddleware(FailureTracking);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
 addMiddleware(Reauthentication);

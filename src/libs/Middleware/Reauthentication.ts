@@ -4,7 +4,6 @@ import Log from '@libs/Log';
 import {replay as replayMainQueue} from '@libs/Network/MainQueue';
 import {isAuthenticating as isAuthenticatingNetworkStore, isOffline, setIsAuthenticating} from '@libs/Network/NetworkStore';
 import type {RequestError} from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
@@ -104,7 +103,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            NetworkConnection.triggerReconnectionCallbacks('read request made with expired authToken');
+                            // After reauth, the queue will naturally retry. No reconnection callback needed.
                             return Promise.resolve();
                         }
 

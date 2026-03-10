@@ -28,20 +28,17 @@ describe('networkStatusSelector', () => {
     it('returns network status fields when network data is provided', () => {
         const network: OnyxEntry<Network> = {
             isOffline: true,
-            networkStatus: CONST.NETWORK.NETWORK_STATUS.OFFLINE,
             lastOfflineAt: '2024-01-01T00:00:00Z',
         };
         expect(networkStatusSelector(network)).toEqual({
             isOffline: true,
-            networkStatus: CONST.NETWORK.NETWORK_STATUS.OFFLINE,
             lastOfflineAt: '2024-01-01T00:00:00Z',
         });
     });
 
-    it('returns default data with UNKNOWN status when network is undefined', () => {
+    it('returns default data when network is undefined', () => {
         expect(networkStatusSelector(undefined)).toEqual({
             ...CONST.DEFAULT_NETWORK_DATA,
-            networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN,
         });
     });
 
@@ -49,7 +46,6 @@ describe('networkStatusSelector', () => {
         const network: OnyxEntry<Network> = {isOffline: false};
         expect(networkStatusSelector(network)).toEqual({
             isOffline: false,
-            networkStatus: undefined,
             lastOfflineAt: undefined,
         });
     });
