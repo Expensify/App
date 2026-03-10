@@ -645,6 +645,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+        /** Whether this list item should be an accessibility container. When false, VoiceOver navigates to individual children instead of grouping them. */
+        accessible?: false;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &

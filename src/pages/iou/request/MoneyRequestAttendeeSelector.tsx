@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -84,6 +85,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const reportAttributesDerived = useReportAttributes();
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -236,9 +238,11 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
 
         const isPolicyExpenseChat = dedupedSearchOptions.userToInvite?.isPolicyExpenseChat ?? false;
+        const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
         return isPolicyExpenseChat
             ? getPolicyExpenseReportOption(
                   dedupedSearchOptions.userToInvite,
+                  privateIsArchived,
                   currentUserAccountID,
                   personalDetails,
                   userToInviteExpenseReport,
@@ -246,7 +250,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                   reportAttributesDerived,
               )
             : toSearchOptionData(getParticipantsOption(dedupedSearchOptions.userToInvite, personalDetails));
-    }, [currentUserAccountID, currentUserEmail, loginList, dedupedSearchOptions.userToInvite, personalDetails, reportAttributesDerived, userToInviteChatReport, userToInviteExpenseReport]);
+    }, [
+        currentUserAccountID,
+        currentUserEmail,
+        loginList,
+        dedupedSearchOptions.userToInvite,
+        personalDetails,
+        reportAttributesDerived,
+        userToInviteChatReport,
+        userToInviteExpenseReport,
+        privateIsArchivedMap,
+    ]);
 
     const sections = useMemo(
         () =>
