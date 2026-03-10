@@ -183,7 +183,8 @@ function SearchFiltersBarCreateButton() {
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
                             !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) && groupPoliciesWithChatEnabled.length > 1)
+                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
+                                groupPoliciesWithChatEnabled.length > 1)
                         ) {
                             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                             return;
