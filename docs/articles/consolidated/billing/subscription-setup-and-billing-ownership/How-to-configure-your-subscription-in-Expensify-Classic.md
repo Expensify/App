@@ -4,6 +4,8 @@ description: Learn how to view your subscription details, explore workspace plan
 keywords: manage Expensify Classic subscription, Expensify Classic subscription settings, view Expensify subscription, change Expensify Classic plan, update subscription payment method Expensify
 internalScope: Audience is Billing Owners. Covers all subscription and payment management actions available in Expensify Classic. Does not cover New Expensify, billing disputes, or invoices.
 order: 5
+platform: Expensify_Classic
+
 ---
 
 # How to configure your subscription in Expensify Classic

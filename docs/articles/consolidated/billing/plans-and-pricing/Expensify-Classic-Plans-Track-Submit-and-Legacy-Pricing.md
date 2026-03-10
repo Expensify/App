@@ -4,6 +4,8 @@ description: Learn about Track and Submit plans for Expensify Classic Individual
 keywords: [Expensify Classic, Track plan, Submit plan, Individual workspace, legacy pricing, personal expense tracking, SmartScans Individual workspace, Expensify Classic plan types]
 internalScope: Audience is Expensify Classic users with Individual workspaces or on legacy pricing. Covers Track and Submit plan features, Individual workspace pricing, and legacy pricing notices. Does not cover Collect or Control plans (Group workspaces).
 order: 6
+platform: Expensify_Classic
+
 ---
 
 # Expensify Classic Plans: Track, Submit, and Legacy Pricing

@@ -3,6 +3,8 @@ title: Personal and Corporate Karma
 description: Details about Personal and Corporate Karma
 keywords: [Expensify Classic, karma points, personal karma, corporate karma]
 order: 2
+platform: Expensify_Classic
+
 ---
 
 **Note:** This article applies to Expensify Classic only.

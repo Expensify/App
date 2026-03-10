@@ -13,6 +13,7 @@ description: Step-by-step instructions for billing owners and Workspace Admins t
 keywords: [New Expensify, cancel subscription, update payment method, delete workspace, transfer billing ownership, retry billing, subscription management]
 internalScope: Step-by-step instructions for managing subscriptions and billing in New Expensify only. Relies on shared conceptual article for billing rules, eligibility, and transfer timing.
 order: 2
+platform: New_Expensify
 ---
 
 # How to manage subscriptions and billing in New Expensify
