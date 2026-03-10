@@ -126,6 +126,7 @@ function InternationalDepositAccountContent({
         onFinished: handleFinishStep,
         skipPages: skippedPages,
         buildRoute: (pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, pageName, action),
+        forceReplaceOnPrev: true,
     });
 
     const goBackToConfirmStep = () => {

@@ -15,7 +15,15 @@ const AMOUNT_OF_FRAMES_TO_WAIT_FOR = 20;
  * @param skipPages - array of page names to skip
  * @param buildRoute - function that returns the route for a given page name and optional action
  */
-export default function useSubPage<TProps extends SubPageProps>({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute}: UseSubPageProps<TProps>) {
+export default function useSubPage<TProps extends SubPageProps>({
+    pages,
+    onFinished,
+    startFrom = 0,
+    skipPages = [],
+    onPageChange = () => {},
+    buildRoute,
+    forceReplaceOnPrev = false,
+}: UseSubPageProps<TProps>) {
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
     const urlPageName = params?.subPage;
@@ -70,6 +78,10 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
+            if (forceReplaceOnPrev) {
+                Navigation.navigate(buildRoute(targetPage.pageName), {forceReplace: true});
+                return;
+            }
             Navigation.goBack(buildRoute(targetPage.pageName));
         }
     };
