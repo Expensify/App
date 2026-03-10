@@ -32,7 +32,7 @@ function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
     const {localPublicKey, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
 
     const {singleExecution} = useSingleExecution();
@@ -128,13 +128,13 @@ function TestToolMenu() {
                             {isCurrentDeviceRegistered && !!localPublicKey && (
                                 <Button
                                     danger
-                                    isLoading={isLoading}
+                                    isLoading={isMFARevokeLoading}
                                     small
                                     text={translate('multifactorAuthentication.revoke.revoke')}
                                     onPress={async () => {
-                                        setIsLoading(true);
+                                        setIsMFARevokeLoading(true);
                                         await revokeMultifactorAuthenticationCredentials({onlyKeyID: localPublicKey});
-                                        setIsLoading(false);
+                                        setIsMFARevokeLoading(false);
                                     }}
                                 />
                             )}
