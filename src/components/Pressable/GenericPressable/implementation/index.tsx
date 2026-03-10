@@ -5,8 +5,8 @@ import GenericPressable from './BaseGenericPressable';
 
 function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: PressableProps) {
     const accessible = (props.accessible ?? props.accessible === undefined) ? true : props.accessible;
-    const ariaLabel = props.accessibilityLabel ?? undefined;
-    const ariaDescription = props.accessibilityHint ?? undefined;
+    const ariaLabel = props.accessibilityLabel;
+    const ariaDescription = props.accessibilityHint;
     const ariaLabelWithHint = ariaDescription ? [ariaLabel, ariaDescription].filter(Boolean).join('. ') : ariaLabel;
 
     return (
