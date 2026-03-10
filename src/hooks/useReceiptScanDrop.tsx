@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,9 +37,8 @@ function useReceiptScanDrop() {
     const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
     const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
 
-    const newReportID = generateReportID();
-    const [newReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReportID}`);
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${newReport?.parentReportID}`);
+    // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
+    const newReportID = useMemo(() => generateReportID(), []);
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -46,9 +46,9 @@ function useReceiptScanDrop() {
             isFromFloatingActionButton: true,
             reportID: newReportID,
             personalPolicy,
+            report: undefined,
+            parentReport: undefined,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            report: newReport,
-            parentReport: newParentReport,
             currentDate,
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,

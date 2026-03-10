@@ -422,6 +422,51 @@ describe('SubscriptionUtils', () => {
 
             expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
+
+        it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, 500, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+        });
+
+        it('should not restrict when amountOwed is passed directly as 0', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, 0, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
+
+        it('should not restrict when amountOwed is passed directly as undefined', async () => {
+            const accountID = 1;
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+        });
     });
 
     describe('getSubscriptionStatus', () => {
