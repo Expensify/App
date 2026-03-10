@@ -41,6 +41,7 @@ import type {
 } from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {filterObject} from './ObjectUtils';
 import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
@@ -100,7 +101,11 @@ const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS.PEX,
 } satisfies Partial<Record<CardFeed, BankName | NonConnectableBankName | CardTypeName>>;
 
-const feedNamesMappingKeys = Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>;
+// Longest prefix first so e.g. AMEX_1205 matches before AMEX
+const feedNamesMappingKeysByLength = (Object.keys(feedNamesMapping) as Array<keyof typeof feedNamesMapping>).sort((a, b) => b.length - a.length);
+
+const GET_BANK_NAME_CACHE_MAX_SIZE = 200;
+const getBankNameCache = new Map<string, string>();
 
 /**
  * @returns string with a month in MM format
@@ -389,7 +394,10 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
-    return Object.values(bankAccountsList).filter((bankAccount) => bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit);
+    return Object.values(bankAccountsList).filter(
+        (bankAccount) =>
+            bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && bankAccount?.accountData?.allowDebit && !isBankAccountPartiallySetup(bankAccount?.accountData?.state),
+    );
 }
 
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
@@ -400,6 +408,7 @@ function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAcco
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
+            !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
             (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
     );
@@ -584,18 +593,25 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
+    const cacheKey = feedType ?? '';
+    const cached = getBankNameCache.get(cacheKey);
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    let result: string;
     if (feedType?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
-        return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+        result = CONST.COMPANY_CARDS.CARD_TYPE.CSV;
+    } else {
+        const feedKey = feedNamesMappingKeysByLength.find((feed) => feedType?.startsWith(feed));
+        result = feedKey ? feedNamesMapping[feedKey] : '';
     }
 
-    // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = feedNamesMappingKeys.find((feed) => feedType?.startsWith(feed));
-
-    if (!feedKey) {
-        return '';
+    if (getBankNameCache.size >= GET_BANK_NAME_CACHE_MAX_SIZE) {
+        getBankNameCache.clear();
     }
-
-    return feedNamesMapping[feedKey];
+    getBankNameCache.set(cacheKey, result);
+    return result;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
@@ -1084,11 +1100,26 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, feedCou
         return undefined;
     }
 
-    if (feedCountry) {
-        const feedCountryCardSettings = cardSettings[feedCountry as keyof typeof cardSettings];
-        if (feedCountryCardSettings && typeof feedCountryCardSettings === 'object' && !Array.isArray(feedCountryCardSettings)) {
-            return feedCountryCardSettings as ExpensifyCardSettingsBase;
+    const getMergedProgramSettings = (programKey: string): ExpensifyCardSettingsBase | undefined => {
+        const programSettings = cardSettings[programKey as keyof typeof cardSettings];
+        if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
+            // Nested program values take precedence — they are the authoritative source for
+            // program-specific fields once the backend sends the full nested format (Phase 2).
+            return {...cardSettings, ...(programSettings as ExpensifyCardSettingsBase)} as ExpensifyCardSettingsBase;
         }
+        return undefined;
+    };
+
+    if (feedCountry) {
+        return getMergedProgramSettings(feedCountry) ?? cardSettings;
+    }
+
+    // Auto-detect: try known card programs in priority order so callers that
+    // don't pass feedCountry still get the right program sub-object when the
+    // backend sends nested settings (Phase 2 of fixing shared Onyx key).
+    const result = getMergedProgramSettings(CONST.COUNTRY.US) ?? getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ?? getMergedProgramSettings(CONST.COUNTRY.GB);
+    if (result) {
+        return result;
     }
 
     return cardSettings;
@@ -1191,7 +1222,7 @@ function getCompanyCardFeed(feedWithDomainID: CardFeedWithNumber | CardFeedWithD
  * @returns true if the card is a personal card, false otherwise
  */
 function isPersonalCard(card?: Card) {
-    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARD.BANK_NAME.CSV;
+    return !card?.fundID || card.fundID === '0' || card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
 }
 
 type SplitMaskedCardNumberResult = {
@@ -1228,23 +1259,42 @@ function splitMaskedCardNumber(cardNumber: string | undefined, maskChar: string 
     };
 }
 
-function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number): boolean {
+function isCardAlreadyAssigned(cardNumberToCheck: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>, domainOrWorkspaceAccountID: number, feedName?: string): boolean {
     if (!cardNumberToCheck || !workspaceCardFeeds) {
         return false;
     }
+
+    const isDirectFeedType = isDirectFeed(feedName);
 
     return Object.entries(workspaceCardFeeds).some(([key, workspaceCards]) => {
         if (!workspaceCards) {
             return false;
         }
 
-        const cardFeedKeyParts = key.split('_');
-        const feedDomainID = Number(cardFeedKeyParts.at(1));
-        if (cardFeedKeyParts.length !== 3 || cardFeedKeyParts.at(0) !== ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST || Number.isNaN(feedDomainID)) {
+        // Strip the collection prefix and split on the first underscore only,
+        // so feed names containing underscores (e.g., "plaid.ins_123456") are preserved.
+        const feedKey = key.replace(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, '');
+        const separatorIndex = feedKey.indexOf('_');
+        if (separatorIndex === -1) {
             return false;
         }
 
-        if (feedDomainID !== domainOrWorkspaceAccountID) {
+        const feedDomainID = Number(feedKey.substring(0, separatorIndex));
+        const feedBankName = feedKey.substring(separatorIndex + 1);
+
+        if (Number.isNaN(feedDomainID) || !feedBankName) {
+            return false;
+        }
+
+        // For direct feeds (Plaid/OAuth): check across ALL workspaces that share the same feed name,
+        // because the same Plaid card should not be assignable to multiple workspaces.
+        // For commercial feeds: restrict to the current domain only, because different domains
+        // can legitimately have cards with the same masked display name (e.g., "VISA - 1234").
+        if (isDirectFeedType) {
+            if (feedName && feedBankName !== feedName) {
+                return false;
+            }
+        } else if (feedDomainID !== domainOrWorkspaceAccountID) {
             return false;
         }
 
