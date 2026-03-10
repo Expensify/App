@@ -181,26 +181,26 @@ function WalletPage() {
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
-            const [street1 = '', street2 = ''] = additionalData?.addressStreet?.split('\n') ?? [];
+            const [street1, street2] = additionalData?.addressStreet?.split('\n') ?? [];
             clearPersonalBankAccount();
             setPersonalBankAccountID(accountData.bankAccountID);
             Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
-                    legalFirstName: additionalData?.firstName ?? '',
-                    legalLastName: additionalData?.lastName ?? '',
-                    addressStreet: street1,
-                    addressStreet2: street2,
-                    addressCity: additionalData?.addressCity ?? '',
-                    addressState: additionalData?.addressState ?? '',
-                    addressZipCode: additionalData?.addressZipCode ?? '',
-                    phoneNumber: additionalData?.companyPhone ?? '',
+                    legalFirstName: additionalData?.firstName,
+                    legalLastName: additionalData?.lastName,
+                    addressStreet: street1 || undefined,
+                    addressStreet2: street2 || undefined,
+                    addressCity: additionalData?.addressCity,
+                    addressState: additionalData?.addressState,
+                    addressZipCode: additionalData?.addressZipCode,
+                    phoneNumber: additionalData?.companyPhone,
                 }),
                 setDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM, {
-                    addressLine1: street1,
-                    addressLine2: street2,
-                    city: additionalData?.addressCity ?? '',
-                    state: additionalData?.addressState ?? '',
-                    zipPostCode: additionalData?.addressZipCode ?? '',
+                    addressLine1: street1 || undefined,
+                    addressLine2: street2 || undefined,
+                    city: additionalData?.addressCity,
+                    state: additionalData?.addressState,
+                    zipPostCode: additionalData?.addressZipCode,
                     country: CONST.COUNTRY.US,
                 }),
             ]).then(() => {
