@@ -168,7 +168,7 @@ function MoneyRequestReportTransactionList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'CheckSquare', 'ReceiptPlus', 'Columns']);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const {markReportIDAsExpense} = useWideRHPActions();
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -527,7 +527,7 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}
+            style={[listHorizontalPadding, isLargeScreenWidth ? styles.gap1 : styles.gap2, styles.pb4, styles.mb2]}
             onLayout={onLayout}
         >
             {shouldShowGroupedTransactions
@@ -542,7 +542,7 @@ function MoneyRequestReportTransactionList({
                       return (
                           <View
                               key={group.groupKey}
-                              style={styles.gap2}
+                              style={isLargeScreenWidth ? styles.gap1 : styles.gap2}
                           >
                               <MoneyRequestReportGroupHeader
                                   group={group}
