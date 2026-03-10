@@ -407,7 +407,6 @@ function MoneyRequestView({
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName;
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -417,6 +416,9 @@ function MoneyRequestView({
     const isMarkAsCash = parentReport && currentUserEmailParam ? isMarkAsCashActionForTransaction(currentUserEmailParam, parentReport, transactionViolations, policy) : false;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+
+    const shouldShowTax =
+        isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest) || !!transaction?.taxName || hasViolations('tax');
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
