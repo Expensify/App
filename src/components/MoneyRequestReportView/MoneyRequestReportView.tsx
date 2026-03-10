@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -57,6 +58,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -86,9 +90,12 @@ function goBackFromSearchMoneyRequest() {
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
-function InitialLoadingSkeleton({styles, reasonAttributes}: {styles: ThemeStyles; reasonAttributes: SkeletonSpanReasonAttributes}) {
+function InitialLoadingSkeleton({styles, onLayout, reasonAttributes}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void, reasonAttributes: SkeletonSpanReasonAttributes}) {
     return (
-        <View style={[styles.flex1]}>
+        <View
+            style={[styles.flex1]}
+            onLayout={onLayout}
+        >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
                 <ReportHeaderSkeletonView
                     onBackButtonPress={() => {}}
@@ -100,7 +107,7 @@ function InitialLoadingSkeleton({styles, reasonAttributes}: {styles: ThemeStyles
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -296,6 +303,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 newTransactions={newTransactions}
                                 reportActions={reportActions}
                                 hasOlderActions={hasOlderActions}
+                                onLayout={onLayout}
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
@@ -308,6 +316,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasNewerActions={hasNewerActions}
                                 hasOlderActions={hasOlderActions}
                                 parentReportAction={parentReportAction}
+                                onLayout={onLayout}
                                 transactionThreadReportID={transactionThreadReportID}
                             />
                         )}
