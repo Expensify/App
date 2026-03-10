@@ -1,3 +1,4 @@
+import {reconnect} from '@libs/actions/Reconnect';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import {reauthenticate as reauthenticateLibs} from '@libs/Authentication';
 import Log from '@libs/Log';
@@ -103,7 +104,8 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         if (apiRequestType === CONST.API_REQUEST_TYPE.READ) {
-                            // After reauth, the queue will naturally retry. No reconnection callback needed.
+                            // Re-sync app data after successful re-authentication
+                            reconnect();
                             return Promise.resolve();
                         }
 

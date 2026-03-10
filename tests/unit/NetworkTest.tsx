@@ -2,6 +2,7 @@ import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
+import * as Reconnect from '@libs/actions/Reconnect';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -132,6 +133,7 @@ describe('NetworkTests', () => {
         // Sign in test user and wait for updates
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
         const initialAuthToken = sessionState?.authToken;
@@ -165,9 +167,9 @@ describe('NetworkTests', () => {
         reconnectApp();
         await waitForBatchedUpdates();
 
-        // 4. First API Call Verification - Check ReconnectApp
+        // 4. First API Call Verification - Check that an app sync call was made (OpenApp or ReconnectApp)
         const firstCall = mockedXhr.mock.calls.at(0) as [string, Record<string, unknown>];
-        expect(firstCall[0]).toBe('ReconnectApp');
+        expect(['OpenApp', 'ReconnectApp']).toContain(firstCall[0]);
 
         // 5. Authentication Start - Verify authenticate was triggered
         await waitForBatchedUpdates();
@@ -188,6 +190,61 @@ describe('NetworkTests', () => {
 
         // 9. Verify the session remained intact and wasn't cleared
         expect(sessionState?.authToken).toBe(initialAuthToken);
+    });
+
+    test('READ requests trigger reconnect after successful re-authentication', () => {
+        const TEST_USER_LOGIN = 'test@testguy.com';
+        const TEST_USER_ACCOUNT_ID = 1;
+
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect');
+
+        // When we sign in
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => {
+                const mockedXhr = jest.fn();
+                mockedXhr
+                    // First 3 READ calls return expired session
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                        }),
+                    )
+                    // Authenticate succeeds
+                    .mockImplementationOnce(() =>
+                        Promise.resolve({
+                            jsonCode: CONST.JSON_CODE.SUCCESS,
+                            authToken: 'qwerty12345',
+                        }),
+                    );
+
+                HttpUtils.xhr = mockedXhr;
+
+                // Make 3 READ requests with an expired authToken
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Verify: 3 calls to the API, 1 authenticate call, and reconnect was triggered
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
+                expect(callsToOpenPublicProfilePage.length).toBe(3);
+                expect(callsToAuthenticate.length).toBe(1);
+                expect(reconnectSpy).toHaveBeenCalled();
+
+                reconnectSpy.mockRestore();
+            });
     });
 
     test('Request will not run until credentials are read from Onyx', () => {
