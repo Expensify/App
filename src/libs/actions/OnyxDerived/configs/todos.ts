@@ -67,7 +67,7 @@ const createTodosReportsAndTransactions = ({
         if (isPrimaryPayAction(report, currentUserAccountID, login, bankAccountList, policy, reportNameValuePair)) {
             reportsToPay.push(report);
         }
-        if (isExportAction(report, login, policy, reportActions)) {
+        if (isExportAction(report, login, policy, reportActions) && policy?.exporter === login) {
             reportsToExport.push(report);
         }
     }
