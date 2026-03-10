@@ -9,6 +9,8 @@ import splitPathAndQuery from './splitPathAndQuery';
  *
  * @param dynamicSuffix - The dynamic route path segment (e.g., 'country')
  * @returns The list of query param keys to strip, or undefined if no match or no queryParams config
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
 function getQueryParamsToStrip(dynamicSuffix: string): readonly string[] | undefined {
     const keys = Object.keys(DYNAMIC_ROUTES) as Array<keyof typeof DYNAMIC_ROUTES>;

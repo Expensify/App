@@ -21,6 +21,11 @@ type RouteNode = LeafRoute | NestedRoute;
 
 const configEntries = Object.entries(normalizedConfigs);
 
+/**
+ * Parses a query string into a key-value record.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
+ */
 function getParamsFromQuery(query: string | undefined): Record<string, string> | undefined {
     if (!query) {
         return undefined;
@@ -34,9 +39,12 @@ function getParamsFromQuery(query: string | undefined): Record<string, string> |
     return Object.fromEntries(entries);
 }
 
+/**
+ * Looks up the navigation screen hierarchy (routeNames) for a given dynamic route suffix.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
+ */
 function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): string[] | null {
-    // Search through normalized configs to find matching path and extract navigation hierarchy
-    // routeNames contains the sequence of screen/navigator names that should be present in the navigation state
     for (const [, config] of configEntries) {
         if (config.path === dynamicRouteName) {
             return config.routeNames;

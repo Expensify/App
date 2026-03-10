@@ -11,6 +11,8 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @param suffixQuery - The query string of the suffix
  * @returns The merged query string or an empty string if both are empty
  *
+ * @private - Internal helper. Do not export or use outside this file.
+ *
  * @example
  * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
  * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
@@ -32,6 +34,11 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     return result ? `?${result}` : '';
 };
 
+/**
+ * Combines a base path with a dynamic route suffix, merging their query parameters.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
+ */
 const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route => {
     const [normalizedBasePath, baseQuery] = splitPathAndQuery(basePath);
     const [suffixPath, suffixQuery] = splitPathAndQuery(suffixWithQuery);
