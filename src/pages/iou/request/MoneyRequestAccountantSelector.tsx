@@ -11,6 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useUserToInviteReports from '@hooks/useUserToInviteReports';
@@ -72,6 +73,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -162,6 +164,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
             reports,
@@ -194,8 +197,17 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             newSections.push({
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, userToInviteExpenseReport, userToInviteChatReport, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              userToInviteExpenseReport,
+                              userToInviteChatReport,
+                              reportAttributesDerived,
+                          )
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -226,6 +238,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         translate,
         loginList,
         countryCode,
+        privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
     ]);
@@ -249,7 +262,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         [selectAccountant],
     );
 
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -258,7 +271,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return sections.reduce((acc, section) => acc + section.data.length, 0);
     }, [areOptionsInitialized, sections]);
 
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
+    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !shouldShowLoadingPlaceholder, [optionLength, shouldShowLoadingPlaceholder]);
 
     const textInputOptions = {
         value: searchTerm,
@@ -281,9 +294,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             shouldSingleExecuteRowSelect
             textInputOptions={textInputOptions}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             isLoadingNewOptions={!!isSearchingForReports}
-            showListEmptyContent={shouldShowListEmptyContent}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
         />
     );
 }
