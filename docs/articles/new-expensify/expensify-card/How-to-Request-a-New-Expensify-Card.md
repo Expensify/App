@@ -16,12 +16,12 @@ If your Expensify Visa® Commercial Card is damaged, lost, or stolen, you can re
 If your physical card is damaged but still in your possession, you can request a replacement without immediately deactivating your current card.
 
 1. Go to **Account > Wallet** from the navigation tabs (on the left on web, and at the bottom on mobile).
-2. Locate your physical Expensify Card and click **Report card lost or damaged**.
-3. Choose **My card was damaged**.
+2. Select your physical Expensify Card and choose **Report card lost or damaged**.
+3. Choose **My card was damaged** and select **Next**
 4. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and click **Save**.
 5. Click **Ship new card** to complete the replacement request.
 
-Your replacement Expensify Visa® Commercial Card will arrive in 3-5 business days.
+Your new Expensify Visa® Commercial Card will be shipped to the confirmed address and arrive in 3-5 business days. You can continue using your current Expensify Card until you activate your replacement card.
 
 ---
 
@@ -30,12 +30,12 @@ Your replacement Expensify Visa® Commercial Card will arrive in 3-5 business da
 If your card has been lost or stolen, you should report it immediately. Reporting a card as lost or stolen will deactivate it right away to prevent unauthorized use.
 
 1. Go to **Account > Wallet** from the navigation tabs (on the left on web, and at the bottom on mobile).
-2. Locate your physical Expensify Card and click **Report card lost or damaged**.
+2. Select your physical Expensify Card and choose **Report card lost or damaged**.
 3. Choose **My card was lost or stolen**.
 4. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and click **Save**.
 5. Click **Deactivate card** to deactivate your current card and complete the replacement request.
 
-Your new Expensify Visa® Commercial Card will be shipped to the confirmed address and arrive in 3-5 business days.
+Your current card is deactivated immediately, and your replacement card will arrive in 3–5 business days.
 
 ---
 
