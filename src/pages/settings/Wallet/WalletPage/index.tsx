@@ -189,7 +189,7 @@ function WalletPage() {
                     legalFirstName: additionalData?.firstName,
                     legalLastName: additionalData?.lastName,
                     addressStreet: street1 || undefined,
-                    addressStreet2: street2 || undefined,
+                    addressStreet2: street2 ?? '',
                     addressCity: additionalData?.addressCity,
                     addressState: additionalData?.addressState,
                     addressZipCode: additionalData?.addressZipCode,
@@ -197,7 +197,7 @@ function WalletPage() {
                 }),
                 setDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM, {
                     addressLine1: street1 || undefined,
-                    addressLine2: street2 || undefined,
+                    addressLine2: street2 ?? '',
                     city: additionalData?.addressCity,
                     state: additionalData?.addressState,
                     zipPostCode: additionalData?.addressZipCode,
