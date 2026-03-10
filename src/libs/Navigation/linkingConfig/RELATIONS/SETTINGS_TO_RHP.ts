@@ -3,7 +3,7 @@ import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between settings split navigator's central screens and RHP screens.
 const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, string[]>> = {
-    [SCREENS.SETTINGS.PROFILE.ROOT]: [
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE]: [
         SCREENS.SETTINGS.PROFILE.DISPLAY_NAME,
         SCREENS.SETTINGS.PROFILE.CONTACT_METHODS,
         SCREENS.SETTINGS.PROFILE.AVATAR,

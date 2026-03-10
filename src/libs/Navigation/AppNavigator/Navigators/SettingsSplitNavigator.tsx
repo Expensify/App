@@ -16,7 +16,7 @@ type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React
 const CENTRAL_PANE_SETTINGS_SCREENS = {
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,
     [SCREENS.SETTINGS.WALLET.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletPage').default,
     [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.ABOUT]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/AboutPage').default,
@@ -40,7 +40,7 @@ function SettingsSplitNavigator() {
                 <Split.Navigator
                     persistentScreens={[SCREENS.SETTINGS.ROOT]}
                     sidebarScreen={SCREENS.SETTINGS.ROOT}
-                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.ROOT}
+                    defaultCentralScreen={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
                     parentRoute={route}
                     screenOptions={splitNavigatorScreenOptions.centralScreen}
                 >

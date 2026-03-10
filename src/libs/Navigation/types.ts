@@ -2562,10 +2562,7 @@ type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ROOT]?: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
