@@ -8499,7 +8499,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         goToDomain: 'Ga naar domein',
         samlLogin: {
             title: 'SAML-login',
-            subtitle: `<muted-text>Configureer aanmelden van leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configureer aanmelden van leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'SAML-login inschakelen',
             allowMembers: 'Leden toestaan in te loggen met SAML.',
             requireSamlLogin: 'SAML-login vereisen',

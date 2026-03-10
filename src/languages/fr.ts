@@ -8557,7 +8557,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         goToDomain: 'Aller au domaine',
         samlLogin: {
             title: 'Connexion SAML',
-            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Activer la connexion SAML',
             allowMembers: 'Autoriser les membres à se connecter avec SAML.',
             requireSamlLogin: 'Exiger la connexion SAML',

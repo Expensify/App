@@ -8496,7 +8496,7 @@ const translations = {
         goToDomain: 'Go to domain',
         samlLogin: {
             title: 'SAML login',
-            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Enable SAML login',
             allowMembers: 'Allow members to log in with SAML.',
             requireSamlLogin: 'Require SAML login',
