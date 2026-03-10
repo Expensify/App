@@ -4,13 +4,15 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
+    reasonAttributes?: SkeletonSpanReasonAttributes;
 };
 
-function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
+function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
@@ -25,6 +27,7 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
             <SearchRowSkeleton
                 shouldAnimate
                 containerStyle={containerStyle}
+                reasonAttributes={reasonAttributes}
             />
         </Animated.View>
     );

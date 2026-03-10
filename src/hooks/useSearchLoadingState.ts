@@ -1,32 +1,33 @@
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
-import {getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import type {SearchResults} from '@src/types/onyx';
 import useNetwork from './useNetwork';
-import useOnyx from './useOnyx';
 
 /**
- * Computes whether the search page should show a loading skeleton
+ * Computes whether the search page should show a loading skeleton.
+ * Accepts searchResults from the caller (which may include a sorting fallback)
+ * rather than reading raw context data, so that sorting doesn't trigger a skeleton flash.
+ *
+ * Note: This hook intentionally does NOT check isCardFeedsLoading. Card feed loading is handled
+ * internally by the Search component's shouldShowLoadingState — blocking Search from mounting
+ * would prevent the API call from firing and create a deadlock.
  */
-function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined): boolean {
+function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchResults: SearchResults | undefined): boolean {
     const {isOffline} = useNetwork();
-    const {shouldUseLiveData, currentSearchResults} = useSearchStateContext();
-    const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const {shouldUseLiveData} = useSearchStateContext();
 
     if (shouldUseLiveData || isOffline || !queryJSON) {
         return false;
     }
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, queryJSON);
-    const isLoadingWithNoData = !!currentSearchResults?.search?.isLoading && Array.isArray(currentSearchResults?.data) && currentSearchResults.data.length === 0;
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
+    const hasNoData = searchResults?.data === undefined;
 
-    const validGroupBy = getValidGroupBy(queryJSON.groupBy);
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
-
-    const hasNoData = currentSearchResults?.data === undefined;
-
-    return (!isDataLoaded && hasNoData) || isLoadingWithNoData || isCardFeedsLoading;
+    // Show page-level skeleton ONLY when no data has ever arrived for this query.
+    // Once data arrives (even empty []), Search mounts and handles its own
+    // loading/empty states internally via shouldShowLoadingState.
+    return !isDataLoaded && hasNoData;
 }
 
 export default useSearchLoadingState;

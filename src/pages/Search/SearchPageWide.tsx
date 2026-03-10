@@ -16,12 +16,14 @@ import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHead
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -62,10 +64,11 @@ function SearchPageWide({
     ErrorModal,
     shouldShowFooter,
 }: SearchPageWideProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
     const scrollHandler = useCallback(
@@ -117,7 +120,16 @@ function SearchPageWide({
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             />
                             {shouldShowLoadingSkeleton ? (
-                                <SearchLoadingSkeleton containerStyle={styles.mt3} />
+                                <SearchLoadingSkeleton
+                                    containerStyle={styles.mt3}
+                                    reasonAttributes={{
+                                        context: 'SearchPage',
+                                        isOffline,
+                                        isDataLoaded: isSearchDataLoaded(searchResults, queryJSON),
+                                        isSearchLoading: !!searchResults?.search?.isLoading,
+                                        hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                    }}
+                                />
                             ) : (
                                 <Search
                                     key={queryJSON.hash}

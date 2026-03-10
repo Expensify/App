@@ -57,7 +57,7 @@ type SearchPageNarrowProps = {
 };
 
 function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
-    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON);
+    const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -242,7 +242,16 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
                         {shouldShowLoadingSkeleton ? (
-                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles} />
+                            <SearchLoadingSkeleton
+                                containerStyle={styles.searchListContentContainerStyles}
+                                reasonAttributes={{
+                                    context: 'SearchPage',
+                                    isOffline,
+                                    isDataLoaded: isSearchDataLoaded(searchResults, queryJSON),
+                                    isSearchLoading: !!searchResults?.search?.isLoading,
+                                    hasEmptyData: Array.isArray(searchResults?.data) && searchResults?.data.length === 0,
+                                }}
+                            />
                         ) : (
                             <Search
                                 searchResults={searchResults}
