@@ -158,14 +158,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
-            styles.pv3,
+            isLargeScreenWidth ? styles.pv2 : styles.pv3,
             styles.ph3,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
         ],
-        [styles, item.isSelected],
+        [styles, item.isSelected, isLargeScreenWidth],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -228,7 +228,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={isLargeScreenWidth ? [styles.mb1] : [styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
