@@ -3,7 +3,7 @@
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
-import type {SignedChallenge} from './ED25519/types';
+import type {SignedChallenge} from './challengeTypes';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
 import type {PASSKEY_AUTH_TYPE} from './WebAuthn';

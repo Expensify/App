@@ -6,8 +6,8 @@ import type {Base64URLString} from '@src/utils/Base64URL';
 type ChallengeFlags = number;
 
 /**
- * Signed multifactor authentication challenge for biometric authentication.
- * Uses ED25519 signature format with authenticatorData and signature.
+ * Signed multifactor authentication challenge.
+ * Shared format for both ED25519 (native biometrics) and ES256 (passkeys).
  */
 type SignedChallenge = {
     rawId: Base64URLString;
@@ -20,9 +20,9 @@ type SignedChallenge = {
 };
 
 /**
- * Registration challenge for biometric key registration.
+ * Registration challenge returned by the backend.
  * Full WebAuthn format that specifies allowed credential types.
- * Per spec: When registering a new biometric key, webauthn specification requires a challenge be supplied to sign the newly generated key.
+ * Per spec: a challenge must be supplied to sign the newly generated key.
  */
 type RegistrationChallenge = {
     challenge: string;
@@ -45,8 +45,7 @@ type RegistrationChallenge = {
 type MultifactorAuthenticationChallengeObject = AuthenticationChallenge | RegistrationChallenge;
 
 /**
- * Authentication challenge for biometric authentication flow.
- * This is a simplified nonce-based challenge used for ED25519 biometric signing.
+ * Authentication challenge returned by the backend.
  * Per spec: Used when a MultifactorAuthenticationCommand requires public-key authentication.
  */
 type AuthenticationChallenge = {

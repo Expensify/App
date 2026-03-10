@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/challengeTypes';
 import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import {

@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
-import type {AuthenticationChallenge, RegistrationChallenge} from './ED25519/types';
+import type {AuthenticationChallenge, RegistrationChallenge} from './challengeTypes';
 import MARQETA_VALUES from './SecureStore/MarqetaValues';
 
 /**

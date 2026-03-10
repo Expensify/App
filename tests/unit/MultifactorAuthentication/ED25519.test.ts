@@ -1,6 +1,6 @@
 import {TextEncoder} from 'util';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/challengeTypes';
 import {concatBytes, createAuthenticatorData, generateKeyPair, randomBytes, sha256, signToken, utf8ToBytes} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;

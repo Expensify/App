@@ -6,7 +6,7 @@ import 'react-native-get-random-values';
 import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import Base64URL from '@src/utils/Base64URL';
 import type {Base64URLString} from '@src/utils/Base64URL';
-import type {ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
+import type {ChallengeFlags, MultifactorAuthenticationChallengeObject, SignedChallenge} from '../challengeTypes';
 
 /**
  * ED25519 helpers used to construct and sign multifactor authentication challenges.
