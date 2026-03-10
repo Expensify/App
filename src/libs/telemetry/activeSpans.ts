@@ -17,12 +17,7 @@ type StartSpanExtraOptions = Partial<{
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
     if (AppState.currentState !== 'active') {
-        Log.info(`[Sentry][${spanId}] Skipping span start, app is not active`, undefined, {spanId, appState: AppState.currentState});
-        const skippedSpan = Sentry.startInactiveSpan(options);
-        skippedSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
-        skippedSpan.setStatus({code: 1});
-        skippedSpan.end();
-        return skippedSpan;
+        return;
     }
     // End any existing span for this name
     cancelSpan(spanId);
