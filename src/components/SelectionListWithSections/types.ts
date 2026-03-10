@@ -301,7 +301,7 @@ type SearchTextColumns =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID;
 
-type SearchExpenseTextColumns = Extract<SearchTextColumns, ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>>;
+type SearchTransactionTextColumns = Extract<SearchTextColumns, ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>>;
 
 type SearchExpenseReportTextColumns = Extract<SearchTextColumns, ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>>;
 
@@ -328,10 +328,10 @@ type SearchQuarterGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEAR
 type TransactionListItemType = ListItem &
     Transaction & {
         /** The measurements for each column */
-        measurements: Record<SearchTextColumns, number>;
+        measurements: Record<SearchTransactionTextColumns, number>;
 
         /** Formatted values for each column */
-        formattedValues: Record<SearchTextColumns, string>;
+        formattedValues: Record<SearchTransactionTextColumns, string>;
 
         /** Report to which the transaction belongs */
         report: Report | undefined;
@@ -515,6 +515,12 @@ type TransactionGroupListItemType = ListItem & {
 };
 
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+        /** The measurements for each column */
+        measurements: Record<SearchExpenseReportTextColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchExpenseReportTextColumns, string>;
+
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
@@ -590,11 +596,23 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
     SearchMemberGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchFromGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchFromGroupingColumns, string>;
+
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
     };
 
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchMonthGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchMonthGroupingColumns, string>;
+
         /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
 
@@ -604,6 +622,12 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchCardGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchCardGroupingColumns, string>;
+
         /** Final and formatted "cardName" value used for displaying and sorting */
         formattedCardName?: string;
 
@@ -612,31 +636,67 @@ type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedB
     };
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchWithdrawalIDGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchWithdrawalIDGroupingColumns, string>;
+
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
     };
 
 type TransactionCategoryGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CATEGORY} & SearchCategoryGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchCategoryGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchCategoryGroupingColumns, string>;
+
         /** Final and formatted "category" value used for displaying and sorting */
         formattedCategory?: string;
     };
 
 type TransactionMerchantGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MERCHANT} & SearchMerchantGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchMerchantGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchMerchantGroupingColumns, string>;
+
         /** Final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant?: string;
     };
 
 type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.TAG} & SearchTagGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchTagGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchTagGroupingColumns, string>;
+
         /** Final and formatted "tag" value used for displaying and sorting */
         formattedTag?: string;
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchWeekGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchWeekGroupingColumns, string>;
+
         /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchYearGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchYearGroupingColumns, string>;
+
         /** Final and formatted "year" value used for displaying */
         formattedYear: string;
 
@@ -645,6 +705,12 @@ type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedB
     };
 
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
+        /** The measurements for each column */
+        measurements: Record<SearchQuarterGroupingColumns, number>;
+
+        /** Formatted values for each column */
+        formattedValues: Record<SearchQuarterGroupingColumns, string>;
+
         /** Final and formatted "quarter" value used for displaying */
         formattedQuarter: string;
 
