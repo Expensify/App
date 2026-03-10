@@ -2,6 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
@@ -306,6 +307,29 @@ const policy = {
         },
     },
 } as OnyxTypes.Policy;
+
+const adminAvatarIcon = {
+    id: adminAccountID,
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Admin',
+    fallbackIcon: undefined,
+};
+
+const approverAvatarIcon = {
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    id: approverAccountID,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Approver',
+    fallbackIcon: undefined,
+};
+
+const policyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceU,
+    type: CONST.ICON_TYPE_WORKSPACE,
+    name: 'Unavailable workspace',
+    id: policyID,
+};
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -1100,6 +1124,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1210,6 +1237,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1319,6 +1349,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        primaryAvatar: approverAvatarIcon,
+        secondaryAvatar: adminAvatarIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1503,6 +1536,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -2535,6 +2571,96 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
+        });
+
+        it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
+            // Reproduce the bug: the search API response does not include the report owner in
+            // personalDetailsList (data.personalDetailsList is empty/undefined), so without the
+            // Onyx fallback the avatar resolves to FallbackAvatar instead of the user's custom avatar.
+            const customAvatarUrl = 'https://example.com/custom-avatar.png';
+
+            // Simulate the API returning an empty personalDetailsList (owner details not included)
+            const dataWithoutPersonalDetails: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                personalDetailsList: {},
+            };
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: customAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // Without onyxPersonalDetailsList, the report owner avatar is not found — not the custom URL
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
+
+            // With onyxPersonalDetailsList, the custom avatar from Onyx fills the gap
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithOnyx.at(0)?.primaryAvatar?.source).toBe(customAvatarUrl);
+        });
+
+        it('should prefer API personalDetailsList avatar over onyxPersonalDetailsList when both have an avatar', () => {
+            const onyxAvatarUrl = 'https://example.com/onyx-avatar.png';
+            const apiAvatarUrl = 'https://example.com/api-avatar.png';
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: onyxAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // API response provides its own avatar — should take precedence over Onyx
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: {
+                    ...searchResults.data,
+                    personalDetailsList: {
+                        [adminAccountID]: {
+                            accountID: adminAccountID,
+                            avatar: apiAvatarUrl,
+                            displayName: 'Admin',
+                            login: adminEmail,
+                        },
+                    },
+                },
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
         });
 
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
@@ -4378,6 +4504,108 @@ describe('SearchUIUtils', () => {
                 expect(fields.isAllScanning).toBe(false);
             });
         });
+
+        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, avatarType)', () => {
+            const avatarTestReportID = 'avatar-test-report';
+            const avatarTestTxID = 'avatar-tx-1';
+
+            function makeAvatarTestData(reportOverrides: Partial<OnyxTypes.Report> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${avatarTestReportID}`]: {
+                        ...report1,
+                        reportID: avatarTestReportID,
+                        ownerAccountID: adminAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${avatarTestReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${avatarTestTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                        transactionID: avatarTestTxID,
+                        reportID: avatarTestReportID,
+                    },
+                };
+            }
+
+            function getAvatarFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === avatarTestReportID);
+                expect(item).toBeDefined();
+                return {
+                    primaryAvatar: item?.primaryAvatar,
+                    secondaryAvatar: item?.secondaryAvatar,
+                    avatarType: item?.avatarType,
+                };
+            }
+
+            it('should pre-compute primaryAvatar from the report owner personal details', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.primaryAvatar?.id).toBe(adminAccountID);
+                expect(fields.primaryAvatar?.type).toBe(CONST.ICON_TYPE_AVATAR);
+            });
+
+            it('should pre-compute secondaryAvatar as workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+                expect(fields.secondaryAvatar?.id).toBe(policyID);
+            });
+
+            it('should set avatarType=SUBSCRIPT for expense reports with a named workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
+            });
+
+            it('should set avatarType for IOU reports', () => {
+                const data = makeAvatarTestData({type: CONST.REPORT.TYPE.IOU, managerID: adminAccountID});
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.avatarType).toBeDefined();
+            });
+
+            it('should use owner avatar from personalDetailsList when available', () => {
+                const data = makeAvatarTestData({ownerAccountID: receiverAccountID});
+                // Add receiver to personalDetailsList
+                data.personalDetailsList = {
+                    ...data.personalDetailsList,
+                    [receiverAccountID]: {
+                        accountID: receiverAccountID,
+                        avatar: 'https://example.com/receiver-avatar.png',
+                        displayName: 'Receiver',
+                        login: receiverEmail,
+                    },
+                };
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar?.id).toBe(receiverAccountID);
+                expect(fields.primaryAvatar?.source).toBe('https://example.com/receiver-avatar.png');
+            });
+
+            it('should produce stable avatar structure across identical calls', () => {
+                const data = makeAvatarTestData();
+                const fields1 = getAvatarFields(data);
+                const fields2 = getAvatarFields(data);
+                expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
+                expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
+                expect(fields1.avatarType).toBe(fields2.avatarType);
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -5888,6 +6116,66 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
         });
+
+        test('Should show Top Spenders for workflow approver (submitsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: workflowApproverEmail, forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+        });
+
+        test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: workflowApproverEmail},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Top Spenders for regular member who is not a workflow approver', () => {
+            const regularEmail = 'regular@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                        [regularEmail]: {submitsTo: '', forwardsTo: ''},
+                    },
+                } as unknown as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(false);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
@@ -6281,7 +6569,8 @@ describe('SearchUIUtils', () => {
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
         const backTo = '/search/all';
         const introSelectedData: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
-
+        const currentUserLogin = 'test@example.com';
+        const currentUserAccountID = 1;
         beforeEach(() => {
             jest.clearAllMocks();
         });
@@ -6289,20 +6578,20 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
@@ -6322,7 +6611,7 @@ describe('SearchUIUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, undefined, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, undefined, undefined, true);
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
@@ -6331,7 +6620,7 @@ describe('SearchUIUtils', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
             const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
         });
@@ -6339,7 +6628,7 @@ describe('SearchUIUtils', () => {
         test('Should pass undefined introSelected without bypassing with empty values', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
@@ -6402,6 +6691,49 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getSearchBulkEditPolicyID', () => {
+        it('returns the active policy when there are no selected transactions', () => {
+            const result = SearchUIUtils.getSearchBulkEditPolicyID([], 'policy-1', undefined, undefined);
+            expect(result).toBe('policy-1');
+        });
+
+        it('returns the shared policy when all selected transactions match', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-1'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-2', transactions, reports);
+            expect(result).toBe('policy-1');
+        });
+
+        it('falls back to the active policy when selected transactions are from different policies', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-2'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
+            expect(result).toBe('policy-3');
         });
     });
 
@@ -7070,6 +7402,61 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.filterValidHasValues(hasValues, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal);
 
             expect(result).toEqual([CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.TAG]);
+        });
+    });
+
+    describe('Test getFeedOptions', () => {
+        test('should return feed options sorted alphabetically', () => {
+            const mockCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}100`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Zebra Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}200`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'Alpha Card',
+                        },
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}300`]: {
+                    settings: {
+                        companyCards: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: {
+                                pending: false,
+                            },
+                        },
+                        companyCardNicknames: {
+                            [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'Middle Card',
+                        },
+                    },
+                },
+            };
+
+            const result = SearchUIUtils.getFeedOptions(mockCardFeeds, undefined, translateLocal, localeCompare);
+
+            expect(result.length).toBe(3);
+            expect(result.at(0)?.text).toBe('Alpha Card');
+            expect(result.at(1)?.text).toBe('Middle Card');
+            expect(result.at(2)?.text).toBe('Zebra Card');
+        });
+
+        test('should return empty array when no card feeds exist', () => {
+            const result = SearchUIUtils.getFeedOptions({}, undefined, translateLocal, localeCompare);
+            expect(result).toEqual([]);
         });
     });
 

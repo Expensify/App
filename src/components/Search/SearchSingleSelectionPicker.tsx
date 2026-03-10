@@ -127,7 +127,7 @@ function SearchSingleSelectionPicker({
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             footerContent={shouldAutoSave ? undefined : footerContent}
-            showLoadingPlaceholder={!noResultsFound}
+            shouldShowLoadingPlaceholder={!noResultsFound}
             shouldUpdateFocusedIndex
             shouldStopPropagation
         />

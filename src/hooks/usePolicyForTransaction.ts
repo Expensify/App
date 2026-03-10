@@ -21,9 +21,6 @@ type UsePolicyForTransactionParams = {
     /** The type of IOU (split, track, submit, etc.) */
     iouType: string;
 
-    /** The draft policy linked to the report */
-    policyDraft?: OnyxEntry<Policy>;
-
     /** Indicates if the request is a per diem request */
     isPerDiemRequest?: boolean;
 };
@@ -33,7 +30,7 @@ type UsePolicyForTransactionResult = {
     policy: OnyxEntry<Policy>;
 };
 
-function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, policyDraft, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
+function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, isPerDiemRequest}: UsePolicyForTransactionParams): UsePolicyForTransactionResult {
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -48,7 +45,7 @@ function usePolicyForTransaction({transaction, reportPolicyID, action, iouType, 
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
     const policyForSelfDMExpense = isPerDiemRequest ? customUnitPolicy : policyForMovingExpenses;
-    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : (reportPolicy ?? policyDraft);
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForSelfDMExpense : reportPolicy;
 
     return {policy};
 }
