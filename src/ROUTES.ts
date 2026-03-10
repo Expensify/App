@@ -2642,6 +2642,15 @@ const ROUTES = {
         route: 'workspaces/:policyID/travel/settings/account',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/account` as const,
     },
+    WORKSPACE_TRAVEL_EXPORT: {
+        route: 'workspaces/:policyID/travel/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL_EXPORT route');
+            }
+            return `workspaces/${policyID}/travel/export` as const;
+        },
+    },
     WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/travel/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
@@ -3454,8 +3463,16 @@ const ROUTES = {
         },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
-        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new/:subPage?/:action?',
+        getRoute: (policyID: string | undefined, subPage?: string, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD route');
+            }
+            if (!subPage) {
+                return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const;
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
         route: 'workspaces/:policyID/accounting/netsuite/import/custom-segment/new',
