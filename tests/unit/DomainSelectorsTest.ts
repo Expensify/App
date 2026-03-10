@@ -265,6 +265,25 @@ describe('domainSelectors', () => {
             expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
+        it('Should filter out members with null or undefined permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    shared: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '100': 'read',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '200': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '300': undefined,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '400': 'read',
+                    },
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 400]);
+        });
+
         it('Should filter out non-numeric shared keys', () => {
             const domain = {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
