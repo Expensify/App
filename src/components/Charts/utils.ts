@@ -291,6 +291,8 @@ function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: Labe
 // Point-in-convex-polygon test using cross products
 // Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
 function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<{x: number; y: number}>): boolean {
+    'worklet';
+
     let sign = 0;
     for (let i = 0; i < corners.length; i++) {
         const a = corners.at(i);
