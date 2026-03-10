@@ -319,6 +319,7 @@ function useSearchSelectorBase({
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        reports,
         reportAttributesDerived?.reports,
         trimmedSearchInput,
     ]);
