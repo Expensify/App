@@ -1,6 +1,7 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -10,10 +11,11 @@ import useSubPage from '@hooks/useSubPage';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompletedStepsForBankAccount, PERSONAL_INFO_STEP} from '@libs/BankAccountUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
-import {clearPersonalBankAccount, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
+import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,6 +95,7 @@ function UpdatePersonalBankAccountPage() {
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
+    const errorMessage = getLatestErrorMessage(personalBankAccount ?? {});
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
@@ -146,11 +149,17 @@ function UpdatePersonalBankAccountPage() {
     });
 
     const handleBackButtonPress = () => {
+        clearPersonalBankAccountErrors();
         if (currentPageName === firstPageName) {
-            Navigation.goBack();
+            exitFlow();
             return;
         }
         prevPage();
+    };
+
+    const handleNextPage = () => {
+        clearPersonalBankAccountErrors();
+        nextPage();
     };
 
     if (shouldShowSuccess) {
@@ -191,9 +200,16 @@ function UpdatePersonalBankAccountPage() {
             />
             <CurrentPage
                 isEditing={false}
-                onNext={nextPage}
+                onNext={handleNextPage}
                 onMove={() => {}}
             />
+            {!!errorMessage && (
+                <FormHelpMessage
+                    style={[styles.mh5, styles.mb5]}
+                    isError
+                    message={errorMessage}
+                />
+            )}
         </ScreenWrapper>
     );
 }

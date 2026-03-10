@@ -52,7 +52,7 @@ import {
     setPersonalBankAccountID,
 } from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
-import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
 import {enableCompanyCards} from '@userActions/Policy/Policy';
@@ -178,13 +178,13 @@ function WalletPage() {
         }
     };
 
-    const onBankAccountRowPressed = async ({accountData}: PaymentMethodPressHandlerParams) => {
+    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
             const [street1 = '', street2 = ''] = additionalData?.addressStreet?.split('\n') ?? [];
             clearPersonalBankAccount();
             setPersonalBankAccountID(accountData.bankAccountID);
-            await Promise.all([
+            Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
                     legalFirstName: additionalData?.firstName ?? '',
                     legalLastName: additionalData?.lastName ?? '',
@@ -203,8 +203,9 @@ function WalletPage() {
                     zipPostCode: additionalData?.addressZipCode ?? '',
                     country: CONST.COUNTRY.US,
                 }),
-            ]);
-            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
+            ]).then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
+            });
             return;
         }
 
