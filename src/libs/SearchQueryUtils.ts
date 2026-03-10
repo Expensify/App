@@ -688,7 +688,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                    // For merchant filters:
+                    // - Non-negated: use *: (contains) for partial matching
+                    // - Negated: use : (eq) so parser correctly converts to neq operator
+                    const operator =
+                        filterKey === FILTER_KEYS.MERCHANT && !isNegated
+                            ? operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS]
+                            : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operator}${sanitizeSearchValue(filterValue as string)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
