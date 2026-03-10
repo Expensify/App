@@ -602,7 +602,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (!!editingReportActionID && shouldUseNarrowLayout && !getEditingState()) {
+            if (!!editingReportActionID && shouldUseNarrowLayout && getEditingState() !== 'submitted') {
                 if (shouldDebounceSaveComment) {
                     isDraftPendingSaved.current = true;
                     debouncedSaveDraft(newCommentConverted);
