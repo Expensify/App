@@ -18,8 +18,13 @@ function useUpdateGpsNotificationOnLanguageChange() {
     const currentPreferredLocale = useRef(preferredLocale);
 
     useEffect(() => {
+        if (currentPreferredLocale.current === preferredLocale) {
+            return;
+        }
+
         currentPreferredLocale.current = preferredLocale;
-        if (!shouldUpdateGpsNotificationUnit() || currentPreferredLocale.current === preferredLocale) {
+
+        if (!shouldUpdateGpsNotificationUnit()) {
             return;
         }
 
