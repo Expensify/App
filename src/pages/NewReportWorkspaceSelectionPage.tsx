@@ -70,6 +70,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -180,7 +181,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }

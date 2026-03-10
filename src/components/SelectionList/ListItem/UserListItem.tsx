@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -162,7 +163,7 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             )}
                         </View>
-                        {!!item.rightElement && item.rightElement}
+                        {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!item.shouldShowRightCaret && (
                             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                                 <Icon

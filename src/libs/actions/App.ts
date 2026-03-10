@@ -308,6 +308,16 @@ function getOnyxDataForOpenOrReconnect(
     shouldKeepPublicRooms = false,
     allReportsWithDraftComments?: Record<string, string | undefined>,
 ): OnyxData<OnyxDataForOpenOrReconnectKeys> {
+    let commandName: string;
+    if (isOpenApp) {
+        commandName = 'OpenApp';
+    } else if (isFullReconnect) {
+        commandName = 'ReconnectApp (full)';
+    } else {
+        commandName = 'ReconnectApp (partial)';
+    }
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
+
     const result: OnyxData<
         | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
