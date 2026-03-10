@@ -34,7 +34,7 @@ describe('IOU Utils', () => {
             });
 
             // Then we should start manual submit request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.MANUAL, true, undefined, undefined);
         });
 
         it('should be navigated to Scan receipt Split Expense', () => {
@@ -50,7 +50,7 @@ describe('IOU Utils', () => {
             });
 
             // Then we should start scan split request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SPLIT, reportID, CONST.IOU.REQUEST_TYPE.SCAN, true, undefined, undefined);
         });
 
         it('should be navigated to Track distance Expense', () => {
@@ -115,7 +115,7 @@ describe('IOU Utils', () => {
             });
 
             // Then we should start per diem request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true, undefined, undefined);
         });
 
         it('should be navigated to Time Expense', () => {
@@ -131,7 +131,7 @@ describe('IOU Utils', () => {
             });
 
             // Then we should start time request flow
-            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.TIME, false, undefined, undefined, undefined);
+            expect(startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.TIME, false, undefined, undefined);
         });
     });
 });
