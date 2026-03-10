@@ -4,6 +4,7 @@ import {
     getEmailDomain,
     getPhoneLogin,
     getPhoneNumberWithoutSpecialChars,
+    isCommonPublicEmailDomainTypo,
     isDomainPublic,
     isEmailPublicDomain,
     sanitizePhoneOrEmail,
@@ -128,6 +129,24 @@ describe('LoginUtils', () => {
         it('Should handle case sensitivity correctly', () => {
             expect(isDomainPublic('GMAIL.COM')).toBe(false);
             expect(isDomainPublic('Gmail.Com')).toBe(false);
+        });
+    });
+
+    describe('isCommonPublicEmailDomainTypo', () => {
+        it('Should return true for common public email domain typos', () => {
+            expect(isCommonPublicEmailDomainTypo('gnail.com')).toBe(true);
+            expect(isCommonPublicEmailDomainTypo('gmial.com')).toBe(true);
+            expect(isCommonPublicEmailDomainTypo('outlok.com')).toBe(true);
+        });
+
+        it('Should handle case sensitivity correctly', () => {
+            expect(isCommonPublicEmailDomainTypo('GNail.COM')).toBe(true);
+        });
+
+        it('Should return false for valid or private domains', () => {
+            expect(isCommonPublicEmailDomainTypo('gmail.com')).toBe(false);
+            expect(isCommonPublicEmailDomainTypo('expensify.com')).toBe(false);
+            expect(isCommonPublicEmailDomainTypo('')).toBe(false);
         });
     });
 

@@ -22,7 +22,7 @@ import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {appendCountryCode, getEmailDomain, getPhoneNumberWithoutSpecialChars, isCommonPublicEmailDomainTypo} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
@@ -71,8 +71,9 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
 
             const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+            const hasCommonPublicEmailDomainTypo = Str.isValidEmail(loginTrim) && isCommonPublicEmailDomainTypo(getEmailDomain(loginTrim));
 
-            if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+            if ((!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) || hasCommonPublicEmailDomainTypo) {
                 if (isNumericWithSpecialChars(loginTrim)) {
                     setFormError('common.error.phoneNumber');
                 } else {

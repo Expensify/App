@@ -6,6 +6,31 @@ import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
+const COMMON_PUBLIC_EMAIL_DOMAIN_TYPOS = new Set([
+    'gemail.com',
+    'gmai.com',
+    'gmail.co',
+    'gmail.con',
+    'gmail.om',
+    'gmal.com',
+    'gmial.com',
+    'gnail.com',
+    'googlemail.con',
+    'hotmai.com',
+    'hotmial.com',
+    'hotmail.co',
+    'hotmail.con',
+    'hotnail.com',
+    'outlok.com',
+    'outllok.com',
+    'outlook.co',
+    'outlook.con',
+    'yaho.com',
+    'yahoo.co',
+    'yahoo.con',
+    'yahho.com',
+]);
+
 /**
  * Remove the special chars from the phone number
  */
@@ -41,6 +66,10 @@ function isEmailPublicDomain(email: string): boolean {
 
 function isDomainPublic(domain: string): boolean {
     return PUBLIC_DOMAINS_SET.has(domain);
+}
+
+function isCommonPublicEmailDomainTypo(domain: string): boolean {
+    return COMMON_PUBLIC_EMAIL_DOMAIN_TYPOS.has(domain.toLowerCase());
 }
 
 /**
@@ -145,4 +174,5 @@ export {
     isDomainPublic,
     normalizeLogin,
     sanitizePhoneOrEmail,
+    isCommonPublicEmailDomainTypo,
 };
