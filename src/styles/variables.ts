@@ -94,6 +94,7 @@ export default {
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
+    iouAmountTextSizeLarge: 48,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
@@ -318,6 +319,9 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     inviteMemberListItemTooltipShiftVertical: -8,
     inviteMemberListItemTooltipShiftHorizontal: 4,
+    hasFilterNegationTooltipShiftHorizontal: -16,
+    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

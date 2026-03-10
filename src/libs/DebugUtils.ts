@@ -718,6 +718,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'isAttachmentWithText':
         case 'isNewestReportAction':
         case 'isOptimisticAction':
+        case 'isOriginalReportDeleted':
             return validateBoolean(value);
         case 'created':
         case 'lastModified':
@@ -769,6 +770,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 childReportNotificationPreference: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isNewestReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isOptimisticAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isOriginalReportDeleted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 adminAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 whisperedToAccountIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 reportActionTimestamp: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -994,6 +996,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
+        case 'selectedTransactionIDs':
+            return validateArray(value, 'string');
         case 'participants':
             return validateArray<ArrayElement<Transaction, 'participants'>>(value, {
                 accountID: 'number',
@@ -1088,6 +1092,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    selectedTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1279,6 +1284,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
                 isNewestReportAction: 'boolean',
                 isOptimisticAction: 'boolean',
+                isOriginalReportDeleted: 'boolean',
                 adminAccountID: 'number',
                 whisperedToAccountIDs: 'array',
                 reportActionTimestamp: 'string',

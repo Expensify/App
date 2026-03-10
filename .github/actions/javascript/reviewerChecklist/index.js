@@ -11622,15 +11622,13 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
     })
         .then(() => {
         console.log(`Looking through all ${combinedComments.length} comments for the reviewer checklist...`);
+        const maxCompletedItems = numberOfChecklistItems + 2;
+        const minCompletedItems = numberOfChecklistItems - 2;
         let foundReviewerChecklist = false;
         let numberOfFinishedChecklistItems = 0;
         let numberOfUnfinishedChecklistItems = 0;
         // Once we've gathered all the data, loop through each comment and look to see if it contains the reviewer checklist
         for (let i = 0; i < combinedComments.length; i++) {
-            // Skip all other comments if we already found the reviewer checklist
-            if (foundReviewerChecklist) {
-                break;
-            }
             const whitespace = /([\n\r])/gm;
             const comment = combinedComments.at(i)?.replaceAll(whitespace, '');
             console.log(`Comment ${i} starts with: ${comment?.slice(0, 20)}...`);
@@ -11640,14 +11638,16 @@ function checkIssueForCompletedChecklist(numberOfChecklistItems) {
                 foundReviewerChecklist = true;
                 numberOfFinishedChecklistItems = (comment?.match(/- \[x\]/gi) ?? []).length;
                 numberOfUnfinishedChecklistItems = (comment?.match(/- \[ \]/g) ?? []).length;
+                if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+                    console.log('PR Reviewer checklist is complete 🎉');
+                    return;
+                }
             }
         }
         if (!foundReviewerChecklist) {
             core.setFailed('No PR Reviewer Checklist was found');
             return;
         }
-        const maxCompletedItems = numberOfChecklistItems + 2;
-        const minCompletedItems = numberOfChecklistItems - 2;
         console.log(`You completed ${numberOfFinishedChecklistItems} out of ${numberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
         if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfFinishedChecklistItems <= maxCompletedItems && numberOfUnfinishedChecklistItems === 0) {
             console.log('PR Reviewer checklist is complete 🎉');

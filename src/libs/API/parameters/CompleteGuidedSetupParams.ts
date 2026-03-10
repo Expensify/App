@@ -14,6 +14,8 @@ type CompleteGuidedSetupParams = {
     policyID?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;
+    bespokeWelcomeMessage?: string;
+    optimisticConciergeReportActionID?: string;
 };
 
 export default CompleteGuidedSetupParams;

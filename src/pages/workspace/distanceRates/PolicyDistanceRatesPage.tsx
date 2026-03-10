@@ -514,7 +514,7 @@ function PolicyDistanceRatesPage({
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
                         onDismissError={dismissError}
-                        showListEmptyContent={false}
+                        shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
                         shouldHeaderBeInsideList
