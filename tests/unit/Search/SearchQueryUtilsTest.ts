@@ -1479,28 +1479,26 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortOrder).toBe('asc');
         });
 
-        test('view switch from bar to table resets sort to groupBy default', () => {
+        test('view switch from bar to table preserves sort (Top Categories keeps groupTotal desc)', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.TABLE},
                 {groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
 
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(result).toContain('sortBy:groupTotal');
+            expect(result).toContain('sortOrder:desc');
         });
 
-        test('view switch from pie to table resets sort for merchants', () => {
+        test('view switch from pie to table preserves sort (Top Merchants keeps groupTotal desc)', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, view: CONST.SEARCH.VIEW.TABLE},
                 {groupBy: CONST.SEARCH.GROUP_BY.MERCHANT, view: CONST.SEARCH.VIEW.PIE},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
             );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
 
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
-            expect(queryJSON?.sortOrder).toBe('asc');
+            expect(result).toContain('sortBy:groupTotal');
+            expect(result).toContain('sortOrder:desc');
         });
 
         test('preserves sort when view is not explicitly set in new filter values', () => {
@@ -1540,8 +1538,8 @@ describe('SearchQueryUtils', () => {
             expect(shouldResetSort({newGroupBy: 'category', oldGroupBy: 'category', newView: 'bar', oldView: 'table'})).toBe(true);
         });
 
-        test('returns true when view changes from bar to table', () => {
-            expect(shouldResetSort({newGroupBy: 'category', oldGroupBy: 'category', newView: 'table', oldView: 'bar'})).toBe(true);
+        test('returns false when view changes from bar to table (switching TO table preserves sort)', () => {
+            expect(shouldResetSort({newGroupBy: 'category', oldGroupBy: 'category', newView: 'table', oldView: 'bar'})).toBe(false);
         });
 
         test('returns false when both groupBy and view stay the same', () => {

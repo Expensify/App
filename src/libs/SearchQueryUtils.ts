@@ -1642,8 +1642,10 @@ function shouldHighlight(referenceText: string, searchText: string) {
 /**
  * Determines whether sortBy and sortOrder should be reset when filters change.
  * Resets when groupBy changes (each groupBy has its own default sort column) or
- * when the view changes (e.g. table → bar) so the parser can derive the correct
- * default sort order for the new view mode.
+ * when the view switches away from table to a chart view (e.g. table → bar) so
+ * the parser can derive the correct default sort order for the new view mode.
+ * Switching TO table preserves the current sort so that insights like
+ * "Top Categories" retain their groupTotal desc ordering.
  */
 function shouldResetSort({
     newGroupBy,
@@ -1656,7 +1658,14 @@ function shouldResetSort({
     newView: string | undefined;
     oldView: string | undefined;
 }): boolean {
-    return newGroupBy !== oldGroupBy || newView !== oldView;
+    if (newGroupBy !== oldGroupBy) {
+        return true;
+    }
+    // Only reset sort when switching away from table view to a chart view.
+    if (newView !== oldView && newView !== CONST.SEARCH.VIEW.TABLE) {
+        return true;
+    }
+    return false;
 }
 
 /**
