@@ -156,6 +156,12 @@ function MoneyRequestReportPreviewContent({
         isTransactionsEmpty: transactions.length === 0,
         isOptimisticReport: chatReportMetadata?.isOptimisticReport,
     };
+    const carouselReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'MoneyRequestReportPreviewContent.Carousel',
+        hasCurrentWidth: !!currentWidth,
+        shouldShowLoading,
+        shouldShowLoadingDeferred,
+    };
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -971,7 +977,10 @@ function MoneyRequestReportPreviewContent({
                                                 styles.mtn1,
                                             ]}
                                         >
-                                            <ActivityIndicator size={40} />
+                                            <ActivityIndicator
+                                                size={40}
+                                                reasonAttributes={carouselReasonAttributes}
+                                            />
                                         </View>
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
