@@ -55,6 +55,7 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
             }}
             horizontal
             showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
         >
             {tabs.map((tab, index) => {
                 const isActive = index === activeIndex;
