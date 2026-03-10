@@ -77,9 +77,9 @@ function IOURequestStepScan({
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
-    const navigateBack = () => {
-        Navigation.goBack();
-    };
+    const navigateBack = useCallback(() => {
+        Navigation.goBack(backTo);
+    }, [backTo]);
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
@@ -268,7 +268,7 @@ function IOURequestStepScan({
             }
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policy, policyCategories, backTo],
+        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
