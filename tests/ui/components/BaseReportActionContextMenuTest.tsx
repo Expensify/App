@@ -101,11 +101,11 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
 
 const mockUnholdRequest = jest.fn();
 jest.mock('@libs/actions/IOU/Hold', () => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- Ignoring type errors for testing purposes
     const actual = jest.requireActual<typeof import('@libs/actions/IOU/Hold')>('@libs/actions/IOU/Hold');
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- Ignoring type errors for testing purposes
         unholdRequest: (...args: Parameters<typeof actual.unholdRequest>) => mockUnholdRequest(...args),
     };
 });
