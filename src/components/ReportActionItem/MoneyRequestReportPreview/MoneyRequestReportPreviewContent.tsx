@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
+import {report} from 'process';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
@@ -715,6 +716,29 @@ function MoneyRequestReportPreviewContent({
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
+
+    const reportPreviewActionNode = useMemo(() => {
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
+            return <></>;
+        }
+
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE) {
+        }
+
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
+        }
+
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING) {
+        }
+
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW) {
+        }
+
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE) {
+        }
+
+        return null;
+    }, [reportPreviewAction]);
 
     const reportPreviewActions = {
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT]: (
