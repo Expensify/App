@@ -45,8 +45,8 @@ describe('findClosestPoint', () => {
         });
     });
 
-    describe('nearest-neighbour selection', () => {
-        it('picks the closer neighbour when targetX falls between two values', () => {
+    describe('nearest-neighbor selection', () => {
+        it('picks the closer neighbor when targetX falls between two values', () => {
             const xs = [0, 100, 200, 300];
             // 40 is closer to 0 (distance 40) than to 100 (distance 60)
             expect(findClosestPoint(xs, 40)).toBe(0);
@@ -54,9 +54,9 @@ describe('findClosestPoint', () => {
             expect(findClosestPoint(xs, 60)).toBe(1);
         });
 
-        it('breaks ties in favour of the higher index (right neighbour)', () => {
-            // Exactly at the midpoint: distance to both neighbours is equal.
-            // The implementation returns the right neighbour when distances are equal.
+        it('breaks ties in favour of the higher index (right neighbor)', () => {
+            // Exactly at the midpoint: distance to both neighbors is equal.
+            // The implementation returns the right neighbor when distances are equal.
             const xs = [0, 100];
             expect(findClosestPoint(xs, 50)).toBe(1);
         });
