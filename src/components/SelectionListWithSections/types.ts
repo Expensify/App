@@ -256,7 +256,7 @@ type ListItem<K extends string | number = string> = {
 };
 
 // Columns that are shown in plain text
-type TransactionTextColumns =
+type SearchTextColumns =
     | typeof CONST.SEARCH.TABLE_COLUMNS.MERCHANT
     | typeof CONST.SEARCH.TABLE_COLUMNS.CATEGORY
     | typeof CONST.SEARCH.TABLE_COLUMNS.TAG
@@ -276,17 +276,40 @@ type TransactionTextColumns =
     | typeof CONST.SEARCH.TABLE_COLUMNS.EXPORTED
     | typeof CONST.SEARCH.TABLE_COLUMNS.SUBMITTED
     | typeof CONST.SEARCH.TABLE_COLUMNS.APPROVED
-    | typeof CONST.SEARCH.TABLE_COLUMNS.POSTED;
+    | typeof CONST.SEARCH.TABLE_COLUMNS.POSTED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.TOTAL
+    | typeof CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID
+    | typeof CONST.SEARCH.TABLE_COLUMNS.EXPENSES
+    | typeof CONST.SEARCH.TABLE_COLUMNS.FEED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN
+    | typeof CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL
+    | typeof CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER
+    | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID;
 
-type TransactionColumnMeasurements = Record<TransactionTextColumns, number>;
+type SearchColumnMeasurements = Partial<Record<SearchTextColumns, number>>;
 
 type TransactionListItemType = ListItem &
     Transaction & {
         /** The measurements for each column */
-        measurements: TransactionColumnMeasurements;
+        measurements: SearchColumnMeasurements;
 
         /** Formatted values for each column */
-        formattedValues: Record<TransactionTextColumns, string>;
+        formattedValues: Record<SearchTextColumns, string>;
 
         /** Report to which the transaction belongs */
         report: Report | undefined;
@@ -1290,6 +1313,6 @@ export type {
     SortableColumnName,
     SearchListItem,
     UnreportedExpenseListItemType,
-    TransactionColumnMeasurements,
-    TransactionTextColumns,
+    SearchColumnMeasurements as TransactionColumnMeasurements,
+    SearchTextColumns as TransactionTextColumns,
 };
