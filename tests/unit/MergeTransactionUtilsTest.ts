@@ -1290,9 +1290,13 @@ describe('MergeTransactionUtils', () => {
         });
 
         it('should return true for transactions with transactionType card and non-upload bank', () => {
-            // Given a transaction with transactionType 'card' from search snapshot
+            // Given a transaction with only transactionType 'card' from search snapshot (no other card fields)
             const transaction = {
                 ...createRandomTransaction(0),
+                bank: '',
+                cardName: '',
+                cardNumber: '',
+                cardID: undefined,
                 managedCard: false,
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CARD,
             };
