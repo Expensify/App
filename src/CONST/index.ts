@@ -1748,6 +1748,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         // Breadcrumb names
         BREADCRUMB_CATEGORY_MEMORY: 'system.memory',
+        BREADCRUMB_CATEGORY_MFA: 'mfa',
+        BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
+        BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',
         BREADCRUMB_CATEGORY_SCRIPT_LOAD: 'script.load',
         BREADCRUMB_MEMORY_PERIODIC: 'Periodic memory check',
@@ -1779,6 +1782,8 @@ const CONST = {
         TAG_EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
         TAG_EXPENSE_COMMAND: 'expense_command',
         TAG_EXPENSE_JSON_CODE: 'expense_json_code',
+        TAG_MFA_SCENARIO: 'mfa_scenario',
+        TAG_MFA_ERROR_REASON: 'mfa_error_reason',
         TAG_BUILD_TYPE: 'build_type',
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
@@ -1805,6 +1810,7 @@ const CONST = {
         SPAN_CONFIRMATION_RECEIPT_LOAD: 'ManualConfirmationReceiptLoad',
         SPAN_SUBMIT_EXPENSE: 'ManualCreateExpenseSubmit',
         SPAN_NAVIGATE_AFTER_EXPENSE_CREATE: 'ManualCreateExpenseNavigation',
+        SPAN_SUBMIT_TO_DESTINATION_VISIBLE: 'ManualSubmitToDestinationVisible',
         SPAN_EXPENSE_SERVER_RESPONSE: 'ManualCreateExpenseServerResponse',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
@@ -1850,12 +1856,25 @@ const CONST = {
         ATTRIBUTE_SCENARIO: 'scenario',
         ATTRIBUTE_HAS_RECEIPT: 'has_receipt',
         ATTRIBUTE_IS_FROM_GLOBAL_CREATE: 'is_from_global_create',
+        /** Sentry span attribute: follow-up action taken after submit (e.g. dismiss_modal_and_open_report, navigate_to_search). */
+        ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_COLD_START: 'cold_start',
         ATTRIBUTE_TRIGGER: 'trigger',
         ATTRIBUTE_PLATFORM: 'platform',
         ATTRIBUTE_IS_MULTI_SCAN: 'is_multi_scan',
+        /** Follow-up action after expense submit (action-based; used as submit_follow_up_action in span). */
+        SUBMIT_FOLLOW_UP_ACTION: {
+            DISMISS_MODAL_AND_OPEN_REPORT: 'dismiss_modal_and_open_report',
+            NAVIGATE_TO_SEARCH: 'navigate_to_search',
+            DISMISS_MODAL_ONLY: 'dismiss_modal_only',
+        },
+        /** Trigger for useSubmitToDestinationVisible: end span on focus vs on layout. */
+        SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER: {
+            FOCUS: 'focus',
+            LAYOUT: 'layout',
+        },
         SUBMIT_EXPENSE_SCENARIO: {
             REQUEST_MONEY_MANUAL: 'request_money_manual',
             REQUEST_MONEY_SCAN: 'request_money_scan',
@@ -1866,6 +1885,7 @@ const CONST = {
             SPLIT_GLOBAL: 'split_global',
             INVOICE: 'invoice',
             PER_DIEM: 'per_diem',
+            SEND_MONEY: 'send_money',
         },
         // Event names
         EVENT_SKELETON_ATTRIBUTES_UPDATE: 'skeleton_attributes_updated',
@@ -3085,6 +3105,8 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
+        // This is the transactionID used when bulk editing multiple expenses
+        OPTIMISTIC_BULK_EDIT_TRANSACTION_ID: 'optimisticBulkEditTransactionID',
         // This is the transactionID used when going through the distance split expense flow so that it mimics a draft transaction
         OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID: '2',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -4360,6 +4382,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -7150,6 +7173,7 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
+            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -8996,8 +9020,8 @@ const CONST = {
             CHECKBOX_RIGHT: 'UserListItem-CheckboxRight',
         },
         USER_LIST_ITEM_WITH_SECTIONS: {
-            CHECKBOX: 'UserListItemWithSections-Checkbox',
-            CHECKBOX_RIGHT: 'UserListItemWithSections-CheckboxRight',
+            LEFT_CHECKBOX: 'UserListItemWithSections-LeftCheckbox',
+            RIGHT_CHECKBOX: 'UserListItemWithSections-RightCheckbox',
         },
         UPLOAD_FILE: {
             REMOVE_BUTTON: 'UploadFile-RemoveButton',
