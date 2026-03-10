@@ -240,7 +240,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints, sanitizeWaypointsForAPI} from '@userActions/Transaction';
+import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
@@ -6417,7 +6417,7 @@ function convertBulkTrackedExpensesToIOU({
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
         const transactionWaypoints = getWaypoints(transaction);
-        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(sanitizeRecentWaypoints(transactionWaypoints)) : undefined;
+        const sanitizedWaypointsForBulk = transactionWaypoints ? JSON.stringify(sanitizeWaypointsForAPI(transactionWaypoints)) : undefined;
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
             payerParams: {
