@@ -885,7 +885,10 @@ function MoneyReportHeader({
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID, transactionViolations]);
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+    const targetPolicyTags = useMemo(
+        () => (defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {}),
+        [defaultExpensePolicy, allPolicyTags],
+    );
 
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
@@ -1173,27 +1176,30 @@ function MoneyReportHeader({
         return sortPoliciesByName(activeAdminPolicies, localeCompare);
     }, [moneyRequestReport, paymentButtonOptions, activeAdminPolicies, accountID, localeCompare]);
 
-    const buildPaymentSubMenuItems = (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
-        if (!workspacePolicyOptions.length) {
-            return Object.values(paymentButtonOptions);
-        }
+    const buildPaymentSubMenuItems = useCallback(
+        (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
+            if (!workspacePolicyOptions.length) {
+                return Object.values(paymentButtonOptions);
+            }
 
-        const result: PopoverMenuItem[] = [];
-        for (const opt of Object.values(paymentButtonOptions)) {
-            result.push(opt);
-            if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                for (const wp of workspacePolicyOptions) {
-                    result.push({
-                        text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
-                        icon: expensifyIcons.Building,
-                        onSelected: () => onWorkspaceSelected(wp),
-                    });
+            const result: PopoverMenuItem[] = [];
+            for (const opt of Object.values(paymentButtonOptions)) {
+                result.push(opt);
+                if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                    for (const wp of workspacePolicyOptions) {
+                        result.push({
+                            text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
+                            icon: expensifyIcons.Building,
+                            onSelected: () => onWorkspaceSelected(wp),
+                        });
+                    }
                 }
             }
-        }
 
-        return result;
-    };
+            return result;
+        },
+        [workspacePolicyOptions, paymentButtonOptions, translate, expensifyIcons.Building],
+    );
 
     const addExpenseDropdownOptions = useMemo(
         () =>
@@ -1500,7 +1506,7 @@ function MoneyReportHeader({
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const checkForNecessaryAction = () => {
+    const checkForNecessaryAction = useCallback(() => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -1514,9 +1520,9 @@ function MoneyReportHeader({
             return true;
         }
         return false;
-    };
+    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, moneyRequestReport]);
 
-    const selectionModeReportLevelActions = (() => {
+    const selectionModeReportLevelActions = useMemo(() => {
         if (isProduction) {
             return [];
         }
@@ -1560,7 +1566,27 @@ function MoneyReportHeader({
             });
         }
         return actions;
-    })();
+    }, [
+        isProduction,
+        hasSubmitAction,
+        shouldBlockSubmit,
+        hasApproveAction,
+        isBlockSubmitDueToPreventSelfApproval,
+        hasPayAction,
+        isOffline,
+        canAllowSettlement,
+        translate,
+        handleSubmitReport,
+        confirmApproval,
+        totalAmount,
+        buildPaymentSubMenuItems,
+        checkForNecessaryAction,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.Cash,
+        expensifyIcons.Send,
+        expensifyIcons.ThumbsUp,
+        kycWallRef,
+    ]);
 
     const connectedIntegrationName = connectedIntegration
         ? translate('workspace.accounting.connectionName', {
@@ -2138,34 +2164,100 @@ function MoneyReportHeader({
 
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
 
-    const makePaymentSelectHandler = (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (fromSelectionMode) {
-            isSelectionModePaymentRef.current = true;
-            if (checkForNecessaryAction()) {
-                return;
+    const makePaymentSelectHandler = useCallback(
+        (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+            if (fromSelectionMode) {
+                isSelectionModePaymentRef.current = true;
+                if (checkForNecessaryAction()) {
+                    return;
+                }
             }
-        }
-        selectPaymentType({
-            event,
-            iouPaymentType,
-            triggerKYCFlow,
+            selectPaymentType({
+                event,
+                iouPaymentType,
+                triggerKYCFlow,
+                policy,
+                onPress: confirmPayment,
+                currentAccountID: accountID,
+                currentEmail: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                isUserValidated,
+                confirmApproval: () => confirmApproval(),
+                iouReport: moneyRequestReport,
+                iouReportNextStep: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+            });
+        },
+        [
+            checkForNecessaryAction,
             policy,
-            onPress: confirmPayment,
-            currentAccountID: accountID,
-            currentEmail: email ?? '',
+            confirmPayment,
+            accountID,
+            email,
             hasViolations,
             isASAPSubmitBetaEnabled,
             isUserValidated,
-            confirmApproval: () => confirmApproval(),
-            iouReport: moneyRequestReport,
-            iouReportNextStep: nextStep,
+            confirmApproval,
+            moneyRequestReport,
+            nextStep,
             betas,
             userBillingGraceEndPeriods,
             amountOwed,
-        });
-    };
+        ],
+    );
 
-    const onSelectionModePaymentSelect = makePaymentSelectHandler(true);
+    const onSelectionModePaymentSelect = useMemo(() => makePaymentSelectHandler(true), [makePaymentSelectHandler]);
+
+    const onPaymentSelect = useMemo(() => makePaymentSelectHandler(false), [makePaymentSelectHandler]);
+
+    const selectionModeKYCSuccess = useCallback(
+        (type?: PaymentMethodType) => {
+            isSelectionModePaymentRef.current = true;
+            confirmPayment({paymentType: type});
+        },
+        [confirmPayment],
+    );
+
+    const renderSelectionModeDropdown = useCallback(
+        (wrapperStyle?: StyleProp<ViewStyle>) =>
+            hasPayInSelectionMode ? (
+                <MoneyReportHeaderKYCDropdown
+                    chatReportID={chatReport?.reportID}
+                    iouReport={moneyRequestReport}
+                    onPaymentSelect={onSelectionModePaymentSelect}
+                    onSuccessfulKYC={selectionModeKYCSuccess}
+                    primaryAction={primaryAction}
+                    applicableSecondaryActions={selectedTransactionsOptions}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                    shouldShowSuccessStyle
+                    ref={kycWallRef}
+                />
+            ) : (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    options={selectedTransactionsOptions}
+                    customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                    isSplitButton={false}
+                    shouldAlwaysShowDropdownMenu
+                    wrapperStyle={wrapperStyle}
+                />
+            ),
+        [
+            hasPayInSelectionMode,
+            chatReport?.reportID,
+            moneyRequestReport,
+            onSelectionModePaymentSelect,
+            selectionModeKYCSuccess,
+            primaryAction,
+            selectedTransactionsOptions,
+            translate,
+            selectedTransactionIDs.length,
+            kycWallRef,
+        ],
+    );
 
     if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
         // If mobile selection mode is enabled but only one or no transactions remain, turn it off
@@ -2184,37 +2276,6 @@ function MoneyReportHeader({
             />
         );
     }
-
-    const onPaymentSelect = makePaymentSelectHandler(false);
-
-    const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
-        isSelectionModePaymentRef.current = true;
-        confirmPayment({paymentType: type});
-    };
-
-    const renderSelectionModeDropdown = (wrapperStyle?: StyleProp<ViewStyle>) =>
-        hasPayInSelectionMode ? (
-            <MoneyReportHeaderKYCDropdown
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPaymentSelect={onSelectionModePaymentSelect}
-                onSuccessfulKYC={selectionModeKYCSuccess}
-                primaryAction={primaryAction}
-                applicableSecondaryActions={selectedTransactionsOptions}
-                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                shouldShowSuccessStyle
-                ref={kycWallRef}
-            />
-        ) : (
-            <ButtonWithDropdownMenu
-                onPress={() => null}
-                options={selectedTransactionsOptions}
-                customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                isSplitButton={false}
-                shouldAlwaysShowDropdownMenu
-                wrapperStyle={wrapperStyle}
-            />
-        );
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
