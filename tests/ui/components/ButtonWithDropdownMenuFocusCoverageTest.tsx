@@ -140,12 +140,28 @@ describe('ButtonWithDropdownMenu focus coverage', () => {
         expect(mockClearKeyboardInteractionFlag).toHaveBeenCalledTimes(1);
     });
 
-    it('focuses the anchor button in onModalHide', () => {
+    it('focuses the single-button anchor in onModalHide', () => {
         render(
             <ButtonWithDropdownMenu
                 options={options}
                 onPress={jest.fn()}
                 isSplitButton={false}
+            />,
+        );
+
+        expect(typeof mockLatestPopoverProps?.onModalHide).toBe('function');
+        expect(mockLastButtonFocusSpy).toBeDefined();
+
+        mockLatestPopoverProps?.onModalHide?.();
+
+        expect(mockLastButtonFocusSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('focuses the split-button anchor in onModalHide', () => {
+        render(
+            <ButtonWithDropdownMenu
+                options={options}
+                onPress={jest.fn()}
             />,
         );
 

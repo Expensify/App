@@ -1,4 +1,4 @@
-import type {RefObject} from 'react';
+import type {RefCallback} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -18,6 +18,7 @@ import NavigationFocusManager from '@libs/NavigationFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import viewRef from '@src/types/utils/viewRef';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 const defaultAnchorAlignment = {
@@ -25,6 +26,8 @@ const defaultAnchorAlignment = {
     // we assume that popover menu opens below the button, anchor is at TOP
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
+type DropdownAnchor = View | HTMLDivElement | null;
 
 function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownMenuProps<IValueType>) {
     const {
@@ -73,19 +76,22 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
     const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
-    const dropdownAnchor = useRef<View | null>(null);
-    const wasOpenedViaKeyboardRef = useRef(false);
+    const dropdownAnchor = useRef<DropdownAnchor>(null);
+    const [wasOpenedViaKeyboard, setWasOpenedViaKeyboard] = useState(false);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
+    const setDropdownAnchor: RefCallback<View> = useCallback((node: DropdownAnchor) => {
+        dropdownAnchor.current = node;
+    }, []);
+    // eslint-disable-next-line react-hooks/refs -- mergeRefs creates a ref callback and does not read ref.current during render
+    const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, setDropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
     const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
-    const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
 
     useEffect(() => {
@@ -101,7 +107,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
             return;
         }
 
-        calculatePopoverPosition(dropdownAnchor, anchorAlignment).then(setPopoverAnchorPosition);
+        calculatePopoverPosition(viewRef(dropdownAnchor), anchorAlignment).then(setPopoverAnchorPosition);
     }, [isMenuVisible, calculatePopoverPosition, anchorAlignment]);
 
     const handleSingleOptionPress = useCallback(
@@ -127,12 +133,13 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const toggleMenu = useCallback(() => {
         if (!isMenuVisible) {
             // Capture keyboard state BEFORE menu opens
-            wasOpenedViaKeyboardRef.current = NavigationFocusManager.wasRecentKeyboardInteraction();
-            if (wasOpenedViaKeyboardRef.current) {
+            const wasKeyboardInteraction = NavigationFocusManager.wasRecentKeyboardInteraction();
+            setWasOpenedViaKeyboard(wasKeyboardInteraction);
+            if (wasKeyboardInteraction) {
                 NavigationFocusManager.clearKeyboardInteractionFlag();
             }
         } else {
-            wasOpenedViaKeyboardRef.current = false;
+            setWasOpenedViaKeyboard(false);
         }
         setIsMenuVisible(!isMenuVisible);
     }, [isMenuVisible]);
@@ -176,6 +183,16 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         setIsMenuVisible,
     }));
 
+    const focusDropdownAnchor = useCallback(() => {
+        const anchor = dropdownAnchor.current;
+
+        if (!anchor || !('focus' in anchor) || typeof anchor.focus !== 'function') {
+            return;
+        }
+
+        anchor.focus();
+    }, []);
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -209,7 +226,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
 
                     {isSplitButton && (
                         <Button
-                            ref={dropdownAnchor}
+                            ref={setDropdownAnchor}
                             success={success}
                             isDisabled={isDisabled}
                             shouldStayNormalOnDisable={shouldStayNormalOnDisable}
@@ -280,16 +297,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     isVisible={isMenuVisible}
                     onClose={() => {
                         setIsMenuVisible(false);
-                        wasOpenedViaKeyboardRef.current = false;
+                        setWasOpenedViaKeyboard(false);
                         onOptionsMenuHide?.();
                     }}
-                    wasOpenedViaKeyboard={wasOpenedViaKeyboardRef.current}
+                    wasOpenedViaKeyboard={wasOpenedViaKeyboard}
                     onModalShow={onOptionsMenuShow}
-                    onModalHide={() => {
-                        // Focus the anchor button after modal closes but before navigation triggers
-                        // This ensures NavigationFocusManager can capture it for focus restoration on back navigation
-                        (dropdownAnchor.current as unknown as HTMLElement)?.focus?.();
-                    }}
+                    onModalHide={focusDropdownAnchor}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
                         if (selectedSubitem.shouldCloseModalOnSelect !== false) {
@@ -298,7 +311,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     }}
                     anchorPosition={popoverAnchorPosition}
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
-                    anchorRef={nullCheckRef(dropdownAnchor)}
+                    anchorRef={dropdownAnchor}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
