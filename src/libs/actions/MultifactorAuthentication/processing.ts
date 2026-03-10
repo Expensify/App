@@ -1,7 +1,9 @@
 import type {PasskeyAttestationResponse} from '@components/MultifactorAuthentication/biometrics/common/types';
 import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason, PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Biometrics/types';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import type {MultifactorAuthenticationKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
+import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
+import type {MarqetaAuthTypeName, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import {registerAuthenticationKey} from './index';

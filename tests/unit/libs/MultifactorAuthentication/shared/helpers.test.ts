@@ -1,8 +1,9 @@
-import {decodeExpoMessage, parseHttpRequest} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {decodeExpoMessage} from '@libs/MultifactorAuthentication/NativeBiometrics/helpers';
+import {parseHttpRequest} from '@libs/MultifactorAuthentication/shared/helpers';
+import VALUES from '@libs/MultifactorAuthentication/shared/VALUES';
 
 jest.mock('@userActions/MultifactorAuthentication');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519', () => ({
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/ED25519', () => ({
     generateKeyPair: jest.fn(() => ({
         publicKey: 'test-public-key',
         privateKey: 'test-private-key',

@@ -1,9 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
 import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
-import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/Biometrics/challengeTypes';
-import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/NativeBiometrics/ED25519';
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -31,8 +31,8 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@userActions/MultifactorAuthentication');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore', () => ({
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/ED25519');
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/KeyStore', () => ({
     PublicKeyStore: {
         supportedAuthentication: {biometrics: true, deviceCredentials: true},
         set: jest.fn(),

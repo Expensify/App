@@ -1,5 +1,6 @@
 /**
- * Constants for multifactor authentication biometrics flow and API responses.
+ * Shared constants for multifactor authentication flow and API responses.
+ * Technology-agnostic — no references to ED25519, SecureStore, Expo, or WebAuthn.
  */
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
@@ -67,15 +68,6 @@ const REASON = {
         CHALLENGE_MISSING: 'Challenge is missing',
         CHALLENGE_SIGNED: 'Challenge signed successfully',
     },
-    EXPO: {
-        CANCELED: 'Authentication canceled by user',
-        IN_PROGRESS: 'Authentication already in progress',
-        NOT_IN_FOREGROUND: 'Application must be in the foreground',
-        KEY_EXISTS: 'This key already exists',
-        NO_METHOD_AVAILABLE: 'No authentication methods available',
-        NOT_SUPPORTED: 'This feature is not supported on the device',
-        GENERIC: 'An error occurred',
-    },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
         /** The device supports biometrics but the user has none enrolled (e.g. no fingerprint/face set up in device settings). */
@@ -99,6 +91,15 @@ const REASON = {
         KEY_RETRIEVED: 'Key successfully retrieved from SecureStore',
         KEY_NOT_FOUND: 'Key not found in SecureStore',
         UNABLE_TO_RETRIEVE_KEY: 'Failed to retrieve key from SecureStore',
+    },
+    EXPO: {
+        CANCELED: 'Authentication canceled by user',
+        IN_PROGRESS: 'Authentication already in progress',
+        NOT_IN_FOREGROUND: 'Application must be in the foreground',
+        KEY_EXISTS: 'This key already exists',
+        NO_METHOD_AVAILABLE: 'No authentication methods available',
+        NOT_SUPPORTED: 'This feature is not supported on the device',
+        GENERIC: 'An error occurred',
     },
     WEBAUTHN: {
         NOT_ALLOWED: 'WebAuthn operation was denied by the user or timed out',
@@ -191,96 +192,9 @@ const API_RESPONSE_MAP = {
     },
 } as const;
 
-/**
- * Expo error message search strings and separator.
- */
-const EXPO_ERRORS = {
-    SEPARATOR: 'Caused by:',
-    SEARCH_STRING: {
-        NOT_IN_FOREGROUND: 'not in the foreground',
-        IN_PROGRESS: 'in progress',
-        CANCELED: 'canceled',
-        EXISTS: 'already exists',
-        NO_AUTHENTICATION: 'No authentication method available',
-        OLD_ANDROID: 'NoSuchMethodError',
-    },
-} as const;
-
-/**
- * Centralized constants used by the multifactor authentication biometrics flow.
- * It is stored here instead of the CONST file to avoid circular dependencies.
- */
-const MULTIFACTOR_AUTHENTICATION_VALUES = {
-    /**
-     * Keychain service name for secure key storage.
-     */
-    KEYCHAIN_SERVICE: 'Expensify',
-
-    /**
-     * EdDSA key type identifier referred to as EdDSA in the Auth.
-     */
-    ED25519_TYPE: 'biometric',
-
-    /**
-     * Key alias identifiers for secure storage.
-     */
-    KEY_ALIASES: {
-        PUBLIC_KEY: '3DS_SCA_KEY_PUBLIC',
-        PRIVATE_KEY: '3DS_SCA_KEY_PRIVATE',
-    },
-    EXPO_ERRORS,
-
-    /**
-     * WebAuthn DOMException name strings for error matching.
-     */
-    WEBAUTHN_ERRORS: {
-        SEARCH_STRING: {
-            NOT_ALLOWED: 'NotAllowedError',
-            INVALID_STATE: 'InvalidStateError',
-            SECURITY: 'SecurityError',
-            ABORT: 'AbortError',
-            NOT_SUPPORTED: 'NotSupportedError',
-            CONSTRAINT: 'ConstraintError',
-        },
-    },
-
-    /**
-     * Maps WebAuthn DOMException names to appropriate reason messages.
-     */
-    WEBAUTHN_ERROR_MAPPINGS: {
-        NotAllowedError: REASON.WEBAUTHN.NOT_ALLOWED,
-        InvalidStateError: REASON.WEBAUTHN.INVALID_STATE,
-        SecurityError: REASON.WEBAUTHN.SECURITY_ERROR,
-        AbortError: REASON.WEBAUTHN.ABORT,
-        NotSupportedError: REASON.WEBAUTHN.NOT_SUPPORTED,
-        ConstraintError: REASON.WEBAUTHN.CONSTRAINT_ERROR,
-    },
-
-    /**
-     * Maps authentication Expo errors to appropriate reason messages.
-     */
-    EXPO_ERROR_MAPPINGS: {
-        [EXPO_ERRORS.SEARCH_STRING.CANCELED]: REASON.EXPO.CANCELED,
-        [EXPO_ERRORS.SEARCH_STRING.IN_PROGRESS]: REASON.EXPO.IN_PROGRESS,
-        [EXPO_ERRORS.SEARCH_STRING.NOT_IN_FOREGROUND]: REASON.EXPO.NOT_IN_FOREGROUND,
-        [EXPO_ERRORS.SEARCH_STRING.EXISTS]: REASON.EXPO.KEY_EXISTS,
-        [EXPO_ERRORS.SEARCH_STRING.NO_AUTHENTICATION]: REASON.EXPO.NO_METHOD_AVAILABLE,
-        [EXPO_ERRORS.SEARCH_STRING.OLD_ANDROID]: REASON.EXPO.NOT_SUPPORTED,
-    },
-
-    /**
-     * Scenario name mappings.
-     */
+const SHARED_VALUES = {
     SCENARIO: SCENARIO_NAMES,
-
-    /**
-     * Prompt name mappings.
-     */
     PROMPT: PROMPT_NAMES,
-
-    /**
-     * Authentication type identifiers.
-     */
     TYPE: {
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
@@ -289,11 +203,6 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         REGISTRATION: 'registration',
         AUTHENTICATION: 'authentication',
     },
-
-    /**
-     * One of these parameters are always present in any MFA request.
-     * Validate code in the registration and signedChallenge in the authentication.
-     */
     BASE_PARAMETERS: {
         SIGNED_CHALLENGE: 'signedChallenge',
         VALIDATE_CODE: 'validateCode',
@@ -334,4 +243,4 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
 } as const;
 
 export {MultifactorAuthenticationCallbacks};
-export default MULTIFACTOR_AUTHENTICATION_VALUES;
+export default SHARED_VALUES;

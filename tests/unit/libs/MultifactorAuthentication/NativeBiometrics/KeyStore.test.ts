@@ -1,13 +1,13 @@
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import {SECURE_STORE_METHODS} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
+import {SECURE_STORE_METHODS} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
+import VALUES from '@libs/MultifactorAuthentication/NativeBiometrics/VALUES';
 
-jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore');
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/SecureStore');
 
 const mockedSecureStoreMethods = jest.mocked(SECURE_STORE_METHODS);
 
 // Mock the SECURE_STORE_METHODS
-jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore', () => ({
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/SecureStore', () => ({
     SECURE_STORE_METHODS: {
         getItemAsync: jest.fn(),
         setItemAsync: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('@libs/MultifactorAuthentication/Biometrics/SecureStore', () => ({
     },
 }));
 
-jest.mock('@libs/MultifactorAuthentication/Biometrics/helpers', () => ({
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/helpers', () => ({
     decodeExpoMessage: jest.fn(() => 'decoded-error-reason'),
 }));
 

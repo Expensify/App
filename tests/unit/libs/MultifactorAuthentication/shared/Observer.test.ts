@@ -1,5 +1,5 @@
-import MultifactorAuthenticationObserver from '@libs/MultifactorAuthentication/Biometrics/Observer';
-import {MultifactorAuthenticationCallbacks} from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MultifactorAuthenticationObserver from '@libs/MultifactorAuthentication/shared/Observer';
+import {MultifactorAuthenticationCallbacks} from '@libs/MultifactorAuthentication/shared/VALUES';
 
 describe('MultifactorAuthenticationObserver', () => {
     beforeEach(() => {

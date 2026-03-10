@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/NativeBiometrics/ED25519';
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
+import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './common/types';
 import useServerCredentials from './common/useServerCredentials';

@@ -1,5 +1,5 @@
 /**
- * Helper utilities for multifactor authentication biometrics operations.
+ * Shared helper utilities for multifactor authentication operations.
  */
 import type {Entries, ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationReason, MultifactorAuthenticationResponseMap} from './types';
@@ -73,43 +73,5 @@ function parseHttpRequest(
     };
 }
 
-/**
- * Decodes Expo error messages and maps them to authentication error reasons.
- */
-function decodeExpoMessage(error: unknown): MultifactorAuthenticationReason {
-    const errorString = String(error);
-    const parts = errorString.split(VALUES.EXPO_ERRORS.SEPARATOR);
-    const searchString = parts.length > 1 ? parts.slice(1).join(';').trim() : errorString;
-
-    for (const [searchKey, errorValue] of Object.entries(VALUES.EXPO_ERROR_MAPPINGS)) {
-        if (searchString.includes(searchKey)) {
-            return errorValue;
-        }
-    }
-
-    return VALUES.REASON.EXPO.GENERIC;
-}
-
-/**
- * Decodes an Expo error message with optional fallback for generic errors.
- */
-const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?: MultifactorAuthenticationReason): MultifactorAuthenticationReason => {
-    const decodedMessage = decodeExpoMessage(message);
-    return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
-};
-
-/**
- * Decodes WebAuthn DOMException errors and maps them to authentication error reasons.
- */
-function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
-    if (error instanceof DOMException) {
-        const mapping = VALUES.WEBAUTHN_ERROR_MAPPINGS[error.name as keyof typeof VALUES.WEBAUTHN_ERROR_MAPPINGS];
-        if (mapping) {
-            return mapping;
-        }
-    }
-
-    return VALUES.REASON.WEBAUTHN.GENERIC;
-}
-
-export {decodeMultifactorAuthenticationExpoMessage as decodeExpoMessage, decodeWebAuthnError, parseHttpRequest};
+// eslint-disable-next-line import/prefer-default-export
+export {parseHttpRequest};

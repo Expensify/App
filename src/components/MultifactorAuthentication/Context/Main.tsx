@@ -8,7 +8,7 @@ import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenari
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import getPlatform from '@libs/getPlatform';
-import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {ChallengeType, MultifactorAuthenticationCallbackInput, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processPasskeyRegistration, processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';

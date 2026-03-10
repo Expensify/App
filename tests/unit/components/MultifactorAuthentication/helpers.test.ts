@@ -1,7 +1,7 @@
 import {registerAuthenticationKey} from '@userActions/MultifactorAuthentication';
 import {processRegistration} from '@userActions/MultifactorAuthentication/processing';
 
-jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore');
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/KeyStore');
 jest.mock('@userActions/MultifactorAuthentication');
 
 describe('MultifactorAuthentication helpers', () => {

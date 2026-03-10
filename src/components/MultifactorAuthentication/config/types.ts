@@ -10,7 +10,7 @@ import type {
     MultifactorAuthenticationReason,
     MultifactorAuthenticationScenarioCallback,
     RegistrationKeyInfo,
-} from '@libs/MultifactorAuthentication/Biometrics/types';
+} from '@libs/MultifactorAuthentication/shared/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';

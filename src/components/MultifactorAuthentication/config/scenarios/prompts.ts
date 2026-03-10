@@ -1,6 +1,6 @@
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 /**
  * Configuration for multifactor authentication prompt UI with animations and translations.

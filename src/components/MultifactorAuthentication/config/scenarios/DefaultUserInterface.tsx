@@ -8,7 +8,7 @@ import {
     UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import type {MultifactorAuthenticationDefaultUIConfig, MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 import CONST from '@src/CONST';
 
 const DEFAULT_CONFIG = {

@@ -1,8 +1,8 @@
 import type {ValueOf} from 'type-fest';
+import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
-import type {AuthenticationChallenge, RegistrationChallenge} from './challengeTypes';
-import MARQETA_VALUES from './SecureStore/MarqetaValues';
 
 /**
  * Passkey authentication type metadata.

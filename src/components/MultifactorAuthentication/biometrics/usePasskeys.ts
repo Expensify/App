@@ -1,9 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/challengeTypes';
-import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Biometrics/helpers';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import {decodeWebAuthnError} from '@libs/MultifactorAuthentication/Passkeys/helpers';
 import {
     arrayBufferToBase64URL,
     buildAllowCredentials,
@@ -14,7 +12,9 @@ import {
     isSupportedTransport,
     isWebAuthnSupported,
     PASSKEY_AUTH_TYPE,
-} from '@libs/MultifactorAuthentication/Biometrics/WebAuthn';
+} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
+import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {addLocalPasskeyCredential, deleteLocalPasskeyCredentials, getPasskeyOnyxKey, reconcileLocalPasskeysWithBackend} from '@userActions/Passkey';
 import CONST from '@src/CONST';
 import type {LocalPasskeyCredentialsEntry, PasskeyCredential} from '@src/types/onyx';
