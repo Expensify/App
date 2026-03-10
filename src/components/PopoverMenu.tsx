@@ -320,19 +320,15 @@ function BasePopoverMenu({
     const delayedCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        if (!isVisible && delayedCloseRef.current) {
-            clearTimeout(delayedCloseRef.current);
-            delayedCloseRef.current = null;
+        if (isVisible || !delayedCloseRef.current) {
+            return;
         }
-    }, [isVisible]);
 
-    useEffect(() => {
-        return () => {
-            if (delayedCloseRef.current) {
-                clearTimeout(delayedCloseRef.current);
-            }
-        };
-    }, []);
+        clearTimeout(delayedCloseRef.current);
+        delayedCloseRef.current = null;
+
+        return () => delayedCloseRef.current && clearTimeout(delayedCloseRef.current);
+    }, [isVisible]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -352,7 +348,7 @@ function BasePopoverMenu({
                 delayedCloseRef.current = setTimeout(() => {
                     delayedCloseRef.current = null;
                     onClose();
-                }, 800);
+                }, 1500);
             }
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
