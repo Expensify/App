@@ -194,7 +194,12 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     styles.searchTopBarZIndexStyle,
                                 ]}
                             >
-                                <SearchPageTabSelector queryJSON={queryJSON} />
+                                <SearchPageTabSelector
+                                    queryJSON={queryJSON}
+                                    onTabPress={() => {
+                                        setSearchRouterListVisible(false);
+                                    }}
+                                />
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}

@@ -17,10 +17,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import todosReportCountsSelector from '@src/selectors/Todos';
 
 type SearchPageTabSelectorProps = {
+    /** Search query JSON */
     queryJSON?: SearchQueryJSON;
+    /** Function to call when a tab is pressed */
+    onTabPress?: () => void;
 };
 
-function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
+function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const navigation = useNavigation();
@@ -84,6 +87,7 @@ function SearchPageTabSelector({queryJSON}: SearchPageTabSelectorProps) {
         if (!searchData) {
             return;
         }
+        onTabPress?.();
         setSearchContext(false);
         navigation.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
