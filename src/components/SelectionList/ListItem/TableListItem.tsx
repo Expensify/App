@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -58,7 +59,7 @@ function TableListItem<TItem extends ListItem>({
             pressableStyle={[
                 styles.selectionListPressableItemWrapper,
                 styles.mh0,
-                isLargeScreenWidth && [styles.ph3, styles.pv2],
+                isLargeScreenWidth && [styles.ph3, styles.pv2, {minHeight: variables.optionRowHeightCompact}],
                 // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
