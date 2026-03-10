@@ -14,7 +14,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {tryEndSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -66,7 +66,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         if (!reportActionID) {
             return;
         }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
+        tryEndSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE}_${reportActionID}`);
     }, [reportActionID]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag

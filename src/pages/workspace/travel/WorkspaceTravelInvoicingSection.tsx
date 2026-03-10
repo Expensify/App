@@ -10,13 +10,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
-    clearToggleTravelInvoicingErrors,
+    clearTravelInvoicingErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
-    toggleTravelInvoicing,
+    configureTravelInvoicingForPolicy,
+    deactivateTravelInvoicing,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -62,17 +63,21 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // For Travel Invoicing, we use a travel-specific card settings key
     // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
+    // Resolve travel-specific settings from the shared card settings key
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+
     // Use pure selectors to derive state
-    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(cardSettings);
-    const travelSpend = getTravelSpend(cardSettings);
-    const travelLimit = getTravelLimit(cardSettings);
-    const settlementAccount = getTravelSettlementAccount(cardSettings, bankAccountList);
-    const settlementFrequency = getTravelSettlementFrequency(cardSettings);
+    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
+    const travelSpend = getTravelSpend(travelSettings);
+    const travelLimit = getTravelLimit(travelSettings);
+    const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
+    const settlementFrequency = getTravelSettlementFrequency(travelSettings);
     const localizedFrequency =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY
             ? translate('workspace.expensifyCard.frequency.monthly')
@@ -110,14 +115,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isOnWaitlist = !!cardOnWaitlist;
+    const isLoading = !!cardSettings?.isLoading;
 
     /**
      * Handle toggle change for Central Invoicing.
      * When turning ON:
-     *   - If has settlement account: call toggleTravelInvoicing(true)
+     *   - If has settlement account: call configureTravelInvoicingForPolicy
      *   - If no settlement account: navigate to selection (enable happens after selection)
-     * When turning OFF: show confirmation modal, then call toggleTravelInvoicing(false).
+     * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
      */
     const handleToggle = (isEnabled: boolean) => {
         // Check if user is on a public domain - Travel Invoicing requires a private domain
@@ -128,7 +135,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
-            if (hasOutstandingTravelBalance(cardSettings)) {
+            if (hasOutstandingTravelBalance(travelSettings)) {
                 // Show blocker modal with error message
                 setIsOutstandingBalanceModalVisible(true);
                 return;
@@ -164,13 +171,16 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Has settlement account - enable Travel Invoicing directly
-        toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        // Has settlement account - enable Travel Invoicing and navigate to settlement page to show verification state
+        if (settlementAccount?.bankAccountID) {
+            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, settlementAccount.bankAccountID);
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
 
     const handleConfirmDisable = () => {
         setIsDisableConfirmModalVisible(false);
-        toggleTravelInvoicing(policyID, workspaceAccountID, false);
+        deactivateTravelInvoicing(policyID, workspaceAccountID);
     };
 
     // Auto-resume the toggle flow after returning from TravelLegalNamePage
@@ -276,9 +286,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
+                    disabled={isLoading || isOnWaitlist}
+                    disabledAction={isOnWaitlist ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
-                    onCloseError={() => clearToggleTravelInvoicingErrors(workspaceAccountID)}
+                    onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}
                     subMenuItems={centralInvoicingSubMenuItems}
                 />
             </Section>
