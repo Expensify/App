@@ -74,15 +74,11 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID: policyID ?? CONST.POLICY.ID_FAKE, page: pages.at(nextIndex)?.pageName}));
     }, [currentPageIndex, pages, policyID]);
 
-    const onBackButtonPress = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     return (
         <View style={styles.flex1}>
             <CurrentPage
                 onSubmit={onSubmit}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={Navigation.goBack}
                 policyID={policyID}
                 currency={currency}
                 stepNames={stepNames}

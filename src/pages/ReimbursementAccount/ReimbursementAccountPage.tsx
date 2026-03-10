@@ -351,7 +351,6 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [currentStep]);
 
     const continueNonUSDVBBASetup = () => {
-        setShouldShowContinueSetupButton(false);
         const startPage = getStartPageForContinueSetup(achData, nonUSDCountryDraftValue, policyCurrency, reimbursementAccountDraft);
         if (isComingFromExpensifyCard) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});

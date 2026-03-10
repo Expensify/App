@@ -66,7 +66,7 @@ const INPUT_KEYS = {
     BUSINESS_TYPE_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID,
 };
 
-function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames}: NonUSDPageProps) {
+function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames, currentSubPage}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
@@ -79,8 +79,17 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
     const businessInfoStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
+    const initialTargetSubPage = pages.at(startFrom)?.pageName ?? SUB_PAGE_NAMES.NAME;
+    const shouldRedirect = !currentSubPage;
     const isBusinessTypeRequired = country !== CONST.COUNTRY.CA;
     const isSubmittingRef = useRef(false);
+
+    useEffect(() => {
+        if (!shouldRedirect) {
+            return;
+        }
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: initialTargetSubPage}), {forceReplace: true});
+    }, [shouldRedirect, policyID, initialTargetSubPage]);
 
     useEffect(() => {
         getCorpayOnboardingFields(country);
@@ -126,7 +135,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
         [policyID],
     );
 
-    const {CurrentPage, isEditing, isRedirecting, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});
+    const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -150,7 +159,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             stepNames={stepNames}
             startStepIndex={2}
         >
-            {isRedirecting ? (
+            {shouldRedirect ? (
                 <FullScreenLoadingIndicator />
             ) : (
                 <CurrentPage
