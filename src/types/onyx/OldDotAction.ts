@@ -149,7 +149,7 @@ type OriginalMessageReimbursementACHBounce = {
     /**
      *
      */
-    originalMessage: Record<string, unknown>;
+    originalMessage: Record<string, unknown> & {returnReason?: string};
 };
 
 /**
