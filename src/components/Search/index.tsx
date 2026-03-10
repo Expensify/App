@@ -620,7 +620,7 @@ function Search({
         });
     }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
 
-    // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
+    // When selection state is being refreshed from new data, this flag prevents derived selection UI from reacting to the intermediate state.
     const isRefreshingSelection = useRef(false);
 
     useEffect(() => {
@@ -631,6 +631,12 @@ function Search({
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
+
+        const shouldRefreshSelection = areAllMatchingItemsSelected || !isEmptyObject(selectedTransactions);
+        if (!shouldRefreshSelection) {
+            return;
+        }
+
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || isExpenseReportType) {
             for (const transactionGroup of filteredData) {
@@ -784,7 +790,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType]);
+    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, selectedTransactions, type]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
