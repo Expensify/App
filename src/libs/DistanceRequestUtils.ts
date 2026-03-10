@@ -301,11 +301,17 @@ function getDefaultMileageRateForCurrency(currency: string): {rate: number; unit
         return serverRate;
     }
     const fallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
-    if (fallbackRate) {
-        return fallbackRate;
+    if (fallbackRate?.rate !== undefined) {
+        return {rate: fallbackRate.rate, unit: fallbackRate.unit};
     }
     // Fall back to USD if the currency isn't found in either source
-    return defaultMileageRatesFromServer?.USD ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
+    const usdServerRate = defaultMileageRatesFromServer?.USD;
+    if (usdServerRate) {
+        return usdServerRate;
+    }
+    const usdFallbackRate = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
+    ensureRateDefined(usdFallbackRate?.rate);
+    return {rate: usdFallbackRate.rate, unit: usdFallbackRate.unit};
 }
 
 /**
