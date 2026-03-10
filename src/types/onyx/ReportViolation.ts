@@ -12,10 +12,4 @@ type ReportViolationName = ValueOf<typeof CONST.REPORT_VIOLATIONS>;
  */
 type ReportFieldsViolations = Record<string, EmptyObject>;
 
-/**
- * Report Violation model
- */
-type ReportViolations = Record<ReportViolationName, ReportFieldsViolations>;
-
 export type {ReportViolationName, ReportFieldsViolations};
-export default ReportViolations;
