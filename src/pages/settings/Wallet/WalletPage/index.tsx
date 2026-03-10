@@ -37,9 +37,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getStreetLines} from '@libs/PersonalDetailsUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
@@ -175,14 +177,14 @@ function WalletPage() {
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
-            const [street1, street2] = additionalData?.addressStreet?.split('\n') ?? [];
+            const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
             resetPersonalBankAccountForUpdate(accountData.bankAccountID);
             clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
             Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
                     legalFirstName: additionalData?.firstName,
                     legalLastName: additionalData?.lastName,
-                    addressStreet: street1 || undefined,
+                    addressStreet: street1,
                     addressStreet2: street2 ?? '',
                     addressCity: additionalData?.addressCity,
                     addressState: additionalData?.addressState,
@@ -190,16 +192,20 @@ function WalletPage() {
                     phoneNumber: additionalData?.companyPhone,
                 }),
                 setDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM, {
-                    addressLine1: street1 || undefined,
+                    addressLine1: street1,
                     addressLine2: street2 ?? '',
                     city: additionalData?.addressCity,
                     state: additionalData?.addressState,
                     zipPostCode: additionalData?.addressZipCode,
                     country: CONST.COUNTRY.US,
                 }),
-            ]).then(() => {
-                Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
-            });
+            ])
+                .then(() => {
+                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
+                })
+                .catch((error: unknown) => {
+                    Log.hmmm('[WalletPage] Failed to set draft values for personal bank account update', {error});
+                });
             return;
         }
 
