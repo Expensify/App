@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -83,67 +83,70 @@ function AddressForm({
 
     const isUSAForm = country === CONST.COUNTRY.US;
 
-    const validator = (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
-        // When hidden, the country input is unregistered so fall back to the country prop.
-        const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+    const validator = useCallback(
+        (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+            // When hidden, the country input is unregistered so fall back to the country prop.
+            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
 
-        const errors: Errors & {
-            zipPostCode?: string | string[];
-        } = {};
-        const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
+            const errors: Errors & {
+                zipPostCode?: string | string[];
+            } = {};
+            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
 
-        // Check "State" dropdown is a valid state if selected Country is USA
-        if (values.country === CONST.COUNTRY.US && !values.state) {
-            errors.state = translate('common.error.fieldRequired');
-        }
-
-        // Add "Field required" errors if any required field is empty
-        for (const fieldKey of requiredFields) {
-            const fieldValue = values[fieldKey] ?? '';
-            if (isRequiredFulfilled(fieldValue)) {
-                continue;
+            // Check "State" dropdown is a valid state if selected Country is USA
+            if (values.country === CONST.COUNTRY.US && !values.state) {
+                errors.state = translate('common.error.fieldRequired');
             }
 
-            errors[fieldKey] = translate('common.error.fieldRequired');
-        }
-
-        if (values.addressLine1.length > CONST.FORM_CHARACTER_LIMIT) {
-            errors.addressLine1 = translate('common.error.characterLimitExceedCounter', values.addressLine1.length, CONST.FORM_CHARACTER_LIMIT);
-        }
-
-        if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
-            errors.addressLine2 = translate('common.error.characterLimitExceedCounter', values.addressLine2.length, CONST.FORM_CHARACTER_LIMIT);
-        }
-
-        if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
-            errors.city = translate('common.error.characterLimitExceedCounter', values.city.length, CONST.FORM_CHARACTER_LIMIT);
-        }
-
-        if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
-            errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
-        }
-
-        // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
-
-        // The postal code system might not exist for a country, so no regex either for them.
-        const countrySpecificZipRegex = countryRegexDetails?.regex;
-        const countryZipFormat = countryRegexDetails?.samples ?? '';
-
-        if (countrySpecificZipRegex) {
-            if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
-                if (isRequiredFulfilled(values.zipPostCode?.trim())) {
-                    errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
-                } else {
-                    errors.zipPostCode = translate('common.error.fieldRequired');
+            // Add "Field required" errors if any required field is empty
+            for (const fieldKey of requiredFields) {
+                const fieldValue = values[fieldKey] ?? '';
+                if (isRequiredFulfilled(fieldValue)) {
+                    continue;
                 }
-            }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
-            errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
-        }
 
-        return errors;
-    };
+                errors[fieldKey] = translate('common.error.fieldRequired');
+            }
+
+            if (values.addressLine1.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.addressLine1 = translate('common.error.characterLimitExceedCounter', values.addressLine1.length, CONST.FORM_CHARACTER_LIMIT);
+            }
+
+            if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', values.addressLine2.length, CONST.FORM_CHARACTER_LIMIT);
+            }
+
+            if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.city = translate('common.error.characterLimitExceedCounter', values.city.length, CONST.FORM_CHARACTER_LIMIT);
+            }
+
+            if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
+                errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
+            }
+
+            // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+            const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+
+            // The postal code system might not exist for a country, so no regex either for them.
+            const countrySpecificZipRegex = countryRegexDetails?.regex;
+            const countryZipFormat = countryRegexDetails?.samples ?? '';
+
+            if (countrySpecificZipRegex) {
+                if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
+                    if (isRequiredFulfilled(values.zipPostCode?.trim())) {
+                        errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', countryZipFormat);
+                    } else {
+                        errors.zipPostCode = translate('common.error.fieldRequired');
+                    }
+                }
+            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values?.zipPostCode?.trim()?.toUpperCase() ?? '')) {
+                errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat');
+            }
+
+            return errors;
+        },
+        [translate, shouldHideCountrySelector, country],
+    );
 
     return (
         <FormProvider
