@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage]
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
@@ -40,8 +40,10 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 **Other SmartScan methods:**
 
-- Forward your digital receipts to receipts@expensify.com.
+- Forward your digital receipts to [receipts@expensify.com](mailto:receipts@expensify.com).
 - Text a receipt photo to 47777 (US numbers only). Make sure you [add your phone number as a contact method to Expensify](https://new.expensify.com/settings/profile/contact-methods).
+
+**Note:** Customers using **Proofpoint Hosted Email Security** may be unable to forward receipts to receipts@expensify.com due to an issue on Proofpoint's side. If you're affected, contact Proofpoint for resolution, or use another method such as uploading in the app or on the web, or texting a receipt to 47777 (US numbers only).
 
 ---
 
@@ -175,6 +177,10 @@ Expensify uses AI to detect suspicious or non-human receipts:
 - **Prohibited expenses** – If a receipt violates workspace rules, it will be flagged as soon as it's submitted.
 
 This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
+
+## Why can't I forward receipts to receipts@expensify.com?
+
+Customers using **Proofpoint Hosted Email Security** may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. If you're affected, contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
 ## Can I attach multiple receipts to one expense?
 
