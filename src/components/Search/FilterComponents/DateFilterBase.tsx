@@ -8,10 +8,9 @@ import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
+import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue, getEmptyDateValues} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import {getDateModifierTitle, getEmptyDateValues} from './dateFilterUtils';
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 

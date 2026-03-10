@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScrollView from '@components/ScrollView';
-import {getDateModifierTitle} from '@components/Search/FilterComponents/dateFilterUtils';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
@@ -16,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
+import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 

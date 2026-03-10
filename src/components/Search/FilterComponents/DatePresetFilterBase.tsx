@@ -9,11 +9,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDateRangeDisplayValueFromFormValue, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import type {SearchDateValues} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue, getEmptyDateValues, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {SearchDateValues} from './dateFilterUtils';
-import {getEmptyDateValues} from './dateFilterUtils';
 import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;

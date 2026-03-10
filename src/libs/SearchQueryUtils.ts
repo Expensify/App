@@ -1869,6 +1869,33 @@ function getDateFilterKeys(dateKey: string) {
     };
 }
 
+/** All four date modifier values keyed by their modifier name. */
+type SearchDateValues = Record<ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>, string | undefined>;
+
+/** Returns a fresh object where all four date modifiers are undefined. */
+function getEmptyDateValues(): SearchDateValues {
+    return {
+        [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
+    };
+}
+
+/**
+ * Returns the display title for the date modifier sub-screen header.
+ * Falls back to `fallbackTitle` when no modifier is selected.
+ */
+function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS> | null, fallbackTitle: string, translate: LocalizedTranslate): string {
+    if (modifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+        return translate('search.filters.date.customRange');
+    }
+    if (modifier) {
+        return translate('search.filters.date.customDate');
+    }
+    return fallbackTitle;
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -1900,4 +1927,8 @@ export {
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
     getDateFilterKeys,
+    getEmptyDateValues,
+    getDateModifierTitle,
 };
+
+export type {SearchDateValues};
