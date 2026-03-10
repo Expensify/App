@@ -12063,6 +12063,7 @@ function cancelPayment(
 function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
@@ -12098,6 +12099,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
+        isSelfTourViewed,
         betas,
     });
 }
@@ -12124,7 +12126,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -12202,7 +12204,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
