@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -77,7 +78,11 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     }, [domainAccountID, doesDomainExist]);
 
     if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BaseVerifyDomainPage',
+            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!domain) {

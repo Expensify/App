@@ -10,6 +10,7 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -101,7 +102,13 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    return <FullscreenLoadingIndicator />;
+                    const reasonAttributes: SkeletonSpanReasonAttributes = {
+                        context: 'withReportOrNotFound',
+                        isLoadingReportData: isLoadingReportData !== false,
+                        shouldFetchReport,
+                        isReportLoaded,
+                    };
+                    return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
                 }
 
                 if (shouldShowNotFoundPage) {

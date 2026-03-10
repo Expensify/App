@@ -4,6 +4,7 @@ import {useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -77,7 +78,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);
 
-    return <FullScreenLoadingIndicator />;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'LogOutPreviousUserPage',
+        isAccountLoading: !!isAccountLoading,
+    };
+    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }
 
 export default LogOutPreviousUserPage;

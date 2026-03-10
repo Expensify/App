@@ -86,7 +86,15 @@ function ValidateLoginPage({
                     code={validateCode}
                 />
             )}
-            {(!autoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && <FullScreenLoadingIndicator />}
+            {(!autoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
+                <FullScreenLoadingIndicator
+                    reasonAttributes={{
+                        context: 'ValidateLoginPage',
+                        isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,
+                        shouldStartSignInWithValidateCode,
+                    }}
+                />
+            )}
         </>
     );
 }
