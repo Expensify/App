@@ -127,7 +127,7 @@ function MoneyRequestReportTransactionItem({
                 role={getButtonRole(true)}
                 isNested
                 id={transaction.transactionID}
-                style={[styles.transactionListItemStyle]}
+                style={[styles.transactionListItemStyle, isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact}]}
                 hoverStyle={[!isPendingDelete && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
