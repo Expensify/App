@@ -3740,6 +3740,13 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
         Log.warn('[Report] deleteReport called with no reportID');
         return;
     }
+
+    // If the currently displayed report is being removed, pop to the sidebar first.
+    // This prevents back-stack loops on a now-missing report route.
+    if (Navigation.getTopmostReportId() === reportID) {
+        Navigation.popToSidebar();
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const onyxData: Record<string, null> = {
         [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
