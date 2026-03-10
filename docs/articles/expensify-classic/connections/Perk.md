@@ -55,8 +55,6 @@ Expenses are created automatically after a booking is confirmed in Perk.
 
 This typically happens when the traveler does not have an Expensify account or the traveler's email address is different in Perk and Expensify.
 
-This typically happens when the traveler does not have an Expensify account or the traveler's email address is different in Perk and Expensify
-
 To resolve this, confirm the traveler has an active Expensify account and make sure the email address matches in both Perk and Expensify.
 
 ## Where do I manage the Perk integration settings?
