@@ -62,8 +62,8 @@ When the hard stop clears:
 This layer uses `@react-native-community/netinfo` to detect whether the device has an active network interface.
 
 - A module-level Onyx connection to `SESSION` triggers `configureAndSubscribe()` whenever accountID changes
-- When `isConnected` is `false`, it calls `NetworkState.setNoRadio(true)`
-- When `isConnected` returns to `true`, it calls `NetworkState.setNoRadio(false)`
+- When `isConnected` is `false`, it calls `NetworkState.setHasRadio(false)`
+- When `isConnected` returns to `true`, it calls `NetworkState.setHasRadio(true)`
 - Detects: airplane mode, WiFi disabled, no cellular signal
 - Does **not** determine actual server reachability — a device can be connected to WiFi but have no internet
 

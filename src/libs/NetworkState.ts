@@ -5,19 +5,19 @@ import Log from './Log';
 import {pause, unpause} from './Network/SequentialQueue';
 import {onProbeSuccess, probeNow, start as startProbe, stop as stopProbe} from './RecoveryProbe';
 
-let noRadioActive = false;
+let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
 
 onProbeSuccess(() => onRecoveryProbeSuccess());
 
 function isInHardStop(): boolean {
-    return noRadioActive || sustainedFailuresActive || shouldForceOffline;
+    return !hasRadio || sustainedFailuresActive || shouldForceOffline;
 }
 
 function updateState() {
     const offline = isInHardStop();
-    setIsOffline(offline, `hard stop: noRadio=${noRadioActive}, sustainedFailures=${sustainedFailuresActive}, forceOffline=${shouldForceOffline}`);
+    setIsOffline(offline, `hard stop: noRadio=${!hasRadio}, sustainedFailures=${sustainedFailuresActive}, forceOffline=${shouldForceOffline}`);
 
     if (offline) {
         pause();
@@ -38,14 +38,14 @@ function updateState() {
  * Called by the NetInfo listener when the OS reports radio status changes.
  * `hasRadio=false` means airplane mode / WiFi off / no cellular.
  */
-function setNoRadio(hasRadio: boolean) {
-    const wasActive = noRadioActive;
-    noRadioActive = !hasRadio;
+function setHasRadio(connected: boolean) {
+    const hadRadio = hasRadio;
+    hasRadio = connected;
 
-    if (!wasActive && noRadioActive) {
+    if (hadRadio && !hasRadio) {
         Log.info('[NetworkState] Hard stop: NO_RADIO — OS reports no network interface');
         updateState();
-    } else if (wasActive && !noRadioActive) {
+    } else if (!hadRadio && hasRadio) {
         Log.info('[NetworkState] NO_RADIO cleared — OS reports radio is back');
         if (sustainedFailuresActive && !shouldForceOffline) {
             probeNow();
@@ -85,7 +85,7 @@ function setForceOffline(force: boolean) {
  */
 function onRecoveryProbeSuccess() {
     Log.info('[NetworkState] Recovery probe succeeded — clearing hard stops and reconnecting');
-    noRadioActive = false;
+    hasRadio = true;
     sustainedFailuresActive = false;
     updateState();
 
@@ -111,7 +111,7 @@ function initAppForegroundListener() {
 
 export default {
     isInHardStop,
-    setNoRadio,
+    setHasRadio,
     setSustainedFailures,
     setForceOffline,
     onRecoveryProbeSuccess,
