@@ -4,8 +4,8 @@ const Y_AXIS_TICK_COUNT = 5;
 /** Desired visual gap (px) between axis labels and the chart edge, used for both axes */
 const AXIS_LABEL_GAP = 12;
 
-/** Chart padding */
-const CHART_PADDING = 5;
+/** Base chart padding applied to all sides */
+const CHART_PADDING = {top: 5, left: 5, right: 5, bottom: 5};
 
 /** Minimum height for the chart content area (bars, Y-axis, grid lines) */
 const CHART_CONTENT_MIN_HEIGHT = 250;
@@ -19,4 +19,34 @@ const Y_AXIS_LINE_WIDTH = 1;
 /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
 const PIE_CHART_START_ANGLE = -90;
 
-export {Y_AXIS_TICK_COUNT, AXIS_LABEL_GAP, CHART_PADDING, CHART_CONTENT_MIN_HEIGHT, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, PIE_CHART_START_ANGLE};
+/** Supported label rotation angles in degrees */
+const LABEL_ROTATIONS = {
+    HORIZONTAL: 0,
+    DIAGONAL: 45,
+    VERTICAL: 90,
+} as const;
+
+const SIN_45 = Math.sin(Math.PI / 4);
+
+/** Minimum gap between adjacent labels (px) */
+const LABEL_PADDING = 4;
+
+const ELLIPSIS = '...';
+
+/** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
+const MIN_TRUNCATED_CHARS = 10;
+
+export {
+    Y_AXIS_TICK_COUNT,
+    AXIS_LABEL_GAP,
+    CHART_PADDING,
+    CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LINE_WIDTH,
+    Y_AXIS_LINE_WIDTH,
+    PIE_CHART_START_ANGLE,
+    LABEL_ROTATIONS,
+    SIN_45,
+    LABEL_PADDING,
+    ELLIPSIS,
+    MIN_TRUNCATED_CHARS,
+};
