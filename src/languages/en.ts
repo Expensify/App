@@ -495,6 +495,7 @@ const translations = {
         validate: 'Validate',
         downloadAsPDF: 'Download as PDF',
         downloadAsCSV: 'Download as CSV',
+        print: 'Print',
         help: 'Help',
         expenseReport: 'Expense Report',
         expenseReports: 'Expense Reports',
@@ -535,8 +536,6 @@ const translations = {
         headsUp: 'Heads up!',
         submitTo: 'Submit to',
         forwardTo: 'Forward to',
-        approvalLimit: 'Approval limit',
-        overLimitForwardTo: 'Over limit forward to',
         merge: 'Merge',
         none: 'None',
         unstableInternetConnection: 'Unstable internet connection. Please check your network and try again.',
@@ -1604,7 +1603,7 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
-        routedDueToDEW: (to: string) => `report routed to ${to} due to custom approval workflow`,
+        routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'hour' : 'hours'} @ ${rate} / hour`,
             hrs: 'hrs',
@@ -2125,6 +2124,7 @@ const translations = {
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',
+        secretKey: 'secret key',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication enabled',
@@ -3066,8 +3066,6 @@ const translations = {
                 "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
-            onboardingLookingAroundMessage:
-                "Expensify is best known for expenses, travel, and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
         },
         workspace: {
@@ -5254,6 +5252,7 @@ const translations = {
                         learnHow: 'Learn how.',
                         subsections: {
                             currentTravelSpendLabel: 'Current travel spend',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
                             currentTravelSpendCta: 'Pay balance',
                             currentTravelLimitLabel: 'Current travel limit',
                             settlementAccountLabel: 'Settlement account',
@@ -5271,6 +5270,16 @@ const translations = {
                         body: 'You still have an outstanding travel balance. Please pay your balance first.',
                         confirm: 'Got it',
                     },
+                    payBalanceModal: {
+                        title: (amount: string) => `Pay balance of ${amount}?`,
+                        body: 'The payment will be queued and processed shortly after. This action cannot be undone once started.',
+                    },
+                    exportToPDF: 'Export to PDF',
+                    exportToCSV: 'Export to CSV',
+                    selectDateRangeError: 'Please select a date range to export',
+                    invalidDateRangeError: 'The start date must be before the end date',
+                    enabled: 'Central Invoicing enabled!',
+                    enabledDescription: 'All travel spend on this workspace will now be centralized in a monthly invoice.',
                 },
                 personalDetailsDescription: 'In order to book travel, please enter your legal name as it appears on your government-issued ID.',
             },
@@ -7634,6 +7643,9 @@ const translations = {
         notActivated: 'Not activated',
         outOfPocket: 'Reimbursable',
         companySpend: 'Non-reimbursable',
+        personalCard: 'Personal card',
+        companyCard: 'Company card',
+        expensifyCard: 'Expensify Card',
     },
     distance: {
         addStop: 'Add stop',
@@ -7737,6 +7749,10 @@ const translations = {
             prompt: 'Please allow location access in your device settings to start GPS distance tracking.',
         },
         fabGpsTripExplained: 'Go to GPS screen (Floating action)',
+        liveActivity: {
+            subtitle: 'Tracking distance',
+            button: 'View progress',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
@@ -8482,7 +8498,7 @@ const translations = {
         goToDomain: 'Go to domain',
         samlLogin: {
             title: 'SAML login',
-            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Enable SAML login',
             allowMembers: 'Allow members to log in with SAML.',
             requireSamlLogin: 'Require SAML login',
