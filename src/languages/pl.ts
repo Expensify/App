@@ -698,8 +698,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: 'Nigdy nie zarejestrowano',
             statusNotRegistered: 'Nie zarejestrowano',
-            statusRegisteredOtherDevice: () => ({one: 'Inne urządzenie zarejestrowane', other: 'Inne urządzenia zarejestrowane'}),
             statusRegisteredThisDevice: 'Zarejestrowano',
+            statusRegisteredOtherDevice: {one: 'Zarejestrowano inne urządzenie', other: 'Inne zarejestrowane urządzenia'},
         },
         pleaseEnableInSystemSettings: {
             start: 'Włącz weryfikację twarzą/odciskiem palca lub ustaw kod blokady urządzenia w swoim',
@@ -721,7 +721,7 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Face/odcisk palca i klucze dostępu',
             explanation:
-                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub więcej urządzeniach. Cofnięcie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
+                'Weryfikacja twarzą/odciskiem palca lub kluczem dostępu jest włączona na jednym lub kilku urządzeniach. Odwołanie dostępu spowoduje, że przy następnej weryfikacji na tym urządzeniu będzie wymagany magiczny kod.',
             confirmationPrompt: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tym urządzeniu.',
             cta: 'Cofnij dostęp',
             noDevices:
@@ -729,22 +729,15 @@ const translations: TranslationDeepObject<typeof en> = {
             dismiss: 'Jasne',
             error: 'Żądanie nie powiodło się. Spróbuj ponownie później.',
             revoke: 'Unieważnij',
-            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na dowolnym urządzeniu.',
-            ctaAll: 'Unieważnij wszystkie',
+            confirmationPromptAll: 'Na pewno? Będziesz potrzebować magicznego kodu do następnej weryfikacji na każdym urządzeniu.',
+            ctaAll: 'Cofnij wszystkie',
             thisDevice: 'To urządzenie',
             otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
-                const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
+                const numberWords = ['Jeden', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                let deviceWord = 'innych urządzeń';
-
-                if (otherDeviceCount === 1) {
-                    deviceWord = 'inne urządzenie';
-                } else if (otherDeviceCount !== undefined && otherDeviceCount >= 2 && otherDeviceCount <= 4) {
-                    deviceWord = 'inne urządzenia';
-                }
-                return `${displayCount} ${deviceWord}`;
+                return `${displayCount} inna ${otherDeviceCount === 1 ? 'urządzenie' : 'urządzenia'}`;
             },
-            confirmationPromptThisDevice: 'Na pewno? Do następnej weryfikacji na tym urządzeniu będziesz potrzebować magicznego kodu.',
+            confirmationPromptThisDevice: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tym urządzeniu.',
             confirmationPromptMultiple: 'Na pewno? Będziesz potrzebować magicznego kodu przy następnej weryfikacji na tych urządzeniach.',
         },
         unsupportedDevice: {

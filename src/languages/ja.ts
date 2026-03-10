@@ -698,8 +698,8 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
-            statusRegisteredOtherDevice: () => ({one: '他のデバイスが登録済み', other: '他のデバイスが登録済み'}),
             statusRegisteredThisDevice: '登録済み',
+            statusRegisteredOtherDevice: {one: '別のデバイスが登録されました', other: '登録済みの他のデバイス'},
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',
@@ -720,19 +720,23 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             title: '顔／指紋 & パスキー',
-            explanation: '1 台以上のデバイスで顔／指紋またはパスキーによる認証が有効になっています。アクセスを取り消すと、そのデバイスで次回認証を行う際にマジックコードが必要になります。',
-            confirmationPrompt: '本当に実行してもよろしいですか？次回そのデバイスで認証するには、マジックコードが必要になります。',
+            explanation: '1 台以上の端末で顔／指紋またはパスキー認証が有効になっています。アクセスを取り消すと、その端末で次回認証する際にマジックコードが必要になります。',
+            confirmationPrompt: '本当によろしいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
             cta: 'アクセスを取り消す',
             noDevices: '顔認証・指紋認証またはパスキー認証に登録されているデバイスがありません。デバイスを登録すると、そのアクセス権をここで取り消すことができるようになります。',
             dismiss: '了解しました',
             error: 'リクエストに失敗しました。後でもう一度お試しください。',
             revoke: '取り消す',
-            confirmationPromptAll: '本当によろしいですか？今後どの端末でも次回の認証にはマジックコードが必要になります。',
+            confirmationPromptAll: '本当に実行してよろしいですか？今後どの端末でも、次回の認証にはマジックコードが必要になります。',
             ctaAll: 'すべて取り消す',
             thisDevice: 'このデバイス',
-            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => `他${otherDeviceCount}台のデバイス`,
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['1', '二', '三', '四', '五', '六', '七', '8', '9'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `その他${displayCount}件の${otherDeviceCount === 1 ? 'デバイス' : 'デバイス'}`;
+            },
             confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、マジックコードが必要になります。',
-            confirmationPromptMultiple: '本当に宜しいですか？そのデバイスで次回の認証を行うには、マジックコードが必要になります。',
+            confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、マジックコードが必要になります。',
         },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
