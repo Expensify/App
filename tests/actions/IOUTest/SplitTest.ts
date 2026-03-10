@@ -3090,7 +3090,7 @@ describe('updateSplitTransactions', () => {
     const splitToN = async (numberOfSplitTransaction: number, expenseReport: OnyxEntry<Report>, originalTransactionID: string, firstIOU?: ReportAction) => {
         const splitTransactionIDs = new Array(numberOfSplitTransaction).fill(true).map(() => rand64());
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
-        const policyTags = await getPolicyTags(expenseReport?.reportID ?? '');
+        const policyTags = await getPolicyTags(expenseReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
 
         updateSplitTransactions({
             allTransactionsList: allTransactions,
@@ -3191,7 +3191,7 @@ describe('updateSplitTransactions', () => {
         const ancestors = getAncestors(transactionThreadReport, allReports, {}, allReportActions);
         addComment({
             report: transactionThreadReport,
-            notifyReportID: transactionThreadReport?.reportID ?? '',
+            notifyReportID: transactionThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
             ancestors,
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
@@ -3238,7 +3238,7 @@ describe('updateSplitTransactions', () => {
         const ancestors = getAncestors(split1ThreadReport, allReports1, {}, allReportActions1);
         addComment({
             report: split1ThreadReport,
-            notifyReportID: split1ThreadReport?.reportID ?? '',
+            notifyReportID: split1ThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
             ancestors,
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
@@ -3303,7 +3303,7 @@ describe('updateSplitTransactions', () => {
         const ancestors = getAncestors(transactionThreadReport, allReports1, {}, allReportActions1);
         addComment({
             report: transactionThreadReport,
-            notifyReportID: transactionThreadReport?.reportID ?? '',
+            notifyReportID: transactionThreadReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
             ancestors,
             text: 'Testing a comment',
             timezoneParam: CONST.DEFAULT_TIME_ZONE,
