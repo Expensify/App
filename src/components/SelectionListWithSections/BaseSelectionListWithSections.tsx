@@ -4,7 +4,6 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo, TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
-import AccessibilityLiveRegion from '@components/AccessibilityLiveRegion';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -1005,17 +1004,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || (flattenedSections.allOptions.length === 0 && !shouldShowLoadingPlaceholder));
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
-    const {liveRegionMessage, shouldUsePersistentLiveRegion} = useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, true);
+
+    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
     const headerMessageContent = () =>
         shouldShowHeaderMessage && (
             <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text
-                    style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                    accessibilityLiveRegion={!shouldUsePersistentLiveRegion && shouldAnnounceNoResults ? 'polite' : undefined}
-                >
-                    {headerMessage}
-                </Text>
+                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
             </View>
         );
 
@@ -1035,7 +1030,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
-            {shouldUsePersistentLiveRegion && <AccessibilityLiveRegion message={liveRegionMessage} />}
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}

@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
-import AccessibilityLiveRegion from '@components/AccessibilityLiveRegion';
 import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
@@ -73,7 +72,8 @@ function TextInput({
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
     const shouldAnnounceNoResults = shouldShowHeaderMessage && isNoResultsFoundMessage;
-    const {liveRegionMessage, shouldUsePersistentLiveRegion} = useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, true);
+
+    useAccessibilityAnnouncement(headerMessage, shouldAnnounceNoResults, {shouldAnnounceOnNative: true});
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -145,15 +145,9 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text
-                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        accessibilityLiveRegion={!shouldUsePersistentLiveRegion && shouldAnnounceNoResults ? 'polite' : undefined}
-                    >
-                        {headerMessage}
-                    </Text>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
-            {shouldUsePersistentLiveRegion && <AccessibilityLiveRegion message={liveRegionMessage} />}
         </>
     );
 }
