@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -36,6 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
+    canEditMultipleTransactions,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -44,14 +46,15 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
+import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
@@ -69,6 +72,10 @@ type UseSearchBulkActionsParams = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
+function getRestrictedPolicyID(items: Array<{policyID?: string}>, billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>): string | undefined {
+    return items.map((item) => item.policyID).find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, billingGracePeriods));
+}
+
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -82,6 +89,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {accountID} = currentUserPersonalDetails;
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -91,6 +99,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -133,6 +142,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Exclamation',
         'MoneyBag',
         'ArrowSplit',
+        'Pencil',
     ] as const);
 
     const selectedTransactionReportIDs = useMemo(
@@ -359,9 +369,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        const selectedPolicyIDList = selectedReports.length
-            ? selectedReports.map((report) => report.policyID)
-            : Object.values(selectedTransactions).map((transaction) => transaction.policyID);
+        const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGraceEndPeriodCollection);
+        if (restrictedPolicyID) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+            return;
+        }
+
+        const selectedPolicyIDList = selectedItems.map((item) => item.policyID);
         const hasDEWPolicy = selectedPolicyIDList.some((policyID) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
             return hasDynamicExternalWorkflow(policy);
@@ -404,6 +420,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         translate,
         hash,
         clearSelectedTransactions,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -521,8 +538,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const activeRoute = Navigation.getActiveRoute();
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGraceEndPeriodCollection);
+            if (restrictedPolicyID) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                return;
+            }
+
+            const activeRoute = Navigation.getActiveRoute();
 
             for (const item of selectedOptions) {
                 const itemPolicyID = item.policyID;
@@ -634,6 +658,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             personalPolicyID,
             allTransactions,
             allReports,
+            userBillingGraceEndPeriodCollection,
         ],
     );
 
@@ -726,6 +751,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return [exportButtonOption];
         }
 
+        const isExpenseReportSearch = typeExpenseReport || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+        const selectedTransactionsList = Object.values(selectedTransactions)
+            .map((transaction) => transaction.transaction)
+            .filter((transaction): transaction is Transaction => !!transaction);
+        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, isExpenseReportSearch);
+
+        if (canEditMultiple) {
+            options.push({
+                icon: expensifyIcons.Pencil,
+                text: translate('search.bulkActions.editMultiple'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    const selectedTransactionIDs = Object.keys(selectedTransactions).filter((transactionID) => {
+                        const selectedTransaction = selectedTransactions[transactionID];
+                        return !!selectedTransaction?.transaction?.transactionID || !!allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                    });
+                    initBulkEditDraftTransaction(selectedTransactionIDs);
+                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
+                },
+            });
+        }
+
         const areSelectedTransactionsIncludedInReports = selectedTransactionsKeys.every((id) =>
             selectedTransactions[id].reportID ? selectedReportIDs.includes(selectedTransactions[id].reportID) : true,
         );
@@ -806,6 +854,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
+
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGraceEndPeriodCollection);
+                    if (restrictedPolicyID) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
 
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
@@ -1010,6 +1064,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.ArrowCollapse,
         expensifyIcons.DocumentMerge,
         expensifyIcons.ArrowSplit,
+        expensifyIcons.Pencil,
         expensifyIcons.Trashcan,
         expensifyIcons.Exclamation,
         translate,
@@ -1024,6 +1079,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         selectedPolicyIDs,
         policies,
+        allReportActions,
         integrationsExportTemplates,
         csvExportLayouts,
         handleBasicExport,
@@ -1047,6 +1103,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        userBillingGraceEndPeriodCollection,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
