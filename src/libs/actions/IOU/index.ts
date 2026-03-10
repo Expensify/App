@@ -1165,6 +1165,12 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
  * - If it is created on the inbox tab, it will open the chat report containing that expense.
  * - If it is created elsewhere, it will navigate to Reports > Expense and highlight the newly created expense.
  */
+const NO_OP_NAVIGATION_HANDLER = () => {};
+
+function toNavigationHandler(shouldHandleNavigation?: boolean): ((navigate: () => void) => void) | undefined {
+    return shouldHandleNavigation === false ? NO_OP_NAVIGATION_HANDLER : undefined;
+}
+
 function handleNavigateAfterExpenseCreate({
     activeReportID,
     transactionID,
@@ -1196,13 +1202,14 @@ function handleNavigateAfterExpenseCreate({
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
-    const rootState = navigationRef.getRootState();
-    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
-    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
-    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
-    const isSameSearchType = currentSearchQueryJSON?.type === type;
     executeNavigation(() => {
+        const rootState = navigationRef.getRootState();
+        const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+        const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+        const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
+        const isSameSearchType = currentSearchQueryJSON?.type === type;
+
         setPendingSubmitFollowUpAction(
             alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
         );
@@ -6924,7 +6931,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             activeReportID: backToReport ?? activeReportID,
             transactionID: transaction.transactionID,
             isFromGlobalCreate,
-            navigationHandler: shouldHandleNavigation ? undefined : () => {},
+            navigationHandler: toNavigationHandler(shouldHandleNavigation),
         });
     }
 
@@ -7055,7 +7062,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         activeReportID,
         transactionID: transaction.transactionID,
         isFromGlobalCreate,
-        navigationHandler: shouldHandleNavigation ? undefined : () => {},
+        navigationHandler: toNavigationHandler(shouldHandleNavigation),
     });
 
     if (activeReportID) {
@@ -7822,7 +7829,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             activeReportID,
             transactionID: transaction?.transactionID,
             isFromGlobalCreate,
-            navigationHandler: shouldHandleNavigation ? undefined : () => {},
+            navigationHandler: toNavigationHandler(shouldHandleNavigation),
         });
     }
 
