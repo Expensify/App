@@ -320,7 +320,9 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setInternalOptions(optionsList);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
