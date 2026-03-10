@@ -20,7 +20,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
-    useNavigationState: () => {},
+    useNavigationState: () => true,
 }));
 
 jest.mock('@pages/settings/Subscription/ExpensifyCodePage', () =>
@@ -33,9 +33,7 @@ jest.mock('@userActions/Subscription', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
-    const actual = jest.requireActual<typeof Navigation>('@libs/Navigation/Navigation');
     return {
-        ...actual,
         goBack: jest.fn(),
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
@@ -46,6 +44,10 @@ jest.mock('@libs/Navigation/Navigation', () => {
             addListener: jest.fn(),
         }),
         usePreventRemove: jest.fn(),
+        useNavigationState: () => true,
+        navigationRef: {
+            current: {},
+        },
     };
 });
 
