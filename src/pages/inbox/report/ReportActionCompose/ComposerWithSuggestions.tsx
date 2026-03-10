@@ -261,7 +261,8 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, getEditingState} = useReportActionActiveEdit();
+    const {editingReportActionID, editingReportAction, editingMessage, setEditingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, getEditingState} =
+        useReportActionActiveEdit();
 
     const [value, setValue] = useState(() => {
         const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
@@ -602,7 +603,9 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (!!editingReportActionID && shouldUseNarrowLayout && getEditingState() !== 'submitted') {
+            const editingState = getEditingState();
+            if (editingState === 'editing' && shouldUseNarrowLayout) {
+                setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     isDraftPendingSaved.current = true;
                     debouncedSaveDraft(newCommentConverted);
@@ -625,23 +628,24 @@ function ComposerWithSuggestions({
             }
         },
         [
-            raiseIsScrollLikelyLayoutTriggered,
-            selection?.start,
-            selection.end,
-            findNewlyAddedChars,
-            preferredSkinTone,
-            preferredLocale,
-            editingReportActionID,
-            shouldUseNarrowLayout,
-            getEditingState,
-            suggestionsRef,
-            setIsCommentEmpty,
-            setCurrentEditMessageSelection,
             currentEditMessageSelection,
-            reportID,
+            currentUserAccountID,
             debouncedSaveDraft,
             debouncedSaveReportComment,
-            currentUserAccountID,
+            editingReportActionID,
+            findNewlyAddedChars,
+            getEditingState,
+            preferredLocale,
+            preferredSkinTone,
+            raiseIsScrollLikelyLayoutTriggered,
+            reportID,
+            selection.end,
+            selection?.start,
+            setCurrentEditMessageSelection,
+            setEditingMessage,
+            setIsCommentEmpty,
+            shouldUseNarrowLayout,
+            suggestionsRef,
         ],
     );
 

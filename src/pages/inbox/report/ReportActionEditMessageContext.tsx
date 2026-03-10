@@ -17,6 +17,7 @@ type ReportActionActiveEdit = {
 };
 
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
+    setEditingMessage: (message: string | null) => void;
     currentEditMessageSelection: TextSelection | null;
     setCurrentEditMessageSelection: (selection: TextSelection) => void;
     getEditingState: () => EditingState | null;
@@ -27,6 +28,7 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingReportActionID: null,
     editingReportAction: null,
     editingMessage: null,
+    setEditingMessage: NOOP,
     currentEditMessageSelection: null,
     setCurrentEditMessageSelection: NOOP,
     getEditingState: NOOP,
@@ -96,7 +98,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         setCurrentEditMessageSelection(null);
     }, [updateActiveEditState, setCurrentEditMessageSelection]);
 
-    // Set the active edit when the report actions or draft comments change
+    // Initially set the editing report action state when the draft comments change
     useEffect(() => {
         const reportDrafts = reportActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
 
@@ -106,7 +108,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
             return;
         }
 
-        const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
+        const reportDraftEntry = Object.entries(reportDrafts).find(([, draft]) => draft?.message !== undefined);
 
         if (!reportDraftEntry) {
             reset();
@@ -114,6 +116,10 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         }
 
         const [reportActionID, draft] = reportDraftEntry;
+
+        if (editingStateRef.current !== null) {
+            return;
+        }
 
         editingStateRef.current = 'editing';
         updateActiveEditState({
@@ -130,6 +136,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
                 editingReportActionID,
                 editingReportAction,
                 editingMessage,
+                setEditingMessage,
                 currentEditMessageSelection,
                 setCurrentEditMessageSelection,
                 getEditingState,

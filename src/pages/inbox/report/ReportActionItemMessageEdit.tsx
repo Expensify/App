@@ -117,7 +117,7 @@ function ReportActionItemMessageEdit({
         return draftMessage;
     });
 
-    const {currentEditMessageSelection, setCurrentEditMessageSelection} = useReportActionActiveEdit();
+    const {currentEditMessageSelection, setCurrentEditMessageSelection, setEditingMessage} = useReportActionActiveEdit();
 
     const defaultSelection = useMemo(() => ({start: draft.length, end: draft.length, positionX: 0, positionY: 0}), [draft.length]);
     const [selection, setSelectionState] = useState<TextSelection>(() => currentEditMessageSelection ?? defaultSelection);
@@ -251,11 +251,13 @@ function ReportActionItemMessageEdit({
 
             draftRef.current = newDraft;
 
+            setEditingMessage(newDraft);
+
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, selection?.end, setSelection],
+        [debouncedSaveDraft, preferredLocale, preferredSkinTone, raiseIsScrollLayoutTriggered, selection?.end, setEditingMessage, setSelection],
     );
 
     useEffect(() => {
