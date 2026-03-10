@@ -1034,7 +1034,7 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
-                policy: null,
+                policy: undefined,
                 translate: ((key: string) => key) as unknown as LocaleContextProps['translate'],
                 toLocaleDigit: ((digit: string) => digit) as unknown as LocaleContextProps['toLocaleDigit'],
             });
@@ -1097,7 +1097,7 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
-                policy: null,
+                policy: undefined,
                 translate: ((key: string) => key) as unknown as LocaleContextProps['translate'],
                 toLocaleDigit: ((digit: string) => digit) as unknown as LocaleContextProps['toLocaleDigit'],
             });
