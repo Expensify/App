@@ -258,12 +258,44 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).not.toHaveBeenCalled();
         });
 
-        it('should call approveMoneyRequest when payment type is APPROVE and no confirmApproval', () => {
-            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType};
+        it('should call approveMoneyRequest with amountOwed when payment type is APPROVE and no confirmApproval', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42};
 
             selectPaymentType(params);
 
-            expect(approveMoneyRequest).toHaveBeenCalled();
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: 42,
+                full: true,
+            });
+        });
+
+        it('should pass amountOwed as undefined to approveMoneyRequest when amountOwed is undefined', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined};
+
+            selectPaymentType(params);
+
+            expect(approveMoneyRequest).toHaveBeenCalledWith({
+                expenseReport: params.iouReport,
+                policy: params.policy,
+                currentUserAccountIDParam: params.currentAccountID,
+                currentUserEmailParam: params.currentEmail,
+                hasViolations: params.hasViolations,
+                isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
+                betas: params.betas,
+                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                amountOwed: undefined,
+                full: true,
+            });
         });
 
         it('should call onPress with payment type for other payment types', () => {
@@ -274,7 +306,7 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should not restrict when policy is null', () => {
+        it('should not restrict when policy is undefined', () => {
             const params = {...baseParams, policy: undefined, amountOwed: 100};
 
             selectPaymentType(params);

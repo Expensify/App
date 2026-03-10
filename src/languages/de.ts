@@ -476,6 +476,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        print: 'Drucken',
         help: 'Hilfe',
         expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
@@ -1577,7 +1578,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Wähle einen Arbeitsbereich',
-        routedDueToDEW: (to: string) => `Report aufgrund des benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
+        routedDueToDEW: (to: string, reason?: string) => `Bericht weitergeleitet an ${to}${reason ? ` weil ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'Stunde' : 'Stunden'} @ ${rate} / Stunde`,
             hrs: 'Std.',
@@ -2080,6 +2081,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: 'Scanne den QR-Code mit deinem',
         authenticatorApp: 'Authentifizierungs-App',
         addKey: 'Oder füge diesen geheimen Schlüssel zu deiner Authentifizierungs-App hinzu:',
+        secretKey: 'geheimer Schlüssel',
         enterCode: 'Gib dann den sechsstelligen Code ein, der von deiner Authentifizierungs-App generiert wurde.',
         stepSuccess: 'Fertig',
         enabled: 'Zwei-Faktor-Authentifizierung aktiviert',
@@ -5276,6 +5278,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         learnHow: 'Mehr erfahren.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
                             settlementAccountLabel: 'Verrechnungskonto',
@@ -5292,6 +5295,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         title: 'Reiseabrechnung kann nicht deaktiviert werden',
                         body: 'Sie haben noch einen offenen Reisensaldo. Bitte begleichen Sie zuerst Ihren Saldo.',
                         confirm: 'Verstanden',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Saldo von ${amount} bezahlen?`,
+                        body: 'Die Zahlung wird in die Warteschlange gestellt und kurz darauf verarbeitet. Diese Aktion kann nach dem Start nicht mehr rückgängig gemacht werden.',
                     },
                     exportToPDF: 'Als PDF exportieren',
                     exportToCSV: 'Als CSV exportieren',
@@ -7677,6 +7684,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         notActivated: 'Nicht aktiviert',
         outOfPocket: 'Erstattungsfähig',
         companySpend: 'Nicht erstattungsfähig',
+        personalCard: 'Private Karte',
+        companyCard: 'Firmenkarte',
+        expensifyCard: 'Expensify Karte',
     },
     distance: {
         addStop: 'Stopp hinzufügen',

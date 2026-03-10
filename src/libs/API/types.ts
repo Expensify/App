@@ -481,6 +481,7 @@ const WRITE_COMMANDS = {
     DEACTIVATE_TRAVEL_INVOICING: 'DeactivateTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
+    PAY_TRAVEL_INVOICING_SPEND: 'PayTravelInvoicingSpend',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
@@ -1078,7 +1079,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DEACTIVATE_TRAVEL_INVOICING]: Parameters.DeactivateTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
-
+    [WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND]: Parameters.PayTravelInvoicingSpendParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
@@ -1182,7 +1183,6 @@ const READ_COMMANDS = {
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
     GET_ROUTE_FOR_SPLIT_DRAFT: 'GetRouteForSplitDraft',
     GET_ROUTE_FOR_BACKUP: 'GetRouteForBackup',
-    GET_STATEMENT_PDF: 'GetStatementPDF',
     OPEN_ONFIDO_FLOW: 'OpenOnfidoFlow',
     OPEN_INITIAL_SETTINGS_PAGE: 'OpenInitialSettingsPage',
     OPEN_ENABLE_PAYMENTS_PAGE: 'OpenEnablePaymentsPage',
@@ -1270,7 +1270,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_SPLIT_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_BACKUP]: Parameters.GetRouteParams;
-    [READ_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: null;
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
@@ -1355,6 +1354,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
+    GET_STATEMENT_PDF: 'GetStatementPDF',
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
@@ -1390,6 +1390,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;
