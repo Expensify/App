@@ -591,10 +591,9 @@ function ComposerWithSuggestions({
                 }
 
                 setSelection((prevSelection) => ({
+                    ...prevSelection,
                     start: position,
                     end: position,
-                    positionX: prevSelection.positionX,
-                    positionY: prevSelection.positionY,
                 }));
 
                 setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: position, end: position}));
@@ -765,10 +764,11 @@ function ComposerWithSuggestions({
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
                     composerRef.current?.setSelection(positionSnapshot, positionSnapshot);
+                    setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: positionSnapshot, end: positionSnapshot}));
                 });
             }
         },
-        [clearComposerHeight, updateComment],
+        [clearComposerHeight, setCurrentEditMessageSelection, updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -779,8 +779,6 @@ function ComposerWithSuggestions({
                 ...prevSelection,
                 start: e.nativeEvent.selection.start,
                 end: e.nativeEvent.selection.end,
-                positionX: 0,
-                positionY: 0,
             }));
 
             if (!composerRef.current?.isFocused()) {
@@ -1103,8 +1101,6 @@ function ComposerWithSuggestions({
                 ...prevSelection,
                 start: suggestionSelection.start,
                 end: suggestionSelection.end,
-                positionX: 0,
-                positionY: 0,
             }));
 
             if (endOfSuggestionSelection === undefined) {

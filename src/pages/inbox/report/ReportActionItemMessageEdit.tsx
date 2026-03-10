@@ -125,7 +125,7 @@ function ReportActionItemMessageEdit({
     const setSelection = useCallback(
         (newSelection: TextSelection) => {
             setSelectionState(newSelection);
-            setCurrentEditMessageSelection({...newSelection, positionX: 0, positionY: 0});
+            setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, ...newSelection}));
         },
         [setSelectionState, setCurrentEditMessageSelection],
     );
