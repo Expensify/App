@@ -1908,39 +1908,6 @@ function getReceiptError(
           );
 }
 
-/** Helper function to get optimistic fields violations onyx data */
-function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS> {
-    const missingFields: OnyxTypes.ReportFieldsViolations = {};
-    const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
-
-    for (const field of Object.values(iouReport.fieldList ?? {})) {
-        if (excludedFields.includes(field.fieldID) || !!field.value || !!field.defaultValue) {
-            continue;
-        }
-        // in case of missing field violation the empty object is indicator.
-        missingFields[field.fieldID] = {};
-    }
-
-    return {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
-                value: {
-                    fieldRequired: missingFields,
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
-                value: null,
-            },
-        ],
-    };
-}
-
 type BuildOnyxDataForTestDriveIOUParams = {
     transaction: OnyxTypes.Transaction;
     iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
@@ -2728,8 +2695,7 @@ type BuildOnyxDataForTrackExpenseKeys =
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
-    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
-    | typeof ONYXKEYS.COLLECTION.REPORT_VIOLATIONS;
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS;
 
 /** Builds the Onyx data for track expense */
 function buildOnyxDataForTrackExpense({
@@ -3148,13 +3114,6 @@ function buildOnyxDataForTrackExpense({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
-    }
-
-    // Show field violations only for control policies
-    if (isControlPolicy(policy) && iouReport) {
-        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
-        onyxData.optimisticData?.push(...(fieldViolationsOptimisticData ?? []));
-        onyxData.failureData?.push(...(fieldViolationsFailureData ?? []));
     }
 
     return onyxData;

@@ -82,8 +82,6 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
-
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const fields = Object.values(fieldsByName);
@@ -98,7 +96,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
-                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
+                const violation = isFieldDisabled ? undefined : getFieldViolation(field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
 
                 return {
@@ -110,7 +108,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                     violationTranslation,
                 };
             });
-    }, [policy, report, violations]);
+    }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,

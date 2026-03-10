@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
-import type ReportViolations from '@src/types/onyx/ReportViolation';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -522,17 +521,9 @@ describe('TransactionPreviewUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    field1: {},
-                    field2: {},
-                },
-            } as unknown as ReportViolations;
-
             const functionArgs = {
                 ...basicProps,
                 iouReport,
-                reportViolations,
                 violations: [],
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
@@ -562,17 +553,10 @@ describe('TransactionPreviewUtils', () => {
             const resultWithoutViolations = createTransactionPreviewConditionals(functionArgsWithoutViolations);
             const shouldShowRBRWithoutViolations = resultWithoutViolations.shouldShowRBR;
 
-            // Then, test with violations
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    field1: {},
-                },
-            } as unknown as ReportViolations;
 
             const functionArgsWithViolations = {
                 ...basicProps,
                 iouReport,
-                reportViolations,
                 violations: [],
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
@@ -590,16 +574,9 @@ describe('TransactionPreviewUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    merchant: {},
-                },
-            } as unknown as ReportViolations;
-
             const functionArgs = {
                 ...basicProps,
                 iouReport,
-                reportViolations,
                 violations: [], // No transaction violations
                 transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
             };
