@@ -38,7 +38,7 @@ function ReceiptScanDropZone({targetRef, dropWrapperStyle}: ReceiptScanDropZoneP
             {isDraggingOver && (
                 <RNView
                     pointerEvents="none"
-                    style={[styles.fullScreen, styles.pAbsolute]}
+                    style={[styles.fullScreen, styles.pAbsolute, styles.invisibleOverlay]}
                 >
                     <DropZoneUI
                         icon={expensifyIcons.SmartScan}
