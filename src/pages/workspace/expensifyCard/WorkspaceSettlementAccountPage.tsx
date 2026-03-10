@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -45,13 +45,14 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
     const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumberFromCardSettings = cardSettings?.paymentBankAccountNumber;
-    const paymentBankAccountAddressName = cardSettings?.paymentBankAccountAddressName;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumberFromCardSettings = settings?.paymentBankAccountNumber;
+    const paymentBankAccountAddressName = settings?.paymentBankAccountAddressName;
     const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
 
     const getEligibleBankAccounts = () => {
@@ -62,7 +63,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     };
     const eligibleBankAccounts = getEligibleBankAccounts();
 
-    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
+    const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
     const fetchPolicyAccountingData = useCallback(() => {
