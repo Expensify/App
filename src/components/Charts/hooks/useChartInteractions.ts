@@ -303,5 +303,5 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
     };
 }
 
-export {useChartInteractions, TOOLTIP_BAR_GAP};
+export {useChartInteractions, findClosestPoint, TOOLTIP_BAR_GAP};
 export type {HitTestArgs};
