@@ -43,6 +43,8 @@ type CardFeedForDisplay = {
     feed: CardFeedWithNumber;
     fundID: string;
     name: string;
+    country?: string;
+    linkedPolicyIDs?: string[];
 };
 type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
@@ -515,13 +517,17 @@ function getCardFeedsForDisplayPerPolicy(
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
+            const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
 
             (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
                 id,
                 feed,
+                country,
                 fundID,
+                linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         }

@@ -62,8 +62,11 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
+    console.log('currentFeedData');
+    console.log(currentFeedData);
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
@@ -108,7 +111,12 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-    const secondPart = ` (${domainName ?? policy?.name})`;
+    let policyName = policy?.name;
+    if (currentFeedData?.preferredPolicy && currentFeedData?.preferredPolicy !== policyID) {
+        const linkedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentFeedData.preferredPolicy}`];
+        policyName = linkedPolicy?.name;
+    }
+    const secondPart = ` (${domainName ?? policyName})`;
     const supportingText = isCsvFeed ? translate('cardPage.csvCardDescription') : `${firstPart}${secondPart}`;
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;

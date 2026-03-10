@@ -500,6 +500,7 @@ const WRITE_COMMANDS = {
     SET_COMPANY_CARD_FEED_NAME: 'SetFeedName',
     DELETE_COMPANY_CARD_FEED: 'RemoveFeed',
     SET_COMPANY_CARD_TRANSACTION_LIABILITY: 'SetFeedTransactionLiability',
+    LINK_CARD_FEED_TO_POLICY: 'LinkCardFeedToPolicy',
     OPEN_POLICY_ADD_CARD_FEED_PAGE: 'OpenPolicyAddCardFeedPage',
     SET_FEED_STATEMENT_PERIOD_END_DAY: 'SetFeedStatementPeriodEndDay',
     ASSIGN_COMPANY_CARD: 'AssignCard',
@@ -647,6 +648,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_CARD_EXPORT_ACCOUNT]: Parameters.SetCompanyCardExportAccountParams;
     [WRITE_COMMANDS.SET_COMPANY_CARD_TRANSACTION_LIABILITY]: Parameters.SetCompanyCardTransactionLiability;
     [WRITE_COMMANDS.OPEN_POLICY_ADD_CARD_FEED_PAGE]: Parameters.OpenPolicyAddCardFeedPageParams;
+    [WRITE_COMMANDS.LINK_CARD_FEED_TO_POLICY]: Parameters.LinkCardToPolicyParams;
     [WRITE_COMMANDS.SET_FEED_STATEMENT_PERIOD_END_DAY]: Parameters.SetFeedStatementPeriodEndDayParams;
     [WRITE_COMMANDS.VERIFY_IDENTITY]: Parameters.VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: Parameters.AcceptWalletTermsParams;

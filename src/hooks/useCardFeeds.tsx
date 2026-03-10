@@ -29,7 +29,9 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
         const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) =>
-            combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === workspaceAccountID;
+            combinedCardFeed.preferredPolicy
+                ? combinedCardFeed.preferredPolicy === policyID || !!combinedCardFeed?.linkedPolicyIDs?.includes(policyID)
+                : combinedCardFeed.domainID === workspaceAccountID;
         workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate, feedKeysWithCards);
     }
 

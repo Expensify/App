@@ -1055,6 +1055,18 @@ function clearErrorField(bankName: CompanyCardFeedWithNumber, domainAccountID: n
     });
 }
 
+function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedType: string, feedCountry?: string, feedName?: CompanyCardFeedWithNumber) {
+    const parameters = {
+        policyID,
+        domainAccountID,
+        feedType,
+        feedName,
+        feedCountry,
+    };
+
+    API.write(WRITE_COMMANDS.LINK_CARD_FEED_TO_POLICY, parameters);
+}
+
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -1080,4 +1092,5 @@ export {
     setFeedStatementPeriodEndDay,
     clearErrorField,
     clearAssignCardErrors,
+    linkCardFeedToPolicy,
 };

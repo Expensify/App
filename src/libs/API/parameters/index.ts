@@ -106,6 +106,7 @@ export type {default as UpdatePreferredLocaleParams} from './UpdatePreferredLoca
 export type {default as UpdatePronounsParams} from './UpdatePronounsParams';
 export type {default as UpdateSelectedTimezoneParams} from './UpdateSelectedTimezoneParams';
 export type {default as UpdateStatusParams} from './UpdateStatusParams';
+export type {default as LinkCardToPolicyParams} from './LinkCardToPolicyParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';

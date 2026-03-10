@@ -31,7 +31,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
-import {clearAddNewCardFlow} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,6 +44,12 @@ type CardFeedListItem = ListItem & {
 
     /** Card feed value */
     feed: CompanyCardFeedWithNumber;
+
+    /** Feed fund value */
+    fundID?: number;
+
+    /** Feed country value */
+    country?: string;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -78,10 +84,17 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
         const shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedName];
 
+        let policyName = policy?.name;
+
+        if (feedSettings?.preferredPolicy && feedSettings?.preferredPolicy !== policyID) {
+            const linkedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${feedSettings.preferredPolicy}`];
+            policyName = linkedPolicy?.name;
+        }
+
         return {
             value: feedName,
             feed: feedSettings.feed as CompanyCardFeedWithNumber,
-            alternateText: domainName ?? policy?.name,
+            alternateText: domainName ?? policyName,
             text: getCustomOrFormattedFeedName(translate, feedSettings.feed, feedSettings.customFeedName),
             keyForList: feedName,
             isSelected: feedName === selectedFeedName,
@@ -112,6 +125,9 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 continue;
             }
             for (const feed of cardFeeds) {
+                if (feed?.linkedPolicyIDs?.includes(policyID)) {
+                    continue;
+                }
                 const feedName = feed.feed;
                 const plaidUrl = getPlaidInstitutionIconUrl(feedName);
                 const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feed.fundID}`];
@@ -123,6 +139,8 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 otherPolicyFeeds.push({
                     value: feed.id as CompanyCardFeedWithDomainID,
                     feed: feedName as CompanyCardFeedWithNumber,
+                    fundID: Number(feed.fundID),
+                    country: feed?.country,
                     alternateText: domainName ?? feedPolicy?.name,
                     text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
                     keyForList: feed.id,
@@ -169,11 +187,16 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     };
 
     const selectOtherFeed = (feed: CardFeedListItem) => {
-        if (isUserFromPublicDomain) {
+        if (!isUserFromPublicDomain) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
             return;
         }
-        // link feed
+        if (!feed.fundID) {
+            return;
+        }
+        linkCardFeedToPolicy(feed.fundID, policyID, 'CompanyCard', feed?.country, feed.feed);
+        updateSelectedFeed(feed.value, policyID);
+        goBack();
     };
 
     return (
