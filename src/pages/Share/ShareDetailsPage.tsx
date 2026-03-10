@@ -153,16 +153,12 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             validateFileName,
             (file) => {
                 if (isDraft) {
-                    openReport(
-                        report.reportID,
+                    openReport({
+                        reportID: report.reportID,
                         introSelected,
-                        '',
-                        displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
-                        report,
-                        undefined,
-                        undefined,
-                        undefined,
-                    );
+                        participantLoginList: displayReport.participantsList?.filter((u) => u.accountID !== personalDetail.accountID).map((u) => u.login ?? '') ?? [],
+                        newReportObject: report,
+                    });
                 }
                 if (report.reportID) {
                     addAttachmentWithComment({
