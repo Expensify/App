@@ -1014,6 +1014,8 @@ type OriginalMessageMovedTransaction = {
     toReportID?: string;
     /** ID of the original report */
     fromReportID: string;
+    /** Reasoning for the automated move, used by Concierge Explain feature */
+    reasoning?: string;
 };
 
 /** Model of `moved` report action */
@@ -1296,6 +1298,8 @@ type OriginalMessageTakeControl = {
     lastModified: string;
     /** Tagged account IDs of new approvers */
     mentionedAccountIDs: number[];
+    /** Whether this action was triggered automatically (e.g., during auto-pay) */
+    automaticAction?: boolean;
 };
 
 /**

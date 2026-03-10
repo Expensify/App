@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
@@ -24,6 +24,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     customText?: string;
 
     shouldShowSuccessStyle?: boolean;
+
+    /** Ref for the inner ButtonWithDropdownMenu */
+    dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -35,6 +38,7 @@ function MoneyReportHeaderKYCDropdown({
     onPaymentSelect,
     customText,
     shouldShowSuccessStyle,
+    dropdownMenuRef,
     ref,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
@@ -63,6 +67,7 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
+                    ref={dropdownMenuRef}
                     success={shouldShowSuccessStyle ?? false}
                     onPress={() => {}}
                     onSubItemSelected={(item, index, event) => {
