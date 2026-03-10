@@ -59,6 +59,9 @@ type TabSelectorBaseProps = {
     /** Called when a tab is pressed with its key. */
     onTabPress?: (key: string) => void;
 
+    /** Force onTabPress call when tab is already active */
+    forceOnTabPressWhenActive?: boolean;
+
     /** Animated position from a navigator (optional). */
     position?: Animated.AnimatedInterpolation<number>;
 

@@ -18,7 +18,15 @@ const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, position, shouldShowLabelWhenInactive = true, equalWidth = false}: TabSelectorBaseProps) {
+function ScrollableTabSelectorBase({
+    tabs,
+    activeTabKey,
+    onTabPress = () => {},
+    forceOnTabPressWhenActive = false,
+    position,
+    shouldShowLabelWhenInactive = true,
+    equalWidth = false,
+}: TabSelectorBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -85,11 +93,12 @@ function ScrollableTabSelectorBase({tabs, activeTabKey, onTabPress = () => {}, p
                 });
 
                 const handlePress = () => {
-                    if (isActive) {
+                    if (isActive && !forceOnTabPressWhenActive) {
                         return;
                     }
-
-                    setAffectedAnimatedTabs([activeIndex, index]);
+                    if (!isActive) {
+                        setAffectedAnimatedTabs([activeIndex, index]);
+                    }
                     onTabPress(tab.key);
                 };
 

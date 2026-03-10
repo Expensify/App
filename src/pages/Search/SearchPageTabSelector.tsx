@@ -84,6 +84,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 pendingAction: item.pendingAction,
             });
             queryMap.set(key, {query: item.query ?? '', name: item.name});
+
             if (queryJSON && Number(key) === queryJSON.hash) {
                 activeKey = key;
             }
@@ -111,6 +112,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 <ScrollableTabSelectorBase
                     tabs={tabItems}
                     activeTabKey={activeKey}
+                    forceOnTabPressWhenActive
                     onTabPress={handleTabPress}
                 />
             </ScrollableTabSelectorContextProvider>

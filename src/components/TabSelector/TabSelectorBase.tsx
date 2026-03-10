@@ -21,6 +21,7 @@ function TabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    forceOnTabPressWhenActive = false,
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
@@ -108,11 +109,12 @@ function TabSelectorBase({
                 });
 
                 const handlePress = () => {
-                    if (isActive) {
+                    if (isActive && !forceOnTabPressWhenActive) {
                         return;
                     }
-
-                    setAffectedAnimatedTabs([activeIndex, index]);
+                    if (!isActive) {
+                        setAffectedAnimatedTabs([activeIndex, index]);
+                    }
                     onTabPress(tab.key);
                 };
 
