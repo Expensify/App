@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react-native';
-import {Platform} from 'react-native';
 import {isDevelopment} from '@libs/Environment/Environment';
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, tracingIntegration} from '@libs/telemetry/integrations';
 import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
@@ -21,8 +20,7 @@ function setupSentry(): void {
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
-        // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
-        // 2. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
+        // 1. When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
         profilesSampleRate: 0.1,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
