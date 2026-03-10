@@ -54,8 +54,8 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
                 <ImageSVG
                     src={illustrations.ArmWithCardPos}
                     contentFit="contain"
-                    width={200}
-                    height={200}
+                    width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                    height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
                 />
             </View>
             <View style={[styles.m5]}>
