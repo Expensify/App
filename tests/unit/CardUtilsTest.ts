@@ -2247,7 +2247,7 @@ describe('CardUtils', () => {
                 accountID: 1,
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
                 cardID: 1,
-                cardName: 'Personal Visa •••• 1234',
+                cardName: 'Visa • 1234',
                 domainName: '',
                 fraud: 'none',
                 lastFourPAN: '1234',
@@ -2256,7 +2256,7 @@ describe('CardUtils', () => {
                 state: 3,
             };
             const description = getCardDescription(personalCard, translateLocal);
-            expect(description).toBe('Personal Visa •••• 1234');
+            expect(description).toBe('Visa • 1234');
         });
     });
 
