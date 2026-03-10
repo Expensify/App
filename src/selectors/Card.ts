@@ -69,10 +69,7 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
     const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
-    for (const card of Object.values(cards)) {
-        return card;
-    }
-    return undefined;
+    return Object.values(cards)?.at(0);
 };
 
 /**
