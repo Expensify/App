@@ -301,12 +301,34 @@ type SearchTextColumns =
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER
     | typeof CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID;
 
-type SearchColumnMeasurements = Partial<Record<SearchTextColumns, number>>;
+type SearchExpenseTextColumns = Extract<SearchTextColumns, ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>>;
+
+type SearchExpenseReportTextColumns = Extract<SearchTextColumns, ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>>;
+
+type SearchCardGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>;
+
+type SearchFromGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>;
+
+type SearchWithdrawalIDGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
+
+type SearchCategoryGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY>;
+
+type SearchMerchantGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT>;
+
+type SearchTagGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.TAG>;
+
+type SearchMonthGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>;
+
+type SearchWeekGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>;
+
+type SearchYearGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>;
+
+type SearchQuarterGroupingColumns = Extract<SearchTextColumns, typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
 
 type TransactionListItemType = ListItem &
     Transaction & {
         /** The measurements for each column */
-        measurements: SearchColumnMeasurements;
+        measurements: Record<SearchTextColumns, number>;
 
         /** Formatted values for each column */
         formattedValues: Record<SearchTextColumns, string>;

@@ -1672,7 +1672,7 @@ function getToFieldValueForTransaction(
     return emptyPersonalDetails;
 }
 
-function getColumnWidthStyle(currentMaxWidth: number, columnValue: string | null | undefined): number {
+function getColumnWidthStyle(currentMaxWidth: number | undefined, columnValue: string | null | undefined): number {
     const maxColumnWidthPx = 400;
     // The actual average length, but lets add padding so we're more accurate, we'd
     // rather go over the actual length, than under and have the text be cut off
@@ -1680,7 +1680,7 @@ function getColumnWidthStyle(currentMaxWidth: number, columnValue: string | null
     const columnValueCharLength = columnValue?.length ?? 0;
 
     // The maximum amount of space the column would need for its longest value
-    const columnMaxWidth = Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth, columnValueCharLength * averageCharacterPxWithPadding)));
+    const columnMaxWidth = Math.round(Math.min(maxColumnWidthPx, Math.max(currentMaxWidth ?? 0, columnValueCharLength * averageCharacterPxWithPadding)));
     return columnMaxWidth;
 }
 
