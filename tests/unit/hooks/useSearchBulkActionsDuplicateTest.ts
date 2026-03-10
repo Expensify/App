@@ -211,7 +211,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         });
 
         const duplicateOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE);
-        expect(duplicateOption?.text).toBe('search.bulkActions.duplicate');
+        expect(duplicateOption?.text).toBe('search.bulkActions.duplicateExpense');
     });
 
     it('should not show duplicate option when a card expense is selected', async () => {
