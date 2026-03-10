@@ -52,6 +52,10 @@ describe('useAutoUpdateTimezone', () => {
                 selected: 'America/Los_Angeles',
             },
             1,
+            {
+                automatic: true,
+                selected: 'Europe/Warsaw',
+            },
         );
     });
 
