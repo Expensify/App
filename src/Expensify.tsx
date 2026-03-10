@@ -33,6 +33,9 @@ import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
+// Must be imported statically (outside React lifecycle) so push notification handlers
+// are registered before any push arrives, including Android headless/background wakeups.
+import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
