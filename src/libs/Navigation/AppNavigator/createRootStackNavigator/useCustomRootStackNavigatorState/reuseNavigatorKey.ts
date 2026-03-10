@@ -9,7 +9,7 @@ type RemappedStateRoute = StateRoutes[number] & {originalKey?: string};
 /**
  * Tracks the mapping from a new route's key (originalKey) to the mounted navigator's key.
  * This allows getMinimalAction to drill into the mounted navigator's preserved state
- * even though the new route has no embedded state in the root navigation state.
+ * when looking up the nested state for a route that is rendered via a remapped key.
  *
  * Example: when Inbox.key = key1 is remapped to Inbox.key = key2, remappedKeyMap[key2] = key1.
  */
@@ -27,7 +27,9 @@ function getRemappedNavigatorKey(originalKey: string): string | undefined {
  * with the existing one while applying the new params.
  *
  * This preserves the original route key so React can reuse the already-mounted
- * navigator instance, while the updated params instruct it which screen to display.
+ * navigator instance. The existing navigator's internal state is kept intact so its
+ * navigation history is not lost. useNavigateOnParamsChange will forward-navigate
+ * to the correct screen based on the updated params.
  *
  * The actual navigation state is not mutated — this only affects what gets rendered.
  */
@@ -78,12 +80,14 @@ function buildOptimizedRoutes(routesToRender: StateRoutes, state: StackNavigatio
         }
 
         // Track that route.key is rendered via existingRoute.key so that getMinimalAction
-        // can look up the mounted navigator's preserved state when route has no embedded state.
+        // can look up the mounted navigator's preserved state.
         remappedKeyMap[route.key] = existingRoute.key;
 
         return {
             ...existingRoute, // Reuse the mounted navigator (preserve key so React doesn't unmount it)
-            state: undefined, // Clear old embedded state so getInitialState is called with the new params
+            // Do not clear state — keeping the existing navigator's internal state preserves its
+            // navigation history. useNavigateOnParamsChange will forward-navigate to the correct
+            // screen based on the updated params, so history is extended rather than reset.
             params: {
                 ...route.params, // Apply params from the incoming navigation action
             },
