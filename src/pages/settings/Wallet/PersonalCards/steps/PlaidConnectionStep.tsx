@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
@@ -21,8 +21,45 @@ import {setPlaidEvent} from '@userActions/BankAccounts';
 import {openPlaidCompanyCardLogin} from '@userActions/Plaid';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID, PlaidData} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type PlaidLinkContentProps = {
+    plaidLinkToken?: string;
+    plaidDataErrorMessage: string;
+    plaidData?: PlaidData;
+    onSuccess: (args: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => void;
+    onError: (error: ErrorEvent | null) => void;
+    onEvent: (eventName: string) => void;
+    onExit: () => void;
+};
+
+function PlaidLinkContent({plaidLinkToken, plaidDataErrorMessage, plaidData, onSuccess, onError, onEvent, onExit}: PlaidLinkContentProps) {
+    const styles = useThemeStyles();
+
+    if (plaidLinkToken) {
+        return (
+            <PlaidLink
+                token={plaidLinkToken}
+                onSuccess={onSuccess}
+                onError={onError}
+                onEvent={onEvent}
+                onExit={onExit}
+            />
+        );
+    }
+    if (plaidDataErrorMessage) {
+        return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
+    }
+    if (plaidData?.isLoading) {
+        return (
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        );
+    }
+    return null;
+}
 
 function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID; onExit?: () => void}) {
     const {translate} = useLocalize();
@@ -35,10 +72,9 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) as string) : '';
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) && Object.values(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
+    const isAuthenticatedWithPlaid = !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -72,7 +108,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (isAuthenticatedWithPlaid()) {
+        if (isAuthenticatedWithPlaid) {
             return unsubscribeToNavigationShortcuts;
         }
         if (addNewPersonalCard?.data?.selectedCountry) {
@@ -81,13 +117,12 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         }
 
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid() && addNewPersonalCard?.data?.selectedCountry) {
+        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed);
         }
         previousNetworkState.current = isOffline;
@@ -100,63 +135,39 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         }
         setAddNewPersonalCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
     };
-    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidLinkError = (error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
-    }, []);
+    };
 
-    const renderPlaidLink = () => {
-        if (plaidLinkToken) {
-            return (
-                <PlaidLink
-                    token={plaidLinkToken}
-                    onSuccess={({publicToken, metadata}) => {
-                        // on success we need to move to bank connection screen with token, bank name = plaid
-                        Log.info('[PlaidLink] Success!');
+    const handlePlaidLinkSuccess = ({publicToken, metadata}: {publicToken: string; metadata: PlaidLinkOnSuccessMetadata | LinkSuccessMetadata}) => {
+        // on success we need to move to bank connection screen with token, bank name = plaid
+        Log.info('[PlaidLink] Success!');
 
-                        const plaidConnectedFeed =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
-                        const plaidConnectedFeedName =
-                            (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
+        const plaidConnectedFeed = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.institution_id ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.id;
+        const plaidConnectedFeedName = (metadata?.institution as PlaidLinkOnSuccessMetadata['institution'])?.name ?? (metadata?.institution as LinkSuccessMetadata['institution'])?.name;
 
-                        setAddNewPersonalCardStepAndData({
-                            step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
-                            data: {
-                                publicToken,
-                                plaidConnectedFeed,
-                                plaidConnectedFeedName,
-                                plaidAccounts: metadata?.accounts,
-                            },
-                        });
-                    }}
-                    onError={handlePlaidLinkError}
-                    onEvent={(event) => {
-                        setPlaidEvent(event);
-                        // Limit the number of times a user can submit Plaid credentials
-                        if (event === 'SUBMIT_CREDENTIALS') {
-                            handleRestrictedEvent(event);
-                        }
-                    }}
-                    // User prematurely exited the Plaid flow
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onExit={() => {
-                        onExit?.();
-                        handleBackButtonPress();
-                    }}
-                />
-            );
+        setAddNewPersonalCardStepAndData({
+            step: CONST.PERSONAL_CARDS.STEP.BANK_CONNECTION,
+            data: {
+                publicToken,
+                plaidConnectedFeed,
+                plaidConnectedFeedName,
+                plaidAccounts: metadata?.accounts,
+            },
+        });
+    };
+
+    const handlePlaidLinkEvent = (event: string) => {
+        setPlaidEvent(event);
+        // Limit the number of times a user can submit Plaid credentials
+        if (event === 'SUBMIT_CREDENTIALS') {
+            handleRestrictedEvent(event);
         }
+    };
 
-        if (plaidDataErrorMessage) {
-            return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
-        }
-
-        if (plaidData?.isLoading) {
-            return (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            );
-        }
+    const handlePlaidLinkExit = () => {
+        onExit?.();
+        handleBackButtonPress();
     };
 
     return (
@@ -173,7 +184,17 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
             {isPlaidDisabled ? (
                 <Text style={[styles.formError, styles.ph5, styles.mv3]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             ) : (
-                <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>
+                <FullPageOfflineBlockingView>
+                    <PlaidLinkContent
+                        plaidLinkToken={plaidLinkToken}
+                        plaidDataErrorMessage={plaidDataErrorMessage}
+                        plaidData={plaidData}
+                        onSuccess={handlePlaidLinkSuccess}
+                        onError={handlePlaidLinkError}
+                        onEvent={handlePlaidLinkEvent}
+                        onExit={handlePlaidLinkExit}
+                    />
+                </FullPageOfflineBlockingView>
             )}
         </ScreenWrapper>
     );

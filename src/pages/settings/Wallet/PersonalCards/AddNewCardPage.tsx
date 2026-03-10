@@ -35,7 +35,7 @@ function AddPersonalNewCardPage() {
     }, []);
 
     if (isAddCardFeedLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     let CurrentStep: React.JSX.Element;

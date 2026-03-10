@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import {addPersonalPlaidCard} from '@userActions/Plaid';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
@@ -11,10 +10,10 @@ export default function useImportPersonalPlaidAccounts() {
     const plaidAccounts = addNewCard?.data?.plaidAccounts;
     const country = addNewCard?.data?.selectedCountry;
 
-    return useCallback(() => {
+    return () => {
         if (!plaidToken || !plaidFeed || !country || !plaidAccounts?.length) {
             return;
         }
         addPersonalPlaidCard(plaidToken, plaidFeed, country, JSON.stringify(plaidAccounts));
-    }, [country, plaidAccounts, plaidFeed, plaidToken]);
+    };
 }

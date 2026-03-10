@@ -57,7 +57,7 @@ function BankConnection({route}: BankConnectionProps) {
             return;
         }
 
-        if (newCard) {
+        if (newCard && !isNewCardError) {
             setAddNewPersonalCardStepAndData({
                 step: CONST.PERSONAL_CARDS.STEP.SUCCESS,
             });
@@ -65,7 +65,7 @@ function BankConnection({route}: BankConnectionProps) {
         if (isPlaid) {
             onImportPlaidAccounts();
         }
-    }, [url, isPlaid, onImportPlaidAccounts, newCard]);
+    }, [url, isPlaid, onImportPlaidAccounts, newCard, isNewCardError]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {

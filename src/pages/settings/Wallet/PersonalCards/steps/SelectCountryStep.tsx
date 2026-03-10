@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,13 +32,13 @@ function SelectCountryStep() {
     const currency = currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const getCountry = useCallback(() => {
+    const getCountry = () => {
         if (addNewPersonalCard?.data?.selectedCountry) {
             return addNewPersonalCard.data.selectedCountry;
         }
 
         return getPlaidCountry(currency, currencyList, countryByIp);
-    }, [addNewPersonalCard?.data.selectedCountry, countryByIp, currencyList, currency]);
+    };
 
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
