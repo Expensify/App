@@ -536,37 +536,33 @@ function BaseSelectionList<TItem extends ListItem>({
             ) : (
                 <>
                     {!shouldHeaderBeInsideList && header}
-                    <View
-                        role={canSelectMultiple ? undefined : (CONST.ROLE.LISTBOX as Role)}
-                        style={styles.flex1}
-                    >
-                        <FlashList
-                            data={data}
-                            renderItem={renderItem}
-                            ref={listRef}
-                            keyExtractor={(item) => item.keyForList}
-                            extraData={extraData}
-                            ListFooterComponent={listFooterContent}
-                            scrollEnabled={scrollEnabled}
-                            indicatorStyle="white"
-                            keyboardShouldPersistTaps="always"
-                            showsVerticalScrollIndicator={showScrollIndicator}
-                            onEndReached={onEndReached}
-                            onEndReachedThreshold={onEndReachedThreshold}
-                            style={style?.listStyle}
-                            contentContainerStyle={styles.pb3}
-                            initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
-                            onScrollBeginDrag={onScrollBeginDrag}
-                            maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
-                            ListHeaderComponent={
-                                <>
-                                    {customListHeaderContent}
-                                    {textInputComponent({shouldBeInsideList: true})}
-                                    {shouldHeaderBeInsideList && header}
-                                </>
-                            }
-                        />
-                    </View>
+                    <FlashList
+                        role={!canSelectMultiple ? (CONST.ROLE.LISTBOX as Role) : undefined}
+                        data={data}
+                        renderItem={renderItem}
+                        ref={listRef}
+                        keyExtractor={(item) => item.keyForList}
+                        extraData={extraData}
+                        ListFooterComponent={listFooterContent}
+                        scrollEnabled={scrollEnabled}
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        showsVerticalScrollIndicator={showScrollIndicator}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={onEndReachedThreshold}
+                        style={[styles.flex1, style?.listStyle]}
+                        contentContainerStyle={styles.pb3}
+                        initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
+                        onScrollBeginDrag={onScrollBeginDrag}
+                        maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
+                        ListHeaderComponent={
+                            <>
+                                {customListHeaderContent}
+                                {textInputComponent({shouldBeInsideList: true})}
+                                {shouldHeaderBeInsideList && header}
+                            </>
+                        }
+                    />
                     {children}
                 </>
             )}
