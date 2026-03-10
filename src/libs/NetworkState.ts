@@ -1,15 +1,13 @@
+import NetInfo from '@react-native-community/netinfo';
 import {setIsOffline} from './actions/Network';
 import {reconnect} from './actions/Reconnect';
 import AppStateMonitor from './AppStateMonitor';
 import Log from './Log';
 import {pause, unpause} from './Network/SequentialQueue';
-import {onProbeSuccess, probeNow, start as startProbe, stop as stopProbe} from './RecoveryProbe';
 
 let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
-
-onProbeSuccess(() => onRecoveryProbeSuccess());
 
 function isInHardStop(): boolean {
     return !hasRadio || sustainedFailuresActive || shouldForceOffline;
@@ -21,15 +19,7 @@ function updateState() {
 
     if (offline) {
         pause();
-        // Only probe for real connectivity triggers — shouldForceOffline is a debug tool
-        // that should keep the app offline unconditionally
-        if (!shouldForceOffline) {
-            startProbe();
-        } else {
-            stopProbe();
-        }
     } else {
-        stopProbe();
         unpause();
     }
 }
@@ -47,9 +37,6 @@ function setHasRadio(connected: boolean) {
         updateState();
     } else if (!hadRadio && hasRadio) {
         Log.info('[NetworkState] NO_RADIO cleared — OS reports radio is back');
-        if (sustainedFailuresActive && !shouldForceOffline) {
-            probeNow();
-        }
         updateState();
     }
 }
@@ -80,11 +67,11 @@ function setForceOffline(force: boolean) {
 }
 
 /**
- * Called by RecoveryProbe when probe succeeds during hard stop.
+ * Called by the NetInfo listener when isInternetReachable transitions to true.
  * Clears all hard stops and triggers reconnect.
  */
-function onRecoveryProbeSuccess() {
-    Log.info('[NetworkState] Recovery probe succeeded — clearing hard stops and reconnecting');
+function onReachabilityRestored() {
+    Log.info('[NetworkState] Internet reachability restored — clearing hard stops and reconnecting');
     hasRadio = true;
     sustainedFailuresActive = false;
     updateState();
@@ -95,14 +82,14 @@ function onRecoveryProbeSuccess() {
 
 /**
  * Wire app foreground listener.
- * - If in hard stop → immediate probe
+ * - If in hard stop → refresh NetInfo to force a fresh native state fetch
  * - Always → reconnect to catch up on missed data
  */
 function initAppForegroundListener() {
     AppStateMonitor.addBecameActiveListener(() => {
         Log.info('[NetworkState] App became active');
         if (isInHardStop() && !shouldForceOffline) {
-            probeNow();
+            NetInfo.refresh();
         }
         // Always reconnect on foreground to catch up on missed Pusher events
         reconnect();
@@ -114,6 +101,6 @@ export default {
     setHasRadio,
     setSustainedFailures,
     setForceOffline,
-    onRecoveryProbeSuccess,
+    onReachabilityRestored,
     initAppForegroundListener,
 };

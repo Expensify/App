@@ -19,6 +19,7 @@ let isPoorConnectionSimulated: boolean | undefined;
 let isOfflineFlag: boolean | undefined;
 let accountID: number | undefined;
 let unsubscribeNetInfo: (() => void) | null = null;
+let prevIsInternetReachable: boolean | null | undefined;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -127,6 +128,9 @@ function configureAndSubscribe() {
                     .catch(() => Promise.resolve(false));
             },
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+            // Use JS fetch polling (api/Ping) on all platforms instead of native OS reachability.
+            // This aligns behavior across web and mobile: poll every 60s when reachable, 5s when unreachable.
+            useNativeReachability: false,
         });
     }
 
@@ -137,8 +141,14 @@ function configureAndSubscribe() {
         }
 
         const hasRadio = state.isConnected !== false;
-        Log.info(`[NetworkConnection] NetInfo state change: isConnected=${state.isConnected}, type=${state.type}`);
+        Log.info(`[NetworkConnection] NetInfo state change: isConnected=${state.isConnected}, isInternetReachable=${state.isInternetReachable}, type=${state.type}`);
         NetworkState.setHasRadio(hasRadio);
+
+        if (state.isInternetReachable === true && prevIsInternetReachable !== true) {
+            Log.info('[NetworkConnection] Internet reachability restored');
+            NetworkState.onReachabilityRestored();
+        }
+        prevIsInternetReachable = state.isInternetReachable;
     });
 }
 

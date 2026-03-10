@@ -2034,8 +2034,6 @@ const CONST = {
         MAX_OPEN_APP_REQUEST_RETRIES: 2,
         SUSTAINED_FAILURE_THRESHOLD_COUNT: 3,
         SUSTAINED_FAILURE_WINDOW_MS: 10 * 1000,
-        RECOVERY_PROBE_INITIAL_MS: 5 * 1000,
-        RECOVERY_PROBE_CAP_MS: 60 * 1000,
     },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours

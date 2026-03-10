@@ -2,7 +2,7 @@
 
 ## Overview
 
-The app uses a three-layer detection model to determine connectivity status. Each layer feeds into a central **hard stop** state machine that decides whether the app is offline. When a hard stop is active, the app pauses outgoing requests, starts a recovery probe, and shows the offline UI. Once the probe confirms connectivity, the app clears the hard stop and reconnects.
+The app uses a two-layer detection model to determine connectivity status. Each layer feeds into a central **hard stop** state machine that decides whether the app is offline. When a hard stop is active, the app pauses outgoing requests and shows the offline UI. Recovery relies on NetInfo's built-in reachability polling (`isInternetReachable`) and the FailureTracker detecting a successful request. Once connectivity is confirmed, the app clears the hard stop and reconnects.
 
 ## Architecture Diagram
 
@@ -17,13 +17,14 @@ The app uses a three-layer detection model to determine connectivity status. Eac
 │ Layer 2: Sustained   │  FailureTracker│   NetworkState   │──── isOffline ──▶ Onyx / UI
 │ Failures             │───────────────▶│   (hard stop)    │
 │ (FailureTracking MW) │                │                  │──── pause/unpause SequentialQueue
-└──────────────────────┘                └──────┬───────────┘
-                                               │       ▲
-                                          start│       │ onProbeSuccess
-                                               ▼       │
+└──────────────────────┘                └──────────────────┘
+                                               ▲
+                                               │ onReachabilityRestored
+                                               │
                                         ┌──────────────────┐
-                                        │  RecoveryProbe   │──── NetInfo.refresh() ──▶ api/Ping
-                                        │  (exp. backoff)  │
+                                        │ NetInfo listener  │──── isInternetReachable
+                                        │ (reachability     │     transitions false→true
+                                        │  polling)         │
                                         └──────────────────┘
                                                │
                                                ▼
@@ -47,13 +48,11 @@ Three triggers can activate a hard stop:
 
 When a hard stop activates:
 1. `SequentialQueue` is paused — no outgoing write requests
-2. `RecoveryProbe` starts — polls for server reachability
-3. `isOffline` is set in Onyx — UI reflects offline state
+2. `isOffline` is set in Onyx — UI reflects offline state
 
 When the hard stop clears:
-1. `RecoveryProbe` stops
-2. `SequentialQueue` is unpaused — pending writes flush
-3. `isOffline` is cleared in Onyx — UI reflects online state
+1. `SequentialQueue` is unpaused — pending writes flush
+2. `isOffline` is cleared in Onyx — UI reflects online state
 
 ## Layer 1: OS Radio Detection
 
@@ -67,7 +66,13 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 - Detects: airplane mode, WiFi disabled, no cellular signal
 - Does **not** determine actual server reachability — a device can be connected to WiFi but have no internet
 
-When radio returns but no other trigger is active, an immediate probe is fired to verify actual connectivity before clearing the hard stop.
+### Reachability tracking
+
+The NetInfo listener also tracks `isInternetReachable` transitions. When `isInternetReachable` changes from `false`/`null` to `true`, it calls `NetworkState.onReachabilityRestored()` to clear the hard stop and trigger reconnection.
+
+**Platform behavior:**
+- **Mobile**: `useNativeReachability=true` (default) — NetInfo trusts native `isInternetReachable`, JS polling never starts. Recovery is detected through native state change events.
+- **Web**: No native module — NetInfo uses JS fetch polling against `api/Ping`. Polls every 5s when unreachable, every 60s when reachable. Recovery detected when Ping succeeds and `isInternetReachable` flips to `true`.
 
 ## Layer 2: Sustained Failure Detection
 
@@ -95,33 +100,6 @@ Both thresholds must be met simultaneously to trigger a sustained failure hard s
 
 One successful request resets everything — it proves the server is reachable and clears the `sustainedFailuresActive` flag.
 
-## Layer 3: Recovery Probe
-
-**File:** `src/libs/RecoveryProbe.ts`
-
-The recovery probe runs only during a hard stop. It periodically checks whether the server is reachable again.
-
-### How it works
-
-1. **Starts** automatically when any hard stop trigger activates
-2. **Uses** `NetInfo.refresh()`, which is configured with the app's reachability URL (`api/Ping`)
-3. **Checks** `isInternetReachable` from the NetInfo response
-4. **On success:** stops probing, notifies `NetworkState` via the `onProbeSuccess` callback
-5. **On failure:** schedules the next probe with exponential backoff
-
-### Backoff strategy
-
-- **Initial interval:** `RECOVERY_PROBE_INITIAL_MS` (5 seconds)
-- **Backoff:** doubles each time
-- **Cap:** `RECOVERY_PROBE_CAP_MS` (60 seconds)
-- **Jitter:** random 0–20% of the current interval added to each delay
-
-### Immediate probing
-
-`probeNow()` fires a probe immediately, bypassing the scheduled delay. This is used:
-- When the app comes to foreground during a hard stop
-- When OS radio returns while no other triggers are active
-
 ## Central State Machine
 
 **File:** `src/libs/NetworkState.ts`
@@ -142,12 +120,12 @@ shouldForceOffline     — set by debug tools
 const offline = noRadioActive || sustainedFailuresActive || shouldForceOffline;
 ```
 
-If offline: pause `SequentialQueue`, start `RecoveryProbe`.
-If online: stop `RecoveryProbe`, unpause `SequentialQueue`.
+If offline: pause `SequentialQueue`.
+If online: unpause `SequentialQueue`.
 
 ### Recovery flow
 
-`onRecoveryProbeSuccess()`:
+`onReachabilityRestored()`:
 1. Clears `noRadioActive` and `sustainedFailuresActive`
 2. Calls `updateState()` (which clears the hard stop)
 3. Calls `reconnect()` to sync app data
@@ -155,14 +133,14 @@ If online: stop `RecoveryProbe`, unpause `SequentialQueue`.
 ### App foreground handling
 
 `initAppForegroundListener()` wires an `AppStateMonitor` callback:
-- If in hard stop → fires `probeNow()` for immediate connectivity check
+- If in hard stop → calls `NetInfo.refresh()` to force a fresh native state fetch (bypasses stale `isInternetReachable` cache, see NetInfo issue #326)
 - Always → calls `reconnect()` to catch up on missed Pusher events
 
 ## Recovery & Reconnect
 
 **File:** `src/libs/actions/Reconnect.ts`
 
-Called after recovery probe succeeds or on app foreground. Handles data synchronization:
+Called after reachability is restored or on app foreground. Handles data synchronization:
 
 - If `isLoadingApp` is true → calls `App.openApp()` (full initial load)
 - Otherwise → calls `App.reconnectApp(lastUpdateIDAppliedToClient)` (incremental sync)
@@ -176,8 +154,6 @@ All values are defined in `src/CONST/index.ts` under `CONST.NETWORK`:
 |---|---|---|
 | `SUSTAINED_FAILURE_THRESHOLD_COUNT` | `3` | Minimum failures before triggering sustained failure hard stop |
 | `SUSTAINED_FAILURE_WINDOW_MS` | `10000` (10s) | Minimum elapsed time from first failure to trigger hard stop |
-| `RECOVERY_PROBE_INITIAL_MS` | `5000` (5s) | Initial delay before first recovery probe |
-| `RECOVERY_PROBE_CAP_MS` | `60000` (60s) | Maximum delay between recovery probes |
 
 ## Debug Tools
 
@@ -191,10 +167,9 @@ Two debug options are available via the TestToolMenu (accessible in dev builds):
 | File | Role |
 |---|---|
 | `src/libs/NetworkState.ts` | Central hard stop state machine |
-| `src/libs/NetworkConnection.ts` | OS radio detection via NetInfo |
+| `src/libs/NetworkConnection.ts` | OS radio detection and reachability tracking via NetInfo |
 | `src/libs/FailureTracker.ts` | Counts failures, triggers sustained failure hard stop |
 | `src/libs/Middleware/FailureTracking.ts` | Middleware that observes request outcomes |
-| `src/libs/RecoveryProbe.ts` | Probes for server reachability during hard stop |
 | `src/libs/actions/Reconnect.ts` | Syncs app data after recovery |
 | `src/libs/Network/SequentialQueue.ts` | Write request queue (paused/unpaused by hard stop) |
 | `src/libs/actions/Network.ts` | Sets `isOffline` in Onyx |
