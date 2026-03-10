@@ -71,6 +71,7 @@ function IOURequestStepDestination({
     ref,
 }: IOURequestStepDestinationProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
@@ -106,7 +107,7 @@ function IOURequestStepDestination({
     };
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id)) {
+        if (openedFromStartPage && policy?.id && shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
