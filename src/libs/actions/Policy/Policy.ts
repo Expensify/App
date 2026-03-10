@@ -3114,7 +3114,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const outputCurrency = isOverviewOptionSelected ? policy?.outputCurrency : localCurrency;
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false)) : [];
-    const {customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
+    const {customUnitID: distanceCustomUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(outputCurrency);
+    const perDiemCustomUnitID = generateCustomUnitID();
 
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(targetPolicyID, [...policyMemberAccountIDs]);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
@@ -3161,7 +3162,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                 name: policyName,
                 fieldList: isReportsOptionSelected ? policy?.fieldList : undefined,
                 connections: isConnectionsOptionSelected ? policy?.connections : undefined,
-                customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected),
+                customUnits: getCustomUnitsForDuplication(policy, isDistanceRatesOptionSelected, isPerDiemOptionSelected, {distanceCustomUnitID, perDiemCustomUnitID}),
                 taxRates: isTaxesOptionSelected ? policy?.taxRates : undefined,
                 rules: isCodingRulesOptionSelected ? {codingRules: policy?.rules?.codingRules} : undefined,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3391,7 +3392,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         expenseCreatedReportActionID,
         announceChatReportID: optimisticAnnounceChat.announceChatReportID,
         announceChatReportActionID: optimisticAnnounceChat.announceChatReportActionID,
-        customUnitID,
+        perDiemCustomUnitID,
+        distanceCustomUnitID,
         parts: JSON.stringify(parts),
         welcomeNote,
         customUnitRateID,
