@@ -6,7 +6,9 @@
 function rand64(): string {
     // Generate two BigInts that are each 32-bit random numbers.
     // We do 2 because Math.random() really only generates 53-bit numbers internally.
+    // eslint-disable-next-line no-bitwise
     const hi32 = BigInt(Math.floor(Math.random() * 0x100000000));
+    // eslint-disable-next-line no-bitwise
     const lo32 = BigInt(Math.floor(Math.random() * 0x100000000));
 
     // Combine the two into a single 64-bit value.

@@ -16,7 +16,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OriginalMessageIOU, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
+import type {OriginalMessageIOU, PolicyTagLists, RecentWaypoint, Report, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -52,6 +52,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -86,6 +87,7 @@ describe('actions/Duplicate', () => {
         beforeEach(() => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
@@ -420,8 +422,20 @@ describe('actions/Duplicate', () => {
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(transactionThreadReport1.reportID, undefined, '', userLogins, transactionThreadReport1, iouAction1?.reportActionID);
-            openReport(transactionThreadReport2.reportID, undefined, '', userLogins, transactionThreadReport1, iouAction2?.reportActionID);
+            openReport({
+                reportID: transactionThreadReport1.reportID,
+                introSelected: undefined,
+                participantLoginList: userLogins,
+                newReportObject: transactionThreadReport1,
+                parentReportActionID: iouAction1?.reportActionID,
+            });
+            openReport({
+                reportID: transactionThreadReport2.reportID,
+                introSelected: undefined,
+                participantLoginList: userLogins,
+                newReportObject: transactionThreadReport1,
+                parentReportActionID: iouAction2?.reportActionID,
+            });
             await waitForBatchedUpdates();
 
             let transactionThreadReportActions1: OnyxEntry<ReportActions>;
@@ -813,6 +827,7 @@ describe('actions/Duplicate', () => {
                     transactionID: mainTransactionID,
                     transactionIDList: duplicateTransactionIDs,
                     reportActionIDList: expect.arrayContaining([]),
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     dismissedViolationReportActionID: expect.anything(),
                 }),
                 expect.objectContaining({
@@ -966,6 +981,7 @@ describe('actions/Duplicate', () => {
     describe('duplicateExpenseTransaction', () => {
         let writeSpy: jest.SpyInstance;
         let recentWaypoints: RecentWaypoint[] = [];
+        let targetPolicyTags: OnyxEntry<PolicyTagLists>;
 
         const mockOptimisticChatReportID = '789';
         const mockOptimisticIOUReportID = '987';
@@ -1001,6 +1017,13 @@ describe('actions/Duplicate', () => {
                 return Promise.resolve();
             });
             recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    targetPolicyTags = value?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`] ?? {};
+                },
+            });
             return Onyx.clear();
         });
 
@@ -1039,6 +1062,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1101,6 +1125,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1156,6 +1181,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1207,6 +1233,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1267,6 +1294,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1313,6 +1341,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1352,6 +1381,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1393,6 +1423,7 @@ describe('actions/Duplicate', () => {
                 personalDetails: mockPersonalDetails,
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1443,6 +1474,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints: [],
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1506,6 +1538,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1554,6 +1587,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
@@ -1613,6 +1647,7 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 personalDetails: {},
                 recentWaypoints,
+                targetPolicyTags,
             });
 
             await waitForBatchedUpdates();
