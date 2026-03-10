@@ -773,12 +773,11 @@ function ComposerWithSuggestions({
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
-            setSelection(e.nativeEvent.selection);
-
+            const newSelection = {...e.nativeEvent.selection};
+            setSelection(newSelection);
             setCurrentEditMessageSelection((prevSelection) => ({
                 ...prevSelection,
-                start: e.nativeEvent.selection.start,
-                end: e.nativeEvent.selection.end,
+                ...newSelection,
             }));
 
             if (!composerRef.current?.isFocused()) {
