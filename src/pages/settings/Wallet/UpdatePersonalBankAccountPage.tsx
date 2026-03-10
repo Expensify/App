@@ -31,10 +31,6 @@ const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 
 const PAGE_NAMES: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
 
-/**
- * Wrapper that enables draft saving on the address form and hides the country selector
- * since the update flow only supports US bank accounts.
- */
 function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
     return (
         <Address
@@ -48,9 +44,6 @@ function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
 }
 AddressWithDraft.displayName = 'AddressWithDraft';
 
-/**
- * Wrapper that delays auto-focus to avoid validation errors during URL-based navigation transitions.
- */
 function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
     return (
         <PhoneNumber
@@ -69,16 +62,10 @@ const formPages = [
     {pageName: PAGE_NAME.PHONE_NUMBER, component: DelayedPhoneNumber},
 ];
 
-/**
- * Maps completed step numbers to their corresponding page names.
- */
 function getPageNamesForCompletedSteps(completedSteps: number[]): string[] {
     return completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
 }
 
-/**
- * Returns the first non-skipped page name for the update flow based on the bank account's existing data.
- */
 function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>, bankAccountID?: number): string {
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
     const skipPageNames = new Set(getPageNamesForCompletedSteps(completedSteps));

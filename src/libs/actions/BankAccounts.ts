@@ -314,14 +314,12 @@ function setPersonalBankAccountID(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
 }
 
-/**
- * Atomically resets personal bank account state and sets the bankAccountID using a single Onyx.set,
- * avoiding the race condition between set(null) and merge({bankAccountID}) on the same key.
- */
-function resetPersonalBankAccountForUpdate(bankAccountID: number) {
+/** Atomically resets personal bank account state and seeds draft values using Onyx.set to avoid set/merge races. */
+function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
     clearPlaid();
     Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
-    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, null);
+    Onyx.set(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, personalBankAccountDraft ?? null);
+    Onyx.set(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT, homeAddressDraft ?? null);
 }
 
 function clearOnfidoToken() {

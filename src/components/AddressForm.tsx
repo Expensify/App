@@ -91,11 +91,14 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+            // When hidden, the country input is unregistered so fall back to the country prop.
+            const values = shouldHideCountrySelector ? {...rawValues, country: rawValues.country || country} : rawValues;
+
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
-            const requiredFields = ['addressLine1', 'city', 'country', 'state'] as const;
+            const requiredFields = shouldHideCountrySelector ? (['addressLine1', 'city', 'state'] as const) : (['addressLine1', 'city', 'country', 'state'] as const);
 
             // Check "State" dropdown is a valid state if selected Country is USA
             if (values.country === CONST.COUNTRY.US && !values.state) {
@@ -149,7 +152,7 @@ function AddressForm({
 
             return errors;
         },
-        [translate],
+        [translate, shouldHideCountrySelector, country],
     );
 
     return (
