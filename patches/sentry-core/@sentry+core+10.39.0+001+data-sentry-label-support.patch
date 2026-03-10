@@ -28,11 +28,15 @@ index 3169c25..19acc49 100644
 +    for (let i = 0; i < 15 && current; i++) {
 +      // @ts-expect-error WINDOW has HTMLElement
 +      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute('aria-disabled') === 'true') {
++          current = current.parentNode;
++          continue;
++        }
 +        if (!dataLabel && current.dataset['sentryLabel']) {
 +          dataLabel = current.dataset['sentryLabel'];
 +          labelElem = current;
 +        }
-+        if (!pressableElem && current.dataset['tag'] === 'pressable' && current.getAttribute('aria-disabled') !== 'true') {
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
 +          pressableElem = current;
 +        }
 +        if (dataLabel && pressableElem) break;
@@ -102,11 +106,15 @@ index 2ad52b0..796cac9 100644
 +    for (let i = 0; i < 15 && current; i++) {
 +      // @ts-expect-error WINDOW has HTMLElement
 +      if (WINDOW.HTMLElement && current instanceof HTMLElement && current.dataset) {
++        if (current.getAttribute('aria-disabled') === 'true') {
++          current = current.parentNode;
++          continue;
++        }
 +        if (!dataLabel && current.dataset['sentryLabel']) {
 +          dataLabel = current.dataset['sentryLabel'];
 +          labelElem = current;
 +        }
-+        if (!pressableElem && current.dataset['tag'] === 'pressable' && current.getAttribute('aria-disabled') !== 'true') {
++        if (!pressableElem && current.dataset['tag'] === 'pressable') {
 +          pressableElem = current;
 +        }
 +        if (dataLabel && pressableElem) break;
