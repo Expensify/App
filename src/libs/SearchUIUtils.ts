@@ -40,6 +40,7 @@ import type {
     ListItem,
     ReportActionListItemType,
     SearchListItem,
+    SearchTransactionTextColumns,
     TaskListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
@@ -1722,30 +1723,7 @@ function getTransactionsSections({
 
     // Use the provided queryJSON if available, otherwise fall back to getCurrentSearchQueryJSON()
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
-
-    // New Measurement Data
-    const measurements: TransactionColumnMeasurements = {
-        [CONST.SEARCH.TABLE_COLUMNS.DATE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.TAG]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.CARD]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 0,
-        [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 0,
-    };
+    const measurements = {} as Record<SearchTransactionTextColumns, number>;
 
     for (const key of transactionKeys) {
         const transaction = data[key];
