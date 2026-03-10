@@ -131,7 +131,7 @@ function SearchFiltersParticipantsSelector({
         }
         memberIDs.add(currentUserAccountID);
         return memberIDs;
-    }, [shouldScopeToWorkspaceMembers, allPolicies, currentUserAccountID]);
+    }, [shouldScopeToWorkspaceMembers, allPolicies, currentUserAccountID, personalDetails]);
 
     const allowFreeTextInput = shouldAllowNameOnlyOptions || shouldScopeToWorkspaceMembers;
 
