@@ -44,7 +44,6 @@ import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/a
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {close as closeModal} from '@libs/actions/Modal';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -1835,11 +1834,8 @@ function MoneyReportHeader({
                 temporarilyDisableDuplicateAction();
 
                 duplicateExpenseTransaction([transaction]);
-
-                setTimeout(() => {
-                    closeModal();
-                }, 1500);
             },
+            shouldDelay: true,
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {

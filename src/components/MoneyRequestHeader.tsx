@@ -26,7 +26,6 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
 import {duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {close as closeModal} from '@libs/actions/Modal';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {isPersonalCard} from '@libs/CardUtils';
@@ -560,11 +559,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 temporarilyDisableDuplicateAction();
 
                 duplicateTransaction([transaction]);
-
-                setTimeout(() => {
-                    closeModal();
-                }, 1500);
             },
+            shouldDelay: true,
             shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS]: {

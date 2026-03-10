@@ -81,6 +81,9 @@ type PopoverMenuItem = MenuItemProps & {
     /** Whether to close the modal on select */
     shouldCloseModalOnSelect?: boolean;
 
+    /** Whether the menu should close after a delay instead of immediately */
+    shouldDelay?: boolean;
+
     /** Additional data for the menu item */
     additionalData?: Record<string, unknown>;
 };
@@ -329,6 +332,11 @@ function BasePopoverMenu({
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
+            if (selectedItem.shouldDelay) {
+                setTimeout(() => {
+                    onClose();
+                }, 800);
+            }
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
             close(
