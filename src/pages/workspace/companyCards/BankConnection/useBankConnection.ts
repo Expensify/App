@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -28,6 +28,10 @@ type UseBankConnectionProps = {
 
 let customWindow: Window | null = null;
 
+function closeCustomWindow() {
+    customWindow?.close();
+}
+
 export default function useBankConnection({
     policyID,
     feed,
@@ -47,20 +51,29 @@ export default function useBankConnection({
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const shouldBlockWindowOpen = useRef(false);
-    const [isRefreshComplete, setIsRefreshComplete] = useState(false);
+    const refreshSuccessHandled = useRef(false);
 
-    const selectedBank = addNewCard?.data?.selectedBank;
-    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const bankDisplayName = addNewCard?.data?.plaidConnectedFeedName ?? bankName;
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
+    const addNewCardData = addNewCard?.data;
+    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCardData?.plaidConnectedFeed ?? addNewCardData?.selectedBank);
+    const bankDisplayName = addNewCardData?.plaidConnectedFeedName ?? bankName;
+    const plaidToken = addNewCardData?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = !!plaidToken;
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? !!isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCardData?.plaidConnectedFeed),
+        [addNewCardData?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const hasConnectionSource = !!url || isPlaid;
+    const shouldWaitForData = isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
+
+    const isRefreshComplete = useMemo(() => {
+        if (!isRefreshConnectionFlow || !feed || !hasConnectionSource || shouldWaitForData) {
+            return false;
+        }
+        return !isFeedExpired && !isFeedConnectionBroken;
+    }, [isRefreshConnectionFlow, feed, hasConnectionSource, shouldWaitForData, isFeedExpired, isFeedConnectionBroken]);
 
     const fallbackNavigation = useCallback(() => {
         Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : undefined);
@@ -68,18 +81,13 @@ export default function useBankConnection({
 
     const handleSuccess = useCallback(
         (connectedFeed?: CompanyCardFeedWithDomainID) => {
-            if (isRefreshConnectionFlow) {
-                onSuccess?.(connectedFeed ?? undefined);
-                setIsRefreshComplete(true);
-                return;
-            }
             if (onSuccess) {
                 onSuccess(connectedFeed);
                 return;
             }
             fallbackNavigation();
         },
-        [onSuccess, fallbackNavigation, isRefreshConnectionFlow],
+        [onSuccess, fallbackNavigation],
     );
 
     const handleFailure = useMemo(() => onFailure ?? fallbackNavigation, [onFailure, fallbackNavigation]);
@@ -93,7 +101,7 @@ export default function useBankConnection({
 
     const handleBackButtonPress = useCallback(() => {
         if (shouldOpenWindow) {
-            customWindow?.close();
+            closeCustomWindow();
         }
 
         if (onBackButtonPress) {
@@ -105,6 +113,14 @@ export default function useBankConnection({
     }, [shouldOpenWindow, onBackButtonPress]);
 
     useEffect(() => {
+        if (!isRefreshComplete || refreshSuccessHandled.current) {
+            return;
+        }
+        refreshSuccessHandled.current = true;
+        onSuccess?.();
+    }, [isRefreshComplete, onSuccess]);
+
+    useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
             return;
         }
@@ -114,8 +130,6 @@ export default function useBankConnection({
     }, [isBlockedToAddNewFeeds, policyID, feed]);
 
     useEffect(() => {
-        const hasConnectionSource = !!url || isPlaid;
-        const shouldWaitForData = isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
         if (!hasConnectionSource || shouldWaitForData) {
             return;
         }
@@ -124,13 +138,15 @@ export default function useBankConnection({
         if (feed) {
             if (!isFeedExpired) {
                 if (shouldOpenWindow) {
-                    customWindow?.close();
+                    closeCustomWindow();
                 }
                 if (isFeedConnectionBroken) {
                     handleFailure();
                     return;
                 }
-                handleSuccess();
+                if (!isRefreshConnectionFlow) {
+                    handleSuccess();
+                }
                 return;
             }
             if (!isPlaid && url && shouldOpenWindow) {
@@ -143,7 +159,7 @@ export default function useBankConnection({
         if (isNewFeedConnected) {
             shouldBlockWindowOpen.current = true;
             if (shouldOpenWindow) {
-                customWindow?.close();
+                closeCustomWindow();
             }
             handleSuccess(newFeed);
             return;
@@ -159,22 +175,21 @@ export default function useBankConnection({
             }
         }
     }, [
+        hasConnectionSource,
+        shouldWaitForData,
         isNewFeedConnected,
-        isAllFeedsResultLoading,
-        isBlockedToAddNewFeeds,
         newFeed,
         policyID,
         url,
         feed,
         isFeedExpired,
-        isOffline,
         isPlaid,
         onImportPlaidAccounts,
-        isNewFeedHasError,
         isFeedConnectionBroken,
         handleSuccess,
         handleFailure,
         shouldOpenWindow,
+        isRefreshConnectionFlow,
     ]);
 
     return {
