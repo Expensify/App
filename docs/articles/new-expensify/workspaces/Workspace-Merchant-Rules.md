@@ -36,7 +36,7 @@ To create a Workspace Merchant Rule:
 
 **Note:** Workspace Merchant Rules are only available after **Workspace Rules** are enabled for the workspace. If you don't see the Merchant Rules section, first [enable Workspace Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
 
-![Creating a Workspace Merchant Rule]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-1.png){:width="100%"}
+9. Select **Save Rule**.
 
 ---
 
