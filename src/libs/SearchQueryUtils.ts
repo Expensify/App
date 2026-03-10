@@ -1641,30 +1641,42 @@ function shouldHighlight(referenceText: string, searchText: string) {
 
 /**
  * Determines whether sortBy and sortOrder should be reset when filters change.
- * Only resets when groupBy changes, since each groupBy has its own default sort column.
- * View-only changes (e.g. bar → table) preserve the current sort because the view is
- * a presentation concern and should not alter the data ordering.
+ * Resets when groupBy changes (each groupBy has its own default sort column) or
+ * when the view changes (e.g. table → bar) so the parser can derive the correct
+ * default sort order for the new view mode.
  */
-function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
-    return newGroupBy !== oldGroupBy;
+function shouldResetSort({
+    newGroupBy,
+    oldGroupBy,
+    newView,
+    oldView,
+}: {
+    newGroupBy: string | undefined;
+    oldGroupBy: string | undefined;
+    newView: string | undefined;
+    oldView: string | undefined;
+}): boolean {
+    return newGroupBy !== oldGroupBy || newView !== oldView;
 }
 
 /**
  * Builds a query string from filter form values, resetting sortBy and sortOrder when the
- * groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
- * the query is round-tripped through the parser so that parser-derived defaults appear in the
- * final query string. View-only changes preserve the current sort.
+ * groupBy or view has changed so the parser can re-derive the correct defaults. When a reset
+ * is needed, the query is round-tripped through the parser so that parser-derived defaults
+ * appear in the final query string.
  *
  * Returns undefined if the parser round-trip fails.
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
-    previousState: {groupBy?: string},
+    previousState: {groupBy?: string; view?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
     const resetSort = shouldResetSort({
         newGroupBy: filterValues.groupBy,
         oldGroupBy: previousState.groupBy,
+        newView: filterValues.view ?? previousState.view,
+        oldView: previousState.view,
     });
 
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
