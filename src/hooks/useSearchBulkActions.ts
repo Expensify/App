@@ -40,7 +40,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
-    canEditMultipleTransactions,
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
@@ -1129,7 +1128,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.DocumentMerge,
         expensifyIcons.ArrowSplit,
         expensifyIcons.ExpenseCopy,
-        expensifyIcons.Pencil,
         expensifyIcons.Trashcan,
         expensifyIcons.Exclamation,
         translate,
