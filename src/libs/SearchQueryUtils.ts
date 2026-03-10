@@ -1648,13 +1648,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
  * so that custom sortBy values (e.g. groupTotal from "Top X" insights) survive
  * view switches.
  */
-function shouldResetSort({
-    newGroupBy,
-    oldGroupBy,
-}: {
-    newGroupBy: string | undefined;
-    oldGroupBy: string | undefined;
-}): boolean {
+function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
     return newGroupBy !== oldGroupBy;
 }
 
