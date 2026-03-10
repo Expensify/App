@@ -1014,6 +1014,8 @@ type OriginalMessageMovedTransaction = {
     toReportID?: string;
     /** ID of the original report */
     fromReportID: string;
+    /** Reasoning for the automated move, used by Concierge Explain feature */
+    reasoning?: string;
 };
 
 /** Model of `moved` report action */

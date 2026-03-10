@@ -117,10 +117,10 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
-        let navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+        let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
-        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input');
+        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
 
         // When the search input is focused, the NavigationTabBar from SearchPageNarrow will unmount, and the one from TopLevelNavigationTabBar will be hidden.
@@ -130,12 +130,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(1);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'none', opacity: 0});
         });
 
@@ -146,12 +146,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(2);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'auto', opacity: 1});
         });
     });
