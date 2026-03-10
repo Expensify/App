@@ -5349,6 +5349,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
     for (const reportID of reportIDs) {
         const action = buildOptimisticExportIntegrationAction(connectionName, true);
         const optimisticReportActionID = action.reportActionID;
+        const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 
         reportData.push({
             reportID,
@@ -5396,7 +5397,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                isExportedToIntegration: undefined,
+                isExportedToIntegration: previousExportedValue,
             },
         });
     }
