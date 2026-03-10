@@ -126,7 +126,7 @@ Workspace Merchant Rules can update expense fields such as the category, tag, re
 
 ## Do Workspace Merchant Rules change how members submit expenses?
 
-No. Employees submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
+No. Members submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
 
 ## What happens if a personal expense rule and a Workspace Merchant Rule both apply?
 
