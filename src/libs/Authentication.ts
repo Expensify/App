@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
@@ -30,6 +31,7 @@ type Parameters = {
 
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
+let isSignedInWithSAML = false;
 
 // These session values are only used to help the user authentication with the API.
 // Since they aren't connected to a UI anywhere, it's OK to use connectWithoutView()
@@ -38,6 +40,7 @@ Onyx.connectWithoutView({
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
+        isSignedInWithSAML = !!value?.signedInWithSAML;
 
         Sentry.setUser({
             id: value?.accountID,
@@ -95,6 +98,30 @@ function Authenticate<TKey extends OnyxKey>(parameters: Parameters): Promise<Res
         // Add email param so the first Authenticate request is logged on the server w/ this email
         email: parameters.email,
     });
+}
+
+function requestSAMLReauthFromOldDot(command: string, errorMessage: string): Promise<boolean> {
+    return HybridAppModule.requestSAMLReauthentication()
+        .then((result) => {
+            if (!result) {
+                throw new Error('No result from OldDot SAML re-auth');
+            }
+            const parsed = JSON.parse(result) as {authToken: string; encryptedAuthToken: string};
+            updateSessionAuthTokens(parsed.authToken, parsed.encryptedAuthToken);
+            setAuthToken(parsed.authToken);
+            setIsAuthenticating(false);
+            Log.info('[Reauthenticate] OldDot SAML re-authentication successful', false, {command});
+            return true;
+        })
+        .catch((samlError) => {
+            Log.hmmm('[Reauthenticate] OldDot SAML re-auth failed, falling back to sign-in redirect', {
+                command,
+                error: (samlError as Error).message,
+            });
+            setIsAuthenticating(false);
+            redirectToSignIn(errorMessage);
+            return false;
+        });
 }
 
 /**
@@ -185,6 +212,12 @@ function reauthenticate(command = ''): Promise<boolean> {
                         command,
                         errorMessage,
                     });
+
+                    if (CONFIG.IS_HYBRID_APP && isSignedInWithSAML) {
+                        Log.info('[Reauthenticate] Delegating SAML re-auth to OldDot');
+                        return requestSAMLReauthFromOldDot(command, errorMessage);
+                    }
+
                     setIsAuthenticating(false);
                     Log.hmmm('[Reauthenticate] Redirecting to Sign In because we failed to reauthenticate', {
                         command,

@@ -38,6 +38,9 @@ const HybridAppModule: HybridAppModuleType = {
     clearOldDotAfterSignOut() {
         ReactNativeHybridApp.clearOldDotAfterSignOut();
     },
+    requestSAMLReauthentication() {
+        return ReactNativeHybridApp.requestSAMLReauthentication();
+    },
 };
 
 export default HybridAppModule;

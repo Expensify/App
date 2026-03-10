@@ -50,6 +50,11 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `clearOldDotAfterSignOut` should never be called on web');
     },
+    requestSAMLReauthentication() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `requestSAMLReauthentication` should never be called on web');
+        return Promise.reject(new Error('Not available on web'));
+    },
 };
 
 export default HybridAppModule;
