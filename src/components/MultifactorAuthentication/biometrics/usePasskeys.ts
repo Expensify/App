@@ -57,7 +57,14 @@ function usePasskeys(): UseBiometricsReturn {
             return;
         }
 
-        const publicKeyOptions = buildCreationOptions(registrationChallenge, []);
+        const backendCredentials = serverKnownCredentialIDs.map((id) => ({id, type: CONST.PASSKEY_CREDENTIAL_TYPE}));
+        const reconciledExisting = reconcileLocalPasskeysWithBackend({
+            userId,
+            backendCredentials,
+            localCredentials: localPasskeyCredentials ?? null,
+        });
+        const excludeCredentials = buildAllowCredentials(reconciledExisting);
+        const publicKeyOptions = buildCreationOptions(registrationChallenge, excludeCredentials);
 
         let credential: PublicKeyCredential;
         try {
