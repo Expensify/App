@@ -256,6 +256,80 @@ export default createOnyxDerivedValueConfig({
             reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
 
+        // Compute action badges for expense reports based on their state.
+        // Also build an index of child expense reports per chatReportID for workspace chat aggregation.
+        const childExpenseReportsByChatID = new Map<string, Array<{reportID: string; created?: string}>>();
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID) {
+                continue;
+            }
+            const attributes = reportAttributes[report.reportID];
+            if (!attributes?.brickRoadStatus) {
+                continue;
+            }
+
+            // Only compute badges for expense reports
+            if (report.type !== CONST.REPORT.TYPE.EXPENSE) {
+                continue;
+            }
+
+            // Determine the action badge from the expense report's state
+            if (attributes.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+            } else if ((report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) === CONST.REPORT.STATE_NUM.OPEN) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.SUBMIT;
+            } else if (report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.APPROVE;
+            } else {
+                attributes.actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
+            }
+            attributes.actionTargetReportID = report.reportID;
+
+            // Index child expense reports by their parent chat report ID
+            if (report.chatReportID) {
+                const children = childExpenseReportsByChatID.get(report.chatReportID) ?? [];
+                children.push({reportID: report.reportID, created: report.created});
+                childExpenseReportsByChatID.set(report.chatReportID, children);
+            }
+        }
+
+        // For workspace expense chats, find the oldest child expense report that has an action badge
+        // and propagate its badge to the workspace chat row in the LHN.
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID) {
+                continue;
+            }
+            const attributes = reportAttributes[report.reportID];
+            if (!attributes?.brickRoadStatus) {
+                continue;
+            }
+            // Only process workspace expense chats
+            if (report.chatType !== CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
+                continue;
+            }
+
+            const children = childExpenseReportsByChatID.get(report.reportID);
+            if (!children?.length) {
+                continue;
+            }
+
+            // Find the oldest child expense report that has an action badge
+            let oldestChild: {reportID: string; created?: string} | undefined;
+            for (const child of children) {
+                if (!oldestChild || (child.created && (!oldestChild.created || child.created < oldestChild.created))) {
+                    oldestChild = child;
+                }
+            }
+
+            if (oldestChild) {
+                const childAttributes = reportAttributes[oldestChild.reportID];
+                if (childAttributes?.actionBadge) {
+                    attributes.actionBadge = childAttributes.actionBadge;
+                    attributes.actionTargetReportID = oldestChild.reportID;
+                }
+            }
+        }
+
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;

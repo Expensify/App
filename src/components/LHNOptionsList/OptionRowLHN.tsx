@@ -1,6 +1,7 @@
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import Badge from '@components/Badge';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -158,6 +159,17 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
+    const actionBadge = optionItem.actionBadge;
+    let actionBadgeText: string | undefined;
+    if (actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT) {
+        actionBadgeText = translate('common.actionBadge.submit');
+    } else if (actionBadge === CONST.REPORT.ACTION_BADGE.APPROVE) {
+        actionBadgeText = translate('common.actionBadge.approve');
+    } else if (actionBadge === CONST.REPORT.ACTION_BADGE.PAY) {
+        actionBadgeText = translate('common.actionBadge.pay');
+    } else if (actionBadge === CONST.REPORT.ACTION_BADGE.FIX) {
+        actionBadgeText = translate('common.actionBadge.fix');
+    }
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
@@ -374,7 +386,7 @@ function OptionRowLHN({
                                                     <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                                 </View>
                                             ) : null}
-                                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
+                                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && !actionBadgeText && (
                                                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                     <Icon
                                                         testID="RBR Icon"
@@ -383,10 +395,18 @@ function OptionRowLHN({
                                                     />
                                                 </View>
                                             )}
+                                            {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && !!actionBadgeText && (
+                                                <Badge
+                                                    text={actionBadgeText}
+                                                    error
+                                                    isCondensed
+                                                    badgeStyles={[styles.ml2]}
+                                                />
+                                            )}
                                         </View>
                                     </View>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && !actionBadgeText && (
                                             <View style={styles.ml2}>
                                                 <Icon
                                                     testID="GBR Icon"
@@ -394,6 +414,14 @@ function OptionRowLHN({
                                                     fill={theme.success}
                                                 />
                                             </View>
+                                        )}
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && !!actionBadgeText && (
+                                            <Badge
+                                                text={actionBadgeText}
+                                                success
+                                                isCondensed
+                                                badgeStyles={[styles.ml2]}
+                                            />
                                         )}
                                         {hasDraftComment && !!optionItem.isAllowedToComment && (
                                             <View

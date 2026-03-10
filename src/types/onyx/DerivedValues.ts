@@ -37,6 +37,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+    /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay', 'fix').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
+     * The reportID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportID?: string;
 };
 
 /**

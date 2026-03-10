@@ -830,6 +830,8 @@ type OptionData = {
     alternateText?: string;
     allReportErrors?: Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '' | null;
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    actionTargetReportID?: string;
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
