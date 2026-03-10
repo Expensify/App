@@ -1,6 +1,7 @@
 /**
  * Constants for multifactor authentication biometrics flow and API responses.
  */
+import type {ValueOf} from 'type-fest';
 import {PROMPT_NAMES, SCENARIO_NAMES} from '@components/MultifactorAuthentication/config/scenarios/names';
 
 /**
@@ -197,6 +198,53 @@ const EXPO_ERRORS = {
     },
 } as const;
 
+type ReasonValue = ValueOf<{
+    [K in keyof typeof REASON]: ValueOf<(typeof REASON)[K]>;
+}>;
+
+/** Known errors the user is likely to encounter (cancellations, expired transactions, unsupported devices, etc.). Logged at 'info' level. */
+const ROUTINE_FAILURES = new Set<ReasonValue>([
+    REASON.EXPO.CANCELED,
+    REASON.EXPO.NO_METHOD_AVAILABLE,
+    REASON.EXPO.NOT_SUPPORTED,
+    REASON.GENERIC.CANCELED,
+    REASON.GENERIC.NO_ELIGIBLE_METHODS,
+    REASON.GENERIC.UNSUPPORTED_DEVICE,
+    REASON.BACKEND.TRANSACTION_EXPIRED,
+    REASON.BACKEND.TRANSACTION_DENIED,
+    REASON.BACKEND.TOO_MANY_ATTEMPTS,
+    REASON.BACKEND.INVALID_VALIDATE_CODE,
+    REASON.BACKEND.ALREADY_APPROVED_APPROVE_ATTEMPTED,
+    REASON.BACKEND.ALREADY_APPROVED_DENY_ATTEMPTED,
+    REASON.BACKEND.ALREADY_DENIED_APPROVE_ATTEMPTED,
+    REASON.BACKEND.ALREADY_DENIED_DENY_ATTEMPTED,
+    REASON.BACKEND.ALREADY_REVIEWED,
+]);
+
+/** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
+const ANOMALOUS_FAILURES = new Set<ReasonValue>([
+    REASON.BACKEND.REGISTRATION_REQUIRED,
+    REASON.BACKEND.INVALID_CHALLENGE_TYPE,
+    REASON.BACKEND.INVALID_SIGNED_CHALLENGE,
+    REASON.BACKEND.SIGNATURE_VERIFICATION_FAILED,
+    REASON.BACKEND.NO_PENDING_REGISTRATION_CHALLENGE,
+    REASON.BACKEND.TRANSACTION_NOT_FOUND,
+    REASON.BACKEND.INVALID_KEY,
+    REASON.BACKEND.AUTHENTICATION_REQUIRED,
+    REASON.BACKEND.UNAUTHORIZED,
+    REASON.KEYSTORE.KEY_MISSING,
+    REASON.KEYSTORE.KEY_NOT_FOUND,
+    REASON.KEYSTORE.REGISTRATION_REQUIRED,
+    REASON.KEYSTORE.UNABLE_TO_SAVE_KEY,
+    REASON.KEYSTORE.UNABLE_TO_DELETE_KEY,
+    REASON.KEYSTORE.UNABLE_TO_RETRIEVE_KEY,
+    REASON.GENERIC.BAD_REQUEST,
+    REASON.GENERIC.UNKNOWN_RESPONSE,
+    REASON.EXPO.IN_PROGRESS,
+    REASON.EXPO.NOT_IN_FOREGROUND,
+    REASON.EXPO.GENERIC,
+]);
+
 /**
  * Centralized constants used by the multifactor authentication biometrics flow.
  * It is stored here instead of the CONST file to avoid circular dependencies.
@@ -266,6 +314,8 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     BACKEND_MESSAGE,
     REASON,
     HTTP_STATUS,
+    ROUTINE_FAILURES,
+    ANOMALOUS_FAILURES,
 
     /**
      * Specifically meaningful values for `multifactorAuthenticationPublicKeyIDs` in the `account` Onyx key.
