@@ -2674,16 +2674,6 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
- * Checks if a split transaction has more than one child transaction.
- */
-function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined): boolean {
-    if (!originalTransactionID) {
-        return false;
-    }
-    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
-}
-
-/**
  * Determines whether a report should display the expense breakdown.
  */
 function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
@@ -2892,7 +2882,6 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
-    hasMultipleSplitChildren,
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
