@@ -4,7 +4,7 @@ import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
-import type {OnyxKey} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as UserActions from '../../src/libs/actions/User';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -286,7 +286,7 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: Exclude<OnyxKey, OnyxCollectionKey>; value: OnyxMergeInput<Exclude<OnyxKey, OnyxCollectionKey>>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
@@ -512,7 +512,7 @@ describe('actions/User', () => {
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: Exclude<OnyxKey, OnyxCollectionKey>; value: OnyxMergeInput<Exclude<OnyxKey, OnyxCollectionKey>>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {

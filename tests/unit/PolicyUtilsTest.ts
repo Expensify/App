@@ -986,7 +986,7 @@ describe('PolicyUtils', () => {
             const currentUserAccountID = approverAccountID;
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: {}});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -999,7 +999,7 @@ describe('PolicyUtils', () => {
             const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID: approverAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: policies});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1012,7 +1012,7 @@ describe('PolicyUtils', () => {
             const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), isPolicyExpenseChatEnabled: false};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: policies});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1025,7 +1025,7 @@ describe('PolicyUtils', () => {
             const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: policies});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 
@@ -1038,7 +1038,7 @@ describe('PolicyUtils', () => {
             const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: policies});
 
             const result = isCurrentUserMemberOfAnyPolicy();
 

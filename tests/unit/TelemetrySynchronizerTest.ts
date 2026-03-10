@@ -349,7 +349,7 @@ describe('TelemetrySynchronizer', () => {
 
                 jest.clearAllMocks();
 
-                await Onyx.set(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
+                await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: mockPolicies});
                 await waitForBatchedUpdatesWithAct();
 
                 expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, 'policy123');
@@ -370,7 +370,7 @@ describe('TelemetrySynchronizer', () => {
 
                 jest.clearAllMocks();
 
-                await Onyx.set(ONYXKEYS.COLLECTION.POLICY, null);
+                await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: null});
                 await waitForBatchedUpdatesWithAct();
 
                 expect(Sentry.setTag).not.toHaveBeenCalled();
@@ -415,7 +415,7 @@ describe('TelemetrySynchronizer', () => {
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, mockActivePolicyID);
             await waitForBatchedUpdatesWithAct();
 
-            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
+            await Onyx.multiSet({[ONYXKEYS.COLLECTION.POLICY]: mockPolicies});
             await waitForBatchedUpdatesWithAct();
 
             expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, mockActivePolicyID);

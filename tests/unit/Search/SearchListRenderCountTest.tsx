@@ -172,8 +172,7 @@ beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-    Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {});
-    Onyx.merge(ONYXKEYS.COLLECTION.POLICY, {});
+    Onyx.multiSet({[ONYXKEYS.COLLECTION.REPORT]: {}, [ONYXKEYS.COLLECTION.POLICY]: {}});
 });
 
 afterEach(() => {
