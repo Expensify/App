@@ -1,0 +1,50 @@
+
+diff --git a/node_modules/expo-video/build/VideoPlayer.web.js b/node_modules/expo-video/build/VideoPlayer.web.js
+index 16df18b..a1b2c3d 100644
+--- a/node_modules/expo-video/build/VideoPlayer.web.js
++++ b/node_modules/expo-video/build/VideoPlayer.web.js
+@@ -222,7 +222,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+     }
+     play() {
+         this._mountedVideos.forEach((video) => {
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         });
+     }
+     pause() {
+@@ -237,7 +237,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+             if (uri) {
+                 video.setAttribute('src', uri);
+                 video.load();
+-                video.play();
++                video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+             }
+             else {
+                 video.removeAttribute('src');
+@@ -262,7 +262,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+     replay() {
+         this._mountedVideos.forEach((video) => {
+             video.currentTime = 0;
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         });
+         this.playing = true;
+     }
+@@ -277,7 +277,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+             video.pause();
+         }
+         else {
+-            video.play();
++            video.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+         }
+         video.currentTime = firstVideo.currentTime;
+         video.volume = firstVideo.volume;
+@@ -302,7 +302,7 @@ export default class VideoPlayerWeb extends globalThis.expo.SharedObject {
+             });
+             this.playing = true;
+             this._mountedVideos.forEach((mountedVideo) => {
+-                mountedVideo.play();
++                mountedVideo.play()?.catch((e) => { if (e.name !== 'AbortError') throw e; });
+             });
+         };
+         video.onpause = (e) => {
