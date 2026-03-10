@@ -22,6 +22,7 @@ import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,7 +78,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         isLoading,
         loadMore,
         hasMore,
-        isLoadingMore,
     } = useFilteredOptions({
         maxRecentReports: 500,
         enabled: didScreenTransitionEnd,
@@ -202,7 +202,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     }, [draftSelectedOptions, setSelectedOptions]);
 
     const handleEndReached = () => {
-        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+        if (!hasMore || !areOptionsInitialized) {
             return;
         }
         loadMore();
@@ -218,7 +218,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
         setSelectedOptions,
         headerMessage,
         handleEndReached,
-        isLoadingMore,
     };
 }
 
@@ -242,6 +241,8 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [reportAttributesDerivedFull] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+
     const reportAttributesDerived = reportAttributesDerivedFull?.reports;
     const selectionListRef = useRef<SelectionListHandle | null>(null);
 
@@ -257,7 +258,6 @@ function NewChatPage({ref}: NewChatPageProps) {
         searchTerm,
         debouncedSearchTerm,
         handleEndReached,
-        isLoadingMore,
         setSearchTerm,
         selectedOptions,
         setSelectedOptions,
@@ -275,6 +275,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         selectedOptions as OptionData[],
         recentReports,
         personalDetails,
+        privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
         undefined,
@@ -500,7 +501,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 footerContent={footerContent}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                isLoadingNewOptions={!!isSearchingForReports}
                 onEndReached={handleEndReached}
                 onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}
