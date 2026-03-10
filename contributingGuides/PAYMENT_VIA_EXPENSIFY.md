@@ -11,7 +11,7 @@ Contributors are eligible to be paid via Expensify 18 months after they were ass
 After approval it can take between 1 business day and a week, depending on the country and service you use.  
 
 ## For issues with deposits
-If you're having an issue with the deposit, ie. a report gets _stuck_ in a state like Approved, start a chat with Concierge. Ask them to create a Github issue using [this template](https://github.com/Expensify/Expensify/issues/new?template=MISSING_REIMBURSEMENT_TEMPLATE.md.). Provide as many details below as possible
+If you're having an issue with the deposit, ie. a report gets _stuck_ in a state like Approved, start a chat with Concierge. Ask them to create a Github issue using [this template](https://github.com/Expensify/Expensify/issues/new?template=MISSING_REIMBURSEMENT_TEMPLATE.md). Provide as many details below as possible
 
 ### Please provide the following details:
 > - Report ID:
