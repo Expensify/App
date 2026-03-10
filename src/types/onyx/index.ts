@@ -39,6 +39,7 @@ import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
+import type DefaultMileageRate from './DefaultMileageRate';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
@@ -200,6 +201,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    DefaultMileageRate,
     UnshareBankAccount,
     DismissedReferralBanners,
     Domain,

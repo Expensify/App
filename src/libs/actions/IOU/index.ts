@@ -240,7 +240,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
+import {fetchDefaultMileageRates, mergeTransactionIdsHighlightOnSearchRoute, sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftTransaction, removeDraftTransactions, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
@@ -1346,6 +1346,9 @@ function initMoneyRequest({
             comment.odometerStartImage = undefined;
             comment.odometerEndImage = undefined;
         }
+
+        // Fetch the default mileage rate for the user's currency from Auth (single source of truth)
+        fetchDefaultMileageRates(currency);
     }
 
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
