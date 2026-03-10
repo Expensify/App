@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -317,6 +317,22 @@ function BasePopoverMenu({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const delayedCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!isVisible && delayedCloseRef.current) {
+            clearTimeout(delayedCloseRef.current);
+            delayedCloseRef.current = null;
+        }
+    }, [isVisible]);
+
+    useEffect(() => {
+        return () => {
+            if (delayedCloseRef.current) {
+                clearTimeout(delayedCloseRef.current);
+            }
+        };
+    }, []);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -333,7 +349,8 @@ function BasePopoverMenu({
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
             if (selectedItem.shouldDelay) {
-                setTimeout(() => {
+                delayedCloseRef.current = setTimeout(() => {
+                    delayedCloseRef.current = null;
                     onClose();
                 }, 800);
             }
