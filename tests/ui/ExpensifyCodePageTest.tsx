@@ -1,5 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -18,6 +18,11 @@ import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => {},
+}));
+
 jest.mock('@pages/settings/Subscription/ExpensifyCodePage', () =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     jest.requireActual('@pages/settings/Subscription/ExpensifyCodePage/index.tsx'),
@@ -35,7 +40,6 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
-        useNavigationState: () => true,
         useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -68,14 +72,14 @@ const renderPage = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer ref={navigationRef}>
+                <NativeNavigation.NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE}>
                         <Stack.Screen
                             name={SCREENS.SETTINGS.SUBSCRIPTION.EXPENSIFY_CODE}
                             component={ExpensifyCodePage}
                         />
                     </Stack.Navigator>
-                </NavigationContainer>
+                </NativeNavigation.NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
     );
