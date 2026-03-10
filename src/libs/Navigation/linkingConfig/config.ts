@@ -334,10 +334,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: DYNAMIC_ROUTES.ADD_BANK_ACCOUNT.path,
                         [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT,
                             exact: true,

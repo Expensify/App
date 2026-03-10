@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
@@ -12,7 +13,7 @@ function DynamicAddBankAccountVerifyAccountPage() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserEmail = getCurrentUserEmail();
     const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
-    const navigateForwardTo = isAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route;
+    const navigateForwardTo = isAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT.path);
 
     return (
         <VerifyAccountPageBase

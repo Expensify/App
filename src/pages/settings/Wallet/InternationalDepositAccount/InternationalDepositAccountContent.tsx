@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -9,16 +8,15 @@ import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubPage from '@hooks/useSubPage';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getUrlWithParams} from '@libs/Url';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -91,7 +89,6 @@ function InternationalDepositAccountContent({
 
     const skippedPages = getSkippedPages(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>>();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((r) => isFullScreenName(r.name)));
 
     const goBack = useCallback(
@@ -120,17 +117,29 @@ function InternationalDepositAccountContent({
         goBack(backTo?.includes(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE));
     }, [goBack, backTo]);
 
+    const buildRouteWithQueryParams = useCallback((pageName?: string, action?: 'edit') => {
+        const baseRoute = createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT.path);
+        const params: Record<string, string> = {};
+        if (pageName) {
+            params.subPage = pageName;
+        }
+        if (action) {
+            params.action = action;
+        }
+        return getUrlWithParams(baseRoute, params) as Route;
+    }, []);
+
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,
         startFrom,
         onFinished: handleFinishStep,
         skipPages: skippedPages,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, pageName, action),
+        buildRoute: buildRouteWithQueryParams,
     });
 
-    const goBackToConfirmStep = () => {
-        Navigation.goBack(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(route.params?.backTo, CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, undefined));
-    };
+    const goBackToConfirmStep = useCallback(() => {
+        Navigation.goBack(buildRouteWithQueryParams(CONST.CORPAY_FIELDS.PAGE_NAME.CONFIRM, undefined));
+    }, [buildRouteWithQueryParams]);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

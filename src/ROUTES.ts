@@ -82,6 +82,18 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
     },
+    ADD_BANK_ACCOUNT: {
+        path: 'add-bank-account',
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.WORKSPACE.INVOICES,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+        ],
+    },
     ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'add-bank-account/verify-account',
         entryScreens: [
@@ -448,17 +460,6 @@ const ROUTES = {
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
-    SETTINGS_ADD_BANK_ACCOUNT: {
-        route: 'settings/wallet/add-bank-account/:subPage?/:action?',
-        getRoute: (backTo?: string, subPage?: string, action?: 'edit') => {
-            if (!subPage) {
-                // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-                return getUrlWithBackToParam('settings/wallet/add-bank-account', backTo);
-            }
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
-        },
-    },
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,

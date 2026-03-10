@@ -43,7 +43,7 @@ import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccou
 import {approveMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -365,7 +365,7 @@ function SettlementButton({
                         if (payAsBusiness) {
                             navigateToBankAccountRoute({policyID: getPolicyID()});
                         } else {
-                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT.path));
                         }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

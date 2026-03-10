@@ -1,8 +1,9 @@
 import React from 'react';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type WorkspaceInvoicesVerifyAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT>;
@@ -11,7 +12,7 @@ function WorkspaceInvoicesVerifyAccountPage({route}: WorkspaceInvoicesVerifyAcco
     return (
         <VerifyAccountPageBase
             navigateBackTo={workspaceInvoicePath}
-            navigateForwardTo={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(workspaceInvoicePath)}
+            navigateForwardTo={createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT.path)}
         />
     );
 }
