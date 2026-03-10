@@ -8,6 +8,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TabIcon from '@components/TabSelector/TabIcon';
 import TabLabel from '@components/TabSelector/TabLabel';
 import type {TabSelectorItemProps} from '@components/TabSelector/types';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {ScrollableTabSelectorContext} from './ScrollableTabSelectorContext';
@@ -30,11 +31,18 @@ function ScrollableTabSelectorItem({
     equalWidth = false,
     sentryLabel,
     badgeText,
+    disabled = false,
+    pendingAction,
 }: ScrollableTabSelectorItemProps) {
+    const {isOffline} = useNetwork();
+
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
     const {onTabLayout, registerTab, scrollToTab} = useContext(ScrollableTabSelectorContext);
+
+    const isOfflinePendingAction = !!isOffline && !!pendingAction;
+    const needsStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     return (
         <AnimatedPressableWithFeedback
@@ -43,8 +51,8 @@ function ScrollableTabSelectorItem({
             accessibilityState={{selected: isActive}}
             accessibilityRole={CONST.ROLE.TAB}
             sentryLabel={sentryLabel}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1]}
+            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, disabled, backgroundColor), styles.userSelectNone]}
+            wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1, isOfflinePendingAction && styles.offlineFeedbackPending]}
             onPress={() => {
                 scrollToTab(tabKey);
                 onPress();
@@ -55,17 +63,19 @@ function ScrollableTabSelectorItem({
             role={CONST.ROLE.TAB}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
+            disabled={disabled}
         >
             <TabIcon
                 icon={icon}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                activeOpacity={styles.tabOpacity(disabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(disabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
             />
             {(shouldShowLabelWhenInactive || isActive) && (
                 <TabLabel
+                    textStyle={needsStrikeThrough && styles.offlineFeedbackDeleted}
                     title={title}
-                    activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                    inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    activeOpacity={styles.tabOpacity(disabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                    inactiveOpacity={styles.tabOpacity(disabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     hasIcon={!!icon}
                 />
             )}

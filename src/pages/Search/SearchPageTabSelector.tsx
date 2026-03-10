@@ -7,6 +7,7 @@ import ScrollableTabSelectorContextProvider from '@components/TabSelector/Scroll
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ type SearchPageTabSelectorProps = {
 
 function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
@@ -70,10 +72,16 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
 
     if (savedSearches) {
         for (const [key, item] of Object.entries(savedSearches)) {
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                continue;
+            }
+
             tabItems.push({
                 key,
                 icon: expensifyIcons.Bookmark,
                 title: item.name,
+                disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: item.pendingAction,
             });
             queryMap.set(key, {query: item.query ?? '', name: item.name});
             if (queryJSON && Number(key) === queryJSON.hash) {

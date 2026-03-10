@@ -2,6 +2,7 @@ import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import type {ThemeColors} from '@styles/theme/types';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
@@ -40,6 +41,12 @@ type TabSelectorBaseItem = WithSentryLabel & {
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;
+
+    /** Whether this tab is disabled */
+    disabled?: boolean;
+
+    /** Pending action for the tab. */
+    pendingAction?: PendingAction;
 };
 
 type TabSelectorBaseProps = {
@@ -107,6 +114,12 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;
+
+    /** Whether this tab is disabled */
+    disabled?: boolean;
+
+    /** Pending action for the tab. */
+    pendingAction?: PendingAction;
 };
 
 type AnimationConfigBase = {

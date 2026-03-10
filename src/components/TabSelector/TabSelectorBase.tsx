@@ -135,6 +135,8 @@ function TabSelectorBase({
                         parentX={selectorX}
                         equalWidth={equalWidth}
                         badgeText={tab.badgeText}
+                        pendingAction={tab.pendingAction}
+                        disabled={tab.disabled}
                     />
                 );
             })}

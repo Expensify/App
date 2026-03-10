@@ -1,6 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, StyleSheet, View} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -16,17 +17,20 @@ type TabLabelProps = {
 
     /** Whether an icon is present - used to conditionally apply margin */
     hasIcon?: boolean;
+
+    /** Text style */
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false}: TabLabelProps) {
+function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1, hasIcon = false, textStyle = false}: TabLabelProps) {
     const styles = useThemeStyles();
     return (
         <View>
             <Animated.View style={[{opacity: activeOpacity}]}>
-                <Text style={styles.tabText(true, hasIcon)}>{title}</Text>
+                <Text style={[styles.tabText(true, hasIcon), textStyle]}>{title}</Text>
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, {opacity: inactiveOpacity}]}>
-                <Text style={styles.tabText(false, hasIcon)}>{title}</Text>
+                <Text style={[styles.tabText(false, hasIcon), textStyle]}>{title}</Text>
             </Animated.View>
         </View>
     );
