@@ -17,9 +17,21 @@ let networkTimeSkew = 0;
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let isOfflineFlag: boolean | undefined;
+let accountID: number | undefined;
+let unsubscribeNetInfo: (() => void) | null = null;
 
-// We do not depend on updates on the UI to determine the network status
-// or the offline status, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        const newAccountID = session?.accountID;
+        if (newAccountID === accountID) {
+            return;
+        }
+        accountID = newAccountID;
+        configureAndSubscribe();
+    },
+});
+
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
@@ -92,12 +104,15 @@ function setRandomNetworkStatus(initialCall = false) {
 }
 
 /**
- * Subscribe to NetInfo for no-radio detection only.
- * The reachabilityUrl is configured for the recovery probe.
- * @returns unsubscribe method
+ * Configure NetInfo with the reachability URL and subscribe to state changes.
+ * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
  */
-function subscribeToNetInfo(accountID: number | undefined): () => void {
-    // Configure NetInfo with reachability URL for recovery probe
+function configureAndSubscribe() {
+    if (unsubscribeNetInfo) {
+        unsubscribeNetInfo();
+        unsubscribeNetInfo = null;
+    }
+
     if (!CONFIG.IS_USING_LOCAL_WEB) {
         NetInfo.configure({
             reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
@@ -115,8 +130,7 @@ function subscribeToNetInfo(accountID: number | undefined): () => void {
         });
     }
 
-    // Subscribe to NetInfo — only use isConnected for no-radio detection
-    const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
+    unsubscribeNetInfo = NetInfo.addEventListener((state) => {
         if (shouldForceOffline) {
             Log.info('[NetworkConnection] Not processing NetInfo state because shouldForceOffline = true');
             return;
@@ -126,11 +140,8 @@ function subscribeToNetInfo(accountID: number | undefined): () => void {
         Log.info(`[NetworkConnection] NetInfo state change: isConnected=${state.isConnected}, type=${state.type}`);
         NetworkState.setNoRadio(!hasRadio);
     });
-
-    return unsubscribeNetInfo;
 }
 
 export default {
-    subscribeToNetInfo,
     getDBTimeWithSkew,
 };
