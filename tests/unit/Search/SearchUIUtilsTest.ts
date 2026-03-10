@@ -6130,7 +6130,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: workflowApproverEmail, forwardsTo: ''},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } as OnyxTypes.Policy,
+                } as unknown as OnyxTypes.Policy,
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
@@ -6150,7 +6150,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: '', forwardsTo: workflowApproverEmail},
                         'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
                     },
-                } as OnyxTypes.Policy,
+                } as unknown as OnyxTypes.Policy,
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
@@ -6170,7 +6170,7 @@ describe('SearchUIUtils', () => {
                         'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
                         [regularEmail]: {submitsTo: '', forwardsTo: ''},
                     },
-                } as OnyxTypes.Policy,
+                } as unknown as OnyxTypes.Policy,
             };
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
