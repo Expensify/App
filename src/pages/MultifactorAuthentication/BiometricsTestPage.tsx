@@ -42,7 +42,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'BiometricsTestPage', isOffline}} />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

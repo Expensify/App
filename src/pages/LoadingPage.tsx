@@ -3,6 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 type LoadingPageProps = {
     /** Method to trigger when pressing back button of the header */
@@ -13,6 +14,9 @@ type LoadingPageProps = {
 
 function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LoadingPage'};
+
     return (
         <ScreenWrapper testID="LoadingPage">
             <HeaderWithBackButton
@@ -20,7 +24,10 @@ function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
                 shouldShowBackButton
                 title={title}
             />
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={reasonAttributes}
+            />
         </ScreenWrapper>
     );
 }

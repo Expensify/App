@@ -12,6 +12,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,7 +68,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     });
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetailsContent', isRedirecting};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     const handleBackButtonPress = () => {
