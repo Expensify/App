@@ -1,4 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
 import type {TextSelection} from '@components/Composer/types';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,9 +18,9 @@ type ReportActionActiveEdit = {
 };
 
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
-    setEditingMessage: (message: string | null) => void;
+    setEditingMessage: Dispatch<SetStateAction<string | null>>;
     currentEditMessageSelection: TextSelection | null;
-    setCurrentEditMessageSelection: (selection: TextSelection) => void;
+    setCurrentEditMessageSelection: Dispatch<SetStateAction<TextSelection | null>>;
     getEditingState: () => EditingState | null;
     setEditingState: (state: EditingState | null) => void;
 };
@@ -78,12 +79,12 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     );
 
     const setCurrentEditMessageSelection = useCallback(
-        (selection: TextSelection | null) => {
+        (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
             if (!editingReportActionID) {
                 return;
             }
 
-            setCurrentEditMessageSelectionState(selection);
+            setCurrentEditMessageSelectionState(setSelectionStateAction);
         },
         [editingReportActionID],
     );

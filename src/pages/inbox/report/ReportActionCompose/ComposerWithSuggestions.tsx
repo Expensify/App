@@ -376,7 +376,7 @@ function ComposerWithSuggestions({
             const nextValue = editingMessage ?? '';
             applyComposerValue(nextValue, false);
         }
-    }, [applyComposerValue, currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -600,7 +600,7 @@ function ComposerWithSuggestions({
                     positionY: prevSelection.positionY,
                 }));
 
-                setCurrentEditMessageSelection({...currentEditMessageSelection, start: position, end: position});
+                setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: position, end: position}));
             }
 
             commentRef.current = newCommentConverted;
@@ -629,7 +629,6 @@ function ComposerWithSuggestions({
             }
         },
         [
-            currentEditMessageSelection,
             currentUserAccountID,
             debouncedSaveDraft,
             debouncedSaveReportComment,
@@ -719,7 +718,8 @@ function ComposerWithSuggestions({
                         positionY: prevSelection.positionY,
                     }));
 
-                    setCurrentEditMessageSelection({...currentEditMessageSelection, start: newStart, end: newEnd});
+                    setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: newStart, end: newEnd}));
+
                     updateComment(newText, true);
                 }
             }
@@ -734,9 +734,8 @@ function ComposerWithSuggestions({
             onEnterKeyPress,
             lastReportAction,
             reportID,
-            setCurrentEditMessageSelection,
-            currentEditMessageSelection,
             updateComment,
+            setCurrentEditMessageSelection,
         ],
     );
 
@@ -779,12 +778,13 @@ function ComposerWithSuggestions({
         (e: CustomSelectionChangeEvent) => {
             setSelection(e.nativeEvent.selection);
 
-            setCurrentEditMessageSelection({
+            setCurrentEditMessageSelection((prevSelection) => ({
+                ...prevSelection,
                 start: e.nativeEvent.selection.start,
                 end: e.nativeEvent.selection.end,
                 positionX: 0,
                 positionY: 0,
-            });
+            }));
 
             if (!composerRef.current?.isFocused()) {
                 return;
@@ -1102,12 +1102,13 @@ function ComposerWithSuggestions({
         (suggestionSelection: TextSelection) => {
             const endOfSuggestionSelection = suggestionSelection.end;
             setSelection(suggestionSelection);
-            setCurrentEditMessageSelection({
+            setCurrentEditMessageSelection((prevSelection) => ({
+                ...prevSelection,
                 start: suggestionSelection.start,
                 end: suggestionSelection.end,
                 positionX: 0,
                 positionY: 0,
-            });
+            }));
 
             if (endOfSuggestionSelection === undefined) {
                 return;
