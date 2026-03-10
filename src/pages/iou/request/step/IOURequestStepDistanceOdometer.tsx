@@ -366,7 +366,7 @@ function IOURequestStepDistanceOdometer({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = () => {
+    const navigateToNextPage = async () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
