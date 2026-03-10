@@ -611,7 +611,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1172,7 +1172,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1584,7 +1584,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts,
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1632,7 +1632,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1669,7 +1669,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -1701,7 +1701,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 allTransactionDrafts: {},
                 activePolicy: undefined,
-                userBillingGraceEndPeriodCollection: undefined,
+                userBillingGraceEndPeriods: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();

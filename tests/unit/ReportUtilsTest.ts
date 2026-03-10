@@ -12752,7 +12752,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 1,
                 });
 
@@ -12772,7 +12772,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
-                const userBillingGraceEndPeriodCollection = {
+                const userBillingGraceEndPeriods = {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         value: 1,
                     },
@@ -12787,7 +12787,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection,
+                    userBillingGraceEndPeriods,
                     amountOwed: 0,
                 });
 
@@ -12825,7 +12825,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -12865,7 +12865,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -12892,7 +12892,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -12940,7 +12940,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy: undefined,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -12984,7 +12984,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13026,7 +13026,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 0,
                 });
 
@@ -13060,7 +13060,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     allTransactionDrafts: undefined,
                     activePolicy,
-                    userBillingGraceEndPeriodCollection: undefined,
+                    userBillingGraceEndPeriods: undefined,
                     amountOwed: 50,
                 });
 

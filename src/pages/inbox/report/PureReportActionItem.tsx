@@ -470,7 +470,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriodCollection: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -540,7 +540,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriodCollection,
+    userBillingGraceEndPeriods,
 }: PureReportActionItemProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
@@ -947,7 +947,7 @@ function PureReportActionItem({
                             introSelected,
                             allTransactionDrafts,
                             activePolicy,
-                            userBillingGraceEndPeriodCollection,
+                            userBillingGraceEndPeriods,
                             amountOwed,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
@@ -970,7 +970,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -987,7 +987,7 @@ function PureReportActionItem({
                                 introSelected,
                                 allTransactionDrafts,
                                 activePolicy,
-                                userBillingGraceEndPeriodCollection,
+                                userBillingGraceEndPeriods,
                                 amountOwed,
                             });
                         },
@@ -1133,7 +1133,7 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriodCollection,
+        userBillingGraceEndPeriods,
         amountOwed,
     ]);
 
