@@ -59,7 +59,7 @@ Workspace Merchant Rules let Workspace Admins automatically apply consistent cod
 Workspace Merchant Rules:
 - Apply when an expense is created
 - Work at the workspace level (not per member)
-- Don't change how employees submit expenses
+- Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
 [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
