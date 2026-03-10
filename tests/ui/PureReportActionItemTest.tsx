@@ -36,6 +36,8 @@ jest.mock('@libs/actions/Link', () => {
     };
 });
 
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+
 const ACTOR_ACCOUNT_ID = 123456789;
 const actorEmail = 'test@test.com';
 
