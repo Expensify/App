@@ -912,6 +912,7 @@ type PayMoneyRequestFunctionParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    amountOwed: OnyxEntry<number>;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -11558,11 +11559,12 @@ function submitReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
+    amountOwed: OnyxEntry<number>,
 ) {
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -12038,6 +12040,7 @@ function cancelPayment(
 function completePaymentOnboarding(
     paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
@@ -12073,6 +12076,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
         companySize: introSelected?.companySize as OnboardingCompanySize,
         introSelected,
+        isSelfTourViewed,
         betas,
     });
 }
@@ -12092,14 +12096,15 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         policy,
         betas,
         isSelfTourViewed,
+        amountOwed,
     } = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }
 
     const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
@@ -12177,7 +12182,7 @@ function payInvoice({
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
-    completePaymentOnboarding(paymentSelected, introSelected, betas);
+    completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas);
 
     let params: PayInvoiceParams = {
         reportID: invoiceReport?.reportID,
@@ -12664,7 +12669,6 @@ function shouldOptimisticallyUpdateSearch(
     const suggestedSearches = getSuggestedSearches(userAccountID);
     const submitQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SUBMIT].searchQueryJSON;
     const approveQueryJSON = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.APPROVE].searchQueryJSON;
-
     const unapprovedCashSimilarSearchHash = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH].similarSearchHash;
 
     const validSearchTypes =
