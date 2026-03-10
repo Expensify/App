@@ -81,6 +81,9 @@ type AccessOrNotFoundWrapperProps = {
     /** The id of the report that holds the transaction */
     reportID?: string;
 
+    /** Pre-fetched report, avoids duplicate Onyx subscription when already available from parent */
+    report?: OnyxEntry<Report>;
+
     /** The report currently being looked at */
     policyID?: string;
 
@@ -136,12 +139,14 @@ function AccessOrNotFoundWrapper({
     shouldBeBlocked,
     policyID,
     reportID,
+    report: reportProp,
     iouType,
     allPolicies,
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportProp ? undefined : reportID}`);
+    const report = reportProp ?? reportFromOnyx;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();

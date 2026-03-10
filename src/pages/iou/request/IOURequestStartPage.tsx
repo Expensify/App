@@ -44,7 +44,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import IOURequestStepAmount from './step/IOURequestStepAmount';
+import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
@@ -65,6 +65,8 @@ function IOURequestStartPage({
     route: {
         params: {iouType, reportID},
     },
+    report,
+    reportDraft,
     navigation,
     // This is currently only being used for testing
     defaultSelectedTab = CONST.TAB_REQUEST.SCAN,
@@ -73,7 +75,6 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const personalPolicy = usePersonalPolicy();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
@@ -282,6 +283,7 @@ function IOURequestStartPage({
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
+            report={report}
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
@@ -323,10 +325,12 @@ function IOURequestStartPage({
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepAmount
+                                            <IOURequestStepAmountWithTransactionOnly
                                                 shouldKeepUserInput
                                                 route={route}
                                                 navigation={navigation}
+                                                report={report}
+                                                reportDraft={reportDraft}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -407,10 +411,12 @@ function IOURequestStartPage({
                                 onContainerElementChanged={setActiveTabContainerElement}
                                 style={[styles.flexColumn, styles.flex1]}
                             >
-                                <IOURequestStepAmount
+                                <IOURequestStepAmountWithTransactionOnly
                                     route={route}
                                     navigation={navigation}
                                     shouldKeepUserInput
+                                    report={report}
+                                    reportDraft={reportDraft}
                                 />
                             </FocusTrapContainerElement>
                         )}

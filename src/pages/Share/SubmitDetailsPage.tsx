@@ -112,6 +112,7 @@ function SubmitDetailsPage({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
         });
+        // initMoneyRequest is an imported action, intentionally excluded to avoid re-initializing on every render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
