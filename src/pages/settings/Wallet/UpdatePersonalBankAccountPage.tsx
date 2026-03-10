@@ -12,6 +12,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompletedStepsForBankAccount, PERSONAL_INFO_STEP} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
@@ -45,6 +46,7 @@ function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
         />
     );
 }
+AddressWithDraft.displayName = 'AddressWithDraft';
 
 /**
  * Wrapper that delays auto-focus to avoid validation errors during URL-based navigation transitions.
@@ -59,6 +61,7 @@ function DelayedPhoneNumber({isEditing, onNext, onMove}: SubStepProps) {
         />
     );
 }
+DelayedPhoneNumber.displayName = 'DelayedPhoneNumber';
 
 const formPages = [
     {pageName: PAGE_NAME.LEGAL_NAME, component: LegalName},
@@ -141,6 +144,9 @@ function UpdatePersonalBankAccountPage() {
         updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
     };
     const skipPageCandidates = getPageNamesForCompletedSteps(completedSteps);
+    if (skipPageCandidates.length >= formPages.length) {
+        Log.hmmm('[UpdatePersonalBankAccountPage] All steps already completed but user reached update flow', {bankAccountID});
+    }
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 
     const firstPageName = getFirstPageName(bankAccountList, personalBankAccount?.bankAccountID);

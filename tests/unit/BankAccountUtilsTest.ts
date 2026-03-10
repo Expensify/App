@@ -3,6 +3,7 @@ import {
     getDefaultCompanyWebsite,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isPersonalBankAccountMissingInfo,
     PERSONAL_INFO_STEP,
@@ -231,6 +232,55 @@ describe('BankAccountUtils', () => {
         it('handles undefined session', () => {
             const account: Account = {isFromPublicDomain: false} as Account;
             expect(getDefaultCompanyWebsite(undefined, account)).toBe('https://www.');
+        });
+    });
+
+    describe('hasPersonalBankAccountMissingInfo', () => {
+        it('returns true when at least one account has missing info', () => {
+            const bankAccountList = {
+                accountOne: {
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {country: CONST.COUNTRY.US, firstName: 'John'},
+                    },
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            expect(hasPersonalBankAccountMissingInfo(bankAccountList)).toBe(true);
+        });
+
+        it('returns false when all accounts have complete info', () => {
+            const bankAccountList = {
+                accountOne: {
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {
+                            country: CONST.COUNTRY.US,
+                            firstName: 'John',
+                            lastName: 'Doe',
+                            addressStreet: '123 Main St',
+                            addressCity: 'New York',
+                            addressState: 'NY',
+                            addressZipCode: '10001',
+                            companyPhone: '+15551234567',
+                        },
+                    },
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            expect(hasPersonalBankAccountMissingInfo(bankAccountList)).toBe(false);
+        });
+
+        it('returns false for empty bank account list', () => {
+            expect(hasPersonalBankAccountMissingInfo({})).toBe(false);
+        });
+
+        it('returns false for undefined bank account list', () => {
+            expect(hasPersonalBankAccountMissingInfo(undefined)).toBe(false);
         });
     });
 
