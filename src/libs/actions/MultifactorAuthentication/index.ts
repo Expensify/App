@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
 import {makeRequestWithSideEffects} from '@libs/API';
-import type {DenyTransactionParams} from '@libs/API/parameters';
+import type {DenyTransactionParams, SimulateMarqeta3DSChallengeParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
@@ -296,6 +296,19 @@ async function fireAndForgetDenyTransaction({transactionID}: DenyTransactionPara
     makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION, {transactionID}, {});
 }
 
+async function simulateMarqeta3DSChallenge(params: SimulateMarqeta3DSChallengeParams): Promise<{success: boolean; errorMessage?: string}> {
+    try {
+        const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SIMULATE_MARQETA_3DS_CHALLENGE, params);
+        if (response?.jsonCode === 200) {
+            return {success: true};
+        }
+        return {success: false, errorMessage: response?.message ?? 'An unknown error occurred.'};
+    } catch (error) {
+        Log.hmmm('[MultifactorAuthentication] Failed to simulate 3DS challenge', {error});
+        return {success: false, errorMessage: 'An unknown error occurred.'};
+    }
+}
+
 function markHasAcceptedSoftPrompt() {
     Onyx.merge(ONYXKEYS.DEVICE_BIOMETRICS, {
         hasAcceptedSoftPrompt: true,
@@ -320,4 +333,5 @@ export {
     denyTransaction,
     authorizeTransaction,
     fireAndForgetDenyTransaction,
+    simulateMarqeta3DSChallenge,
 };

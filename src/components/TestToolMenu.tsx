@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,10 +15,12 @@ import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorCo
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasBiometricsRegisteredSelector, isAccountLoadingSelector} from '@src/selectors/Account';
 import Button from './Button';
+import SimulatePendingTransaction from './MultifactorAuthentication/components/SimulatePendingTransaction';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -34,7 +37,9 @@ function TestToolMenu() {
     const {clearLHNCache} = useSidebarOrderedReportsActions();
     const [hasBiometricsRegistered = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: hasBiometricsRegisteredSelector});
     const [isAccountLoading = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isAccountLoadingSelector});
+    const [showTest3DS, setShowTest3DS] = React.useState(false);
 
+    const {isBetaEnabled} = usePermissions();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
 
@@ -56,6 +61,12 @@ function TestToolMenu() {
 
     return (
         <>
+            {isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_3DS_SIMULATION) && (
+                <SimulatePendingTransaction
+                    isVisible={showTest3DS}
+                    onClose={() => setShowTest3DS(false)}
+                />
+            )}
             <Text
                 style={[styles.textLabelSupporting, styles.mb4]}
                 numberOfLines={1}
@@ -111,6 +122,16 @@ function TestToolMenu() {
                             onPress={clearLHNCache}
                         />
                     </TestToolRow>
+
+                    {isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_3DS_SIMULATION) && (
+                        <TestToolRow title="3D-Secure">
+                            <Button
+                                small
+                                text="Simulate transaction"
+                                onPress={() => setShowTest3DS(true)}
+                            />
+                        </TestToolRow>
+                    )}
 
                     {/* Allows testing the biometric multifactor authentication flow */}
                     <TestToolRow title={biometricsTitle}>
