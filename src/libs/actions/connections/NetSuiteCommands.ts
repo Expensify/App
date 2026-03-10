@@ -583,12 +583,16 @@ function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, i
 }
 
 function updateNetSuiteCustomSegments(
-    policyID: string,
+    policyID: string | undefined,
     records: NetSuiteCustomSegment[],
     oldRecords: NetSuiteCustomSegment[],
     modifiedSegmentID: string,
     pendingAction: OnyxCommon.PendingAction,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, records, oldRecords, modifiedSegmentID, pendingAction);
 
     API.write(
@@ -601,7 +605,17 @@ function updateNetSuiteCustomSegments(
     );
 }
 
-function updateNetSuiteCustomLists(policyID: string, records: NetSuiteCustomList[], oldRecords: NetSuiteCustomList[], modifiedListID: string, pendingAction: OnyxCommon.PendingAction) {
+function updateNetSuiteCustomLists(
+    policyID: string | undefined,
+    records: NetSuiteCustomList[],
+    oldRecords: NetSuiteCustomList[],
+    modifiedListID: string,
+    pendingAction: OnyxCommon.PendingAction,
+) {
+    if (!policyID) {
+        return;
+    }
+
     const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, records, oldRecords, modifiedListID, pendingAction);
     API.write(
         WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS,
