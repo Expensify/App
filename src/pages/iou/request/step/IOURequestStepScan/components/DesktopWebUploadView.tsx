@@ -3,6 +3,7 @@ import {PanResponder, View} from 'react-native';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import Icon from '@components/Icon';
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
@@ -45,6 +46,7 @@ function DesktopWebUploadView({
         }),
     ).current;
 
+    const {isDraggingOver} = useDragAndDropState();
     const [containerHeight, setContainerHeight] = useState(0);
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
@@ -71,7 +73,7 @@ function DesktopWebUploadView({
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            {(isDraggingOver) => (
+            {(isDraggingOverWrapper) => (
                 <View
                     onLayout={(event) => {
                         setContainerHeight(event.nativeEvent.layout.height);
@@ -80,7 +82,7 @@ function DesktopWebUploadView({
                     style={[styles.flex1, styles.chooseFilesView(false)]}
                 >
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!isDraggingOver && (
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (
                             <View
                                 style={[styles.alignItemsCenter, styles.justifyContentCenter]}
                                 onLayout={(e) => {
