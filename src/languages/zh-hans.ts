@@ -672,9 +672,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         biometricsTest: {
             biometricsTest: '生物识别测试',
-            authenticationSuccessful: '验证成功',
+            authenticationSuccessful: '认证成功',
             successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `您已成功使用 ${authType} 完成验证。`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `生物识别（${registered ? '已注册' : '未注册'}）`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `生物识别（${status}）`,
             yourAttemptWasUnsuccessful: '您的身份验证尝试未成功。',
             youCouldNotBeAuthenticated: '无法验证您的身份',
             areYouSureToReject: '您确定吗？如果您关闭此界面，此次身份验证尝试将被拒绝。',
@@ -690,6 +690,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: '从未注册',
+            statusNotRegistered: '未注册',
+            statusRegisteredThisDevice: '已注册',
+            statusRegisteredOtherDevice: () => ({one: '已注册另一台设备', other: '已注册的其他设备'}),
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',
@@ -710,13 +714,23 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         revoke: {
             title: '面容/指纹和通行密钥',
-            explanation: '在一台或多台设备上已启用面容/指纹或通行密钥验证。撤销访问后，下次在任何设备上进行验证时都需要输入魔法验证码。',
-            confirmationPrompt: '确定吗？下一次在任何设备上进行验证时，你都需要输入魔法码。',
+            explanation: '一个或多个设备已启用面容/指纹或通行密钥验证。撤销访问权限后，该设备下次验证时将需要输入魔法验证码。',
+            confirmationPrompt: '你确定吗？你下次在该设备上验证时需要使用魔法验证码。',
             cta: '撤销访问权限',
-            noDevices: '您尚未注册用于面部 / 指纹或通行密钥验证的任何设备。如果您注册了设备，之后可以在此撤销该访问权限。',
-            dismiss: '明白了',
+            noDevices: '你还没有注册用于人脸 / 指纹或通行密钥验证的任何设备。如果你注册了设备，就可以在这里撤销其访问权限。',
+            dismiss: '知道了',
             error: '请求失败。请稍后重试。',
             revoke: '撤销',
+            confirmationPromptAll: '您确定吗？您在任何设备上进行下一次验证时都需要输入魔法验证码。',
+            ctaAll: '全部撤销',
+            thisDevice: '此设备',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
+            },
+            confirmationPromptThisDevice: '确定要这样做吗？下次在此设备上进行验证时，您需要输入魔法验证码。',
+            confirmationPromptMultiple: '确定吗？你下次在这些设备上验证时需要输入魔法验证码。',
         },
         unsupportedDevice: {
             unsupportedDevice: '不支持的设备',
