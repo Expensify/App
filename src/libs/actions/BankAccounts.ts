@@ -312,10 +312,6 @@ function clearPersonalBankAccount() {
     clearPersonalBankAccountSetupType();
 }
 
-function setPersonalBankAccountID(bankAccountID: number) {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {bankAccountID});
-}
-
 /** Atomically resets personal bank account state and seeds draft values using Onyx.set to avoid set/merge races. */
 function resetPersonalBankAccountForUpdate(bankAccountID: number, personalBankAccountDraft?: Partial<PersonalBankAccountForm>, homeAddressDraft?: Record<string, string | undefined>) {
     clearPlaid();
@@ -1661,7 +1657,6 @@ export {
     clearOnfidoToken,
     clearPersonalBankAccount,
     resetPersonalBankAccountForUpdate,
-    setPersonalBankAccountID,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
