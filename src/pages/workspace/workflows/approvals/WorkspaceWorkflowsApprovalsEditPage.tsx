@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {convertPolicyEmployeesToApprovalWorkflows, mergeWorkflowMembersWithAvailableMembers} from '@libs/WorkflowUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -182,7 +183,16 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                             />
                         </>
                     )}
-                    {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
+                    {!initialApprovalWorkflow && (
+                        <FullScreenLoadingIndicator
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspaceWorkflowsApprovalsEditPage',
+                                    isApprovalWorkflowMissing: !initialApprovalWorkflow,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -7,6 +7,7 @@ import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isPendingDeletePolicy} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,7 +57,15 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
 
     return (
         <ScreenWrapper testID="WorkspaceJoinUserPage">
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={
+                    {
+                        context: 'WorkspaceJoinUserPage',
+                        isPolicyLoading: isLoadingOnyxValue(policyResult),
+                    } satisfies SkeletonSpanReasonAttributes
+                }
+            />
         </ScreenWrapper>
     );
 }

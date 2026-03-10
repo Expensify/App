@@ -21,6 +21,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -259,6 +260,12 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 <FullScreenLoadingIndicator
                     shouldUseGoBackButton
                     style={styles.flex1}
+                    reasonAttributes={
+                        {
+                            context: 'WorkspaceReceiptPartnersPage',
+                            isPolicyLoading: !!policy?.isLoading,
+                        } satisfies SkeletonSpanReasonAttributes
+                    }
                 />
             ) : (
                 <ScreenWrapper

@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -94,7 +95,16 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                             />
                         </>
                     )}
-                    {!approvalWorkflow && <FullScreenLoadingIndicator />}
+                    {!approvalWorkflow && (
+                        <FullScreenLoadingIndicator
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspaceWorkflowsApprovalsCreatePage',
+                                    isApprovalWorkflowMissing: !approvalWorkflow,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

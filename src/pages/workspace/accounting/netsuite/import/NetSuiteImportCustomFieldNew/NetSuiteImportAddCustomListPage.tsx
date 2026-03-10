@@ -1,6 +1,7 @@
 import React from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +13,11 @@ function NetSuiteImportAddCustomListPage({policy, route}: WithPolicyConnectionsP
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'NetSuiteImportAddCustomListPage',
+            isDraftValuesLoading: isLoadingOnyxValue(draftValuesMetadata),
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

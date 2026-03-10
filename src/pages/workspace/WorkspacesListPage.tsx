@@ -64,6 +64,7 @@ import {
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -733,7 +734,16 @@ function WorkspacesListPage() {
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacesListPage',
+                                    isLoadingApp: !!isLoadingApp,
+                                    isOffline,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
                     </View>
                 ) : (
                     <FlatList
