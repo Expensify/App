@@ -4,7 +4,11 @@ import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-const NOOP = () => {};
+function NOOP() {
+    return null;
+}
+
+type EditingState = 'editing' | 'submitted' | 'cancelled';
 
 type ReportActionActiveEdit = {
     editingReportActionID: string | null;
@@ -15,7 +19,8 @@ type ReportActionActiveEdit = {
 type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
     currentEditMessageSelection: TextSelection | null;
     setCurrentEditMessageSelection: (selection: TextSelection) => void;
-    didSubmitEditRef: React.RefObject<boolean | null>;
+    getEditingState: () => EditingState | null;
+    setEditingState: (state: EditingState | null) => void;
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
@@ -24,7 +29,8 @@ const ReportActionEditMessageContext = createContext<ReportActionEditMessageCont
     editingMessage: null,
     currentEditMessageSelection: null,
     setCurrentEditMessageSelection: NOOP,
-    didSubmitEditRef: {current: null},
+    getEditingState: NOOP,
+    setEditingState: NOOP,
 });
 
 type ReportActionEditMessageContextProviderProps = {
@@ -42,7 +48,13 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     const [editingReportAction, setEditingReportAction] = useState<OnyxTypes.ReportAction | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
-    const didSubmitEditRef = useRef<boolean | null>(null);
+    const editingStateRef = useRef<EditingState | null>(null);
+    const getEditingState = () => {
+        return editingStateRef.current;
+    };
+    const setEditingState = (state: EditingState | null) => {
+        editingStateRef.current = state;
+    };
 
     const updateActiveEditState = useCallback(
         (activeEdit: ReportActionActiveEdit | null) => {
@@ -75,11 +87,11 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     );
 
     const reset = useCallback(() => {
-        if (didSubmitEditRef.current === false) {
+        if (editingStateRef.current === 'editing') {
             return;
         }
 
-        didSubmitEditRef.current = null;
+        editingStateRef.current = null;
         updateActiveEditState(null);
         setCurrentEditMessageSelection(null);
     }, [updateActiveEditState, setCurrentEditMessageSelection]);
@@ -103,7 +115,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
         const [reportActionID, draft] = reportDraftEntry;
 
-        didSubmitEditRef.current = false;
+        editingStateRef.current = 'editing';
         updateActiveEditState({
             editingReportActionID: reportActionID,
             editingReportAction: reportActions?.[reportActionID] ?? null,
@@ -120,7 +132,8 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
                 editingMessage,
                 currentEditMessageSelection,
                 setCurrentEditMessageSelection,
-                didSubmitEditRef,
+                getEditingState,
+                setEditingState,
             }}
         >
             {children}

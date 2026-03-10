@@ -261,7 +261,7 @@ function ComposerWithSuggestions({
 
     const composerRef = useRef<ComposerRef | null>(null);
 
-    const {editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, didSubmitEditRef} = useReportActionActiveEdit();
+    const {editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection, setCurrentEditMessageSelection, getEditingState} = useReportActionActiveEdit();
 
     const [value, setValue] = useState(() => {
         const initialValue = shouldUseNarrowLayout ? (editingMessage ?? draftComment) : draftComment;
@@ -313,7 +313,7 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        if (didSubmitEditRef.current) {
+        if (getEditingState() === 'submitted') {
             return;
         }
 
@@ -374,7 +374,7 @@ function ComposerWithSuggestions({
             const nextValue = editingMessage ?? '';
             applyComposerValue(nextValue, false);
         }
-    }, [applyComposerValue, currentEditMessageSelection, didSubmitEditRef, draftComment, editingMessage, editingReportActionID, shouldUseNarrowLayout]);
+    }, [applyComposerValue, currentEditMessageSelection, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -602,7 +602,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (!!editingReportActionID && shouldUseNarrowLayout && !didSubmitEditRef.current) {
+            if (!!editingReportActionID && shouldUseNarrowLayout && !getEditingState()) {
                 if (shouldDebounceSaveComment) {
                     isDraftPendingSaved.current = true;
                     debouncedSaveDraft(newCommentConverted);
@@ -631,17 +631,17 @@ function ComposerWithSuggestions({
             findNewlyAddedChars,
             preferredSkinTone,
             preferredLocale,
+            editingReportActionID,
             shouldUseNarrowLayout,
+            getEditingState,
             suggestionsRef,
             setIsCommentEmpty,
             setCurrentEditMessageSelection,
             currentEditMessageSelection,
-            editingReportActionID,
-            didSubmitEditRef,
-            debouncedSaveDraft,
             reportID,
-            currentUserAccountID,
+            debouncedSaveDraft,
             debouncedSaveReportComment,
+            currentUserAccountID,
         ],
     );
 
