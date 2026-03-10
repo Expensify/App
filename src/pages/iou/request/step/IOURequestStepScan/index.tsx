@@ -72,16 +72,18 @@ function IOURequestStepScan({
         isStartingScan,
         updateScanAndNavigate,
         getSource,
-        setIsMultiScanEnabled,
     });
 
     const {
         transactions,
+        isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         receiptFiles,
+        setReceiptFiles,
         navigateToConfirmationStep,
         validateFiles,
         PDFValidationComponent,
@@ -148,24 +150,28 @@ function IOURequestStepScan({
         <>
             {isMobileWeb ? (
                 <MobileWebCameraView
-                    receiptScan={receiptScan}
-                    report={report}
-                    reportID={reportID}
-                    initialTransactionID={initialTransactionID}
                     initialTransaction={initialTransaction}
+                    initialTransactionID={initialTransactionID}
                     iouType={iouType}
-                    action={action}
                     currentUserPersonalDetails={currentUserPersonalDetails}
-                    backTo={backTo}
-                    backToReport={backToReport}
+                    reportID={reportID}
                     isMultiScanEnabled={isMultiScanEnabled}
                     isStartingScan={isStartingScan}
                     updateScanAndNavigate={updateScanAndNavigate}
-                    getSource={getSource}
                     setIsMultiScanEnabled={setIsMultiScanEnabled}
+                    PDFValidationComponent={PDFValidationComponent}
+                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                    receiptFiles={receiptFiles}
+                    isEditing={isEditing}
+                    validateFiles={validateFiles}
+                    setReceiptFiles={setReceiptFiles}
+                    setTestReceiptAndNavigate={setTestReceiptAndNavigate}
+                    navigateToConfirmationStep={navigateToConfirmationStep}
+                    shouldSkipConfirmation={shouldSkipConfirmation}
+                    setStartLocationPermissionFlow={setStartLocationPermissionFlow}
                     onLayout={onLayout}
                     onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || receiptScan.isEditing}
+                    shouldShowWrapper={!!backTo || isEditing}
                 />
             ) : (
                 <DesktopWebUploadView
@@ -175,7 +181,7 @@ function IOURequestStepScan({
                     onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
-                    shouldShowWrapper={!!backTo || receiptScan.isEditing}
+                    shouldShowWrapper={!!backTo || isEditing}
                 />
             )}
             {ErrorModal}

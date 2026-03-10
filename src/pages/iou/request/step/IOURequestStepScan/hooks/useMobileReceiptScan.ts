@@ -1,26 +1,39 @@
+import {shouldStartLocationPermissionFlowSelector} from '@selectors/LocationPermission';
 import {useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useOnyx from '@hooks/useOnyx';
+import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import HapticFeedback from '@libs/HapticFeedback';
-import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile, UseMobileReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type useReceiptScan from './useReceiptScan';
 
 /**
- * Extends useReceiptScan with mobile-only logic. multi-scan, haptic feedback, and blink animation.
+ * Extends useReceiptScan with mobile-only logic: multi-scan, haptic feedback, and blink animation.
  */
-function useMobileReceiptScan(params: UseReceiptScanParams, receiptScan: ReturnType<typeof useReceiptScan>) {
-    const {initialTransaction, iouType, isMultiScanEnabled = false, setIsMultiScanEnabled} = params;
-    const {receiptFiles, navigateToConfirmationStep, shouldSkipConfirmation, setStartLocationPermissionFlow, shouldStartLocationPermissionFlow, optimisticTransactions} = receiptScan;
+function useMobileReceiptScan({
+    initialTransaction,
+    iouType,
+    isMultiScanEnabled = false,
+    isStartingScan = false,
+    receiptFiles,
+    navigateToConfirmationStep,
+    shouldSkipConfirmation,
+    setStartLocationPermissionFlow,
+    setIsMultiScanEnabled,
+}: UseMobileReceiptScanParams) {
+    const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
+        selector: shouldStartLocationPermissionFlowSelector,
+    });
+    const optimisticTransactions = useTransactionDraftValues();
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
-    const canUseMultiScan = (params.isStartingScan ?? false) && iouType !== CONST.IOU.TYPE.SPLIT;
+    const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({

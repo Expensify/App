@@ -1,3 +1,4 @@
+import {shouldStartLocationPermissionFlowSelector} from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -14,7 +15,6 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
 import setTestReceipt from '@libs/actions/setTestReceipt';
-import DateUtils from '@libs/DateUtils';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
@@ -26,18 +26,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
-
-/**
- * Selector to derive whether we should start the location permission flow from the last prompt timestamp.
- * Returns true when the user has never been prompted, or when the last prompt was more than LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS ago.
- */
-function shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt: OnyxEntry<string>): boolean {
-    return (
-        !lastLocationPermissionPrompt ||
-        (DateUtils.isValidDateString(lastLocationPermissionPrompt ?? '') &&
-            DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt ?? '')) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS)
-    );
-}
 
 function useReceiptScan({
     report,

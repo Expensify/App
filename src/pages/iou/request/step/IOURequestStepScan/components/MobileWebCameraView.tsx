@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import type Webcam from 'react-webcam';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -22,63 +23,80 @@ import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpa
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import useMobileReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useMobileReceiptScan';
-import type useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
-import type {UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
 
-type MobileWebCameraViewProps = UseReceiptScanParams & {
-    receiptScan: ReturnType<typeof useReceiptScan>;
+type MobileWebCameraViewProps = {
+    initialTransaction: OnyxEntry<Transaction>;
+    initialTransactionID: string;
+    iouType: IOUType;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    reportID: string;
+    isMultiScanEnabled?: boolean;
+    isStartingScan?: boolean;
+    updateScanAndNavigate: (file: FileObject, source: string) => void;
+    setIsMultiScanEnabled?: (value: boolean) => void;
+    PDFValidationComponent: React.ReactNode;
+    shouldAcceptMultipleFiles: boolean;
+    receiptFiles: ReceiptFile[];
+    isEditing: boolean;
+    validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
+    setReceiptFiles: React.Dispatch<React.SetStateAction<ReceiptFile[]>>;
+    setTestReceiptAndNavigate: () => void;
+    navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
+    shouldSkipConfirmation: boolean;
+    setStartLocationPermissionFlow: (value: boolean) => void;
     onLayout?: (setTestReceiptAndNavigate: () => void) => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
 };
 
 function MobileWebCameraView({
-    receiptScan,
-    report,
-    reportID,
-    initialTransactionID,
     initialTransaction,
+    initialTransactionID,
     iouType,
-    action,
     currentUserPersonalDetails,
-    backTo,
-    backToReport,
+    reportID,
     isMultiScanEnabled = false,
     isStartingScan,
     updateScanAndNavigate,
-    getSource,
     setIsMultiScanEnabled,
+    PDFValidationComponent,
+    shouldAcceptMultipleFiles,
+    receiptFiles,
+    isEditing,
+    validateFiles,
+    setReceiptFiles,
+    setTestReceiptAndNavigate,
+    navigateToConfirmationStep,
+    shouldSkipConfirmation,
+    setStartLocationPermissionFlow,
     onLayout,
     onBackButtonPress,
     shouldShowWrapper,
 }: MobileWebCameraViewProps) {
-    const receiptScanParams = {
-        report,
-        reportID,
-        initialTransactionID,
+    const mobileReceiptScan = useMobileReceiptScan({
         initialTransaction,
         iouType,
-        action,
-        currentUserPersonalDetails,
-        backTo,
-        backToReport,
         isMultiScanEnabled,
         isStartingScan,
-        updateScanAndNavigate,
-        getSource,
+        receiptFiles,
+        navigateToConfirmationStep,
+        shouldSkipConfirmation,
+        setStartLocationPermissionFlow,
         setIsMultiScanEnabled,
-    };
-    const mobileReceiptScan = useMobileReceiptScan(receiptScanParams, receiptScan);
+    });
 
-    const {PDFValidationComponent, shouldAcceptMultipleFiles, receiptFiles, isEditing, validateFiles, setReceiptFiles, setTestReceiptAndNavigate} = receiptScan;
     const {canUseMultiScan, blinkStyle, showBlink, shouldShowMultiScanEducationalPopup, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
         mobileReceiptScan;
     const theme = useTheme();

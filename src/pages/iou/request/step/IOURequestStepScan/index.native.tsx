@@ -288,14 +288,13 @@ function IOURequestStepScan({
         isStartingScan,
         updateScanAndNavigate,
         getSource,
-        setIsMultiScanEnabled,
     };
     const receiptScan = useReceiptScan(receiptScanParams);
-    const mobileReceiptScan = useMobileReceiptScan(receiptScanParams, receiptScan);
 
     const {
         isEditing,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         receiptFiles,
@@ -306,6 +305,18 @@ function IOURequestStepScan({
         ErrorModal,
         setTestReceiptAndNavigate,
     } = receiptScan;
+
+    const mobileReceiptScan = useMobileReceiptScan({
+        initialTransaction,
+        iouType,
+        isMultiScanEnabled,
+        isStartingScan,
+        receiptFiles,
+        navigateToConfirmationStep,
+        shouldSkipConfirmation,
+        setStartLocationPermissionFlow,
+        setIsMultiScanEnabled,
+    });
     const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
         mobileReceiptScan;
 
