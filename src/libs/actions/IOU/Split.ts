@@ -42,6 +42,8 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {getSpan} from '@libs/telemetry/activeSpans';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getAmount,
@@ -146,6 +148,7 @@ type SplitBillActionsParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 /**
@@ -177,6 +180,7 @@ function splitBill({
     policyRecentlyUsedCurrencies,
     policyRecentlyUsedTags,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -206,6 +210,7 @@ function splitBill({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -268,6 +273,7 @@ function splitBillAndOpenReport({
     quickAction,
     policyRecentlyUsedCurrencies,
     betas,
+    personalDetails,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -297,6 +303,7 @@ function splitBillAndOpenReport({
         quickAction,
         policyRecentlyUsedCurrencies,
         betas,
+        personalDetails,
     });
 
     const parameters: SplitBillParams = {
@@ -699,6 +706,7 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
+    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, splitChatReport.reportID);
     Navigation.dismissModalWithReport({reportID: splitChatReport.reportID});
     notifyNewAction(splitChatReport.reportID, undefined, true);
 
@@ -723,6 +731,7 @@ function completeSplitBill(
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     sessionEmail?: string,
 ) {
     if (!reportAction) {
@@ -954,6 +963,7 @@ function completeSplitBill(
                 policyRecentlyUsed: {},
             },
             quickAction,
+            personalDetails,
         });
 
         splits.push({
@@ -1715,6 +1725,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         });
 
         return;
+    }
+    if (getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE)) {
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
     }
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 

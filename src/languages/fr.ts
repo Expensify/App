@@ -5302,6 +5302,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         learnHow: 'Découvrez comment.',
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
                             currentTravelSpendCta: 'Payer le solde',
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
@@ -5319,6 +5320,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         title: 'Impossible de désactiver la facturation Voyage',
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Régler le solde de ${amount} ?`,
+                        body: 'Le paiement sera mis en file d’attente et traité peu après. Cette action ne peut plus être annulée une fois lancée.',
                     },
                     exportToPDF: 'Exporter en PDF',
                     exportToCSV: 'Exporter en CSV',
@@ -7292,6 +7297,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',
@@ -7708,6 +7716,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         notActivated: 'Non activé',
         outOfPocket: 'Remboursable',
         companySpend: 'Non remboursable',
+        personalCard: 'Carte personnelle',
+        companyCard: 'Carte d’entreprise',
+        expensifyCard: 'Carte Expensify',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -8560,7 +8571,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         goToDomain: 'Aller au domaine',
         samlLogin: {
             title: 'Connexion SAML',
-            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Activer la connexion SAML',
             allowMembers: 'Autoriser les membres à se connecter avec SAML.',
             requireSamlLogin: 'Exiger la connexion SAML',
