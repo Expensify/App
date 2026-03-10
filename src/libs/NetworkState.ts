@@ -46,13 +46,11 @@ function setNoRadio(hasRadio: boolean) {
         Log.info('[NetworkState] Hard stop: NO_RADIO — OS reports no network interface');
         updateState();
     } else if (wasActive && !noRadioActive) {
-        Log.info('[NetworkState] NO_RADIO cleared — OS reports radio is back, will probe for connectivity');
-        // Don't clear hard stop yet — the recovery probe will verify actual connectivity
-        // But if sustained failures isn't active and forceOffline isn't on, we can try
-        if (!sustainedFailuresActive && !shouldForceOffline) {
-            // Fire immediate probe to check connectivity
+        Log.info('[NetworkState] NO_RADIO cleared — OS reports radio is back');
+        if (sustainedFailuresActive && !shouldForceOffline) {
             probeNow();
         }
+        updateState();
     }
 }
 

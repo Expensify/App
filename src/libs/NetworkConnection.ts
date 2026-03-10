@@ -83,7 +83,7 @@ function simulatePoorConnection(network: Network) {
     if (isPoorConnectionSimulated && !network.shouldSimulatePoorConnection) {
         NetInfo.fetch().then((state) => {
             const hasRadio = state.isConnected !== false;
-            NetworkState.setNoRadio(!hasRadio);
+            NetworkState.setNoRadio(hasRadio);
             Log.info(`[NetworkConnection] Poor connection simulation turned off. Radio: ${hasRadio}`);
         });
     }
@@ -138,7 +138,7 @@ function configureAndSubscribe() {
 
         const hasRadio = state.isConnected !== false;
         Log.info(`[NetworkConnection] NetInfo state change: isConnected=${state.isConnected}, type=${state.type}`);
-        NetworkState.setNoRadio(!hasRadio);
+        NetworkState.setNoRadio(hasRadio);
     });
 }
 
