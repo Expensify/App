@@ -1640,39 +1640,33 @@ function shouldHighlight(referenceText: string, searchText: string) {
 }
 
 /**
- * Determines whether sortBy and sortOrder should be reset when filters change.
- * Resets when groupBy changes (each groupBy has its own default sort column) or
- * when the view switches away from table to a chart view (e.g. table → bar) so
- * the parser can derive the correct default sort order for the new view mode.
- * Switching TO table preserves the current sort so that insights like
- * "Top Categories" retain their groupTotal desc ordering.
+ * Determines whether sortBy and sortOrder should be fully reset (re-derived by
+ * the parser) when filters change.  Returns true only when the groupBy value
+ * changes, because each groupBy has its own default sort column and order.
+ *
+ * View changes are handled separately in {@link buildFilterQueryWithSortDefaults}
+ * so that custom sortBy values (e.g. groupTotal from "Top X" insights) survive
+ * view switches.
  */
 function shouldResetSort({
     newGroupBy,
     oldGroupBy,
-    newView,
-    oldView,
 }: {
     newGroupBy: string | undefined;
     oldGroupBy: string | undefined;
-    newView: string | undefined;
-    oldView: string | undefined;
 }): boolean {
-    if (newGroupBy !== oldGroupBy) {
-        return true;
-    }
-    // Only reset sort when switching away from table view to a chart view.
-    if (newView !== oldView && newView !== CONST.SEARCH.VIEW.TABLE) {
-        return true;
-    }
-    return false;
+    return newGroupBy !== oldGroupBy;
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder when the
- * groupBy or view has changed so the parser can re-derive the correct defaults. When a reset
- * is needed, the query is round-tripped through the parser so that parser-derived defaults
- * appear in the final query string.
+ * Builds a query string from filter form values with sort handling:
+ * - groupBy change → full parser reset (re-derives both sortBy and sortOrder)
+ * - view change (same groupBy) → preserves sortBy, adjusts sortOrder for the
+ *   target view (charts use ascending, tables use descending)
+ * - no change → preserves current sort entirely
+ *
+ * This ensures that custom sortBy values like groupTotal (from "Top X" insights)
+ * survive round-trips between table and chart views.
  *
  * Returns undefined if the parser round-trip fails.
  */
@@ -1681,24 +1675,41 @@ function buildFilterQueryWithSortDefaults(
     previousState: {groupBy?: string; view?: string},
     currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
 ): string | undefined {
-    const resetSort = shouldResetSort({
+    const groupByChanged = shouldResetSort({
         newGroupBy: filterValues.groupBy,
         oldGroupBy: previousState.groupBy,
-        newView: filterValues.view ?? previousState.view,
-        oldView: previousState.view,
     });
 
-    const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
-        limit: currentQueryOptions.limit,
-    });
-
-    if (!resetSort) {
-        return queryString;
+    // When groupBy changes, do a full parser reset so both sortBy and sortOrder
+    // are re-derived for the new groupBy value.
+    if (groupByChanged) {
+        const queryString = buildQueryStringFromFilterFormValues(filterValues, {
+            limit: currentQueryOptions.limit,
+        });
+        return getQueryWithUpdatedValues(queryString, true);
     }
 
-    return getQueryWithUpdatedValues(queryString, true);
+    const effectiveNewView = filterValues.view ?? previousState.view;
+    const viewChanged = effectiveNewView !== previousState.view;
+
+    // When only the view changes, preserve sortBy but adjust sortOrder for the
+    // target view.  Charts display ascending (e.g. chronological / smallest
+    // first), tables display descending (e.g. most recent / largest first).
+    if (viewChanged) {
+        const sortOrder = effectiveNewView === CONST.SEARCH.VIEW.TABLE ? CONST.SEARCH.SORT_ORDER.DESC : CONST.SEARCH.SORT_ORDER.ASC;
+        return buildQueryStringFromFilterFormValues(filterValues, {
+            sortBy: currentQueryOptions.sortBy,
+            sortOrder,
+            limit: currentQueryOptions.limit,
+        });
+    }
+
+    // No groupBy or view change — preserve current sort.
+    return buildQueryStringFromFilterFormValues(filterValues, {
+        sortBy: currentQueryOptions.sortBy,
+        sortOrder: currentQueryOptions.sortOrder,
+        limit: currentQueryOptions.limit,
+    });
 }
 
 /**
