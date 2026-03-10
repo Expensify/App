@@ -72,7 +72,6 @@ import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
-    getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
@@ -94,6 +93,7 @@ import {
     navigateOnDeleteExpense,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
+    shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -320,13 +320,7 @@ function MoneyReportHeader({
         return {transactions: all, nonPendingDeleteTransactions: filtered};
     }, [reportTransactions]);
 
-    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
-    // We should always show this optimistic message for policies with preventSelfApproval
-    // to avoid any flicker during transitions between online/offline states
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy);
     const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
     }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email, transactions]);

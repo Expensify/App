@@ -21,7 +21,7 @@ import {
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
-    isReportOwner,
+    shouldBlockSubmitDueToPreventSelfApproval,
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
@@ -369,8 +369,6 @@ function getReportNextStep(
     currentUserEmail: string,
     currentUserAccountID: number,
 ) {
-    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
-
     if (
         isOpenExpenseReport(moneyRequestReport) &&
         transactions.length > 0 &&
@@ -381,13 +379,10 @@ function getReportNextStep(
         return buildOptimisticFixIssueNextStep();
     }
 
-    const isSubmitterSameAsNextApprover =
-        isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
-
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (isSubmitterSameAsNextApprover && policy?.preventSelfApproval) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 

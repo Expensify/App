@@ -9274,6 +9274,13 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
 }
 
+function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    const nextApproverAccountID = getNextApproverAccountID(report);
+    const isSubmitterSameAsNextApprover = isReportOwner(report) && nextApproverAccountID === report?.ownerAccountID;
+    const isSubmitterSameAsApprover = isReportOwner(report) && (report?.managerID === report?.ownerAccountID || nextApproverAccountID === report?.ownerAccountID);
+    return ((isSubmitterSameAsNextApprover && isOpenExpenseReport(report)) || (isSubmitterSameAsApprover && isProcessingReport(report))) && !!policy?.preventSelfApproval;
+}
+
 type ReportErrorsAndReportActionThatRequiresAttention = {
     errors: ErrorFields;
     reportAction?: OnyxEntry<ReportAction>;
@@ -13498,6 +13505,7 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    shouldBlockSubmitDueToPreventSelfApproval,
 };
 
 export type {
