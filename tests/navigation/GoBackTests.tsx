@@ -43,7 +43,7 @@ describe('Go back on the narrow layout', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                     ],
                                 },
@@ -55,7 +55,7 @@ describe('Go back on the narrow layout', () => {
 
             const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
-            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
             // When go back without specifying fallbackRoute
             act(() => {
@@ -86,7 +86,7 @@ describe('Go back on the narrow layout', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                         {
                                             name: SCREENS.SETTINGS.PREFERENCES.ROOT,
@@ -130,7 +130,7 @@ describe('Go back on the narrow layout', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                     ],
                                 },
@@ -142,7 +142,7 @@ describe('Go back on the narrow layout', () => {
 
             const settingsSplitBeforeGoBack = navigationRef.current?.getRootState().routes.at(0);
             expect(settingsSplitBeforeGoBack?.state?.index).toBe(1);
-            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
+            expect(settingsSplitBeforeGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
             // When go back to the fallbackRoute that does not exist in the navigation state
             act(() => {
@@ -171,7 +171,7 @@ describe('Go back on the narrow layout', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                         {
                                             name: SCREENS.SETTINGS.PREFERENCES.ROOT,
@@ -234,7 +234,7 @@ describe('Go back on the narrow layout', () => {
                                             name: SCREENS.SETTINGS.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                         {
                                             name: SCREENS.SETTINGS.PREFERENCES.ROOT,

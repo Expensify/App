@@ -47,7 +47,7 @@ describe('Pop to sidebar after resize from wide to narrow layout', () => {
                                             name: SCREENS.SETTINGS.PREFERENCES.ROOT,
                                         },
                                         {
-                                            name: SCREENS.SETTINGS.PROFILE.ROOT,
+                                            name: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
                                         },
                                     ],
                                 },

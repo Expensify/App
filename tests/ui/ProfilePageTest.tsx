@@ -150,14 +150,14 @@ describe('ProfilePage contact method indicator', () => {
 
 const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
-const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT) => {
+const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.SETTINGS.PROFILE.ROOT}
+                            name={SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE}
                             component={ProfilePage}
                         />
                     </Stack.Navigator>
@@ -207,7 +207,7 @@ describe('ProfilePage - SMS domain handling', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -247,7 +247,7 @@ describe('ProfilePage - SMS domain handling', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE);
 
         await waitForBatchedUpdatesWithAct();
 
