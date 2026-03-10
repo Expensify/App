@@ -3022,7 +3022,7 @@ ${
                 descriptionTwo: 'Kategoryzuj i taguj wydatki',
                 descriptionThree: 'Twórz i udostępniaj raporty',
             },
-            price: 'Wypróbuj za darmo przez 30 dni, a potem przejdź na wyższy plan za jedyne <strong>5 USD/użytkownika/miesiąc</strong>.',
+            price: (price?: string) => `Wypróbuj za darmo przez 30 dni, a potem przejdź na wyższy plan za jedyne <strong>${price ?? '5 USD'}/użytkownika/miesiąc</strong>.`,
             createWorkspace: 'Utwórz przestrzeń roboczą',
         },
         confirmWorkspace: {

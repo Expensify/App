@@ -3043,7 +3043,7 @@ ${
                 descriptionTwo: 'Catégoriser et taguer les dépenses',
                 descriptionThree: 'Créer et partager des notes de frais',
             },
-            price: 'Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>5 $/utilisateur/mois</strong>.',
+            price: (price?: string) => `Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>${price ?? '5 $'}/utilisateur/mois</strong>.`,
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {

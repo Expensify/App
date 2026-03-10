@@ -2969,7 +2969,7 @@ ${
                 descriptionTwo: '分类并标记报销费用',
                 descriptionThree: '创建并分享报告',
             },
-            price: '免费试用 30 天，之后仅需 <strong>$5/用户/月</strong> 即可升级。',
+            price: (price?: string) => `免费试用 30 天，之后仅需 <strong>${price ?? '$5'}/用户/月</strong> 即可升级。`,
             createWorkspace: '创建工作区',
         },
         confirmWorkspace: {

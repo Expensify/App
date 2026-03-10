@@ -3022,7 +3022,7 @@ ${
                 descriptionTwo: 'Classifique e categorize despesas',
                 descriptionThree: 'Criar e compartilhar relatórios',
             },
-            price: 'Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>US$5/usuário/mês</strong>.',
+            price: (price?: string) => `Experimente grátis por 30 dias e depois faça upgrade por apenas <strong>${price ?? 'US$5'}/usuário/mês</strong>.`,
             createWorkspace: 'Criar espaço de trabalho',
         },
         confirmWorkspace: {
