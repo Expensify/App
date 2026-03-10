@@ -1,12 +1,31 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {shouldUpdateGpsNotificationUnit, updateGpsTripNotificationUnit} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import {shouldUpdateGpsNotificationUnit, updateGpsTripNotificationLanguage, updateGpsTripNotificationUnit} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+function useUpdateGpsNotification() {
+    useUpdateGpsNotificationOnLanguageChange();
+    useUpdateGpsNotificationOnUnitChange();
+}
+
+function useUpdateGpsNotificationOnLanguageChange() {
+    const {translate, preferredLocale} = useLocalize();
+    const currentPreferredLocale = useRef(preferredLocale);
+
+    useEffect(() => {
+        if (!shouldUpdateGpsNotificationUnit() || currentPreferredLocale.current === preferredLocale) {
+            return;
+        }
+
+        currentPreferredLocale.current = preferredLocale;
+        updateGpsTripNotificationLanguage(translate);
+    }, [preferredLocale, translate]);
+}
 
 function useUpdateGpsNotificationOnUnitChange() {
     const {translate} = useLocalize();
@@ -28,4 +47,4 @@ function useUpdateGpsNotificationOnUnitChange() {
     }, [unit, translate]);
 }
 
-export default useUpdateGpsNotificationOnUnitChange;
+export default useUpdateGpsNotification;
