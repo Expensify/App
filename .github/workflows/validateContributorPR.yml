@@ -23,7 +23,7 @@ jobs:
             const authorAssociation = context.payload.pull_request.author_association;
 
             // Step 1: Allow org members and repo owners
-            if (['MEMBER', 'OWNER'].includes(authorAssociation)) {
+            if (['MEMBER', 'OWNER', 'CONTRIBUTOR'].includes(authorAssociation)) {
               console.log(`${prAuthor} is an org ${authorAssociation}. No validation needed.`);
               return;
             }
