@@ -277,6 +277,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         personalDetails,
         privateIsArchivedMap,
         currentUserAccountID,
+        undefined,
         allPersonalDetails,
         undefined,
         undefined,

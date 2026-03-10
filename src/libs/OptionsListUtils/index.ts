@@ -948,12 +948,14 @@ function getLastMessageTextForReport({
 /**
  * Creates a report list option - optimized for SearchOption context
  */
+// eslint-disable-next-line max-params
 function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     report: OnyxInputOrEntry<Report>,
     currentUserAccountID: number,
     chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     privateIsArchived?: string,
@@ -1055,8 +1057,7 @@ function createOption(
                       {showChatPreviewLine, forcePolicyNamePreview},
                       !!result.private_isArchived,
                       currentUserLogin,
-                      // TODO: Remove this in the next PR that will refactor prepareReportOptionsForDisplay. Ref: https://github.com/Expensify/App/issues/66415
-                      undefined,
+                      policy,
                       lastActorDetails,
                       visibleReportActionsData,
                       translateFn,
@@ -1127,6 +1128,7 @@ function getReportOption(
         !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         chatReport,
+        policy,
         {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1177,6 +1179,7 @@ function getReportDisplayOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: string | undefined,
     chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
@@ -1188,6 +1191,7 @@ function getReportDisplayOption(
         !isEmptyObject(report) ? report : undefined,
         currentUserAccountID,
         chatReport,
+        policy,
         {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1230,6 +1234,7 @@ function getPolicyExpenseReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): SearchOptionData {
@@ -1243,6 +1248,7 @@ function getPolicyExpenseReportOption(
         !isEmptyObject(expenseReport) ? expenseReport : null,
         currentUserAccountID,
         chatReport,
+        policy,
         {
             showChatPreviewLine: false,
             forcePolicyNamePreview: false,
@@ -1361,6 +1367,7 @@ function processReport(
     privateIsArchived: string | undefined,
     currentUserAccountID: number,
     chatReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): {
@@ -1386,7 +1393,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, currentUserAccountID, chatReport, undefined, reportAttributesDerived, privateIsArchived, visibleReportActionsData),
+            ...createOption(accountIDs, personalDetails, report, currentUserAccountID, chatReport, policy, undefined, reportAttributesDerived, privateIsArchived, visibleReportActionsData),
         },
     };
 }
@@ -1396,6 +1403,7 @@ function createOptionList(
     currentUserAccountID: number,
     privateIsArchivedMap: PrivateIsArchivedMap,
     reports: OnyxCollection<Report>,
+    policiesCollection: OnyxCollection<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ) {
@@ -1408,12 +1416,14 @@ function createOptionList(
         for (const report of Object.values(reports)) {
             const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
             const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const {reportMapEntry, reportOption} = processReport(
                 report,
                 personalDetails,
                 privateIsArchived,
                 currentUserAccountID,
                 chatReport,
+                policy,
                 reportAttributesDerived,
                 visibleReportActionsData,
             );
@@ -1433,7 +1443,7 @@ function createOptionList(
         const report = reportMapForAccountIDs[personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-
+        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         return {
             item: personalDetail,
             ...createOption(
@@ -1442,6 +1452,7 @@ function createOptionList(
                 report,
                 currentUserAccountID,
                 chatReport,
+                policy,
                 {
                     showPersonalDetails: true,
                 },
@@ -1483,6 +1494,7 @@ function createFilteredOptionList(
     currentUserAccountID: number,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
+    policiesCollection: OnyxCollection<Policy>,
     options: {
         maxRecentReports?: number;
         includeP2P?: boolean;
@@ -1541,7 +1553,17 @@ function createFilteredOptionList(
     for (const report of limitedReports) {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        const {reportMapEntry, reportOption} = processReport(report, personalDetails, privateIsArchived, currentUserAccountID, chatReport, reportAttributesDerived, visibleReportActionsData);
+        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const {reportMapEntry, reportOption} = processReport(
+            report,
+            personalDetails,
+            privateIsArchived,
+            currentUserAccountID,
+            chatReport,
+            policy,
+            reportAttributesDerived,
+            visibleReportActionsData,
+        );
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1572,6 +1594,7 @@ function createFilteredOptionList(
               const report = reportMapForAccountIDs[accountID];
               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
               const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+              const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
               return {
                   item: personalDetail,
                   ...createOption(
@@ -1580,6 +1603,7 @@ function createFilteredOptionList(
                       reportMapForAccountIDs[accountID],
                       currentUserAccountID,
                       chatReport,
+                      policy,
                       {showPersonalDetails: true},
                       reportAttributesDerived,
                       privateIsArchived,
@@ -1601,6 +1625,7 @@ function createOptionFromReport(
     currentUserAccountID: number,
     chatReport: OnyxEntry<Report>,
     privateIsArchived: string | undefined,
+    policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -1609,7 +1634,7 @@ function createOptionFromReport(
 
     return {
         item: report,
-        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, chatReport, config, reportAttributesDerived, privateIsArchived, visibleReportActionsData),
+        ...createOption(accountIDs, personalDetails, report, currentUserAccountID, chatReport, policy, config, reportAttributesDerived, privateIsArchived, visibleReportActionsData),
     };
 }
 
@@ -1939,6 +1964,7 @@ function getUserToInviteOption({
         null,
         currentUserAccountID,
         undefined,
+        undefined,
         {showChatPreviewLine},
         undefined,
         undefined,
@@ -2247,6 +2273,7 @@ function prepareReportOptionsForDisplay(
             continue;
         }
         const report = option.item;
+        const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
@@ -2256,8 +2283,7 @@ function prepareReportOptionsForDisplay(
             {showChatPreviewLine, forcePolicyNamePreview},
             !!option.private_isArchived,
             currentUserLogin,
-            // TODO: Remove this in the next PR that will refactor prepareReportOptionsForDisplay. Ref: https://github.com/Expensify/App/issues/66415
-            undefined,
+            policy,
             null,
             visibleReportActionsData,
             undefined,
@@ -2313,7 +2339,6 @@ function prepareReportOptionsForDisplay(
             newReportOption.alternateText = translateLocal('workspace.common.workspace');
 
             if (report?.policyID) {
-                const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const submitToAccountID = getSubmitToAccountID(policy, report);
                 const submitsToAccountDetails = personalDetails?.[submitToAccountID];
                 const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
@@ -2915,6 +2940,7 @@ function formatSectionsFromSearchTerm(
     filteredPersonalDetails: SearchOptionData[],
     privateIsArchivedMap: Record<string, string | undefined>,
     currentUserAccountID: number,
+    policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: SearchOptionData[] = [],
@@ -2936,7 +2962,16 @@ function formatSectionsFromSearchTerm(
                               const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                               const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
                               const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                              return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, chatReport, reportAttributesDerived);
+                              return getPolicyExpenseReportOption(
+                                  participant,
+                                  privateIsArchived,
+                                  currentUserAccountID,
+                                  personalDetails,
+                                  expenseReport,
+                                  chatReport,
+                                  policy,
+                                  reportAttributesDerived,
+                              );
                           }
                           return getParticipantsOption(participant, personalDetails);
                       })
@@ -2969,7 +3004,16 @@ function formatSectionsFromSearchTerm(
                           const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
                           const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
                           const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
-                          return getPolicyExpenseReportOption(participant, privateIsArchived, currentUserAccountID, personalDetails, expenseReport, chatReport, reportAttributesDerived);
+                          return getPolicyExpenseReportOption(
+                              participant,
+                              privateIsArchived,
+                              currentUserAccountID,
+                              personalDetails,
+                              expenseReport,
+                              chatReport,
+                              policy,
+                              reportAttributesDerived,
+                          );
                       }
                       return getParticipantsOption(participant, personalDetails);
                   })

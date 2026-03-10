@@ -73,6 +73,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportAttributesDerived = useReportAttributes();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -82,7 +83,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const options: OptionList | null =
         enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, {
+            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
                   maxRecentReports: reportsLimit,
                   includeP2P,
                   searchTerm,

@@ -223,7 +223,7 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), undefined, 'true', undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), undefined, 'true', undefined, undefined, {showPersonalDetails: true});
     });
 
     it('passes resolved chatReport to processReport when changed reports have chatReportID', () => {
@@ -262,7 +262,7 @@ describe('OptionListContextProvider', () => {
 
         rerender({shouldInitialize: false});
 
-        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined);
+        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined, undefined);
     });
 
     it('passes resolved chatReport to processReport when report actions change', () => {
@@ -315,7 +315,7 @@ describe('OptionListContextProvider', () => {
 
         rerender({shouldInitialize: false});
 
-        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined);
+        expect(mockProcessReport).toHaveBeenCalledWith(report, {}, undefined, expect.any(Number), chatReport, undefined, undefined);
     });
 
     it('passes resolved chatReport to createOptionFromReport when personal details change and report has chatReportID', () => {
@@ -371,6 +371,6 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), chatReport, undefined, undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), chatReport, undefined, undefined, undefined, {showPersonalDetails: true});
     });
 });

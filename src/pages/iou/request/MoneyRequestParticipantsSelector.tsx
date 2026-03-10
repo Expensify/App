@@ -297,6 +297,7 @@ function MoneyRequestParticipantsSelector({
             [],
             privateIsArchivedMap,
             currentUserAccountID,
+            policy,
             personalDetails,
             true,
             undefined,
@@ -367,6 +368,7 @@ function MoneyRequestParticipantsSelector({
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteChatReport,
+                              policy,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails);

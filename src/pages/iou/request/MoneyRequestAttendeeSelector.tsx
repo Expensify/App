@@ -211,6 +211,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             orderedAvailableOptions.personalDetails,
             privateIsArchivedMap,
             currentUserAccountID,
+            policy,
             personalDetails,
             true,
             undefined,
@@ -264,6 +265,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteChatReport,
+                              policy,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails);

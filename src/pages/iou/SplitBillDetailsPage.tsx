@@ -68,6 +68,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const reportAttributesDerived = useReportAttributes();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [privateIsArchived] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: privateIsArchivedSelector});
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
@@ -83,6 +84,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 chatReport,
+                policy,
                 reportAttributesDerived,
             ),
         ];

@@ -72,6 +72,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
@@ -164,6 +166,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             chatOptions.personalDetails,
             privateIsArchivedMap,
             currentUserAccountID,
+            policy,
             personalDetails,
             true,
             undefined,
@@ -203,6 +206,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                               personalDetails,
                               userToInviteExpenseReport,
                               userToInviteChatReport,
+                              policy,
                               reportAttributesDerived,
                           )
                         : getParticipantsOption(participant, personalDetails);
