@@ -14,11 +14,9 @@ import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicE
 import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
-    hasReportViolations,
     isPaidGroupPolicyExpenseReport,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isReportApproved,
-    isReportOwner,
     isSettled,
 } from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
