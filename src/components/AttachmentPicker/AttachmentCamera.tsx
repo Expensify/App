@@ -200,6 +200,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         accessibilityLabel={translate('common.close')}
                         onPress={onClose}
                         style={styles.p2}
+                        sentryLabel="AttachmentCamera-Close"
                     >
                         <Icon
                             height={24}
@@ -219,6 +220,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                         disabled={!hasFlash}
                         onPress={() => setFlash((prev) => !prev)}
+                        sentryLabel="AttachmentCamera-FlashToggle"
                     >
                         <Icon
                             height={32}
@@ -234,6 +236,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                         accessibilityLabel={translate('receipt.shutter')}
                         style={styles.alignItemsCenter}
                         onPress={capturePhoto}
+                        sentryLabel="AttachmentCamera-Shutter"
                     >
                         <ImageSVG
                             contentFit="contain"
