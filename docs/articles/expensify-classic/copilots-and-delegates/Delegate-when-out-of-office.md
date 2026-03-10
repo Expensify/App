@@ -1,7 +1,7 @@
 ---
 title: Delegate When Out of Office
 description: Assign a vacation delegate to act on your behalf or on behalf of another employee
-keywords: [Expensify Classic, delegate approvals, out-of-office approver]
+keywords: [Expensify Classic, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate]
 ---
 
 When you're out of the office or on vacation, you can assign a **Vacation Delegate** to manage your reports while you're away. Domain Admins can also assign delegates for other members of their domain. 
