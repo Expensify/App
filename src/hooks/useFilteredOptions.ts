@@ -80,6 +80,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
+    // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
