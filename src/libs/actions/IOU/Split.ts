@@ -33,6 +33,7 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getPolicyExpenseChat,
     getReportOrDraftReport,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
@@ -1050,11 +1051,41 @@ function updateSplitTransactions({
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const ownerPolicyExpenseChat = getPolicyExpenseChat(expenseReport?.ownerAccountID, expenseReport?.policyID);
+    const expenseReportChat = getReportOrDraftReport(expenseReport?.chatReportID);
+    const policyExpenseChatReport = ownerPolicyExpenseChat ?? (expenseReportChat && isPolicyExpenseChatReportUtil(expenseReportChat) ? expenseReportChat : undefined);
+    const fallbackPolicyParticipant =
+        expenseReport?.chatReportID && expenseReport?.policyID
+            ? {
+                  accountID: 0,
+                  reportID: expenseReport.chatReportID,
+                  isPolicyExpenseChat: true,
+                  selected: true,
+                  policyID: expenseReport.policyID,
+              }
+            : undefined;
+    const fallbackPolicyParentChatReport =
+        policyExpenseChatReport ??
+        (fallbackPolicyParticipant
+            ? ({
+                  reportID: fallbackPolicyParticipant.reportID,
+                  type: CONST.REPORT.TYPE.CHAT,
+                  chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                  policyID: fallbackPolicyParticipant.policyID,
+                  ownerAccountID: expenseReport?.ownerAccountID,
+              } as OnyxTypes.Report)
+            : undefined);
 
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    let participants = autoParticipants;
+    if (policyExpenseChatReport) {
+        participants = [{accountID: 0, reportID: policyExpenseChatReport.reportID, isPolicyExpenseChat: true, selected: true, policyID: policyExpenseChatReport.policyID}];
+    } else if (participants.length === 0 && fallbackPolicyParticipant) {
+        participants = [fallbackPolicyParticipant];
+    }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
@@ -1190,7 +1221,7 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             },
-            parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            parentChatReport: fallbackPolicyParentChatReport ?? getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
