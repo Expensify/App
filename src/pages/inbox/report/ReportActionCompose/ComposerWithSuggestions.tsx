@@ -295,6 +295,20 @@ function ComposerWithSuggestions({
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
 
+    const updateSelectionImperatively = useCallback((start: number, end: number) => {
+        if (!isIOSNative) {
+            return;
+        }
+
+        // ensure that selection is set imperatively after all state changes are effective
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            // note: this implementation is only available on non-web RN, thus the wrapping
+            // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+            composerRef.current?.setSelection(start, end);
+        });
+    }, []);
+
     const applyComposerValue = useCallback(
         (nextValue: string, isEditingInComposer?: boolean) => {
             const defaultSelection = {start: nextValue.length, end: nextValue.length, positionX: 0, positionY: 0} satisfies TextSelection;
@@ -753,21 +767,15 @@ function ComposerWithSuggestions({
 
             updateComment(commentValue, true);
 
-            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                syncSelectionWithOnChangeTextRef.current = null;
-
-                // ensure that selection is set imperatively after all state changes are effective
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    // note: this implementation is only available on non-web RN, thus the wrapping
-                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    composerRef.current?.setSelection(positionSnapshot, positionSnapshot);
-                    setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: positionSnapshot, end: positionSnapshot}));
-                });
+            if (!syncSelectionWithOnChangeTextRef.current) {
+                return;
             }
+
+            const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+            syncSelectionWithOnChangeTextRef.current = null;
+            updateSelectionImperatively(positionSnapshot, positionSnapshot);
         },
-        [clearComposerHeight, setCurrentEditMessageSelection, updateComment],
+        [clearComposerHeight, updateComment, updateSelectionImperatively],
     );
 
     const onSelectionChange = useCallback(
