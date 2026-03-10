@@ -5,7 +5,7 @@ import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -109,6 +109,8 @@ import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBac
 import HeaderView from './HeaderView';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
+import {MiniContextMenuProvider} from './report/ContextMenu/MiniContextMenuProvider';
+import MiniReportActionContextMenu from './report/ContextMenu/MiniReportActionContextMenu';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext} from './ReportScreenContext';
@@ -1051,35 +1053,44 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                         testID="report-actions-view-wrapper"
                                     >
                                         {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                        {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                            <ReportActionsView
-                                                report={report}
-                                                reportActions={reportActions}
-                                                isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                                hasNewerActions={hasNewerActions}
-                                                hasOlderActions={hasOlderActions}
-                                                parentReportAction={parentReportAction}
-                                                transactionThreadReportID={transactionThreadReportID}
-                                                isReportTransactionThread={isTransactionThreadView}
-                                                isConciergeProcessing={isConciergeProcessing}
-                                                conciergeReasoningHistory={conciergeReasoningHistory}
-                                                conciergeStatusLabel={conciergeStatusLabel}
-                                            />
-                                        ) : null}
-                                        {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                            <MoneyRequestReportActionsList
-                                                report={report}
-                                                hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                                policy={policy}
-                                                reportActions={reportActions}
-                                                transactions={visibleTransactions}
-                                                newTransactions={newTransactions}
-                                                hasOlderActions={hasOlderActions}
-                                                hasNewerActions={hasNewerActions}
-                                                showReportActionsLoadingState={showReportActionsLoadingState}
-                                                reportPendingAction={reportPendingAction}
-                                            />
-                                        ) : null}
+                                        <MiniContextMenuProvider>
+                                            {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                                <ReportActionsView
+                                                    report={report}
+                                                    reportActions={reportActions}
+                                                    isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                                    hasNewerActions={hasNewerActions}
+                                                    hasOlderActions={hasOlderActions}
+                                                    parentReportAction={parentReportAction}
+                                                    transactionThreadReportID={transactionThreadReportID}
+                                                    isReportTransactionThread={isTransactionThreadView}
+                                                    isConciergeProcessing={isConciergeProcessing}
+                                                    conciergeReasoningHistory={conciergeReasoningHistory}
+                                                    conciergeStatusLabel={conciergeStatusLabel}
+                                                />
+                                            ) : null}
+                                            {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                                <MoneyRequestReportActionsList
+                                                    report={report}
+                                                    hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                                                    policy={policy}
+                                                    reportActions={reportActions}
+                                                    transactions={visibleTransactions}
+                                                    newTransactions={newTransactions}
+                                                    hasOlderActions={hasOlderActions}
+                                                    hasNewerActions={hasNewerActions}
+                                                    showReportActionsLoadingState={showReportActionsLoadingState}
+                                                    reportPendingAction={reportPendingAction}
+                                                />
+                                            ) : null}
+                                            <MiniReportActionContextMenu />
+                                            <View
+                                                style={StyleSheet.absoluteFill}
+                                                pointerEvents="box-none"
+                                            >
+                                                <PortalHost name={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU} />
+                                            </View>
+                                        </MiniContextMenuProvider>
                                         {isCurrentReportLoadedFromOnyx ? (
                                             <ReportFooter
                                                 report={report}

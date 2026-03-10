@@ -1,23 +1,23 @@
-import {Portal} from '@gorhom/portal';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React from 'react';
+import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent} from 'react-native';
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
-import MiniContextMenuItem from '@components/MiniContextMenuItem';
-import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
+import type {GestureResponderEvent, View as ViewType} from 'react-native';
+import FocusableMenuItem from '@components/FocusableMenuItem';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import getButtonState from '@libs/getButtonState';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {ACTION_IDS, CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
 import createCopyLinkAction, {shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
 import createCopyMessageAction, {shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
+import createDebugAction, {shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
 import createDeleteAction, {shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
 import createDownloadAction, {shouldShowDownloadAction} from '@pages/inbox/report/ContextMenu/actions/downloadAction';
 import createEditAction, {shouldShowEditAction} from '@pages/inbox/report/ContextMenu/actions/editAction';
@@ -30,78 +30,42 @@ import createLeaveThreadAction, {shouldShowLeaveThreadAction} from '@pages/inbox
 import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
 import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
 import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
-import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
 
-function MiniReportActionContextMenu() {
-    const {
-        isVisible = false,
-        rowMeasurements,
-        displayAsGroup = false,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage = '',
-        anchor,
-        checkIfContextMenuActive,
-        setIsEmojiPickerActive,
-    } = useMiniContextMenuState() ?? {};
-    const {hideMiniContextMenu, keepOpen, release} = useMiniContextMenuActions();
+type PopoverReportActionContentProps = {
+    reportID: string | undefined;
+    reportActionID: string | undefined;
+    originalReportID: string | undefined;
+    draftMessage: string | undefined;
+    selection: string;
+    contextMenuTargetNode: HTMLDivElement | null;
+    onEmojiPickerToggle: ((state: boolean) => void) | undefined;
+    hideAndRun: (callback?: () => void) => void;
+    setLocalShouldKeepOpen: (value: boolean) => void;
+    contentRef: RefObject<ViewType | null>;
+    shouldEnableArrowNavigation: boolean;
+};
+
+function PopoverReportActionContent({
+    reportID,
+    reportActionID,
+    originalReportID,
+    draftMessage,
+    selection,
+    contextMenuTargetNode,
+    onEmojiPickerToggle,
+    hideAndRun,
+    setLocalShouldKeepOpen,
+    contentRef,
+    shouldEnableArrowNavigation,
+}: PopoverReportActionContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-
+    const {windowWidth} = useWindowDimensions();
     const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
-    const threeDotRef = useRef<View>(null);
-    const overlayRef = useRef<View>(null);
-    const menuContainerRef = useRef<View>(null);
-    const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
-
-    useLayoutEffect(() => {
-        const el = overlayRef.current as unknown as HTMLElement | null;
-        if (!el) {
-            return;
-        }
-        setContainerRect(el.getBoundingClientRect());
-    }, [isVisible, rowMeasurements]);
-
-    const position =
-        isVisible && rowMeasurements && containerRect
-            ? {
-                  top: rowMeasurements.top - containerRect.top + (displayAsGroup ? -32 : -16),
-                  right: containerRect.right - rowMeasurements.right + 16,
-              }
-            : null;
-
-    useEffect(() => {
-        const el = menuContainerRef.current as unknown as HTMLElement | null;
-        if (!el) {
-            return;
-        }
-
-        const onBlurCapture = (e: FocusEvent) => {
-            if (e.relatedTarget && el.contains(e.relatedTarget as Node)) {
-                return;
-            }
-            hideMiniContextMenu();
-        };
-
-        el.addEventListener('blur', onBlurCapture, true);
-        return () => {
-            el.removeEventListener('blur', onBlurCapture, true);
-        };
-    }, [hideMiniContextMenu]);
-
-    useEffect(() => {
-        const el = menuContainerRef.current as unknown as HTMLElement | null;
-        if (!el) {
-            return;
-        }
-        el.dataset.selectionScraperHiddenElement = String(isVisible);
-    }, [isVisible]);
 
     const {
         report,
@@ -128,6 +92,7 @@ function MiniReportActionContextMenu() {
         isTryNewDotNVPDismissed,
         isDelegateAccessRestricted,
         areHoldRequirementsMet,
+        isDebugModeEnabled,
         transactions,
         introSelected,
         movedFromReport,
@@ -142,27 +107,22 @@ function MiniReportActionContextMenu() {
         originalReportID: resolvedOriginalReportID,
         draftMessage: resolvedDraftMessage,
         selection: resolvedSelection,
-        anchor: resolvedAnchor,
+        anchor,
     } = useReportActionContextMenuData({
         reportID,
         reportActionID,
         originalReportID,
-        draftMessage,
-        selection: '',
-        anchor,
+        draftMessage: draftMessage ?? '',
+        selection: selection ?? '',
+        anchor: {current: contextMenuTargetNode ?? null},
     });
 
-    const hideAndRun = (callback?: () => void) => {
-        release();
-        callback?.();
-    };
-
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ContextMenuAnchor | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
-            selection: '',
-            contextMenuAnchor: anchorRef?.current ?? null,
+            selection: selection ?? '',
+            contextMenuAnchor: null,
             report: {
                 reportID,
                 originalReportID,
@@ -172,10 +132,9 @@ function MiniReportActionContextMenu() {
                 draftMessage,
             },
             callbacks: {
-                onShow: checkIfContextMenuActive,
+                onShow: undefined,
                 onHide: () => {
-                    checkIfContextMenuActive?.();
-                    release();
+                    setLocalShouldKeepOpen(false);
                 },
             },
             shouldCloseOnTarget: true,
@@ -233,9 +192,10 @@ function MiniReportActionContextMenu() {
             isHarvestReport,
         });
     const showCopyMessage = !isDisabled(ACTION_IDS.COPY_MESSAGE) && shouldShowCopyMessageAction({reportAction});
-    const showCopyLink = !isDisabled(ACTION_IDS.COPY_LINK) && shouldShowCopyLinkAction({reportAction, menuTarget: resolvedAnchor});
+    const showCopyLink = !isDisabled(ACTION_IDS.COPY_LINK) && shouldShowCopyLinkAction({reportAction, menuTarget: anchor});
     const showFlagAsOffensive = !isDisabled(ACTION_IDS.FLAG_AS_OFFENSIVE) && shouldShowFlagAsOffensiveAction({reportAction, isArchivedRoom, isChronosReport, reportID: resolvedReportID});
     const showDownload = !isDisabled(ACTION_IDS.DOWNLOAD) && shouldShowDownloadAction({reportAction, isOffline});
+    const showDebug = !isDisabled(ACTION_IDS.DEBUG) && shouldShowDebugAction({isDebugModeEnabled});
     const showDelete =
         !isDisabled(ACTION_IDS.DELETE) &&
         shouldShowDeleteAction({
@@ -249,10 +209,26 @@ function MiniReportActionContextMenu() {
             childReportActions,
         });
 
-    const allVisibleActions: ContextMenuAction[] = [];
-    if (reportAction) {
+    const overflowAction: ContextMenuAction = {
+        id: 'overflowMenu',
+        icon: icons.ThreeDots,
+        text: translate('reportActionContextMenu.menu'),
+        isAnonymousAction: true,
+        shouldPreventDefaultFocusOnPress: false,
+        onPress: (event) =>
+            interceptAnonymousUser(() => {
+                openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+                setLocalShouldKeepOpen(true);
+            }, true),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
+    };
+
+    const visibleActions: ContextMenuAction[] = [];
+    if (!reportAction) {
+        visibleActions.push(overflowAction);
+    } else {
         if (showReplyInThread) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createReplyInThreadAction({
                     childReport,
                     reportAction,
@@ -265,7 +241,7 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showMarkAsUnread) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createMarkAsUnreadAction({
                     reportID: resolvedReportID,
                     reportActions: reportActionsMap,
@@ -279,7 +255,7 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showExplain) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createExplainAction({
                     childReport,
                     originalReport,
@@ -292,7 +268,7 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showEdit) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createEditAction({
                     reportID: resolvedReportID,
                     reportAction,
@@ -306,7 +282,7 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showUnhold) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createUnholdAction({
                     moneyRequestAction,
                     isDelegateAccessRestricted,
@@ -318,7 +294,7 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showHold) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createHoldAction({
                     moneyRequestAction,
                     isDelegateAccessRestricted,
@@ -330,13 +306,13 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showJoinThread) {
-            allVisibleActions.push(createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
+            visibleActions.push(createJoinThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, bellIcon: icons.Bell}));
         }
         if (showLeaveThread) {
-            allVisibleActions.push(createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
+            visibleActions.push(createLeaveThreadAction({reportAction, originalReport, currentUserAccountID, hideAndRun, translate, exitIcon: icons.Exit}));
         }
         if (showCopyMessage) {
-            allVisibleActions.push(
+            visibleActions.push(
                 createCopyMessageAction({
                     reportAction,
                     transaction,
@@ -361,118 +337,88 @@ function MiniReportActionContextMenu() {
             );
         }
         if (showCopyLink) {
-            allVisibleActions.push(createCopyLinkAction({reportAction, originalReportID: resolvedOriginalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
+            visibleActions.push(createCopyLinkAction({reportAction, originalReportID: resolvedOriginalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
         }
         if (showFlagAsOffensive) {
-            allVisibleActions.push(createFlagAsOffensiveAction({reportID: resolvedReportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
+            visibleActions.push(createFlagAsOffensiveAction({reportID: resolvedReportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
         }
         if (showDownload) {
-            allVisibleActions.push(createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon: icons.Download}));
+            visibleActions.push(createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon: icons.Download}));
+        }
+        if (showDebug) {
+            visibleActions.push(createDebugAction({reportID: resolvedReportID, reportAction, translate, bugIcon: icons.Bug}));
         }
         if (showDelete) {
-            allVisibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
+            visibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
         }
     }
-
-    const needsOverflow = allVisibleActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
-    const displayedActions = needsOverflow ? allVisibleActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : allVisibleActions;
 
     const emojiData = createEmojiReactionData({
         reportID: resolvedReportID,
         reportAction,
         currentUserAccountID,
-        openContextMenu: () => keepOpen(),
-        setIsEmojiPickerActive,
+        openContextMenu: () => setLocalShouldKeepOpen(true),
+        setIsEmojiPickerActive: onEmojiPickerToggle,
         hideAndRun,
     });
 
-    const hasEmoji = shouldShowEmojiReaction({reportAction}) && !!emojiData.reportAction && !!emojiData.reportActionID;
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        disabledIndexes: [],
+        maxIndex: visibleActions.length - 1,
+        isActive: shouldEnableArrowNavigation,
+    });
 
-    if (!rowMeasurements) {
-        return null;
-    }
-
-    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(true, shouldUseNarrowLayout);
+    const hasEmoji = shouldShowEmojiReaction({reportAction});
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(false, shouldUseNarrowLayout);
 
     return (
-        <Portal hostName={CONST.PORTAL_HOST_NAMES.CONTEXT_MENU}>
-            <View
-                ref={overlayRef}
-                style={StyleSheet.absoluteFill}
-                pointerEvents="box-none"
-            >
-                <Hoverable
-                    onHoverIn={() => keepOpen()}
-                    onHoverOut={() => {
-                        release();
-                        hideMiniContextMenu();
-                    }}
-                >
-                    <View
-                        style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(position, isVisible)}
-                        pointerEvents={isVisible ? 'auto' : 'none'}
-                    >
-                        <View
-                            ref={menuContainerRef}
-                            style={wrapperStyle}
-                        >
-                            {hasEmoji && !!emojiData.reportAction && !!emojiData.reportActionID && (
-                                <MiniQuickEmojiReactions
-                                    onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
-                                        interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
-                                    }
-                                    onPressOpenPicker={emojiData.onPressOpenPicker}
-                                    onEmojiPickerClosed={emojiData.onEmojiPickerClosed}
-                                    reportActionID={emojiData.reportActionID}
-                                    reportAction={emojiData.reportAction}
-                                />
-                            )}
-                            {displayedActions.map((action) => (
-                                <MiniContextMenuItem
-                                    key={action.id}
-                                    tooltipText={action.text}
-                                    onPress={action.onPress}
-                                    isDelayButtonStateComplete={false}
-                                    sentryLabel={action.sentryLabel}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            small
-                                            src={action.icon}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
-                                </MiniContextMenuItem>
-                            ))}
-                            {needsOverflow && (
-                                <MiniContextMenuItem
-                                    ref={threeDotRef}
-                                    tooltipText={translate('reportActionContextMenu.menu')}
-                                    onPress={() =>
-                                        interceptAnonymousUser(() => {
-                                            openOverflowMenu(new MouseEvent('click'), threeDotRef);
-                                            keepOpen();
-                                        }, true)
-                                    }
-                                    isDelayButtonStateComplete={false}
-                                    shouldPreventDefaultFocusOnPress={false}
-                                    sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            small
-                                            src={icons.ThreeDots}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
-                                </MiniContextMenuItem>
-                            )}
-                        </View>
-                    </View>
-                </Hoverable>
-            </View>
-        </Portal>
+        <View
+            ref={contentRef}
+            style={wrapperStyle}
+        >
+            <FocusTrapForModal active={!shouldUseNarrowLayout && shouldEnableArrowNavigation}>
+                <View>
+                    {hasEmoji && emojiData.reportActionID != null && emojiData.reportAction != null && (
+                        <QuickEmojiReactions
+                            closeContextMenu={emojiData.closeContextMenu}
+                            onEmojiSelected={(emoji, existingReactions, preferredSkinTone) =>
+                                interceptAnonymousUser(() => emojiData.toggleEmojiAndCloseMenu(emoji, existingReactions, preferredSkinTone))
+                            }
+                            reportActionID={emojiData.reportActionID}
+                            reportAction={emojiData.reportAction}
+                            setIsEmojiPickerActive={(active) => {
+                                if (!active) {
+                                    return;
+                                }
+                                setLocalShouldKeepOpen(true);
+                            }}
+                        />
+                    )}
+                    {visibleActions.map((action: ContextMenuAction, i: number) => (
+                        <FocusableMenuItem
+                            key={action.id}
+                            title={action.text}
+                            icon={action.icon}
+                            onPress={action.onPress}
+                            wrapperStyle={[styles.pr8]}
+                            description={action.description ?? ''}
+                            descriptionTextStyle={styles.breakWord}
+                            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+                            isAnonymousAction={action.isAnonymousAction}
+                            focused={focusedIndex === i}
+                            interactive
+                            onFocus={() => setFocusedIndex(i)}
+                            onBlur={() => (i === visibleActions.length - 1 || i === 1) && setFocusedIndex(-1)}
+                            disabled={action.disabled}
+                            shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
+                            sentryLabel={action.sentryLabel}
+                        />
+                    ))}
+                </View>
+            </FocusTrapForModal>
+        </View>
     );
 }
 
-export default MiniReportActionContextMenu;
+export default PopoverReportActionContent;

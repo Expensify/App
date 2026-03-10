@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
@@ -33,7 +32,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
 
@@ -63,7 +62,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                        return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive);
                     });
                 }}
                 shouldUseHapticsOnLongPress

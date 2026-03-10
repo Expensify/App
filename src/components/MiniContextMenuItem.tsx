@@ -13,7 +13,7 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = WithSentryLabel & {
+type MiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */
@@ -32,7 +32,7 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Whether the button should be in the active state
      */
-    isDelayButtonStateComplete: boolean;
+    isDelayButtonStateComplete?: boolean;
     /**
      * Can be used to control the click event, and for example whether or not to lose focus from the composer when pressing the item
      */
@@ -48,15 +48,7 @@ type BaseMiniContextMenuItemProps = WithSentryLabel & {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem({
-    tooltipText,
-    onPress,
-    children,
-    isDelayButtonStateComplete = true,
-    shouldPreventDefaultFocusOnPress = true,
-    ref,
-    sentryLabel,
-}: BaseMiniContextMenuItemProps) {
+function MiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref, sentryLabel}: MiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -105,4 +97,4 @@ function BaseMiniContextMenuItem({
     );
 }
 
-export default BaseMiniContextMenuItem;
+export default MiniContextMenuItem;

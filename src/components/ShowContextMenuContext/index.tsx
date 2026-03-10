@@ -1,5 +1,4 @@
 import {createContext, useContext} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -30,7 +29,6 @@ function useShowContextMenuActions(): ShowContextMenuActionsContextType {
  * @param reportID - Active Report ID
  * @param action - ReportAction for ContextMenu
  * @param checkIfContextMenuActive Callback to update context menu active state
- * @param isArchivedRoom - Is the report an archived room
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
@@ -38,7 +36,6 @@ function showContextMenuForReport(
     reportID: string | undefined,
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
-    isArchivedRoom = false,
 ) {
     if (!canUseTouchScreen()) {
         return;
@@ -52,7 +49,6 @@ function showContextMenuForReport(
         report: {
             reportID,
             originalReportID: reportID ? getOriginalReportID(reportID, action, undefined) : undefined,
-            isArchivedRoom,
         },
         reportAction: {
             reportActionID: action?.reportActionID,

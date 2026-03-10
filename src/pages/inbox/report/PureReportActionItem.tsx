@@ -202,7 +202,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
-    canWriteInReport,
     chatIncludesConcierge,
     getChatListItemReportName,
     getDeletedTransactionMessage,
@@ -245,8 +244,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
-import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
-import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
+import {useMiniContextMenuActions} from './ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
@@ -372,9 +370,6 @@ type PureReportActionItemProps = {
 
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
-
-    /** Whether the room is a chronos report */
-    isChronosReport?: boolean;
 
     /** All cards */
     cardList?: OnyxTypes.CardList;
@@ -517,7 +512,6 @@ function PureReportActionItem({
     originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
-    isChronosReport,
     toggleEmojiReaction = () => {},
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
     resolveActionableReportMentionWhisper = () => {},
@@ -546,6 +540,7 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const {showMiniContextMenu, hideMiniContextMenu} = useMiniContextMenuActions();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -758,8 +753,6 @@ function PureReportActionItem({
         [transitionActionSheetState],
     );
 
-    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
-
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -783,37 +776,20 @@ function PureReportActionItem({
                     report: {
                         reportID,
                         originalReportID,
-                        isArchivedRoom,
-                        isChronos: isChronosReport,
                     },
                     reportAction: {
                         reportActionID: action.reportActionID,
                         draftMessage,
-                        isThreadReportParentAction,
                     },
                     callbacks: {
                         onShow: toggleContextMenuFromActiveReportAction,
-                        onHide: toggleContextMenuFromActiveReportAction,
+                        onHide: () => setIsContextMenuActive(false),
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
-                    disabledOptions: disabledActions,
                 });
             });
         },
-        [
-            draftMessage,
-            action.errors,
-            action.reportActionID,
-            reportID,
-            toggleContextMenuFromActiveReportAction,
-            originalReportID,
-            shouldDisplayContextMenu,
-            disabledActions,
-            isArchivedRoom,
-            isChronosReport,
-            handleShowContextMenu,
-            isThreadReportParentAction,
-        ],
+        [draftMessage, action.errors, action.reportActionID, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu, handleShowContextMenu],
     );
 
     const toggleReaction = useCallback(
@@ -2066,31 +2042,40 @@ function PureReportActionItem({
                     shouldFreezeCapture={isPaymentMethodPopoverActive}
                     onHoverIn={() => {
                         setIsReportActionActive(false);
+                        if (!shouldDisplayContextMenu || draftMessage !== undefined || hasErrors) {
+                            return;
+                        }
+                        const node = popoverAnchorRef.current;
+                        if (!node || !('getBoundingClientRect' in node)) {
+                            return;
+                        }
+                        const rect = node.getBoundingClientRect();
+                        showMiniContextMenu({
+                            reportID,
+                            reportActionID: action.reportActionID,
+                            originalReportID,
+                            anchor: popoverAnchorRef,
+                            displayAsGroup: !!displayAsGroup,
+                            draftMessage,
+                            checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                            setIsEmojiPickerActive,
+                            rowMeasurements: {
+                                top: rect.top,
+                                height: rect.height,
+                                right: rect.right,
+                            },
+                            onMenuHide: () => setIsContextMenuActive(false),
+                        });
+                        setIsContextMenuActive(true);
                     }}
                     onHoverOut={() => {
                         setIsReportActionActive(!!isReportActionLinked);
+                        hideMiniContextMenu();
                     }}
                 >
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenu && (
-                                <MiniReportActionContextMenu
-                                    reportID={reportID}
-                                    reportActionID={action.reportActionID}
-                                    anchor={popoverAnchorRef}
-                                    originalReportID={originalReportID}
-                                    isArchivedRoom={isArchivedRoom}
-                                    displayAsGroup={displayAsGroup}
-                                    disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                    isThreadReportParentAction={isThreadReportParentAction}
-                                    draftMessage={draftMessage}
-                                    isChronosReport={isChronosReport}
-                                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                />
-                            )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
                                     hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
@@ -2197,7 +2182,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
-        prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
