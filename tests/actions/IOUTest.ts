@@ -14233,15 +14233,10 @@ describe('actions/IOU', () => {
             rejectMoneyRequest(transaction.transactionID, iouReport.reportID, comment, policy, TEST_USER_ACCOUNT_ID, [CONST.BETAS.ALL]);
             await waitForBatchedUpdates();
 
-            // Then: expenseMovedReportActionID should be undefined because we don't create
+            // Then: expenseMovedReportActionID should not be present because we don't create
             // movedTransactionAction when moving to a new draft report
-            expect(writeSpy).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({
-                    expenseMovedReportActionID: undefined,
-                }),
-                expect.anything(),
-            );
+            const params = writeSpy.mock.calls.at(0)?.[1] as Record<string, unknown>;
+            expect(params).not.toHaveProperty('expenseMovedReportActionID');
             writeSpy.mockRestore();
         });
     });
