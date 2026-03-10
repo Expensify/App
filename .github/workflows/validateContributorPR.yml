@@ -7,7 +7,7 @@ on:
 
 permissions:
   pull-requests: write
-  issues: read
+  issues: write
 
 jobs:
   validate:
