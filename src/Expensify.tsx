@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
-import React, {Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -43,10 +43,6 @@ import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
 import {accountIDSelector} from './selectors/Session';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
-
-// Lazy-load so that this module's static imports (heavy Onyx subscriptions) are
-// deferred until after the splash screen hides, avoiding startup I/O contention.
-const PostSplashScreenImporter = React.lazy(() => import('./PostSplashScreenImporter'));
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -147,7 +143,6 @@ function Expensify() {
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
-    const isSplashHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
@@ -315,11 +310,6 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-            {isSplashHidden && (
-                <Suspense fallback={null}>
-                    <PostSplashScreenImporter />
-                </Suspense>
-            )}
         </>
     );
 }
