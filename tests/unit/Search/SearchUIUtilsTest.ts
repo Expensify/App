@@ -6116,6 +6116,66 @@ describe('SearchUIUtils', () => {
 
             expect(searchQuery).toContain(`view:${CONST.SEARCH.VIEW.PIE}`);
         });
+
+        test('Should show Top Spenders for workflow approver (submitsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: workflowApproverEmail, forwardsTo: ''},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(true);
+        });
+
+        test('Should show Spend Over Time for workflow approver (forwardsTo) in paid policy', () => {
+            const workflowApproverEmail = 'workflow-approver@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: '', forwardsTo: workflowApproverEmail},
+                        'employee2@policy.com': {submitsTo: '', forwardsTo: ''},
+                    },
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(workflowApproverEmail, {}, policies, undefined);
+            expect(response.visibility.spendOverTime).toBe(true);
+        });
+
+        test('Should hide Top Spenders for regular member who is not a workflow approver', () => {
+            const regularEmail = 'regular@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    approver: 'someone-else@policy.com',
+                    employeeList: {
+                        'employee1@policy.com': {submitsTo: 'someone-else@policy.com', forwardsTo: ''},
+                        [regularEmail]: {submitsTo: '', forwardsTo: ''},
+                    },
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
+            expect(response.visibility.topSpenders).toBe(false);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
