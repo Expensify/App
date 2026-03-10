@@ -21,7 +21,13 @@ function updateState() {
 
     if (offline) {
         pause();
-        startProbe();
+        // Only probe for real connectivity triggers — shouldForceOffline is a debug tool
+        // that should keep the app offline unconditionally
+        if (!shouldForceOffline) {
+            startProbe();
+        } else {
+            stopProbe();
+        }
     } else {
         stopProbe();
         unpause();
@@ -97,7 +103,7 @@ function onRecoveryProbeSuccess() {
 function initAppForegroundListener() {
     AppStateMonitor.addBecameActiveListener(() => {
         Log.info('[NetworkState] App became active');
-        if (isInHardStop()) {
+        if (isInHardStop() && !shouldForceOffline) {
             probeNow();
         }
         // Always reconnect on foreground to catch up on missed Pusher events
