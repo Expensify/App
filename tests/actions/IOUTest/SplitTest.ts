@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -79,6 +80,7 @@ jest.mock('@src/libs/actions/Report', () => {
     return {
         ...originalModule,
         notifyNewAction: jest.fn(),
+        setDeleteTransactionNavigateBackUrl: jest.fn(),
     };
 });
 
@@ -2216,6 +2218,240 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // The report should be null/undefined (removed by successData) or marked for deletion (optimistic)
         const isDeleted = report === null || report === undefined || report?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         expect(isDeleted).toBe(true);
+    });
+
+    it('should set navigate-back URL and navigate to parent chat when reverse-split deletes the last transaction in expense report', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Report = jest.requireMock('@src/libs/actions/Report');
+
+        const chatReport: Report = {
+            ...createRandomReport(10, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID: chatReport.reportID,
+            parentReportID: chatReport.reportID,
+        };
+        // The original transaction in the expense report (the one being reverse-split)
+        const originalTransaction: Transaction = {
+            amount: 10000,
+            currency: 'USD',
+            transactionID: 'orig-nav-1',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        // A child transaction from a previous split operation, in a different report
+        // so it doesn't count toward the expense report's transaction count
+        const childReport: Report = {
+            ...createRandomReport(12, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const childTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'child-nav-1',
+            reportID: childReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+            comment: {
+                originalTransactionID: originalTransaction.transactionID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, childReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransaction.transactionID}`, childTransaction);
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID: originalTransaction.transactionID,
+                // Single split expense triggers reverse-split
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+            },
+            searchContext: {
+                currentSearchHash: -2,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        });
+
+        await waitForBatchedUpdates();
+
+        // Verify setDeleteTransactionNavigateBackUrl was called with the parent chat report route
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+
+        // Verify navigation goes to the parent chat report, not the deleted expense report
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
+    });
+
+    it('should navigate to expense report normally when reverse-split is not the last transaction', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Navigation = jest.requireMock('@src/libs/Navigation/Navigation');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const Report = jest.requireMock('@src/libs/actions/Report');
+
+        const chatReport: Report = {
+            ...createRandomReport(20, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(21, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID: chatReport.reportID,
+            parentReportID: chatReport.reportID,
+        };
+        // Two transactions in the expense report — so it's NOT the last transaction
+        const originalTransaction: Transaction = {
+            amount: 10000,
+            currency: 'USD',
+            transactionID: 'orig-nav-2',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+        };
+        const otherTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'other-nav-2',
+            reportID: expenseReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'other test',
+        };
+        // A child transaction from a previous split
+        const childReport: Report = {
+            ...createRandomReport(22, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const childTransaction: Transaction = {
+            amount: 5000,
+            currency: 'USD',
+            transactionID: 'child-nav-2',
+            reportID: childReport.reportID,
+            created: DateUtils.getDBTime(),
+            merchant: 'test',
+            comment: {
+                originalTransactionID: originalTransaction.transactionID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReport.reportID}`, childReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransaction.transactionID}`, childTransaction);
+
+        let allTransactions: OnyxCollection<Transaction>;
+        let allReports: OnyxCollection<Report>;
+        let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allTransactions = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReports = value;
+            },
+        });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            waitForCollectionCallback: true,
+            callback: (value) => {
+                allReportNameValuePairs = value;
+            },
+        });
+
+        updateSplitTransactionsFromSplitExpensesFlow({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID: originalTransaction.transactionID,
+                // Single split expense triggers reverse-split, but another transaction still exists in the report
+                splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
+            },
+            searchContext: {
+                currentSearchHash: -2,
+            },
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        });
+
+        await waitForBatchedUpdates();
+
+        // setDeleteTransactionNavigateBackUrl should NOT be called since it's not the last transaction
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Report.setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
+
+        // Navigation should go to the expense report, not the parent chat
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
     });
 });
 
