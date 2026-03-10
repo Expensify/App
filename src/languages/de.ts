@@ -681,8 +681,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Biometrie-Test',
             authenticationSuccessful: 'Authentifizierung erfolgreich',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Du hast dich erfolgreich mit ${authType} authentifiziert.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrie (${registered ? 'Registriert' : 'Nicht registriert'})`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Sie haben sich erfolgreich mit ${authType} authentifiziert.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrische Daten (${status})`,
             yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
             youCouldNotBeAuthenticated: 'Du konntest nicht authentifiziert werden',
             areYouSureToReject: 'Sind Sie sicher? Der Authentifizierungsversuch wird abgelehnt, wenn Sie diesen Bildschirm schließen.',
@@ -698,6 +698,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nie registriert',
+            statusNotRegistered: 'Nicht registriert',
+            statusRegisteredThisDevice: 'Registriert',
+            statusRegisteredOtherDevice: () => ({one: 'Anderes Gerät registriert', other: 'Andere Geräte registriert'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Bitte aktiviere die Gesichts-/Fingerabdrucküberprüfung oder richte einen Gerätecode auf deinem Gerät ein',
@@ -717,15 +721,25 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
-            title: 'Gesicht/Fingerabdruck & Passkeys',
+            title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code.',
-            confirmationPrompt: 'Bist du sicher? Du brauchst einen magischen Code für die nächste Verifizierung auf jedem Gerät.',
-            cta: 'Zugriff widerrufen',
-            noDevices: 'Sie haben keine Geräte für die Überprüfung per Gesicht/Fingerabdruck oder Passkey registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Beim Entziehen des Zugriffs ist für die nächste Verifizierung auf diesem Gerät ein magischer Code erforderlich.',
+            confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
+            cta: 'Zugriff entziehen',
+            noDevices: 'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie deren Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
             revoke: 'Widerrufen',
+            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Magic Code für die nächste Verifizierung auf jedem Gerät.',
+            ctaAll: 'Alle widerrufen',
+            thisDevice: 'Dieses Gerät',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} weitere ${otherDeviceCount === 1 ? 'Gerät' : 'Geräte'}`;
+            },
+            confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen Magic-Code für die nächste Verifizierung auf diesem Gerät.',
+            confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesen Geräten.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
