@@ -400,6 +400,36 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         const employee = policy?.employeeList?.[employeeEmail];
         optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
         failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
+        if (employee?.submitsTo && selectedMemberEmails.includes(employee?.submitsTo)) {
+            optimisticMembersState[employeeEmail] = {
+                ...optimisticMembersState[employeeEmail],
+                submitsTo: policy?.owner,
+            };
+            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
+            successMembersState[employeeEmail] = {
+                ...successMembersState[employeeEmail],
+                submitsTo: policy?.owner,
+            };
+            failureMembersState[employeeEmail] = {
+                ...failureMembersState[employeeEmail],
+                submitsTo: employee?.submitsTo,
+            };
+        }
+        if (employee?.forwardsTo && selectedMemberEmails.includes(employee?.forwardsTo)) {
+            optimisticMembersState[employeeEmail] = {
+                ...optimisticMembersState[employeeEmail],
+                forwardsTo: '',
+            };
+            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
+            successMembersState[employeeEmail] = {
+                ...successMembersState[employeeEmail],
+                forwardsTo: '',
+            };
+            failureMembersState[employeeEmail] = {
+                ...failureMembersState[employeeEmail],
+                forwardsTo: employee?.forwardsTo,
+            };
+        }
         if (employee?.overLimitForwardsTo && selectedMemberEmails.includes(employee?.overLimitForwardsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
