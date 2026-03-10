@@ -8,11 +8,15 @@ import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {SearchColumnType} from '@components/Search/types';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getParentNavigationSubtitle, getReportStatusTranslation} from '@libs/ReportUtils';
+import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
@@ -22,8 +26,8 @@ import ExportedIconCell from './ExportedIconCell';
 import StatusCell from './StatusCell';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 import UserInfoCell from './UserInfoCell';
+import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
@@ -62,6 +66,7 @@ function ExpenseReportListItemRow({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -219,46 +224,91 @@ function ExpenseReportListItemRow({
         theme.highlightBG;
 
     if (!isLargeScreenWidth) {
+        const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
+        const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
+        const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
+        const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
+        const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
+        const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
+
+        // Compute accessible group label (user name, subtitle, report title, status, amount)
+        const parentNavigationSubtitleData = getParentNavigationSubtitle(item);
+        const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
+        const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
+        const amountLabel = convertToDisplayString(totalDisplaySpend, currency);
+        const groupAccessibilityLabel = [participantFromDisplayName, item.reportName, subtitleLabel, statusLabel, amountLabel].filter(Boolean).join(', ');
+
         return (
-            <View>
-                <UserInfoAndActionButtonRow
-                    item={item}
-                    handleActionButtonPress={onButtonPress}
-                    shouldShowUserInfo={showUserInfo}
-                    containerStyles={[styles.mb2, styles.ph0]}
-                    isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                />
-                <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
-                        {!!canSelectMultiple && (
-                            <Checkbox
-                                onPress={onCheckboxPress}
-                                isChecked={isSelectAllChecked}
-                                isIndeterminate={isIndeterminate}
-                                containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                                disabled={isDisabledCheckbox}
-                                accessibilityLabel={item.text ?? ''}
-                                shouldStopMouseDownPropagation
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
+            <View style={styles.pRelative}>
+                <View
+                    accessible
+                    accessibilityLabel={groupAccessibilityLabel}
+                    role={CONST.ROLE.BUTTON}
+                    style={{marginRight: variables.w72}}
+                >
+                    <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mb2]}>
+                        {showUserInfo && (
+                            <UserInfoCellsWithArrow
+                                shouldShowToRecipient={shouldShowToRecipient}
+                                participantFrom={item?.from}
+                                participantFromDisplayName={participantFromDisplayName}
+                                participantToDisplayName={participantToDisplayName}
+                                participantTo={item?.to}
+                                avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
+                                style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                                infoCellsTextStyle={{lineHeight: 14}}
+                                infoCellsAvatarStyle={styles.pr1}
+                                fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                                shouldUseArrowIcon={false}
                             />
                         )}
-                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
-                            <ReportSearchHeader
-                                report={item}
-                                style={[{maxWidth: variables.reportSearchHeaderMaxWidth}]}
-                                transactions={item.transactions}
-                                avatarBorderColor={finalAvatarBorderColor}
+                    </View>
+                    <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, {marginRight: -variables.w72}]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
+                            {!!canSelectMultiple && (
+                                <Checkbox
+                                    onPress={onCheckboxPress}
+                                    isChecked={isSelectAllChecked}
+                                    isIndeterminate={isIndeterminate}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                    disabled={isDisabledCheckbox}
+                                    accessibilityLabel={item.text ?? ''}
+                                    shouldStopMouseDownPropagation
+                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
+                                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
+                                />
+                            )}
+                            <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
+                                <ReportSearchHeader
+                                    report={item}
+                                    style={[{maxWidth: variables.reportSearchHeaderMaxWidth}]}
+                                    transactions={item.transactions}
+                                    avatarBorderColor={finalAvatarBorderColor}
+                                />
+                            </View>
+                        </View>
+                        <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
+                            <TotalCell
+                                total={totalDisplaySpend}
+                                currency={currency}
+                                isScanning={isScanning}
                             />
                         </View>
                     </View>
-                    <View style={[styles.flexShrink0, styles.flexColumn, styles.alignItemsEnd, styles.gap1]}>
-                        <TotalCell
-                            total={totalDisplaySpend}
-                            currency={currency}
-                            isScanning={isScanning}
-                        />
-                    </View>
+                </View>
+                <View style={[styles.pAbsolute, styles.t0, styles.r0, {width: variables.w72}, styles.alignItemsEnd]}>
+                    <ActionCell
+                        action={item.action}
+                        goToItem={onButtonPress}
+                        isSelected={item.isSelected}
+                        isLoading={isActionLoading}
+                        policyID={item.policyID}
+                        reportID={item.reportID}
+                        hash={item.hash}
+                        amount={item.total}
+                        extraSmall
+                        shouldDisablePointerEvents={isInMobileSelectionMode}
+                    />
                 </View>
             </View>
         );
