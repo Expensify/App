@@ -7267,6 +7267,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
+            editMultiple: 'Mehrere bearbeiten',
+            editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',
