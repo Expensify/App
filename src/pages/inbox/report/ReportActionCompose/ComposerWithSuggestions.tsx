@@ -708,10 +708,9 @@ function ComposerWithSuggestions({
                     const newEnd = selection.start - lastGraphemeLength;
 
                     setSelection((prevSelection) => ({
+                        ...prevSelection,
                         start: newStart,
                         end: newEnd,
-                        positionX: prevSelection.positionX,
-                        positionY: prevSelection.positionY,
                     }));
 
                     setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: newStart, end: newEnd}));
