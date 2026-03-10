@@ -1386,14 +1386,16 @@ function changeTransactionsReport({
         }
 
         // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
-        // Skip creating system messages when moving expenses from a Draft report
+        // Skip MOVED_TRANSACTION when either source or destination is a Draft report,
+        // but always show UNREPORTED_TRANSACTION when moving to self-DM
         const isSourceReportDraft = isOpenReport(oldReport);
+        const isDestinationReportDraft = isOpenReport(newReport);
         const buildMovedAction = () => {
-            if (isSourceReportDraft) {
-                return undefined;
-            }
             if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 return buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
+            }
+            if (isSourceReportDraft || isDestinationReportDraft) {
+                return undefined;
             }
             return buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
         };

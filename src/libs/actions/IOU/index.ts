@@ -12892,7 +12892,6 @@ function prepareRejectMoneyRequestData(
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
-    let expenseMovedReportActionID;
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
@@ -13613,7 +13612,6 @@ function prepareRejectMoneyRequestData(
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
         rejectedCommentReportActionID: optimisticRejectReportActionComment.reportActionID,
         createdIOUReportActionID,
-        expenseMovedReportActionID,
         expenseCreatedReportActionID,
     };
 

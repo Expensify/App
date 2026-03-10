@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
 import type {TransactionThreadInfo} from '@libs/API/parameters';
@@ -1033,6 +1034,9 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                policy: null,
+                translate: ((key: string) => key) as unknown as LocaleContextProps['translate'],
+                toLocaleDigit: ((digit: string) => digit) as unknown as LocaleContextProps['toLocaleDigit'],
             });
             await waitForBatchedUpdates();
 
@@ -1093,6 +1097,9 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 allTransactions,
+                policy: null,
+                translate: ((key: string) => key) as unknown as LocaleContextProps['translate'],
+                toLocaleDigit: ((digit: string) => digit) as unknown as LocaleContextProps['toLocaleDigit'],
             });
             await waitForBatchedUpdates();
 
