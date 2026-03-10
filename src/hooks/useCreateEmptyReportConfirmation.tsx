@@ -28,7 +28,7 @@ type UseCreateEmptyReportConfirmationResult = {
     openCreateReportConfirmation: () => void;
 };
 
-function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspaceName: string; checkboxRef: React.MutableRefObject<boolean>; onLinkPress: () => void}) {
+function ConfirmationPrompt({workspaceName, checkboxRef, onLinkPress}: {workspaceName: string; checkboxRef: React.RefObject<boolean>; onLinkPress: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isChecked, setIsChecked] = useState(false);
