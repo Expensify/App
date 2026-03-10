@@ -425,19 +425,7 @@ function categorizeReportsForLHN(
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
 
-    // Pre-calculate report names and other properties to avoid repeated calculations
-    const reportValues = Object.values(reportsToDisplay);
-    const precomputedReports: Array<{
-        miniReport: MiniReport;
-        isPinned: boolean;
-        hasErrors: boolean;
-        hasDraft: boolean;
-        isArchived: boolean;
-        requiresAttention: boolean;
-    }> = [];
-
-    // Single pass to precompute all required data
-    for (const report of reportValues) {
+    for (const report of Object.values(reportsToDisplay)) {
         if (!report) {
             continue;
         }
@@ -453,31 +441,20 @@ function categorizeReportsForLHN(
 
         const isPinned = !!report.isPinned;
         const requiresAttention = !!report?.requiresAttention;
-        const hasDraft = !!reportsDrafts?.[reportID];
+
+        if (isPinned || requiresAttention) {
+            pinnedAndGBRReports.push(miniReport);
+            continue;
+        }
+
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
         const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
         const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
         const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
-        precomputedReports.push({
-            miniReport,
-            isPinned,
-            hasErrors,
-            hasDraft,
-            isArchived,
-            requiresAttention,
-        });
-    }
-
-    // Single pass to categorize reports
-    for (const data of precomputedReports) {
-        const {miniReport, isPinned, requiresAttention, hasErrors, hasDraft, isArchived} = data;
-
-        if (isPinned || requiresAttention) {
-            pinnedAndGBRReports.push(miniReport);
-        } else if (hasErrors) {
+        if (hasErrors) {
             errorReports.push(miniReport);
-        } else if (hasDraft) {
+        } else if (reportsDrafts?.[reportID]) {
             draftReports.push(miniReport);
         } else if (isArchived) {
             archivedReports.push(miniReport);
@@ -529,21 +506,22 @@ function sortCategorizedReports(
         return compareDates !== 0 ? compareDates : compareDisplayNames(a, b);
     };
 
+    const sortIfNeeded = <T>(arr: T[], compareFn: (a: T, b: T) => number): T[] => (arr.length < 2 ? arr : arr.sort(compareFn));
+
     // Sort each group of reports accordingly
-    const sortedPinnedAndGBRReports = pinnedAndGBRReports.sort(compareDisplayNames);
-    const sortedErrorReports = errorReports.sort(compareDisplayNames);
-    const sortedDraftReports = draftReports.sort(compareDisplayNames);
+    const sortedPinnedAndGBRReports = sortIfNeeded(pinnedAndGBRReports, compareDisplayNames);
+    const sortedErrorReports = sortIfNeeded(errorReports, compareDisplayNames);
+    const sortedDraftReports = sortIfNeeded(draftReports, compareDisplayNames);
 
     let sortedNonArchivedReports: MiniReport[];
     let sortedArchivedReports: MiniReport[];
 
     if (isInDefaultMode) {
-        sortedNonArchivedReports = nonArchivedReports.sort(compareNonArchivedDefault);
-        // For archived reports ensure that most recent reports are at the top by reversing the order
-        sortedArchivedReports = archivedReports.sort(compareDatesDesc);
+        sortedNonArchivedReports = sortIfNeeded(nonArchivedReports, compareNonArchivedDefault);
+        sortedArchivedReports = sortIfNeeded(archivedReports, compareDatesDesc);
     } else {
-        sortedNonArchivedReports = nonArchivedReports.sort(compareDisplayNames);
-        sortedArchivedReports = archivedReports.sort(compareDisplayNames);
+        sortedNonArchivedReports = sortIfNeeded(nonArchivedReports, compareDisplayNames);
+        sortedArchivedReports = sortIfNeeded(archivedReports, compareDisplayNames);
     }
 
     return {
@@ -565,9 +543,16 @@ function combineReportCategories(
     nonArchivedReports: MiniReport[],
     archivedReports: MiniReport[],
 ): string[] {
-    // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
-    // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID).filter(Boolean) as string[];
+    const result: string[] = [];
+    const groups = [pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports];
+    for (const group of groups) {
+        for (const report of group) {
+            if (report?.reportID) {
+                result.push(report.reportID);
+            }
+        }
+    }
+    return result;
 }
 
 /**
