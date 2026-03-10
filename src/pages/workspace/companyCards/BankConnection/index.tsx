@@ -1,6 +1,7 @@
 import React from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +10,7 @@ import TextLink from '@components/TextLink';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -47,15 +49,26 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
     const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
 
-    const {onOpenBankConnectionFlow, handleBackButtonPress, bankName, bankDisplayName, isPlaid, isNewFeedHasError, newFeed, isAllFeedsResultLoading, isBlockedToAddNewFeeds} =
-        useBankConnection({
-            policyID,
-            feed,
-            bankNameFromRoute,
-            onSuccess,
-            onFailure,
-            onBackButtonPress,
-        });
+    const {
+        onOpenBankConnectionFlow,
+        handleBackButtonPress,
+        bankName,
+        bankDisplayName,
+        isPlaid,
+        isNewFeedHasError,
+        newFeed,
+        isAllFeedsResultLoading,
+        isBlockedToAddNewFeeds,
+        isRefreshComplete,
+    } = useBankConnection({
+        policyID,
+        feed,
+        bankNameFromRoute,
+        onSuccess,
+        onFailure,
+        onBackButtonPress,
+        isRefreshConnectionFlow,
+    });
 
     const headerTitleAddCards = !backTo ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.assignCard') : headerTitleAddCards;
@@ -68,6 +81,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
     );
 
     const getContent = () => {
+        if (isRefreshComplete) {
+            return (
+                <ConfirmationPage
+                    heading={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccess')}
+                    description={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccessDescription')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => Navigation.dismissModal()}
+                />
+            );
+        }
         if (isNewFeedHasError) {
             return (
                 <WorkspaceCompanyCardsErrorConfirmation
@@ -99,7 +123,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
 
     return (
         <ScreenWrapper
-            testID="BankConnection"
+            testID={isRefreshComplete ? 'RefreshCardFeedConnectionSuccess' : 'BankConnection'}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton

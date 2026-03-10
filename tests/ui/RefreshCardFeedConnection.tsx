@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -63,18 +63,18 @@ jest.mock('@userActions/CompanyCards', () => ({
     setAddNewCompanyCardStepAndData: jest.fn(),
 }));
 
-let capturedOnSuccess: (() => void) | undefined;
+let capturedOnFailure: (() => void) | undefined;
 jest.mock('@pages/workspace/companyCards/BankConnection', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
     return {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        default: ({onSuccess}: {onSuccess?: () => void}) => {
-            capturedOnSuccess = onSuccess;
+        default: ({isRefreshConnectionFlow, onFailure}: {isRefreshConnectionFlow?: boolean; onFailure?: () => void}) => {
+            capturedOnFailure = onFailure;
             return (
                 <View testID="BankConnection">
-                    <Text>{onSuccess ? 'has-refresh-callback' : 'no-refresh-callback'}</Text>
+                    <Text>{isRefreshConnectionFlow ? 'refresh-flow' : 'normal-flow'}</Text>
                 </View>
             );
         },
@@ -119,7 +119,7 @@ describe('RefreshCardFeedConnection', () => {
     });
 
     beforeEach(() => {
-        capturedOnSuccess = undefined;
+        capturedOnFailure = undefined;
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
@@ -171,7 +171,7 @@ describe('RefreshCardFeedConnection', () => {
 
             await waitFor(() => {
                 expect(screen.getByTestId('BankConnection')).toBeOnTheScreen();
-                expect(screen.getByText('has-refresh-callback')).toBeOnTheScreen();
+                expect(screen.getByText('refresh-flow')).toBeOnTheScreen();
             });
 
             unmount();
@@ -201,8 +201,8 @@ describe('RefreshCardFeedConnection', () => {
         });
     });
 
-    describe('Success view', () => {
-        it('should show success confirmation when onSuccess is called', async () => {
+    describe('Failure handling', () => {
+        it('should dismiss modal when onFailure is called', async () => {
             await TestHelper.signInWithTestUser();
 
             const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, workspaceAccountID: WORKSPACE_ACCOUNT_ID};
@@ -220,81 +220,11 @@ describe('RefreshCardFeedConnection', () => {
                 expect(screen.getByTestId('BankConnection')).toBeOnTheScreen();
             });
 
-            expect(capturedOnSuccess).toBeDefined();
-
-            // Simulate BankConnection calling onSuccess after successful re-auth
-            act(() => {
-                capturedOnSuccess?.();
-            });
-
-            await waitFor(() => {
-                expect(screen.getByText('Connection refreshed')).toBeOnTheScreen();
-                expect(screen.getByTestId('confirmation-primary-button')).toBeOnTheScreen();
-            });
-
-            // BankConnection should no longer be rendered
-            expect(screen.queryByTestId('BankConnection')).toBeNull();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should dismiss modal when Got it button is pressed', async () => {
-            await TestHelper.signInWithTestUser();
-
-            const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, workspaceAccountID: WORKSPACE_ACCOUNT_ID};
-
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
-            });
-
-            const {unmount} = renderRefreshPage();
-            await waitForBatchedUpdatesWithAct();
-
-            // Trigger the success view
-            act(() => {
-                capturedOnSuccess?.();
-            });
-
-            await waitFor(() => {
-                expect(screen.getByTestId('confirmation-primary-button')).toBeOnTheScreen();
-            });
-
-            // Press the "Got it" button
-            fireEvent.press(screen.getByTestId('confirmation-primary-button'));
-
-            expect(Navigation.dismissModal).toHaveBeenCalled();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('should dismiss modal when back button is pressed on success view', async () => {
-            await TestHelper.signInWithTestUser();
-
-            const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, workspaceAccountID: WORKSPACE_ACCOUNT_ID};
-
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
-            });
-
-            const {unmount} = renderRefreshPage();
-            await waitForBatchedUpdatesWithAct();
+            expect(capturedOnFailure).toBeDefined();
 
             act(() => {
-                capturedOnSuccess?.();
+                capturedOnFailure?.();
             });
-
-            await waitFor(() => {
-                expect(screen.getByText('Connection refreshed')).toBeOnTheScreen();
-            });
-
-            const backButton = screen.getByLabelText('Back');
-            fireEvent.press(backButton);
 
             expect(Navigation.dismissModal).toHaveBeenCalled();
 

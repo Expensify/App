@@ -1,7 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import ConfirmationPage from '@components/ConfirmationPage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
+import React, {useCallback, useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
@@ -14,6 +11,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
@@ -29,7 +27,6 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const currentStep = assignCard?.currentStep;
-    const [isRefreshComplete, setIsRefreshComplete] = useState(false);
     const {updateBrokenConnection} = useUpdateFeedBrokenConnection({policyID, feed});
 
     useEffect(() => {
@@ -38,42 +35,9 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         };
     }, []);
 
-    const handleRefreshComplete = useCallback(() => {
-        setIsRefreshComplete(true);
-    }, []);
-
-    const handleAssignSuccess = useCallback(() => {
-        handleRefreshComplete();
-    }, [handleRefreshComplete]);
-
-    const handleAssignFailure = useCallback(() => {
-        updateBrokenConnection();
-        // Re-auth itself succeeded (user completed bank login), so we show the same
-        // confirmation. The backend will re-scrape with the updated credentials.
-        handleRefreshComplete();
-    }, [handleRefreshComplete, updateBrokenConnection]);
-
     const handleBackButtonPress = useCallback(() => {
-        Navigation.dismissModal();
-    }, []);
-
-    if (isRefreshComplete) {
-        return (
-            <ScreenWrapper testID="RefreshCardFeedConnectionSuccess">
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.companyCards.assignNewCards')}
-                    onBackButtonPress={() => Navigation.dismissModal()}
-                />
-                <ConfirmationPage
-                    heading={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccess')}
-                    description={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccessDescription')}
-                    shouldShowButton
-                    buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.dismissModal()}
-                />
-            </ScreenWrapper>
-        );
-    }
+        Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID) : undefined);
+    }, [policyID]);
 
     switch (currentStep) {
         case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
@@ -82,8 +46,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                     policyID={policyID}
                     feed={feed}
                     isRefreshConnectionFlow
-                    onSuccess={handleAssignSuccess}
-                    onFailure={handleAssignFailure}
+                    onSuccess={updateBrokenConnection}
                     onBackButtonPress={handleBackButtonPress}
                 />
             );

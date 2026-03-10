@@ -3,6 +3,7 @@ import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getUAForWebView from '@libs/getUAForWebView';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -53,13 +55,14 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
 
-    const {handleBackButtonPress, url, isPlaid, isNewFeedHasError, newFeed, isAllFeedsResultLoading, isBlockedToAddNewFeeds} = useBankConnection({
+    const {handleBackButtonPress, url, isPlaid, isNewFeedHasError, newFeed, isAllFeedsResultLoading, isBlockedToAddNewFeeds, isRefreshComplete} = useBankConnection({
         policyID,
         feed,
         bankNameFromRoute,
         onSuccess,
         onFailure,
         onBackButtonPress,
+        isRefreshConnectionFlow,
         shouldOpenWindow: false,
     });
 
@@ -75,9 +78,55 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
         setConnectionCompleted(true);
     };
 
+    const getContent = () => {
+        if (isRefreshComplete) {
+            return (
+                <ConfirmationPage
+                    heading={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccess')}
+                    description={translate('workspace.moreFeatures.companyCards.refreshConnectionSuccessDescription')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => Navigation.dismissModal()}
+                />
+            );
+        }
+        if (isNewFeedHasError) {
+            return (
+                <WorkspaceCompanyCardsErrorConfirmation
+                    policyID={policyID}
+                    newFeed={newFeed}
+                />
+            );
+        }
+        if (!!url && !isConnectionCompleted && !isPlaid && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed)) {
+            return (
+                <WebView
+                    ref={webViewRef}
+                    source={{
+                        uri: url,
+                        headers: {
+                            Cookie: `authToken=${authToken}`,
+                        },
+                    }}
+                    userAgent={getUAForWebView()}
+                    incognito
+                    onNavigationStateChange={checkIfConnectionCompleted}
+                    startInLoadingState
+                    renderLoading={renderLoading}
+                />
+            );
+        }
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                style={styles.flex1}
+            />
+        );
+    };
+
     return (
         <ScreenWrapper
-            testID="BankConnection"
+            testID={isRefreshComplete ? 'RefreshCardFeedConnectionSuccess' : 'BankConnection'}
             shouldShowOfflineIndicator={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -86,36 +135,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {!!url && !isConnectionCompleted && !isPlaid && !isNewFeedHasError && !isAllFeedsResultLoading && (!isBlockedToAddNewFeeds || !!feed) && (
-                    <WebView
-                        ref={webViewRef}
-                        source={{
-                            uri: url,
-                            headers: {
-                                Cookie: `authToken=${authToken}`,
-                            },
-                        }}
-                        userAgent={getUAForWebView()}
-                        incognito
-                        onNavigationStateChange={checkIfConnectionCompleted}
-                        startInLoadingState
-                        renderLoading={renderLoading}
-                    />
-                )}
-                {(isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed) || isConnectionCompleted || isPlaid) && !isNewFeedHasError && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                    />
-                )}
-                {isNewFeedHasError && (
-                    <WorkspaceCompanyCardsErrorConfirmation
-                        policyID={policyID}
-                        newFeed={newFeed}
-                    />
-                )}
-            </FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

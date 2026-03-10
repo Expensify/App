@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -22,6 +22,7 @@ type UseBankConnectionProps = {
     onSuccess?: (newFeed?: CompanyCardFeedWithDomainID) => void;
     onFailure?: () => void;
     onBackButtonPress?: () => void;
+    isRefreshConnectionFlow?: boolean;
     shouldOpenWindow?: boolean;
 };
 
@@ -34,6 +35,7 @@ export default function useBankConnection({
     onSuccess,
     onFailure,
     onBackButtonPress,
+    isRefreshConnectionFlow,
     shouldOpenWindow = true,
 }: UseBankConnectionProps) {
     const {isOffline} = useNetwork();
@@ -45,6 +47,7 @@ export default function useBankConnection({
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const shouldBlockWindowOpen = useRef(false);
+    const [isRefreshComplete, setIsRefreshComplete] = useState(false);
 
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
@@ -65,13 +68,18 @@ export default function useBankConnection({
 
     const handleSuccess = useCallback(
         (connectedFeed?: CompanyCardFeedWithDomainID) => {
+            if (isRefreshConnectionFlow) {
+                onSuccess?.(connectedFeed ?? undefined);
+                setIsRefreshComplete(true);
+                return;
+            }
             if (onSuccess) {
                 onSuccess(connectedFeed);
                 return;
             }
             fallbackNavigation();
         },
-        [onSuccess, fallbackNavigation],
+        [onSuccess, fallbackNavigation, isRefreshConnectionFlow],
     );
 
     const handleFailure = useMemo(() => onFailure ?? fallbackNavigation, [onFailure, fallbackNavigation]);
@@ -180,5 +188,6 @@ export default function useBankConnection({
         newFeed,
         isAllFeedsResultLoading,
         isBlockedToAddNewFeeds,
+        isRefreshComplete,
     };
 }
