@@ -1,0 +1,136 @@
+name: Validate Contributor PRs
+
+on:
+  pull_request_target:
+    types: [opened, ready_for_review]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  issues: read
+
+jobs:
+  validate:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot' }}
+    steps:
+      - name: Validate contributor authorization
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prAuthor = context.payload.pull_request.user.login;
+            const authorAssociation = context.payload.pull_request.author_association;
+
+            // Step 1: Allow org members and repo owners
+            if (['MEMBER', 'OWNER'].includes(authorAssociation)) {
+              console.log(`${prAuthor} is an org ${authorAssociation}. No validation needed.`);
+              return;
+            }
+
+            console.log(`${prAuthor} has association "${authorAssociation}". Validating linked issues/PRs...`);
+
+            const prBody = context.payload.pull_request.body || '';
+            // Strip HTML comments to avoid matching template placeholders
+            const cleanBody = prBody.replace(/<!--[\s\S]*?-->/g, '');
+
+            // Step 2: Check linked issues — is the PR author assigned to any?
+            const issuePattern = /https:\/\/github\.com\/([^/]+\/[^/]+)\/issues\/(\d+)/g;
+            let match;
+            while ((match = issuePattern.exec(cleanBody)) !== null) {
+              const [, repo, num] = match;
+              const issueNumber = parseInt(num);
+              try {
+                const [owner, repoName] = repo.split('/');
+                const {data: issue} = await github.rest.issues.get({
+                  owner,
+                  repo: repoName,
+                  issue_number: issueNumber,
+                });
+                if (issue.assignees.some(a => a.login.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is assigned to ${repo}#${issueNumber}. PR is authorized.`);
+                  return;
+                }
+                console.log(`${prAuthor} is NOT assigned to ${repo}#${issueNumber}.`);
+              } catch (e) {
+                console.log(`Could not verify ${repo}#${issueNumber}: ${e.message}`);
+              }
+            }
+
+            // Step 3: Check linked PRs — is the PR author the author or a reviewer?
+            const prUrlPattern = /https:\/\/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/g;
+            while ((match = prUrlPattern.exec(cleanBody)) !== null) {
+              const [, repo, num] = match;
+              const linkedPRNumber = parseInt(num);
+              try {
+                const [owner, repoName] = repo.split('/');
+
+                const {data: linkedPR} = await github.rest.pulls.get({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (linkedPR.user.login.toLowerCase() === prAuthor.toLowerCase()) {
+                  console.log(`${prAuthor} is the author of ${repo}#${linkedPRNumber}. PR is authorized.`);
+                  return;
+                }
+
+                const {data: reviews} = await github.rest.pulls.listReviews({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (reviews.some(r => r.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is a reviewer of ${repo}#${linkedPRNumber}. PR is authorized.`);
+                  return;
+                }
+
+                const {data: requestedReviewers} = await github.rest.pulls.listRequestedReviewers({
+                  owner,
+                  repo: repoName,
+                  pull_number: linkedPRNumber,
+                });
+                if (requestedReviewers.users.some(u => u.login.toLowerCase() === prAuthor.toLowerCase())) {
+                  console.log(`${prAuthor} is a requested reviewer of ${repo}#${linkedPRNumber}. PR is authorized.`);
+                  return;
+                }
+
+                console.log(`${prAuthor} is not author or reviewer of ${repo}#${linkedPRNumber}.`);
+              } catch (e) {
+                console.log(`Could not verify ${repo}#${linkedPRNumber}: ${e.message}`);
+              }
+            }
+
+            // Step 4: Validation failed — close the PR
+            console.log(`Closing PR #${prNumber} by ${prAuthor} — no valid authorization found.`);
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: [
+                `👋 Hi @${prAuthor}, thanks for your interest in contributing to Expensify!`,
+                '',
+                "This PR has been automatically closed because it doesn't appear to meet our contribution requirements:",
+                '',
+                '- You are not a member of the Expensify GitHub organization',
+                '- No linked GitHub issue was found in the PR description where you are listed as an assignee',
+                '- No linked GitHub PR was found in the PR description where you are the author or a reviewer',
+                '',
+                'If you\'d like to contribute, please make sure to:',
+                '1. Find an open issue you\'d like to work on',
+                '2. Get assigned to the issue by following our contribution process',
+                '3. Link the issue in your PR description using the format: `$ https://github.com/Expensify/App/issues/<issueID>`',
+                '',
+                'Please review our [contributing guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md) for more details.',
+                '',
+                'If you believe this was closed in error, please reach out in the **#expensify-open-source** Slack channel.',
+              ].join('\n'),
+            });
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              state: 'closed',
+            });
