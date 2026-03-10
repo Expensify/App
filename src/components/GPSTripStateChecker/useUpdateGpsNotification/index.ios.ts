@@ -18,11 +18,11 @@ function useUpdateGpsNotificationOnLanguageChange() {
     const currentPreferredLocale = useRef(preferredLocale);
 
     useEffect(() => {
+        currentPreferredLocale.current = preferredLocale;
         if (!shouldUpdateGpsNotificationUnit() || currentPreferredLocale.current === preferredLocale) {
             return;
         }
 
-        currentPreferredLocale.current = preferredLocale;
         updateGpsTripNotificationLanguage(translate);
     }, [preferredLocale, translate]);
 }
