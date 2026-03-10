@@ -240,28 +240,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             isConfirmLoading: isPendingDeletePolicy(policy),
             danger: true,
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM || !policyID || !policyName) {
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
 
-            deleteWorkspace({
-                policies,
-                policyID,
-                activePolicyID,
-                policyName,
-                lastAccessedWorkspacePolicyID,
-                policyCardFeeds: defaultCardFeeds,
-                reportsToArchive,
-                transactionViolations,
-                reimbursementAccountError,
-                bankAccountList,
-                lastUsedPaymentMethods: lastPaymentMethod,
-                localeCompare,
-                personalPolicyID,
-            });
-            if (isOffline) {
-                goBackFromInvalidPolicy();
-            }
+            confirmDelete();
         });
     }, [
         activePolicyID,
