@@ -47,9 +47,6 @@ type UseSubPageProps<TProps extends SubPageProps> = {
 
     /** function that returns the route for a given page name and optional action */
     buildRoute: (pageName: string, action?: 'edit') => Route;
-
-    /** when true, previous-page navigation will replace history entry instead of pushing back */
-    forceReplaceOnPrev?: boolean;
 };
 
 export type {SubPageProps, PageConfig, UseSubPageProps};

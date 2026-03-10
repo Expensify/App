@@ -22,7 +22,6 @@ export default function useSubPage<TProps extends SubPageProps>({
     skipPages = [],
     onPageChange = () => {},
     buildRoute,
-    forceReplaceOnPrev = false,
 }: UseSubPageProps<TProps>) {
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
@@ -78,10 +77,6 @@ export default function useSubPage<TProps extends SubPageProps>({
 
         const targetPage = pages.at(targetIndex);
         if (targetPage) {
-            if (forceReplaceOnPrev) {
-                Navigation.navigate(buildRoute(targetPage.pageName), {forceReplace: true});
-                return;
-            }
             Navigation.goBack(buildRoute(targetPage.pageName));
         }
     };
