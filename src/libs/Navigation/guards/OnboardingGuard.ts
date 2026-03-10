@@ -132,17 +132,25 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
 /**
  * Check if the navigation action is targeting an onboarding screen.
- * This handles NAVIGATE/PUSH/REPLACE actions that target the OnboardingModalNavigator directly.
+ * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     if (
-        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) &&
+        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
         (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
     ) {
         return true;
     }
 
     return false;
+}
+
+/**
+ * Check if the navigation action is targeting an onboarding screen.
+ * This handles REPLACE actions that target the OnboardingModalNavigator directly.
+ */
+function isNavigatingToOnboardingFlowWithReplaceAction(action: NavigationAction): boolean {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE && (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
 }
 
 /**
@@ -180,7 +188,7 @@ const OnboardingGuard: NavigationGuard = {
             isSingleEntry ||
             needsExplanationModal ||
             isInvitedOrGroupMember ||
-            isNavigatingToOnboardingFlow(action);
+            isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
