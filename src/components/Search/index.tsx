@@ -208,17 +208,6 @@ function getStableSelectedTransactionInfo(previous: SelectedTransactionInfo | un
     return next;
 }
 
-function areSelectedTransactionsEqualByReference(previous: SelectedTransactions, next: SelectedTransactions): boolean {
-    const previousKeys = Object.keys(previous);
-    const nextKeys = Object.keys(next);
-
-    if (previousKeys.length !== nextKeys.length) {
-        return false;
-    }
-
-    return previousKeys.every((key) => previous[key] === next[key]);
-}
-
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -829,9 +818,6 @@ function Search({
             }
         }
         if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
-            return;
-        }
-        if (areSelectedTransactionsEqualByReference(selectedTransactions, newTransactionList)) {
             return;
         }
 
