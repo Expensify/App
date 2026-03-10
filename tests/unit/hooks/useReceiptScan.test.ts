@@ -62,7 +62,6 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         backToReport: undefined,
         isMultiScanEnabled: false,
         isStartingScan: true,
-        setIsMultiScanEnabled: undefined,
     };
 }
 
@@ -297,7 +296,7 @@ describe('useReceiptScan', () => {
         });
 
         it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true, setIsMultiScanEnabled: jest.fn()};
+            const multiScanParams = {...params, isMultiScanEnabled: true};
             const {result, rerender} = renderHook((p: Parameters<typeof useReceiptScan>[0]) => useReceiptScan(p), {
                 initialProps: multiScanParams,
             });

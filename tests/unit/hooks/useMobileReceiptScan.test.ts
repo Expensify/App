@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
 import Onyx from 'react-native-onyx';
 import useMobileReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useMobileReceiptScan';
-import type useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockDismissProductTraining = jest.fn();
@@ -23,71 +21,41 @@ jest.mock('@userActions/TransactionEdit', () => ({
     removeTransactionReceipt: (...args: unknown[]) => mockRemoveTransactionReceipt(...args),
 }));
 
-const REPORT_ID = '123';
 const INITIAL_TRANSACTION_ID = '987';
-
-function createMockReceiptScan(overrides: Partial<ReturnType<typeof useReceiptScan>> = {}): ReturnType<typeof useReceiptScan> {
-    return {
-        transactions: [],
-        optimisticTransactions: [{transactionID: '111'}, {transactionID: '222'}] as ReturnType<typeof useReceiptScan>['optimisticTransactions'],
-        isEditing: false,
-        isReplacingReceipt: false,
-        shouldAcceptMultipleFiles: true,
-        shouldSkipConfirmation: false,
-        startLocationPermissionFlow: false,
-        setStartLocationPermissionFlow: jest.fn(),
-        shouldStartLocationPermissionFlow: false,
-        receiptFiles: [],
-        setReceiptFiles: jest.fn(),
-        navigateToConfirmationStep: jest.fn(),
-        validateFiles: jest.fn(),
-        PDFValidationComponent: [],
-        ErrorModal: React.createElement(React.Fragment),
-        setTestReceiptAndNavigate: jest.fn(),
-        ...overrides,
-    };
-}
+const REPORT_ID = '123';
 
 function createDefaultParams(): Parameters<typeof useMobileReceiptScan>[0] {
     return {
-        report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.IOU} as Report,
-        reportID: REPORT_ID,
-        initialTransactionID: INITIAL_TRANSACTION_ID,
         initialTransaction: {transactionID: INITIAL_TRANSACTION_ID, reportID: REPORT_ID, amount: 0} as Transaction,
         iouType: CONST.IOU.TYPE.REQUEST,
-        action: CONST.IOU.ACTION.CREATE,
-        currentUserPersonalDetails: {accountID: 1, login: 'user@test.com'},
-        updateScanAndNavigate: jest.fn(),
-        getSource: (file: {uri?: string}) => file?.uri ?? 'file://image.png',
-        backTo: undefined,
-        backToReport: undefined,
         isMultiScanEnabled: false,
         isStartingScan: true,
+        receiptFiles: [],
+        navigateToConfirmationStep: jest.fn(),
+        shouldSkipConfirmation: false,
+        setStartLocationPermissionFlow: jest.fn(),
         setIsMultiScanEnabled: jest.fn(),
     };
 }
 
 describe('useMobileReceiptScan', () => {
     let params: Parameters<typeof useMobileReceiptScan>[0];
-    let mockReceiptScan: ReturnType<typeof useReceiptScan>;
 
     beforeAll(() => {
         Onyx.init({
-            keys: {
-                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
-            },
+            keys: ONYXKEYS,
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
         params = createDefaultParams();
-        mockReceiptScan = createMockReceiptScan();
     });
 
     describe('canUseMultiScan', () => {
         it('should return true when isStartingScan and iouType is REQUEST', async () => {
-            const {result} = renderHook(() => useMobileReceiptScan(params, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.canUseMultiScan).toBe(true);
@@ -95,7 +63,7 @@ describe('useMobileReceiptScan', () => {
 
         it('should return false when iouType is SPLIT', async () => {
             const splitParams = {...params, iouType: CONST.IOU.TYPE.SPLIT};
-            const {result} = renderHook(() => useMobileReceiptScan(splitParams, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(splitParams));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.canUseMultiScan).toBe(false);
@@ -103,7 +71,7 @@ describe('useMobileReceiptScan', () => {
 
         it('should return false when isStartingScan is false', async () => {
             const paramsWithStartingScanDisabled = {...params, isStartingScan: false};
-            const {result} = renderHook(() => useMobileReceiptScan(paramsWithStartingScanDisabled, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(paramsWithStartingScanDisabled));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.canUseMultiScan).toBe(false);
@@ -112,7 +80,7 @@ describe('useMobileReceiptScan', () => {
 
     describe('multi-scan educational popup', () => {
         it('should initialize shouldShowMultiScanEducationalPopup as false', async () => {
-            const {result} = renderHook(() => useMobileReceiptScan(params, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.shouldShowMultiScanEducationalPopup).toBe(false);
@@ -121,7 +89,7 @@ describe('useMobileReceiptScan', () => {
         it('should set shouldShowMultiScanEducationalPopup true when toggleMultiScan is called and modal was not dismissed', async () => {
             const setIsMultiScanEnabled = jest.fn();
             const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useMobileReceiptScan(toggleParams, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
@@ -141,7 +109,7 @@ describe('useMobileReceiptScan', () => {
 
             const setIsMultiScanEnabled = jest.fn();
             const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useMobileReceiptScan(toggleParams, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
@@ -161,7 +129,7 @@ describe('useMobileReceiptScan', () => {
 
             const setIsMultiScanEnabled = jest.fn();
             const toggleParams = {...params, setIsMultiScanEnabled, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useMobileReceiptScan(toggleParams, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
@@ -183,8 +151,7 @@ describe('useMobileReceiptScan', () => {
     describe('submitReceipts and submitMultiScanReceipts', () => {
         it('should call navigateToConfirmationStep when submitReceipts is called', async () => {
             const navigateToConfirmationStep = jest.fn();
-            const receiptScanWithNavigate = createMockReceiptScan({navigateToConfirmationStep});
-            const {result} = renderHook(() => useMobileReceiptScan(params, receiptScanWithNavigate));
+            const {result} = renderHook(() => useMobileReceiptScan({...params, navigateToConfirmationStep}));
             await waitForBatchedUpdatesWithAct();
 
             const files = [{file: {uri: 'image.jpg'}, source: 'file://image.jpg', transactionID: INITIAL_TRANSACTION_ID}];
@@ -196,17 +163,16 @@ describe('useMobileReceiptScan', () => {
         });
 
         it('should filter receiptFiles by optimistic transaction IDs when submitMultiScanReceipts is called', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}111`, {transactionID: '111'});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}222`, {transactionID: '222'});
+            await waitForBatchedUpdatesWithAct();
+
             const navigateToConfirmationStep = jest.fn();
-            const setReceiptFiles = jest.fn();
-            const receiptScanWithNavigate = createMockReceiptScan({
-                navigateToConfirmationStep,
-                setReceiptFiles,
-                receiptFiles: [
-                    {file: {uri: 'valid-receipt.jpg'}, source: 'file://valid-receipt.jpg', transactionID: '111'},
-                    {file: {uri: 'invalid.jpg'}, source: 'file://invalid.jpg', transactionID: '999'},
-                ],
-            });
-            const {result} = renderHook(() => useMobileReceiptScan(params, receiptScanWithNavigate));
+            const receiptFiles = [
+                {file: {uri: 'valid-receipt.jpg'}, source: 'file://valid-receipt.jpg', transactionID: '111'},
+                {file: {uri: 'invalid.jpg'}, source: 'file://invalid.jpg', transactionID: '999'},
+            ];
+            const {result} = renderHook(() => useMobileReceiptScan({...params, navigateToConfirmationStep, receiptFiles}));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
@@ -219,7 +185,7 @@ describe('useMobileReceiptScan', () => {
 
     describe('blink and showBlink', () => {
         it('should return blinkStyle and showBlink', async () => {
-            const {result} = renderHook(() => useMobileReceiptScan(params, mockReceiptScan));
+            const {result} = renderHook(() => useMobileReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.blinkStyle).toBeDefined();
