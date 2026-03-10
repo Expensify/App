@@ -1539,7 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择工作区',
-        routedDueToDEW: (to: string) => `报表因自定义审批流程被转交给 ${to}`,
+        routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
             hrs: '小时',
@@ -5144,6 +5144,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
+                    exportToPDF: '导出为 PDF',
+                    exportToCSV: '导出为 CSV',
+                    selectDateRangeError: '请选择要导出的日期范围',
+                    invalidDateRangeError: '开始日期必须早于结束日期',
                     enabled: '中央开票已启用！',
                     enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
@@ -7551,6 +7555,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         fabGpsTripExplained: '前往 GPS 页面（浮动操作）',
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',

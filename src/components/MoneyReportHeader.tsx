@@ -633,6 +633,7 @@ function MoneyReportHeader({
                     paymentMethod,
                     activePolicy,
                     betas,
+                    isSelfTourViewed,
                 });
             } else {
                 startAnimation();
@@ -646,6 +647,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
+                    isSelfTourViewed,
                     userBillingGraceEndPeriods,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
@@ -681,6 +683,7 @@ function MoneyReportHeader({
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
             betas,
+            isSelfTourViewed,
             userBillingGraceEndPeriods,
         ],
     );
@@ -1926,6 +1929,7 @@ function MoneyReportHeader({
             iouReportNextStep: nextStep,
             betas,
             userBillingGraceEndPeriods,
+            amountOwed,
         });
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));

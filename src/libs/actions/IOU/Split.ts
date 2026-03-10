@@ -330,16 +330,6 @@ function splitBillAndOpenReport({
     notifyNewAction(splitData.chatReportID, undefined, true);
 }
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file [https://github.com/Expensify/App/issues/80401]
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    const allPolicyTags = getPolicyTags();
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
 /** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
@@ -364,6 +354,7 @@ function startSplitBill({
     policyRecentlyUsedTags,
     quickAction,
     policyRecentlyUsedCurrencies,
+    participantsPolicyTags,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -547,6 +538,7 @@ function startSplitBill({
         quickAction,
         policyRecentlyUsedCurrencies,
         policyRecentlyUsedTags,
+        participantsPolicyTags,
     };
 
     if (existingSplitChatReport) {
@@ -640,9 +632,7 @@ function startSplitBill({
         }
         const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
         const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-            // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            policyTags: getPolicyTagsData(participant.policyID),
+            policyTags: participant.policyID ? participantsPolicyTags[participant.policyID] : {},
             policyRecentlyUsedTags,
             transactionTags: tag,
         });
@@ -1044,8 +1034,9 @@ function updateSplitTransactions({
     iouReportNextStep,
     isFromSplitExpensesFlow,
     betas,
+    policyTags,
     personalDetails,
-}: UpdateSplitTransactionsParams) {
+}: UpdateSplitTransactionsParams & {policyTags: OnyxTypes.PolicyTagLists}) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
@@ -1053,9 +1044,6 @@ function updateSplitTransactions({
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    // TODO: remove `allPolicyTags` from this file [https://github.com/Expensify/App/issues/80401]
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
@@ -1688,10 +1676,12 @@ function updateSplitTransactions({
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
-    updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
     const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
+    const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${expenseReport?.policyID}`] ?? {};
+
+    updateSplitTransactions({...params, isFromSplitExpensesFlow: true, policyTags});
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
