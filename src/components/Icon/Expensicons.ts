@@ -37,6 +37,7 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
@@ -51,6 +52,7 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -198,6 +200,8 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
+    ExpensifyCardHourglass,
     Crop,
     CircleSlash,
     Document,
