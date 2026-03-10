@@ -550,7 +550,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={[styles.flex1, style?.listStyle]}
+                        style={style?.listStyle}
                         contentContainerStyle={styles.pb3}
                         initialScrollIndex={shouldScrollToFocusedIndexOnMount ? initialFocusedIndex : undefined}
                         onScrollBeginDrag={onScrollBeginDrag}
