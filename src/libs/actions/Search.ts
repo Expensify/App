@@ -740,7 +740,12 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            value: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                pendingFields: {
+                    export: null,
+                },
+            },
         });
     }
 

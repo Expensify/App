@@ -5342,7 +5342,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const reportData: Array<{reportID: string; label: string; optimisticReportActionID: string}> = [];
 
     // Process each report ID
@@ -5368,9 +5368,7 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingFields: {
-                    export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+                isExportedToIntegration: true,
             },
         });
 
@@ -5391,6 +5389,14 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
                 [optimisticReportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                isExportedToIntegration: undefined,
             },
         });
     }

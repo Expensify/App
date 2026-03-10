@@ -723,7 +723,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const connectedIntegration = getConnectedIntegration(policy);
             const isReportsTab = typeExpenseReport;
 
-            const canReportBeExported = (report: (typeof selectedReports)[0]) => {
+            const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
                 if (!report.reportID) {
                     return false;
                 }
@@ -743,21 +743,25 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportPolicy,
                 );
 
-                return reportExportOptions.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                return reportExportOptions.includes(exportOption);
             };
 
-            const canExportAllReports = isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport && selectedReports.every(canReportBeExported);
+            const canExportAllReportsToIntegration =
+                isReportsTab &&
+                selectedReportIDs.length > 0 &&
+                includeReportLevelExport &&
+                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION));
+            const canMarkAllReportsAsExported =
+                isReportsTab &&
+                selectedReportIDs.length > 0 &&
+                includeReportLevelExport &&
+                selectedReports.every((report) => canReportBeExported(report, CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED));
 
-            if (canExportAllReports && connectedIntegration) {
+            if (connectedIntegration) {
                 const connectionNameFriendly = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectedIntegration];
                 const integrationIcon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
                 const handleExportAction = (exportAction: () => void) => {
-                    if (isOffline) {
-                        setIsOfflineModalVisible(true);
-                        return;
-                    }
-
                     const exportedReportNames: string[] = [];
                     let areAnyReportsExported = false;
 
@@ -800,8 +804,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 };
 
-                exportOptions.push(
-                    {
+                if (canExportAllReportsToIntegration) {
+                    exportOptions.push({
                         text: connectionNameFriendly,
                         icon: integrationIcon,
                         onSelected: () => handleExportAction(() => exportToIntegrationOnSearch(hash, selectedReportIDs, connectedIntegration)),
@@ -809,8 +813,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
                         additionalIconStyles: styles.integrationIcon,
-                    },
-                    {
+                    });
+                }
+
+                if (canMarkAllReportsAsExported) {
+                    exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         icon: integrationIcon,
                         onSelected: () => handleExportAction(() => markAsManuallyExported(selectedReportIDs, connectedIntegration)),
@@ -818,8 +825,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         shouldCallAfterModalHide: true,
                         displayInDefaultIconColor: true,
                         additionalIconStyles: styles.integrationIcon,
-                    },
-                );
+                    });
+                }
             }
 
             exportOptions.push({
