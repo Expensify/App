@@ -527,7 +527,7 @@ function MoneyRequestReportTransactionList({
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, isLargeScreenWidth ? styles.gap1 : styles.gap2, styles.pb4, styles.mb2]}
+            style={[listHorizontalPadding, isLargeScreenWidth ? styles.gap1 : styles.gap2, styles.pb4]}
             onLayout={onLayout}
         >
             {shouldShowGroupedTransactions
