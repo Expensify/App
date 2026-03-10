@@ -699,7 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: 'Nooit geregistreerd',
             statusNotRegistered: 'Niet geregistreerd',
             statusRegisteredThisDevice: 'Geregistreerd',
-            statusRegisteredOtherDevice: {one: 'Ander apparaat geregistreerd', other: 'Andere geregistreerde apparaten'},
+            statusRegisteredOtherDevice: () => ({one: 'Ander apparaat geregistreerd', other: 'Andere geregistreerde apparaten'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Schakel gezichts-/vingerafdrukverificatie in of stel een toesteltoegangscode in op uw',

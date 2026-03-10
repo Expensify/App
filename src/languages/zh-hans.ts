@@ -692,7 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: '从未注册',
             statusNotRegistered: '未注册',
             statusRegisteredThisDevice: '已注册',
-            statusRegisteredOtherDevice: {one: '已注册另一台设备', other: '已注册的其他设备'},
+            statusRegisteredOtherDevice: () => ({one: '已注册另一台设备', other: '已注册的其他设备'}),
         },
         pleaseEnableInSystemSettings: {
             start: '请在您的设备中启用面部/指纹验证或设置设备密码',

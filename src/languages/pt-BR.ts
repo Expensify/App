@@ -698,7 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: 'Nunca registrado',
             statusNotRegistered: 'Não registrado',
             statusRegisteredThisDevice: 'Registrado',
-            statusRegisteredOtherDevice: {one: 'Outro dispositivo registrado', other: 'Outros dispositivos registrados'},
+            statusRegisteredOtherDevice: () => ({one: 'Outro dispositivo registrado', other: 'Outros dispositivos registrados'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Ative a verificação por rosto/digital ou defina um código de acesso do dispositivo no seu',

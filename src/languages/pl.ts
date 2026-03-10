@@ -699,7 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: 'Nigdy nie zarejestrowano',
             statusNotRegistered: 'Nie zarejestrowano',
             statusRegisteredThisDevice: 'Zarejestrowano',
-            statusRegisteredOtherDevice: {one: 'Zarejestrowano inne urządzenie', other: 'Inne zarejestrowane urządzenia'},
+            statusRegisteredOtherDevice: () => ({one: 'Zarejestrowano inne urządzenie', other: 'Inne zarejestrowane urządzenia'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Włącz weryfikację twarzą/odciskiem palca lub ustaw kod blokady urządzenia w swoim',

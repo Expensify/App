@@ -699,7 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: '未登録',
             statusNotRegistered: '未登録',
             statusRegisteredThisDevice: '登録済み',
-            statusRegisteredOtherDevice: {one: '別のデバイスが登録されました', other: '登録済みの他のデバイス'},
+            statusRegisteredOtherDevice: () => ({one: '別のデバイスが登録されました', other: '登録済みの他のデバイス'}),
         },
         pleaseEnableInSystemSettings: {
             start: '顔認証/指紋認証を有効にするか、デバイスのパスコードを設定してください',

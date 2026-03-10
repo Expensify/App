@@ -702,7 +702,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: 'Jamais enregistré',
             statusNotRegistered: 'Non enregistré',
             statusRegisteredThisDevice: 'Enregistré',
-            statusRegisteredOtherDevice: {one: 'Un autre appareil enregistré', other: 'Autres appareils enregistrés'},
+            statusRegisteredOtherDevice: () => ({one: 'Un autre appareil enregistré', other: 'Autres appareils enregistrés'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Veuillez activer la vérification par reconnaissance faciale/empreinte digitale ou définir un code d’accès à l’appareil dans vos',

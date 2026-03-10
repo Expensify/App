@@ -700,7 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
             statusNeverRegistered: 'Nie registriert',
             statusNotRegistered: 'Nicht registriert',
             statusRegisteredThisDevice: 'Registriert',
-            statusRegisteredOtherDevice: {one: 'Anderes Gerät registriert', other: 'Andere Geräte registriert'},
+            statusRegisteredOtherDevice: () => ({one: 'Anderes Gerät registriert', other: 'Andere Geräte registriert'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Bitte aktiviere die Gesichts-/Fingerabdrucküberprüfung oder richte einen Gerätecode auf deinem Gerät ein',
