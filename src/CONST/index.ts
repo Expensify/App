@@ -6238,10 +6238,6 @@ const CONST = {
         RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW: 40,
     },
 
-    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
-        TEXT_TITLE: 'text_title',
-    },
-
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
