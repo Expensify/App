@@ -7309,7 +7309,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             hold: 'En attente',
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
-            duplicate: 'Dupliquer',
+            duplicateExpense: 'Dépense en double',
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
