@@ -35,7 +35,7 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
         };
     }, []);
 
-    const handleBackButtonPress = useCallback(() => {
+    const navigateToFeedSettings = useCallback(() => {
         Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID) : undefined);
     }, [policyID]);
 
@@ -46,8 +46,8 @@ function RefreshCardFeedConnectionPage({route, policy}: RefreshCardFeedConnectio
                     policyID={policyID}
                     feed={feed}
                     isRefreshConnectionFlow
-                    onSuccess={updateBrokenConnection}
-                    onBackButtonPress={handleBackButtonPress}
+                    onFailure={updateBrokenConnection}
+                    onBackButtonPress={navigateToFeedSettings}
                 />
             );
         case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:

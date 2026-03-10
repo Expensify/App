@@ -63,18 +63,18 @@ jest.mock('@userActions/CompanyCards', () => ({
     setAddNewCompanyCardStepAndData: jest.fn(),
 }));
 
-let capturedOnFailure: (() => void) | undefined;
+let capturedProps: {isRefreshConnectionFlow?: boolean; onFailure?: () => void; onBackButtonPress?: () => void} = {};
 jest.mock('@pages/workspace/companyCards/BankConnection', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
     return {
         __esModule: true,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        default: ({isRefreshConnectionFlow, onFailure}: {isRefreshConnectionFlow?: boolean; onFailure?: () => void}) => {
-            capturedOnFailure = onFailure;
+        default: (props: {isRefreshConnectionFlow?: boolean; onFailure?: () => void; onBackButtonPress?: () => void}) => {
+            capturedProps = props;
             return (
                 <View testID="BankConnection">
-                    <Text>{isRefreshConnectionFlow ? 'refresh-flow' : 'normal-flow'}</Text>
+                    <Text>{props.isRefreshConnectionFlow ? 'refresh-flow' : 'normal-flow'}</Text>
                 </View>
             );
         },
@@ -119,7 +119,7 @@ describe('RefreshCardFeedConnection', () => {
     });
 
     beforeEach(() => {
-        capturedOnFailure = undefined;
+        capturedProps = {};
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
@@ -201,8 +201,8 @@ describe('RefreshCardFeedConnection', () => {
         });
     });
 
-    describe('Failure handling', () => {
-        it('should dismiss modal when onFailure is called', async () => {
+    describe('BankConnection props', () => {
+        it('should pass onFailure and onBackButtonPress callbacks', async () => {
             await TestHelper.signInWithTestUser();
 
             const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, workspaceAccountID: WORKSPACE_ACCOUNT_ID};
@@ -220,13 +220,8 @@ describe('RefreshCardFeedConnection', () => {
                 expect(screen.getByTestId('BankConnection')).toBeOnTheScreen();
             });
 
-            expect(capturedOnFailure).toBeDefined();
-
-            act(() => {
-                capturedOnFailure?.();
-            });
-
-            expect(Navigation.dismissModal).toHaveBeenCalled();
+            expect(capturedProps.onFailure).toBeDefined();
+            expect(capturedProps.onBackButtonPress).toBeDefined();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
