@@ -77,6 +77,19 @@ function cancelSpansByPrefix(prefix: string) {
     }
 }
 
+/**
+ * Ends a span only if it's currently active. Unlike `endSpan`, this silently no-ops
+ * when the span doesn't exist, making it safe for render paths where the span
+ * may or may not have been started.
+ */
+function tryEndSpan(spanId: string): boolean {
+    if (!activeSpans.has(spanId)) {
+        return false;
+    }
+    endSpan(spanId);
+    return true;
+}
+
 function getSpan(spanId: string) {
     return activeSpans.get(spanId);
 }
@@ -87,4 +100,4 @@ function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAt
     endSpan(spanId);
 }
 
-export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
+export {startSpan, endSpan, tryEndSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
