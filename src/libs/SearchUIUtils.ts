@@ -85,7 +85,6 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
@@ -985,7 +984,19 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
-        const isUserApprover = currentUserEmail && policy ? isApproverUtils(policy, currentUserEmail) : policy.approver === currentUserEmail;
+        let isSubmittedTo = false;
+        let isUserApprover = policy.approver === currentUserEmail;
+        for (const employee of Object.values(policy.employeeList ?? {})) {
+            if (employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail) {
+                isSubmittedTo = true;
+                isUserApprover = true;
+            } else if (employee?.overLimitForwardsTo === currentUserEmail) {
+                isUserApprover = true;
+            }
+            if (isSubmittedTo && isUserApprover) {
+                break;
+            }
+        }
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
         const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
@@ -995,9 +1006,6 @@ function getSuggestedSearchesVisibility(
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
-        });
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
