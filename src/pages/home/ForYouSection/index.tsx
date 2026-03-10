@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -15,8 +14,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {accountIDSelector} from '@src/selectors/Session';
-import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
+import todosReportCountsSelector from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
+import ForYouSkeleton from './ForYouSkeleton';
 
 function ForYouSection() {
     const styles = useThemeStyles();
@@ -25,84 +25,60 @@ function ForYouSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
-    const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [reportCounts] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
-    const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
-    const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
-    const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
-    const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
+    const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
+    const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
+    const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
+    const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
 
     const hasAnyTodos = submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
 
-    const createNavigationHandler = useCallback(
-        (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
-            if (reportID) {
-                if (shouldUseNarrowLayout) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                } else {
-                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}));
-                }
-                return;
-            }
-
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                        action,
-                        ...queryParams,
-                    }),
+    const createNavigationHandler = (action: string, queryParams: Record<string, unknown>) => () => {
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    action,
+                    ...queryParams,
                 }),
-            );
-        },
-        [shouldUseNarrowLayout],
-    );
+            }),
+        );
+    };
 
-    const todoItems = useMemo(
-        () =>
-            [
-                {
-                    key: 'submit',
-                    count: submitCount,
-                    icon: icons.Send,
-                    translationKey: 'homePage.forYouSection.submit' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]),
-                },
-                {
-                    key: 'approve',
-                    count: approveCount,
-                    icon: icons.ThumbsUp,
-                    translationKey: 'homePage.forYouSection.approve' as const,
-                    handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}, singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]),
-                },
-                {
-                    key: 'pay',
-                    count: payCount,
-                    icon: icons.MoneyBag,
-                    translationKey: 'homePage.forYouSection.pay' as const,
-                    handler: createNavigationHandler(
-                        CONST.SEARCH.ACTION_FILTERS.PAY,
-                        {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()},
-                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY],
-                    ),
-                },
-                {
-                    key: 'export',
-                    count: exportCount,
-                    icon: icons.Export,
-                    translationKey: 'homePage.forYouSection.export' as const,
-                    handler: createNavigationHandler(
-                        CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER},
-                        singleReportIDs[CONST.SEARCH.SEARCH_KEYS.EXPORT],
-                    ),
-                },
-            ].filter((item) => item.count > 0),
-        [accountID, approveCount, createNavigationHandler, exportCount, icons.Export, icons.MoneyBag, icons.Send, icons.ThumbsUp, payCount, singleReportIDs, submitCount],
-    );
+    const todoItems = [
+        {
+            key: 'submit',
+            count: submitCount,
+            icon: icons.Send,
+            translationKey: 'homePage.forYouSection.submit' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.SUBMIT, {from: [`${accountID}`]}),
+        },
+        {
+            key: 'approve',
+            count: approveCount,
+            icon: icons.ThumbsUp,
+            translationKey: 'homePage.forYouSection.approve' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.APPROVE, {to: [`${accountID}`]}),
+        },
+        {
+            key: 'pay',
+            count: payCount,
+            icon: icons.MoneyBag,
+            translationKey: 'homePage.forYouSection.pay' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {reimbursable: CONST.SEARCH.BOOLEAN.YES, payer: accountID?.toString()}),
+        },
+        {
+            key: 'export',
+            count: exportCount,
+            icon: icons.Export,
+            translationKey: 'homePage.forYouSection.export' as const,
+            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.EXPORT, {exporter: [`${accountID}`], exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER}),
+        },
+    ].filter((item) => item.count > 0);
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
@@ -122,12 +98,8 @@ function ForYouSection() {
     );
 
     const renderContent = () => {
-        if (isLoadingApp) {
-            return (
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.pv6, styles.mb8]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                </View>
-            );
+        if (isLoadingApp || isLoadingReportData || reportCounts === undefined) {
+            return <ForYouSkeleton />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;

@@ -17,6 +17,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -26,7 +27,7 @@ import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type CursorStyles from '@styles/utils/cursor/types';
 import type {TransactionPreviewData} from '@userActions/Search';
 import type CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {LastPaymentMethod, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, SearchResults, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
@@ -121,9 +122,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
-
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
 
     /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
     accessibilityRole?: Role;
@@ -491,6 +489,27 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The available actions that can be performed for the report */
         allActions?: SearchTransactionAction[];
+
+        /** Pre-computed total display spend amount */
+        totalDisplaySpend?: number;
+
+        /** Pre-computed non-reimbursable spend amount */
+        nonReimbursableSpend?: number;
+
+        /** Pre-computed reimbursable spend amount */
+        reimbursableSpend?: number;
+
+        /** Pre-computed flag indicating whether all transactions are scanning */
+        isAllScanning?: boolean;
+
+        /** Pre-computed primary avatar icon for the report */
+        primaryAvatar?: Icon;
+
+        /** Pre-computed secondary avatar icon for the report (workspace icon for subscript display) */
+        secondaryAvatar?: Icon;
+
+        /** Layout type for the report avatar, matching CONST.REPORT_ACTION_AVATARS.TYPE */
+        avatarType?: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
@@ -626,6 +645,9 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+        /** Whether this list item should be an accessibility container. When false, VoiceOver navigates to individual children instead of grouping them. */
+        accessible?: false;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -669,6 +691,10 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -694,6 +720,12 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -708,6 +740,10 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     onDEWModalOpen?: () => void;
     /** Whether the DEW beta flag is enabled */
     isDEWBetaEnabled?: boolean;
+    /** The last payment method used per policy */
+    lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+    /** The user's personal policy ID */
+    personalPolicyID?: string;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
@@ -903,7 +939,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     showScrollIndicator?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** The component to show when the list is loading */
     LoadingPlaceholderComponent?: React.ComponentType<LoadingPlaceholderComponentProps>;

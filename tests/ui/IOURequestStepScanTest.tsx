@@ -52,6 +52,7 @@ jest.mock('@hooks/useFilesValidation', () => {
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
+    useCameraFormat: jest.fn(() => null),
 }));
 
 function createMinimalReport(reportID: string, policyID: string): Report {

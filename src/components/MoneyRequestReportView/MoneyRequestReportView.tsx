@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -56,6 +57,9 @@ type MoneyRequestReportViewProps = {
 
     /** The `backTo` route that should be used when clicking back button */
     backToRoute: Route | undefined;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 function goBackFromSearchMoneyRequest() {
@@ -85,9 +89,12 @@ function goBackFromSearchMoneyRequest() {
     Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 }
 
-function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
+function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayout?: (event: LayoutChangeEvent) => void}) {
     return (
-        <View style={[styles.flex1]}>
+        <View
+            style={[styles.flex1]}
+            onLayout={onLayout}
+        >
             <View style={[styles.appContentHeader, styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
             </View>
@@ -96,7 +103,7 @@ function InitialLoadingSkeleton({styles}: {styles: ThemeStyles}) {
     );
 }
 
-function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -105,7 +112,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -233,10 +239,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
                         report={report}
-                        reportMetadata={reportMetadata}
-                        policy={policy}
-                        pendingAction={reportPendingAction}
-                        isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
                         // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                         transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
@@ -287,6 +289,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 newTransactions={newTransactions}
                                 reportActions={reportActions}
                                 hasOlderActions={hasOlderActions}
+                                onLayout={onLayout}
                                 hasNewerActions={hasNewerActions}
                                 showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
                                 reportPendingAction={reportPendingAction}
@@ -299,6 +302,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 hasNewerActions={hasNewerActions}
                                 hasOlderActions={hasOlderActions}
                                 parentReportAction={parentReportAction}
+                                onLayout={onLayout}
                                 transactionThreadReportID={transactionThreadReportID}
                             />
                         )}
@@ -306,10 +310,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             <>
                                 <ReportFooter
                                     report={report}
-                                    reportMetadata={reportMetadata}
-                                    policy={policy}
-                                    pendingAction={reportPendingAction}
-                                    isComposerFullSize={!!isComposerFullSize}
                                     lastReportAction={lastReportAction}
                                     reportTransactions={transactions}
                                     // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)

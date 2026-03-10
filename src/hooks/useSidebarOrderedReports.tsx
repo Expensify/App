@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useCurrentReportIDState} from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useDeepCompareRef from './useDeepCompareRef';
 import useLocalize from './useLocalize';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
@@ -28,21 +27,27 @@ type SidebarOrderedReportsContextProviderProps = {
     currentReportIDForTests?: string;
 };
 
-type SidebarOrderedReportsContextValue = {
+type SidebarOrderedReportsStateContextValue = {
     orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
+};
+
+type SidebarOrderedReportsActionsContextValue = {
     clearLHNCache: () => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
-const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
+const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsStateContextValue>({
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
+});
+
+const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
     clearLHNCache: () => {},
 });
 
@@ -182,13 +187,19 @@ function SidebarOrderedReportsContextProvider({
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
-        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
+        const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
+
+        // When reportAttributes changes (e.g. on startup hydration) but no report-specific keys were
+        // updated, getUpdatedReports() returns []. Rather than falling through to a full scan of all
+        // reports, recheck only the already-displayed reports with the new reportAttributes.
+        const effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay = {};
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
                 reports: chatReports,
-                updatedReportsKeys: updatedReports,
+                updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
                 betas,
@@ -204,7 +215,6 @@ function SidebarOrderedReportsContextProvider({
                 derivedCurrentReportID,
                 chatReports,
                 betas,
-                policies,
                 priorityMode,
                 reportsDrafts,
                 transactionViolations,
@@ -217,35 +227,38 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        getUpdatedReports,
-        chatReports,
-        derivedCurrentReportID,
-        priorityMode,
-        betas,
-        policies,
-        transactionViolations,
-        reportNameValuePairs,
-        reportAttributes,
-        reportsDrafts,
-        clearCacheDummyCounter,
-    ]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
 
-    // useDeepCompareRef prevents unnecessary useCallback recreations when these have same content but different reference.
-    // Without this, getOrderedReportIDs would be recreated on every render, causing expensive orderedReportIDs recalculation.
-    const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
-    const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
+    // Derive a stable boolean map indicating which reports have drafts.
+    const hasDraftByReportIDRef = useRef<Record<string, boolean>>({});
+    const hasDraftByReportID = useMemo(() => {
+        const result: Record<string, boolean> = {};
+        if (reportsDrafts) {
+            for (const [key, value] of Object.entries(reportsDrafts)) {
+                if (value) {
+                    result[key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, '')] = true;
+                }
+            }
+        }
+        const prev = hasDraftByReportIDRef.current;
+        const prevKeys = Object.keys(prev);
+        const newKeys = Object.keys(result);
+        if (prevKeys.length === newKeys.length && newKeys.every((k) => k in prev)) {
+            return prev;
+        }
+        hasDraftByReportIDRef.current = result;
+        return result;
+    }, [reportsDrafts]);
 
     useEffect(() => {
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
-        () =>
-            SidebarUtils.sortReportsToDisplayInLHN(deepComparedReportsToDisplayInLHN ?? {}, priorityMode, localeCompare, deepComparedReportsDrafts, reportNameValuePairs, conciergeReportID),
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, hasDraftByReportID, reportNameValuePairs, conciergeReportID),
         // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [deepComparedReportsToDisplayInLHN, localeCompare, deepComparedReportsDrafts, conciergeReportID],
+        [reportsToDisplayInLHN, localeCompare, hasDraftByReportID, conciergeReportID],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
@@ -269,7 +282,7 @@ function SidebarOrderedReportsContextProvider({
         setClearCacheDummyCounter((current) => current + 1);
     }, []);
 
-    const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
+    const stateValue: SidebarOrderedReportsStateContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -293,7 +306,6 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
-                clearLHNCache,
             };
         }
 
@@ -302,9 +314,10 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
-            clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+
+    const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 
     const currentDeps = {
         priorityMode,
@@ -328,42 +341,56 @@ function SidebarOrderedReportsContextProvider({
         orderedReportIDs,
         orderedReports,
     };
-    const prevContextValue = usePrevious(contextValue);
+    const prevContextValue = usePrevious(stateValue);
     const previousDeps = usePrevious(currentDeps);
     const firstRender = useRef(true);
 
     useEffect(() => {
         const hookExecutionDuration = performance.now() - hookStartTime.current;
         perfRef.current.hookDuration = hookExecutionDuration;
-    }, [contextValue]);
+    }, [stateValue]);
 
     useEffect(() => {
         // Cases below ensure we only log when the edge case (empty -> non-empty or non-empty -> empty) happens.
         // This is done to avoid excessive logging when the orderedReports array is updated, but does not impact LHN.
 
         // Case 1: orderedReports goes from empty to non-empty
-        if (contextValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
+        if (stateValue.orderedReports.length > 0 && prevContextValue?.orderedReports.length === 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from empty to non-empty', currentDeps, previousDeps, perfRef);
         }
         // Case 2: orderedReports goes from non-empty to empty
-        if (contextValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
+        if (stateValue.orderedReports.length === 0 && prevContextValue?.orderedReports.length > 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports went from non-empty to empty', currentDeps, previousDeps, perfRef);
         }
 
         // Case 3: orderedReports are empty from the beginning
-        if (firstRender.current && contextValue.orderedReports.length === 0) {
+        if (firstRender.current && stateValue.orderedReports.length === 0) {
             logChangedDeps('[useSidebarOrderedReports] Ordered reports initialized empty', currentDeps, previousDeps, perfRef);
         }
 
         firstRender.current = false;
     });
 
-    return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
+    return (
+        <SidebarOrderedReportsStateContext.Provider value={stateValue}>
+            <SidebarOrderedReportsActionsContext.Provider value={actionsValue}>{children}</SidebarOrderedReportsActionsContext.Provider>
+        </SidebarOrderedReportsStateContext.Provider>
+    );
+}
+
+function useSidebarOrderedReportsState(componentName?: string) {
+    useSidebarOrderedReportsPerformance(componentName);
+    return useContext(SidebarOrderedReportsStateContext);
+}
+
+function useSidebarOrderedReportsActions() {
+    return useContext(SidebarOrderedReportsActionsContext);
 }
 
 function useSidebarOrderedReports(componentName?: string) {
-    useSidebarOrderedReportsPerformance(componentName);
-    return useContext(SidebarOrderedReportsContext);
+    const state = useSidebarOrderedReportsState(componentName);
+    const actions = useSidebarOrderedReportsActions();
+    return {...state, ...actions};
 }
 
 function useSidebarOrderedReportsPerformance(componentName?: string) {
@@ -400,7 +427,7 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
     }, [componentName]);
 }
 
-export {SidebarOrderedReportsContext, SidebarOrderedReportsContextProvider, useSidebarOrderedReports};
+export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
 export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
 
 function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
