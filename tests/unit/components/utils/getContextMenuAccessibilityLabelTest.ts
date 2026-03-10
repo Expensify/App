@@ -1,17 +1,20 @@
 import getContextMenuAccessibilityLabel from '@components/utils/getContextMenuAccessibilityLabel';
 import getPlatform from '@libs/getPlatform';
+import type {TranslationPaths} from '@src/languages/types';
 
 jest.mock('@libs/getPlatform', () => jest.fn());
 
 const mockedGetPlatform = jest.mocked(getPlatform);
 
-const translate = (key: 'common.yourReviewIsRequired' | 'accessibilityHints.contextMenuAvailable') => {
-    const translations = {
-        'common.yourReviewIsRequired': 'Your review is required',
-        'accessibilityHints.contextMenuAvailable': 'Context menu available. Press Shift+F10 to open.',
-    };
-
-    return translations[key];
+const translate = (key: TranslationPaths) => {
+    switch (key) {
+        case 'common.yourReviewIsRequired':
+            return 'Your review is required';
+        case 'accessibilityHints.contextMenuAvailable':
+            return 'Context menu available. Press Shift+F10 to open.';
+        default:
+            return '';
+    }
 };
 
 describe('getContextMenuAccessibilityLabel', () => {
