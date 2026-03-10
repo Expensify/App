@@ -134,12 +134,17 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
 
     const descriptionComponent = isCancelled ? (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={[styles.textLabelSupporting, styles.lh16]}>{formattedDate}</Text>
             <Badge
                 text={translate('iou.canceled')}
                 isCondensed
                 badgeStyles={styles.ml0}
             />
+            <Text
+                numberOfLines={1}
+                style={[styles.textLabelSupporting, styles.lh16, styles.flexShrink1]}
+            >
+                {formattedDate}
+            </Text>
         </View>
     ) : undefined;
 
@@ -157,7 +162,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
                     titleComponent()
                 )
             }
-            accessibilityLabel={isCancelled ? `${formattedDate} ${translate('iou.canceled')}` : undefined}
+            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${formattedDate}` : undefined}
             titleContainerStyle={[styles.justifyContentStart, styles.gap1]}
             secondaryIcon={reservationIcon}
             isSecondaryIconHoverable

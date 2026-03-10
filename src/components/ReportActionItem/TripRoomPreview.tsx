@@ -102,12 +102,17 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
     const fullTitleComponent = isCancelled ? (
         <View>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{description}</Text>
                 <Badge
                     text={translate('iou.canceled')}
                     isCondensed
                     badgeStyles={styles.ml0}
                 />
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textLabelSupporting, styles.lh16, styles.flexShrink1]}
+                >
+                    {description}
+                </Text>
             </View>
             {titleComponent}
         </View>
@@ -120,7 +125,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             description={isCancelled ? undefined : description}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={fullTitleComponent}
-            accessibilityLabel={isCancelled ? `${description} ${translate('iou.canceled')}` : undefined}
+            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${description}` : undefined}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}

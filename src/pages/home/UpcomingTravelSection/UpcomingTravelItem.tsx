@@ -102,12 +102,17 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
                 isCancelled ? (
                     <View>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                            <Text style={[styles.textLabelSupporting, styles.textSupporting]}>{subtitle}</Text>
                             <Badge
                                 text={translate('iou.canceled')}
                                 isCondensed
                                 badgeStyles={styles.ml0}
                             />
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.textLabelSupporting, styles.textSupporting, styles.flexShrink1]}
+                            >
+                                {subtitle}
+                            </Text>
                         </View>
                         <Text style={styles.textNormal}>{title}</Text>
                     </View>
@@ -115,7 +120,7 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
             }
             title={isCancelled ? undefined : title}
             titleStyle={styles.textBold}
-            accessibilityLabel={isCancelled ? `${subtitle} ${translate('iou.canceled')} ${title}` : undefined}
+            accessibilityLabel={isCancelled ? `${translate('iou.canceled')} ${subtitle} ${title}` : undefined}
             onPress={handlePress}
             shouldShowRightIcon
             leftComponent={
