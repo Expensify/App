@@ -1,0 +1,257 @@
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Alert, Modal, View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
+import type {Camera, PhotoFile} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
+import ActivityIndicator from '@components/ActivityIndicator';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import ImageSVG from '@components/ImageSVG';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import getPhotoSource from '@libs/fileDownload/getPhotoSource';
+import Log from '@libs/Log';
+import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import CONST from '@src/CONST';
+
+type CapturedPhoto = {
+    uri: string;
+    fileName: string;
+    type: string;
+    width: number;
+    height: number;
+};
+
+type AttachmentCameraProps = {
+    /** Whether the camera modal is visible */
+    isVisible: boolean;
+
+    /** Callback when a photo is captured */
+    onCapture: (photos: CapturedPhoto[]) => void;
+
+    /** Callback when the camera is closed without capturing */
+    onClose: () => void;
+};
+
+// Spacer to match the flash toggle width for centering the shutter button
+const spacerStyle = {width: 32, height: 32} as const;
+
+function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const insets = useSafeAreaInsets();
+
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'BackArrow']);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
+
+    const camera = useRef<Camera>(null);
+    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
+    const isCapturing = useRef(false);
+
+    const device = useCameraDevice('back', {
+        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
+    });
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {photoResolution: 'max'}]);
+    const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const hasFlash = !!device?.hasFlash;
+
+    // Request camera permissions when modal opens
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+
+        CameraPermission.getCameraPermissionStatus?.()
+            .then((status) => {
+                if (status === RESULTS.DENIED) {
+                    return CameraPermission.requestCameraPermission?.().then(setCameraPermissionStatus);
+                }
+                setCameraPermissionStatus(status);
+            })
+            .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+    }, [isVisible]);
+
+    const [flash, setFlash] = useState(false);
+
+    const askForPermissions = useCallback(() => {
+        CameraPermission.requestCameraPermission?.()
+            .then((status: string) => {
+                setCameraPermissionStatus(status);
+                if (status === RESULTS.BLOCKED) {
+                    showCameraPermissionsAlert(translate);
+                }
+            })
+            .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+    }, [translate]);
+
+    const capturePhoto = useCallback(() => {
+        if (!camera.current || isCapturing.current) {
+            return;
+        }
+
+        if (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED) {
+            askForPermissions();
+            return;
+        }
+
+        isCapturing.current = true;
+
+        camera.current
+            .takePhoto({
+                flash: flash && hasFlash ? 'on' : 'off',
+            })
+            .then((photo: PhotoFile) => {
+                const uri = getPhotoSource(photo.path);
+                const fileName = photo.path.split('/').pop() ?? `photo_${Date.now()}.jpg`;
+
+                onCapture([
+                    {
+                        uri,
+                        fileName,
+                        type: 'image/jpeg',
+                        width: photo.width,
+                        height: photo.height,
+                    },
+                ]);
+            })
+            .catch((error: unknown) => {
+                Log.warn('AttachmentCamera: Error taking photo', {error});
+                Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+            })
+            .finally(() => {
+                isCapturing.current = false;
+            });
+    }, [cameraPermissionStatus, flash, hasFlash, onCapture, translate, askForPermissions]);
+
+    return (
+        <Modal
+            visible={isVisible}
+            animationType="slide"
+            presentationStyle="fullScreen"
+            statusBarTranslucent
+            onRequestClose={onClose}
+        >
+            <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+                {/* Camera viewfinder area */}
+                <View style={styles.flex1}>
+                    {cameraPermissionStatus !== RESULTS.GRANTED && (
+                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                            <ImageSVG
+                                contentFit="contain"
+                                src={lazyIllustrations.Hand}
+                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                style={styles.pb5}
+                            />
+                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                            <Button
+                                success
+                                text={translate('common.continue')}
+                                accessibilityLabel={translate('common.continue')}
+                                style={[styles.p9, styles.pt5]}
+                                onPress={askForPermissions}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                        <View style={styles.cameraView}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={styles.flex1}
+                                color={theme.textSupporting}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
+                            <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio)}>
+                                <VisionCamera
+                                    ref={camera}
+                                    device={device}
+                                    format={format}
+                                    style={styles.flex1}
+                                    zoom={device.neutralZoom}
+                                    photo
+                                    isActive={isVisible}
+                                    photoQualityBalance="speed"
+                                />
+                            </View>
+                        </View>
+                    )}
+                </View>
+
+                {/* Close button (top-left, overlaid on camera) */}
+                <View
+                    style={[styles.pAbsolute, {top: insets.top + 8, left: 16}]}
+                    pointerEvents="box-none"
+                >
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                        onPress={onClose}
+                        style={styles.p2}
+                    >
+                        <Icon
+                            height={24}
+                            width={24}
+                            src={lazyIcons.BackArrow}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                </View>
+
+                {/* Bottom controls */}
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3, {paddingBottom: insets.bottom + 12}]}>
+                    {/* Flash toggle */}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                        disabled={!hasFlash}
+                        onPress={() => setFlash((prev) => !prev)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
+
+                    {/* Shutter button */}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.shutter')}
+                        style={styles.alignItemsCenter}
+                        onPress={capturePhoto}
+                    >
+                        <ImageSVG
+                            contentFit="contain"
+                            src={lazyIllustrations.Shutter}
+                            width={CONST.RECEIPT.SHUTTER_SIZE}
+                            height={CONST.RECEIPT.SHUTTER_SIZE}
+                        />
+                    </PressableWithFeedback>
+
+                    {/* Empty spacer for layout symmetry with flash toggle */}
+                    <View style={spacerStyle} />
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
+AttachmentCamera.displayName = 'AttachmentCamera';
+
+export default AttachmentCamera;
+export type {CapturedPhoto};
