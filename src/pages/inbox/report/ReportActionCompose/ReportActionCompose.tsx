@@ -72,7 +72,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsProps, ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import MessageEditCancelButton from './MessageEditCancelButton';
 import ReportActionComposeSendButton from './ReportActionComposeSendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
