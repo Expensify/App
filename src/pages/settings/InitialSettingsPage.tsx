@@ -41,6 +41,7 @@ import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -61,7 +62,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
@@ -242,10 +243,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         {
             translationKey: 'common.profile',
             icon: icons.Profile,
-            screenName: SCREENS.SETTINGS.PROFILE.ROOT,
+            screenName: SCREENS.SETTINGS.PROFILE.DYNAMIC_PROFILE,
             brickRoadIndicator: profileBrickRoadIndicator,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
+            action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.path)),
         },
         {
             translationKey: 'common.wallet',

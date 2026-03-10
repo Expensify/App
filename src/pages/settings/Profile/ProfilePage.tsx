@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -15,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,14 +25,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault, getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -48,7 +46,7 @@ function ProfilePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -169,13 +167,7 @@ function ProfilePage() {
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo);
-                        return;
-                    }
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={() => Navigation.goBack(dynamicBackPath)}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
