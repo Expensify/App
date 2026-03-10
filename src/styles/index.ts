@@ -5022,7 +5022,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         screenReaderOnly: {
             position: 'absolute',
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
             opacity: 0,
+            pointerEvents: 'none',
         },
 
         interactiveStepHeaderContainer: {
