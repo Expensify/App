@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
+import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import BaseTextInput from './BaseTextInput';
 import type {BaseTextInputProps} from './BaseTextInput/types';
@@ -17,6 +18,7 @@ function getIsRestoringKeyboardFocus() {
 function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
+    const removeVisibilityListenerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
         if (props.disableKeyboard) {
@@ -62,12 +64,24 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
             window.addEventListener('focus', handleWindowFocus);
         }
 
+        let removeVisibilityListener = removeVisibilityListenerRef.current;
+        removeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+                return;
+            }
+            textInputRef.current.blur();
+            textInputRef.current.focus();
+        });
+
         return () => {
             clearTimeout(focusTimeoutId);
             clearTimeout(flagResetTimeoutId);
             isRestoringKeyboardFocus = false;
             if (typeof window !== 'undefined') {
                 window.removeEventListener('focus', handleWindowFocus);
+            }
+            if (removeVisibilityListener) {
+                removeVisibilityListener();
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
