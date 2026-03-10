@@ -20,6 +20,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -74,7 +75,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+
     const parentReportAction = useParentReportAction(report);
+
+    const handleSubmitToDestinationVisibleLayout = useSubmitToDestinationVisible(
+        [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
+        reportIDFromRoute,
+        CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT,
+    );
+
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const prevReport = usePrevious(report);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -261,7 +270,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // Create transaction thread for legacy transactions that don't have one yet.
     // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
     useEffect(() => {
-        if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
+        if (
+            hasCreatedLegacyThreadRef.current ||
+            transactionThreadReportID ||
+            (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction) ||
+            !reportMetadata?.hasOnceLoadedReportActions ||
+            reportActions.length === 0
+        ) {
             return;
         }
 
@@ -306,6 +321,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         report,
         reportActions,
         reportIDFromRoute,
+        reportMetadata?.hasOnceLoadedReportActions,
         reportMetadata?.isLoadingInitialReportActions,
         snapshot,
         snapshotTransaction,
@@ -416,6 +432,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     key={report?.reportID}
+                                    onLayout={handleSubmitToDestinationVisibleLayout}
                                     backToRoute={route.params.backTo}
                                 />
                                 <PortalHost name="suggestions" />

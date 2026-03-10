@@ -8,12 +8,21 @@ import type {Unit} from '@src/types/onyx/Policy';
 const ATTRIBUTES_TYPE = 'GpsTripAttributes';
 
 let activityId: string | null = null;
-let distanceUnit: Unit | null = null;
+let lastDistanceUnit: Unit | null = null;
+let lastDistanceUnitLong: string | null = null;
+let lastDistanceInMeters: number | null = null;
+
+function getDistanceUnitLong(translate: LocalizedTranslate, unit: Unit) {
+    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+}
 
 function startGpsTripNotification(translate: LocalizedTranslate, reportID: string, unit: Unit, distanceInMeters = 0) {
     const subtitle = translate('gps.liveActivity.subtitle');
     const buttonText = translate('gps.liveActivity.button');
-    const distanceUnitLong = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+
+    lastDistanceUnitLong = getDistanceUnitLong(translate, unit);
+    lastDistanceUnit = unit;
+    lastDistanceInMeters = distanceInMeters;
 
     const deepLink = ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID);
 
@@ -23,36 +32,60 @@ function startGpsTripNotification(translate: LocalizedTranslate, reportID: strin
         .start({
             attributesType: ATTRIBUTES_TYPE,
             content: {
-                state: {distance},
+                state: {distance, distanceUnit: unit, distanceUnitLong: lastDistanceUnitLong},
                 relevanceScore: 100,
             },
-            attributes: {deepLink, subtitle, distanceUnit: unit, distanceUnitLong, buttonText},
+            attributes: {deepLink, subtitle, buttonText},
         })
         .then((activity) => {
             activityId = activity.id;
-            distanceUnit = unit;
         })
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to start', error));
 }
 
-function updateGpsTripNotification(distanceInMeters: number) {
-    if (activityId === null || distanceUnit === null) {
-        console.error('[GPS Live Activity] Failed to start update: activityId or distanceUnit is null');
-        return;
-    }
-
-    const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit);
-
+function updateGpsTripNotification(nonNullActivityId: string, distance: number, distanceUnit: Unit, distanceUnitLong: string) {
     Airship.iOS.liveActivityManager
         .update({
             attributesType: ATTRIBUTES_TYPE,
-            activityId,
+            activityId: nonNullActivityId,
             content: {
-                state: {distance},
+                state: {distance, distanceUnit, distanceUnitLong},
                 relevanceScore: 100,
             },
         })
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to update', error));
+}
+
+function updateGpsTripNotificationDistance(distanceInMeters: number) {
+    if (activityId === null || lastDistanceUnit === null || lastDistanceUnitLong === null) {
+        console.error('[GPS Live Activity] Failed to start update: activityId or lastDistanceUnit/lastDistanceUnitLong is null');
+        return;
+    }
+
+    lastDistanceInMeters = distanceInMeters;
+
+    const distance = DistanceRequestUtils.convertDistanceUnit(distanceInMeters, lastDistanceUnit);
+
+    updateGpsTripNotification(activityId, distance, lastDistanceUnit, lastDistanceUnitLong);
+}
+
+function updateGpsTripNotificationUnit(translate: LocalizedTranslate, unit: Unit) {
+    if (activityId === null || lastDistanceInMeters === null) {
+        console.error('[GPS Live Activity] Failed to start update: activityId or lastDistanceInMeters is null');
+        return;
+    }
+
+    // Update is not needed if the distance unit will stay the same
+    if (lastDistanceUnit === unit) {
+        return;
+    }
+
+    lastDistanceUnitLong = getDistanceUnitLong(translate, unit);
+    lastDistanceUnit = unit;
+
+    const distance = DistanceRequestUtils.convertDistanceUnit(lastDistanceInMeters, unit);
+
+    updateGpsTripNotification(activityId, distance, lastDistanceUnit, lastDistanceUnitLong);
 }
 
 function stopGpsTripNotification() {
@@ -69,7 +102,9 @@ function stopGpsTripNotification() {
         .catch((error: unknown) => console.error('[GPS Live Activity] Failed to end', error));
 
     activityId = null;
-    distanceUnit = null;
+    lastDistanceUnit = null;
+    lastDistanceInMeters = null;
+    lastDistanceUnitLong = null;
 }
 
 async function checkAndCleanGpsNotification() {
@@ -90,4 +125,8 @@ async function checkAndCleanGpsNotification() {
     }
 }
 
-export {startGpsTripNotification, updateGpsTripNotification, stopGpsTripNotification, checkAndCleanGpsNotification};
+function shouldUpdateGpsNotificationUnit() {
+    return activityId !== null;
+}
+
+export {startGpsTripNotification, updateGpsTripNotificationDistance, updateGpsTripNotificationUnit, stopGpsTripNotification, checkAndCleanGpsNotification, shouldUpdateGpsNotificationUnit};
