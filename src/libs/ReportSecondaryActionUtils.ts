@@ -199,12 +199,6 @@ function isSubmitAction({
         return false;
     }
 
-    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
-
-    if (!transactionAreComplete) {
-        return false;
-    }
-
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -960,6 +954,8 @@ function getSecondaryReportActions({
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
+
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
