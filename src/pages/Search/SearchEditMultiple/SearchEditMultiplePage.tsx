@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getCommonDependentTag, getTransactionEditContext} from './SearchEditMultipleUtils';
+import {getTransactionEditContext} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
@@ -69,13 +69,21 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableDateTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.DATE);
 
-    const areSelectedTransactionsBillable = selectedTransactionContexts.every(
-        ({transaction, transactionPolicy}) => transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable,
-    );
+    const areSelectedTransactionsBillable = selectedTransactionContexts.every(({transaction, transactionPolicy}) => {
+        // Unreported expenses have no policy yet but billable is always applicable
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable;
+    });
 
-    const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(
-        ({transaction, report, transactionPolicy}) => !isIOUReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction),
-    );
+    const areSelectedTransactionsReimbursable = selectedTransactionContexts.every(({transaction, report, transactionPolicy}) => {
+        // Unreported expenses have no policy yet but reimbursable is always applicable
+        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return true;
+        }
+        return !isIOUReport(report) && transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
+    });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, allTransactions, allReports);
 
@@ -145,9 +153,6 @@ function SearchEditMultiplePage() {
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     // TODO: Currency editing and currency symbol should be handled in a separate PR
-    const selectedTransactionsList = selectedTransactionIDs.map((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
-    const commonDependentTag = getCommonDependentTag(selectedTransactionsList);
-    const dependentTagSource = draftTransaction?.tag === undefined ? commonDependentTag : draftTransaction?.tag;
     const tagsArray = getTagArrayFromName(draftTransaction?.tag ?? '');
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const tagFields: Array<{description: string; title: string; route: Route; disabled?: boolean}> = areTagsEnabled
@@ -158,7 +163,7 @@ function SearchEditMultiplePage() {
               let shouldShow = true;
 
               if (hasDependentTags) {
-                  shouldShow = shouldShowDependentTagList(tagListIndex, dependentTagSource, tagList.tags);
+                  shouldShow = shouldShowDependentTagList(tagListIndex, draftTransaction?.tag, tagList.tags);
               }
 
               if (!shouldShow) {
