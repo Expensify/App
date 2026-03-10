@@ -637,10 +637,7 @@ function handleMoneyRequestStepDistanceNavigation({
             let amount = 0;
             if (isManualDistance && distance !== undefined && unit) {
                 const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-                const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-                const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                const mileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
+                const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
             }
 
