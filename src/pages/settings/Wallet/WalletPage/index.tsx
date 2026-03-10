@@ -41,6 +41,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
@@ -600,6 +601,7 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -607,7 +609,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={styles.flex1}>
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
                 </View>
             </ScreenWrapper>
         );
