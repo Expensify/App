@@ -4675,6 +4675,13 @@ describe('actions/IOU', () => {
     });
 
     describe('split expense', () => {
+        const splitMockPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
+            [CARLOS_ACCOUNT_ID]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL, displayName: 'Carlos'},
+            [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
+            [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
+        };
+
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
             /*
@@ -4847,6 +4854,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             policyRecentlyUsedTags: undefined,
                             betas: [CONST.BETAS.ALL],
+                            personalDetails: splitMockPersonalDetails,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -5185,6 +5193,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5233,6 +5242,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5255,6 +5265,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
             await waitForBatchedUpdates();
 
@@ -5284,6 +5295,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5318,6 +5330,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5338,6 +5351,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5399,6 +5413,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5448,6 +5463,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5508,6 +5524,7 @@ describe('actions/IOU', () => {
                 quickAction: {},
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             waitForBatchedUpdates();
@@ -5580,7 +5597,7 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], RORY_EMAIL);
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], splitMockPersonalDetails, RORY_EMAIL);
 
             await waitForBatchedUpdates();
 
