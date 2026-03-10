@@ -12,7 +12,7 @@ import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {doesPolicyHavePartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
@@ -63,7 +63,6 @@ function KYCWall({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -178,11 +177,7 @@ function KYCWall({
                     return;
                 }
 
-                // If user has a setup in progress for we redirect to the flow where setup can be finished
-                // Setup is in progress in 2 cases:
-                // - account already present on policy is partially setup
-                // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
-                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
+                if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
                     navigateToBankAccountRoute({policyID: policy.id});
                     return;
                 }
@@ -202,16 +197,15 @@ function KYCWall({
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
-            reimbursementAccount?.achData?.state,
             addBankAccountRoute,
             chatReport,
             policies,
             reportPreviewAction,
             currentUserEmail,
             employeeEmail,
-            reportTransactions,
             introSelected,
             formatPhoneNumber,
+            reportTransactions,
             lastPaymentMethod,
             betas,
         ],
