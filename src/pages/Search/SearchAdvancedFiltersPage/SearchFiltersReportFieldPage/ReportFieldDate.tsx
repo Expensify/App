@@ -3,6 +3,7 @@ import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {ReportFieldDateKey} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import {getDateFilterKeys} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,10 +21,12 @@ function ReportFieldDate({field, close}: ReportFieldDateProps) {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
 
-    const dateOnKey = formKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.ON_PREFIX) as ReportFieldDateKey;
-    const dateBeforeKey = formKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX) as ReportFieldDateKey;
-    const dateAfterKey = formKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX) as ReportFieldDateKey;
-    const dateRangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${formKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '')}` as ReportFieldDateKey;
+    const {dateOnKey, dateBeforeKey, dateAfterKey, dateRangeKey} = getDateFilterKeys(formKey) as {
+        dateOnKey: ReportFieldDateKey;
+        dateBeforeKey: ReportFieldDateKey;
+        dateAfterKey: ReportFieldDateKey;
+        dateRangeKey: ReportFieldDateKey;
+    };
 
     const dateOnValue = searchAdvancedFiltersForm?.[dateOnKey];
     const dateBeforeValue = searchAdvancedFiltersForm?.[dateBeforeKey];

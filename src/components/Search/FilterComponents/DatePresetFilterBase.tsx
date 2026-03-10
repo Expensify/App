@@ -12,18 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDateRangeDisplayValueFromFormValue, getRangeBoundariesFromFormValue, getRangeQueryValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {SearchDateValues} from './dateFilterUtils';
+import {getEmptyDateValues} from './dateFilterUtils';
 import RangeDatePicker from './RangeDatePicker';
 
-type SearchDateValues = Record<SearchDateModifier, string | undefined>;
-
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
-
-const getEmptyDateValues = (): SearchDateValues => ({
-    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-});
 
 const normalizeDateValues = (dateValues: Partial<SearchDateValues> | SearchDateValues): SearchDateValues => ({
     ...getEmptyDateValues(),
@@ -488,4 +481,5 @@ function DatePresetFilterBase({
 }
 
 export type {SearchDateValues, DatePresetFilterBaseHandle as SearchDatePresetFilterBaseHandle};
+
 export default DatePresetFilterBase;

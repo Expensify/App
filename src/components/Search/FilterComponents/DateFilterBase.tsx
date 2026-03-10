@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import {getDateModifierTitle, getEmptyDateValues} from './dateFilterUtils';
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from './DatePresetFilterBase';
 import DatePresetFilterBase from './DatePresetFilterBase';
 
@@ -45,13 +46,6 @@ type DateFilterBaseProps = {
     /** The ref handle */
     ref?: React.Ref<DateFilterBaseHandle>;
 };
-
-const getEmptyDateValues = (): SearchDateValues => ({
-    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-    [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
-});
 
 // Component uses ref as a prop, which is supported in modern React.
 function DateFilterBase({
@@ -134,17 +128,7 @@ function DateFilterBase({
         [goBack],
     );
 
-    const computedTitle = useMemo(() => {
-        if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            return translate('search.filters.date.customRange');
-        }
-
-        if (selectedDateModifier) {
-            return translate('search.filters.date.customDate');
-        }
-
-        return title;
-    }, [selectedDateModifier, title, translate]);
+    const computedTitle = getDateModifierTitle(selectedDateModifier, title ?? '', translate);
 
     const reset = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {

@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScrollView from '@components/ScrollView';
+import {getDateModifierTitle} from '@components/Search/FilterComponents/dateFilterUtils';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
@@ -60,12 +61,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
         [value],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
-    let selectedDateModifierTitle = '';
-    if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-        selectedDateModifierTitle = translate('search.filters.date.customRange');
-    } else if (selectedDateModifier) {
-        selectedDateModifierTitle = translate('search.filters.date.customDate');
-    }
+    const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);
 
     const updateRangeText = useCallback(() => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
