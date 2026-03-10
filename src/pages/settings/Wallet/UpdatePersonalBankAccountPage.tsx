@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -99,15 +99,20 @@ function UpdatePersonalBankAccountPage() {
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
+    useEffect(() => {
+        return () => {
+            clearPersonalBankAccount();
+            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM);
+        };
+    }, []);
+
     const exitFlow = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
-        clearPersonalBankAccount();
-        clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
-        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM);
     };
 
     const submitPersonalInfo = () => {
-        if (!personalBankAccount?.bankAccountID) {
+        if (!personalBankAccount?.bankAccountID || personalBankAccount?.isLoading) {
             return;
         }
 
