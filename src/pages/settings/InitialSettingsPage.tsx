@@ -473,6 +473,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             shouldBlockSelection={!!item.link}
                             onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
                             focused={isFocused}
+                            selected={isFocused}
                             isPaneMenu
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}

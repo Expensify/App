@@ -204,6 +204,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether item is focused or active */
         focused?: boolean;
 
+        /** Whether item is the currently selected/active page (maps to accessibilityState.selected) */
+        selected?: boolean;
+
         /** Should we disable this menu item? */
         disabled?: boolean;
 
@@ -506,6 +509,7 @@ function MenuItem({
     success = false,
     iconReportID,
     focused = false,
+    selected = false,
     disabled = false,
     title,
     accessibilityLabel,
@@ -793,7 +797,7 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={{selected: focused}}
+                                accessibilityState={{selected}}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
