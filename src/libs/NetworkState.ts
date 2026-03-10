@@ -2,12 +2,16 @@ import NetInfo from '@react-native-community/netinfo';
 import {setIsOffline} from './actions/Network';
 import {reconnect} from './actions/Reconnect';
 import AppStateMonitor from './AppStateMonitor';
+import {onSustainedFailureChange, resetCounters as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 import {pause, unpause} from './Network/SequentialQueue';
 
 let hasRadio = true;
 let sustainedFailuresActive = false;
 let shouldForceOffline = false;
+
+// Wire FailureTracker → NetworkState (avoids circular dependency)
+onSustainedFailureChange((active) => setSustainedFailures(active));
 
 function isInHardStop(): boolean {
     return !hasRadio || sustainedFailuresActive || shouldForceOffline;
@@ -74,6 +78,7 @@ function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops and reconnecting');
     hasRadio = true;
     sustainedFailuresActive = false;
+    resetFailureCounters();
     updateState();
 
     // Trigger app data sync

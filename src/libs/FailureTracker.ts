@@ -1,9 +1,18 @@
 import CONST from '@src/CONST';
 import Log from './Log';
-import NetworkState from './NetworkState';
 
 let failureCount = 0;
 let firstFailureTimestamp = 0;
+const sustainedFailureListeners = new Set<(active: boolean) => void>();
+
+/**
+ * Register a listener for sustained failure state changes.
+ * Called by NetworkState to wire up the hard stop trigger.
+ */
+function onSustainedFailureChange(listener: (active: boolean) => void): () => void {
+    sustainedFailureListeners.add(listener);
+    return () => sustainedFailureListeners.delete(listener);
+}
 
 /**
  * Record a successful request outcome.
@@ -17,7 +26,9 @@ function recordSuccess() {
     firstFailureTimestamp = 0;
 
     // If we were in sustained failure hard stop, clear it
-    NetworkState.setSustainedFailures(false);
+    for (const cb of sustainedFailureListeners) {
+        cb(false);
+    }
 }
 
 /**
@@ -42,8 +53,22 @@ function recordFailure() {
     // Only trigger sustained failure when BOTH count AND time thresholds are met
     if (failureCount >= thresholdCount && elapsed >= thresholdWindow) {
         Log.info('[FailureTracker] Sustained failure threshold reached — triggering hard stop');
-        NetworkState.setSustainedFailures(true);
+        for (const cb of sustainedFailureListeners) {
+            cb(true);
+        }
     }
+}
+
+/**
+ * Reset the failure counters without clearing the sustained failure flag.
+ * Called when reachability is restored to give the app a clean slate —
+ * prevents stale failure history from immediately re-triggering a hard stop
+ * if the first reconnect attempt fails.
+ */
+function resetCounters() {
+    Log.info(`[FailureTracker] Resetting counters (was: ${failureCount} failures)`);
+    failureCount = 0;
+    firstFailureTimestamp = 0;
 }
 
 /**
@@ -58,4 +83,4 @@ function getFailureCount(): number {
     return failureCount;
 }
 
-export {recordSuccess, recordFailure, reset, getFailureCount};
+export {recordSuccess, recordFailure, reset, resetCounters, getFailureCount, onSustainedFailureChange};
