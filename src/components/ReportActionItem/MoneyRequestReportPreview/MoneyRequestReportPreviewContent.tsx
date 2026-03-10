@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import {report} from 'process';
 import React, {useCallback, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewToken} from 'react-native';
@@ -340,7 +339,7 @@ function MoneyRequestReportPreviewContent({
         });
     }, [showConfirmModal, translate]);
 
-    const confirmApproval = () => {
+    const confirmApproval = useCallback(() => {
         if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             showDEWModal();
             return;
@@ -366,7 +365,24 @@ function MoneyRequestReportPreviewContent({
                 full: true,
             });
         }
-    };
+    }, [
+        activePolicy,
+        amountOwed,
+        betas,
+        currentUserAccountID,
+        currentUserEmail,
+        hasViolations,
+        iouReport,
+        iouReportNextStep,
+        isASAPSubmitBetaEnabled,
+        isDEWBetaEnabled,
+        isDelegateAccessRestricted,
+        policy,
+        showDEWModal,
+        showDelegateNoAccessModal,
+        startApprovedAnimation,
+        userBillingGraceEndPeriods,
+    ]);
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
@@ -608,10 +624,11 @@ function MoneyRequestReportPreviewContent({
     };
 
     // The button should expand up to transaction width
-    const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
+    const buttonMaxWidth = useMemo(() => {
+        return !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
+    }, [reportPreviewStyles.transactionPreviewCarouselStyle.width, shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (
