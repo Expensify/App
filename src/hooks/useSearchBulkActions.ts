@@ -711,50 +711,35 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
     const handleDuplicateSelectedTransactions = useCallback(() => {
-        const groupedByPolicy: Record<string, string[]> = {};
-        for (const id of selectedTransactionsKeys) {
-            const policyID = selectedTransactions[id]?.policyID ?? '';
-            if (!groupedByPolicy[policyID]) {
-                groupedByPolicy[policyID] = [];
-            }
-            groupedByPolicy[policyID].push(id);
-        }
+        const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
 
-        for (const [policyID, txnIDs] of Object.entries(groupedByPolicy)) {
-            const effectivePolicyID = policyID || defaultExpensePolicy?.id;
-            const policy = effectivePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicyID}`] : undefined;
-            const targetReport = getPolicyExpenseChat(accountID, effectivePolicyID);
-            const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${effectivePolicyID}`] ?? {};
-            const policyTags = effectivePolicyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`] ?? {}) : {};
-
-            bulkDuplicateExpenses({
-                transactionIDs: txnIDs,
-                allTransactions: allTransactions ?? {},
-                targetPolicy: policy ?? undefined,
-                targetPolicyCategories: policyCategories,
-                targetPolicyTags: policyTags,
-                targetReport,
-                personalDetails,
-                isASAPSubmitBetaEnabled,
-                introSelected,
-                activePolicyID,
-                quickAction,
-                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                isSelfTourViewed,
-                transactionDrafts,
-                draftTransactionIDs,
-                betas,
-                recentWaypoints,
-            });
-        }
+        bulkDuplicateExpenses({
+            transactionIDs: selectedTransactionsKeys,
+            allTransactions: allTransactions ?? {},
+            targetPolicy: defaultExpensePolicy ?? undefined,
+            targetPolicyCategories: activePolicyCategories,
+            targetPolicyTags,
+            targetReport: activePolicyExpenseChat,
+            personalDetails,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            isSelfTourViewed,
+            transactionDrafts,
+            draftTransactionIDs,
+            betas,
+            recentWaypoints,
+        });
 
         clearSelectedTransactions(undefined, true);
     }, [
         selectedTransactionsKeys,
-        selectedTransactions,
-        defaultExpensePolicy?.id,
-        policies,
         accountID,
+        defaultExpensePolicy,
         allTransactions,
         allPolicyCategories,
         allPolicyTags,
