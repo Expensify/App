@@ -2036,6 +2036,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',
         addKey: '或者将此密钥添加到你的验证器应用：',
+        secretKey: '密钥',
         enterCode: '然后输入您的身份验证器应用生成的六位数字代码。',
         stepSuccess: '已完成',
         enabled: '已启用双重身份验证',
@@ -7054,6 +7055,9 @@ ${reportName}
         topMerchants: '热门商家',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
+            editMultiple: '批量编辑',
+            editMultipleTitle: '编辑多个费用',
+            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',
@@ -7452,11 +7456,7 @@ ${reportName}
             tryDifferentEmail: '请尝试使用其他邮箱',
         },
     },
-    cardTransactions: {
-        notActivated: '未激活',
-        outOfPocket: '可报销',
-        companySpend: '不可报销',
-    },
+    cardTransactions: {notActivated: '未激活', outOfPocket: '可报销', companySpend: '不可报销', personalCard: '个人银行卡', companyCard: '公司卡', expensifyCard: 'Expensify 卡'},
     distance: {
         addStop: '添加站点',
         address: '地址',

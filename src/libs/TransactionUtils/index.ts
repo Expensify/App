@@ -2679,6 +2679,16 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Checks if a split transaction has more than one child transaction.
+ */
+function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined): boolean {
+    if (!originalTransactionID) {
+        return false;
+    }
+    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
+}
+
+/**
  * Determines whether a report should display the expense breakdown.
  */
 function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
@@ -2762,6 +2772,15 @@ function shouldReuseInitialTransaction(
     }
 
     return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
+}
+
+/**
+ * Check if the transaction has a smartscan failed with missing fields before violation is written
+ */
+function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.some(
+        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
+    );
 }
 
 export {
@@ -2878,6 +2897,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
+    hasMultipleSplitChildren,
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
@@ -2901,6 +2921,7 @@ export {
     isTimeRequest,
     getExpenseTypeTranslationKey,
     isDistanceTypeRequest,
+    hasSmartScanFailedWithMissingFields,
 };
 
 export type {TransactionChanges};
