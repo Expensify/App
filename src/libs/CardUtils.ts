@@ -160,7 +160,7 @@ function getCardDescription(card: Card | undefined, translate: LocalizedTranslat
     const bankName = isPlaid ? card?.cardName : getBankName(card.bank);
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translate('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : bankName;
-    return cardDescriptor && !isPlaid ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+    return cardDescriptor && !isPlaid ? `${humanReadableBankName} ${CONST.DOT_SEPARATOR} ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
 /**
