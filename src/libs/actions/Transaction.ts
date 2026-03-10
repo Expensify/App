@@ -1027,8 +1027,7 @@ function changeTransactionsReport({
             // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
             // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
             if (isDistanceRequest(transaction)) {
-                const currency =
-                    destinationCurrency && DistanceRequestUtils.hasDefaultMileageRateForCurrency(destinationCurrency) ? destinationCurrency : CONST.CURRENCY.USD;
+                const currency = destinationCurrency && DistanceRequestUtils.hasDefaultMileageRateForCurrency(destinationCurrency) ? destinationCurrency : CONST.CURRENCY.USD;
                 const {rate, unit} = DistanceRequestUtils.getDefaultMileageRateForCurrency(currency);
                 const distance = parseFloat(
                     DistanceRequestUtils.getRoundedDistanceInUnits(
