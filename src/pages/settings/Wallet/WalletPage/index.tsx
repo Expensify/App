@@ -52,7 +52,7 @@ import {
     setPersonalBankAccountID,
 } from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
-import {setDraftValues} from '@userActions/FormActions';
+import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
 import {enableCompanyCards} from '@userActions/Policy/Policy';
@@ -183,6 +183,7 @@ function WalletPage() {
             const additionalData = accountData?.additionalData;
             const [street1, street2] = additionalData?.addressStreet?.split('\n') ?? [];
             clearPersonalBankAccount();
+            clearDraftValues(ONYXKEYS.FORMS.HOME_ADDRESS_FORM);
             setPersonalBankAccountID(accountData.bankAccountID);
             Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
