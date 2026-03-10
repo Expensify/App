@@ -302,6 +302,7 @@ function MoneyRequestReportPreviewContent({
                         betas,
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
+                        amountOwed,
                     });
                 }
             }
@@ -322,6 +323,7 @@ function MoneyRequestReportPreviewContent({
             betas,
             isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -727,7 +729,17 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriods);
+                    submitReport(
+                        iouReport,
+                        policy,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                    );
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
