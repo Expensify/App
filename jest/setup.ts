@@ -315,3 +315,10 @@ jest.mock('@components/ActionSheetAwareScrollView/index.android');
 jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
 
 jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+jest.mock('react-native-vision-camera', () => ({
+    Camera: 'Camera',
+    useCameraDevice: jest.fn(() => null),
+    useCameraFormat: jest.fn(() => null),
+    useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
+}));
