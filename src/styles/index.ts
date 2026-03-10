@@ -3493,7 +3493,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             ...userSelect.userSelectNone,
-            paddingBottom: 8,
+            paddingBottom: 4,
             backgroundColor: theme.appBG,
             justifyContent: 'flex-start',
         },
