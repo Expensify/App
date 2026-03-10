@@ -675,6 +675,7 @@ function MoneyReportHeader({
                     betas,
                     isSelfTourViewed,
                     userBillingGraceEndPeriods,
+                    amountOwed,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -711,6 +712,7 @@ function MoneyReportHeader({
             betas,
             isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -1165,7 +1167,7 @@ function MoneyReportHeader({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
                     if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
@@ -1429,7 +1431,7 @@ function MoneyReportHeader({
                     showDWEModal();
                     return;
                 }
-                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods);
+                submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, userBillingGraceEndPeriods, amountOwed);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {

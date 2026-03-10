@@ -6291,6 +6291,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6496,6 +6497,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6655,6 +6657,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6706,6 +6709,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
@@ -6819,6 +6823,7 @@ describe('actions/IOU', () => {
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGraceEndPeriods: undefined,
+                        amountOwed: 0,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -6913,6 +6918,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -6946,6 +6952,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
@@ -6992,11 +6999,112 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
             });
 
             await waitForBatchedUpdates();
 
             // The IOU report should be settled with optimistic data regardless of isSelfTourViewed
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.hasOutstandingChildRequest).toBe(false);
+                        expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                        resolve();
+                    },
+                });
+            });
+
+            mockFetch?.resume?.();
+        });
+
+        it('should not pay when amountOwed triggers billing restriction', async () => {
+            const policyID = generatePolicyID();
+            const ownerAccountID = CARLOS_ACCOUNT_ID;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+                policyID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 100,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        });
+
+        it('should pay successfully when amountOwed is 0', async () => {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            mockFetch?.pause?.();
+            jest.advanceTimersByTime(10);
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
+
+            await waitForBatchedUpdates();
+
+            // The IOU report should be settled optimistically since amountOwed is 0 (no restriction)
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -7108,6 +7216,7 @@ describe('actions/IOU', () => {
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
                             userBillingGraceEndPeriods: undefined,
+                            amountOwed: 0,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -9131,7 +9240,7 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     if (expenseReport) {
                         const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -9415,7 +9524,7 @@ describe('actions/IOU', () => {
                     .then(async () => {
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -9670,7 +9779,7 @@ describe('actions/IOU', () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
                             const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                            submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined);
+                            submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep, undefined, 0);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -9825,7 +9934,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (expenseReport) {
-                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, undefined, undefined);
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, undefined, undefined, 0);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -9849,6 +9958,145 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+
+        it('should not submit when amountOwed triggers billing restriction', async () => {
+            const policyID = generatePolicyID();
+            const ownerAccountID = CARLOS_ACCOUNT_ID;
+
+            // Set up a policy owned by the current user
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30; // 30 days ago
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            // Clear previous Navigation.navigate calls
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            // Submit with amountOwed > 0 should trigger restriction
+            submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, undefined, undefined, 100);
+
+            await waitForBatchedUpdates();
+
+            // Verify Navigation.navigate was called with the restricted action route
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        });
+
+        it('should submit successfully when amountOwed is 0', async () => {
+            const policyID = generatePolicyID();
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                id: policyID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // Set the owner billing grace end period to the past
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
+
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: "Carlos's Workspace",
+                policyID,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                isSelfTourViewed: false,
+            });
+
+            setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            await waitForBatchedUpdates();
+
+            let chatReport: OnyxEntry<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report?.policyID === policyID);
+                },
+            });
+
+            if (chatReport) {
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                    },
+                    transactionParams: {
+                        amount: 10000,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'Test',
+                        comment: 'Test expense',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
+                    transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
+                    existingTransactionDraft: undefined,
+                    draftTransactionIDs: [],
+                    isSelfTourViewed: false,
+                    quickAction: undefined,
+                    betas: [CONST.BETAS.ALL],
+                    personalDetails: {},
+                });
+            }
+            await waitForBatchedUpdates();
+
+            let expenseReport: OnyxEntry<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
+                },
+            });
+
+            if (expenseReport) {
+                await Onyx.merge(`report_${expenseReport.reportID}`, {statusNum: 0, stateNum: 0});
+                await waitForBatchedUpdates();
+
+                (Navigation.navigate as jest.Mock).mockClear();
+
+                const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0);
+
+                await waitForBatchedUpdates();
+
+                // Should NOT navigate to restricted action
+                expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+            }
         });
     });
 
@@ -12106,6 +12354,7 @@ describe('actions/IOU', () => {
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGraceEndPeriods: undefined,
+                    amountOwed: 0,
                 });
             }
             await waitForBatchedUpdates();
