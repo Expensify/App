@@ -1,27 +1,27 @@
 import {useCallback, useEffect, useMemo, useRef} from 'react';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
+import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
 type UseBankConnectionProps = {
     policyID?: string;
     feed?: CompanyCardFeedWithDomainID;
-    isPlaid?: boolean;
-    url?: string | null;
-    isNewFeedConnected?: boolean;
-    newFeed?: CompanyCardFeedWithDomainID;
-    isFeedExpired?: boolean;
-    isNewFeedHasError?: boolean;
+    bankNameFromRoute?: string | null;
     onSuccess?: (newFeed?: CompanyCardFeedWithDomainID) => void;
     onFailure?: () => void;
     onBackButtonPress?: () => void;
-    cardFeeds?: CombinedCardFeeds;
     shouldOpenWindow?: boolean;
 };
 
@@ -30,23 +30,34 @@ let customWindow: Window | null = null;
 export default function useBankConnection({
     policyID,
     feed,
-    isPlaid,
-    url,
-    isNewFeedConnected,
-    newFeed,
-    isFeedExpired,
-    isNewFeedHasError,
+    bankNameFromRoute,
     onSuccess,
     onFailure,
     onBackButtonPress,
-    cardFeeds,
     shouldOpenWindow = true,
 }: UseBankConnectionProps) {
     const {isOffline} = useNetwork();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const prevFeedsData = usePrevious(cardFeeds);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const shouldBlockWindowOpen = useRef(false);
+
+    const selectedBank = addNewCard?.data?.selectedBank;
+    const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
+    const bankDisplayName = addNewCard?.data?.plaidConnectedFeedName ?? bankName;
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
+    const isPlaid = !!plaidToken;
+    const url = getCompanyCardBankConnection(policyID, bankName);
+    const isFeedExpired = feed ? !!isSelectedFeedExpired(cardFeeds?.[feed]) : false;
+    const {isNewFeedConnected, newFeed} = useMemo(
+        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
+    );
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
 
     const fallbackNavigation = useCallback(() => {
         Navigation.goBack(policyID ? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID) : undefined);
@@ -96,7 +107,7 @@ export default function useBankConnection({
 
     useEffect(() => {
         const hasConnectionSource = !!url || isPlaid;
-        const shouldWaitForData = isOffline || (isNewFeedHasError ?? false) || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
+        const shouldWaitForData = isOffline || isNewFeedHasError || isAllFeedsResultLoading || (isBlockedToAddNewFeeds && !feed);
         if (!hasConnectionSource || shouldWaitForData) {
             return;
         }
@@ -155,12 +166,19 @@ export default function useBankConnection({
         isFeedConnectionBroken,
         handleSuccess,
         handleFailure,
-        cardFeeds,
         shouldOpenWindow,
     ]);
 
     return {
         onOpenBankConnectionFlow,
         handleBackButtonPress,
+        bankName,
+        bankDisplayName,
+        url,
+        isPlaid,
+        isNewFeedHasError,
+        newFeed,
+        isAllFeedsResultLoading,
+        isBlockedToAddNewFeeds,
     };
 }
