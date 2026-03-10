@@ -398,7 +398,7 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
+    const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
@@ -743,7 +743,7 @@ function ComposerWithSuggestions({
         if (composerHeightAfterClear == null) {
             return;
         }
-        setDefaultComposerHeight(null);
+        setComposerHeightAfterClear(null);
     }, [composerHeightAfterClear]);
 
     const onChangeText = useCallback(
@@ -911,7 +911,7 @@ function ComposerWithSuggestions({
         if (!emptyComposerHeightRef.current) {
             return;
         }
-        setDefaultComposerHeight(emptyComposerHeightRef.current);
+        setComposerHeightAfterClear(emptyComposerHeightRef.current);
     }, []);
 
     const getCurrentText = useCallback(() => {
