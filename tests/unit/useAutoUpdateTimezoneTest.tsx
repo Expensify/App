@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
+import {AppState} from 'react-native';
 import useAutoUpdateTimezone from '@hooks/useAutoUpdateTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 // eslint-disable-next-line no-restricted-syntax
@@ -45,6 +46,7 @@ describe('useAutoUpdateTimezone', () => {
         } as unknown as ReturnType<typeof useCurrentUserPersonalDetails>);
 
         render(<TestComponent />);
+        AppState.emitCurrentTestState('active');
 
         expect(updateAutomaticTimezoneSpy).toHaveBeenCalledWith(
             {
