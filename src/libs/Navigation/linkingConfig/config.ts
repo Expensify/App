@@ -412,10 +412,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
                         [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path,
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHODS.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.DYNAMIC_CONTACT_METHODS]: DYNAMIC_ROUTES.SETTINGS_CONTACT_METHODS.path,
                         [SCREENS.SETTINGS.PROFILE.AVATAR]: {
                             path: ROUTES.SETTINGS_AVATAR,
                             exact: true,

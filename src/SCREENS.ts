@@ -120,6 +120,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
+        DYNAMIC_CONTACT_METHODS: 'Dynamic_Contact_Methods',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
