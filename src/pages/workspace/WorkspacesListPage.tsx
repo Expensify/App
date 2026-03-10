@@ -270,21 +270,6 @@ function WorkspacesListPage() {
         leaveWorkspace(currentUserPersonalDetails.accountID, policyToLeave);
     };
 
-    const showDeleteWorkspaceModal = useCallback(async () => {
-        await showConfirmModal({
-            title: translate('workspace.common.delete'),
-            prompt: policyToDeleteLatestErrorMessage,
-            confirmText: translate('common.buttonConfirm'),
-            success: true,
-            shouldShowCancelButton: false,
-        });
-        setPolicyIDToDelete(undefined);
-        if (!policyToDelete) {
-            return;
-        }
-        dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
-    }, [policyToDelete, policyToDeleteLatestErrorMessage, showConfirmModal, translate]);
-
     if (prevIsPendingDelete !== isPendingDelete) {
         setPrevIsPendingDelete(isPendingDelete);
         if (prevIsPendingDelete && !isPendingDelete && policyIDToDelete) {

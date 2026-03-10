@@ -462,12 +462,11 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             cancelText: translate('common.cancel'),
             danger: true,
         }).then((result) => {
-            if (!policyId || result.action !== ModalActions.CONFIRM) {
+            if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
 
-            leaveWorkspace(currentUserPersonalDetails.accountID, policy);
-            goBackFromInvalidPolicy();
+            handleLeaveWorkspace();
         });
     }, [confirmModalPrompt, policyAchAccountReimburser, policyId, sessionEmail, showConfirmModal, translate]);
 
