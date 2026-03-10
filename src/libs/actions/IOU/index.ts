@@ -1179,13 +1179,19 @@ function handleNavigateAfterExpenseCreate({
     shouldHandleNavigation?: boolean;
 }) {
     const isUserOnInbox = isReportTopmostSplitNavigator();
-    const activeReport = activeReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${activeReportID}`] : undefined;
-    const shouldOpenWorkspaceChat = isPolicyExpenseChatReportUtil(activeReport);
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
-    if (!isFromGlobalCreate || isUserOnInbox || !transactionID || shouldOpenWorkspaceChat) {
+    if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
+        if (shouldHandleNavigation) {
+            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
+        }
+        return;
+    }
+
+    const activeReport = activeReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${activeReportID}`] : undefined;
+    if (isPolicyExpenseChatReportUtil(activeReport)) {
         if (shouldHandleNavigation) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
         }
