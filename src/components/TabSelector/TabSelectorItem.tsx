@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import type {View} from 'react-native';
@@ -44,40 +44,32 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const childRef = useRef<View | null>(null);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
-    const [shiftHorizontal, setShiftHorizontal] = useState(0);
+    // Store only the measured value from mobile measurement
+    const [measuredShift, setMeasuredShift] = useState(0);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    // Compute horizontal shift for EducationalTooltip:
-    //  - on desktop, ignore RHP bounds and center tooltip on the tab (no shift needed)
-    //  - on mobile (aka small screen) center tooltip within the panel
+    // Derive effective shift: 0 on desktop, measured value on mobile
+    const shiftHorizontal = isActive && !isSmallScreenWidth ? 0 : measuredShift;
+
     useLayoutEffect(() => {
-        // only active tab gets tooltip
-        if (!isActive) {
+        if (!isActive || !isSmallScreenWidth) {
             return;
         }
 
-        if (!isSmallScreenWidth) {
-            // no shift needed on desktop (note: not "shouldUseNarrowLayout")
-            setShiftHorizontal(0);
-            return;
-        }
-
-        // must allow animation to complete before taking measurement
         const timerID = setTimeout(() => {
             childRef.current?.measureInWindow((x, _y, width) => {
-                // To center tooltip in parent:
-                const parentCenter = parentX + parentWidth / 2; // ... where it should be...
-                const currentCenter = x + width / 2; // ... minus where it is now...
-                setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
+                const parentCenter = parentX + parentWidth / 2;
+                const currentCenter = x + width / 2;
+                setMeasuredShift(parentCenter - currentCenter);
             });
         }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
             clearTimeout(timerID);
         };
-    }, [isActive, childRef, isSmallScreenWidth, parentX, parentWidth]);
+    }, [isActive, isSmallScreenWidth, parentX, parentWidth]);
 
-    const accessibilityState = useMemo(() => ({selected: isActive}), [isActive]);
+    const accessibilityState = {selected: isActive};
 
     const children = (
         <AnimatedPressableWithFeedback
