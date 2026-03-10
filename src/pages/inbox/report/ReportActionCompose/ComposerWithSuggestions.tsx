@@ -373,7 +373,7 @@ function ComposerWithSuggestions({
         // Editing is ongoing and layout toggled from narrow to wide.
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
-            const nextValue = editingMessage ?? '';
+            const nextValue = draftComment ?? '';
             applyComposerValue(nextValue, false);
         }
     }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
