@@ -202,12 +202,12 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
         ...(accountData?.addressCity && {addressCity: accountData.addressCity}),
         ...(accountData?.addressState && {addressState: accountData.addressState}),
         ...(accountData?.addressZipCode && {addressZip: accountData.addressZipCode}),
-        ...(accountData?.country && {addressCountry: accountData.country}),
     };
 
     const onyxData: OnyxData<
         | typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT
         | typeof ONYXKEYS.BANK_ACCOUNT_LIST
+        | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
         | typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT
         | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM
         | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT
@@ -218,6 +218,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: true,
+                    errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM,
+                value: {
                     errors: null,
                 },
             },
@@ -246,6 +253,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM,
+                value: {
+                    errors: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
                 value: {
                     errors: null,
@@ -268,6 +282,13 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM,
+                value: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
                 },
             },

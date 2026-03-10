@@ -7,7 +7,6 @@ type UpdatePersonalBankAccountInfoParams = {
     addressCity?: string;
     addressState?: string;
     addressZip?: string;
-    addressCountry?: string;
 };
 
 export default UpdatePersonalBankAccountInfoParams;

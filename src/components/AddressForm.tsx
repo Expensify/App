@@ -55,6 +55,9 @@ type AddressFormProps = {
 
     /** A unique Onyx key identifying the form */
     formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+
+    /** Whether to hide the country selector (e.g. when country cannot be changed) */
+    shouldHideCountrySelector?: boolean;
 };
 
 function AddressForm({
@@ -69,6 +72,7 @@ function AddressForm({
     street2 = '',
     submitButtonText = '',
     zip = '',
+    shouldHideCountrySelector = false,
 }: AddressFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -192,16 +196,20 @@ function AddressForm({
                 autoComplete="address-line2"
             />
             <View style={styles.formSpaceVertical} />
-            <View style={styles.mhn5}>
-                <InputWrapper
-                    InputComponent={CountrySelector}
-                    inputID={INPUT_IDS.COUNTRY}
-                    value={country}
-                    onValueChange={onAddressChanged}
-                    shouldSaveDraft={shouldSaveDraft}
-                />
-            </View>
-            <View style={styles.formSpaceVertical} />
+            {!shouldHideCountrySelector && (
+                <>
+                    <View style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={CountrySelector}
+                            inputID={INPUT_IDS.COUNTRY}
+                            value={country}
+                            onValueChange={onAddressChanged}
+                            shouldSaveDraft={shouldSaveDraft}
+                        />
+                    </View>
+                    <View style={styles.formSpaceVertical} />
+                </>
+            )}
             {isUSAForm ? (
                 <View style={styles.mhn5}>
                     <InputWrapper

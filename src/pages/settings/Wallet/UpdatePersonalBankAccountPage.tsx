@@ -29,7 +29,8 @@ const PAGE_NAME = CONST.UPDATE_PERSONAL_BANK_ACCOUNT.PAGE_NAME;
 const PAGE_NAMES: string[] = [PAGE_NAME.LEGAL_NAME, PAGE_NAME.ADDRESS, PAGE_NAME.PHONE_NUMBER];
 
 /**
- * Wrapper that enables draft saving on the address form to preserve values across navigation.
+ * Wrapper that enables draft saving on the address form and hides the country selector
+ * since the update flow only supports US bank accounts.
  */
 function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
     return (
@@ -38,6 +39,7 @@ function AddressWithDraft({isEditing, onNext, onMove}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             shouldSaveDraft
+            shouldHideCountrySelector
         />
     );
 }
@@ -78,6 +80,7 @@ function UpdatePersonalBankAccountPage() {
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
@@ -107,12 +110,11 @@ function UpdatePersonalBankAccountPage() {
         if (!completedSteps.includes(PERSONAL_INFO_STEP.ADDRESS)) {
             const currentAddress = getCurrentAddress(privatePersonalDetails);
             const [street1, street2] = getStreetLines(currentAddress?.street);
-            accountData.addressStreet = personalBankAccountDraft?.addressStreet ?? street1;
-            accountData.addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? street2;
-            accountData.addressCity = personalBankAccountDraft?.addressCity ?? currentAddress?.city;
-            accountData.addressState = personalBankAccountDraft?.addressState ?? currentAddress?.state;
-            accountData.addressZipCode = personalBankAccountDraft?.addressZipCode ?? currentAddress?.zip;
-            accountData.country = personalBankAccountDraft?.country ?? currentAddress?.country;
+            accountData.addressStreet = personalBankAccountDraft?.addressStreet ?? homeAddressDraft?.addressLine1 ?? street1;
+            accountData.addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? homeAddressDraft?.addressLine2 ?? street2;
+            accountData.addressCity = personalBankAccountDraft?.addressCity ?? homeAddressDraft?.city ?? currentAddress?.city;
+            accountData.addressState = personalBankAccountDraft?.addressState ?? homeAddressDraft?.state ?? currentAddress?.state;
+            accountData.addressZipCode = personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip;
         }
         if (!completedSteps.includes(PERSONAL_INFO_STEP.PHONE)) {
             const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';

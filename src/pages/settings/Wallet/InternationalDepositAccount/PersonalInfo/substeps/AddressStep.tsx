@@ -19,9 +19,12 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 type AddressStepProps = SubStepProps & {
     /** Whether to persist field values as draft on keystroke */
     shouldSaveDraft?: boolean;
+
+    /** Whether to hide the country selector (e.g. when country cannot be changed) */
+    shouldHideCountrySelector?: boolean;
 };
 
-function AddressStep({onNext, isEditing, shouldSaveDraft = false}: AddressStepProps) {
+function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCountrySelector = false}: AddressStepProps) {
     const styles = useThemeStyles();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -130,6 +133,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false}: AddressStepPr
                 street2={street2}
                 zip={zipcode}
                 shouldSaveDraft={shouldSaveDraft}
+                shouldHideCountrySelector={shouldHideCountrySelector}
             />
         </>
     );
