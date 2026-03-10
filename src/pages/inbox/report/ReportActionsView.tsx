@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -76,6 +77,9 @@ type ReportActionsViewProps = {
 
     /** Concierge status label */
     conciergeStatusLabel?: string;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -92,6 +96,7 @@ function ReportActionsView({
     isConciergeProcessing,
     conciergeReasoningHistory,
     conciergeStatusLabel,
+    onLayout,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     usePendingConciergeResponse(report.reportID);
@@ -289,15 +294,19 @@ function ReportActionsView({
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
-        if (didLayout.current) {
-            return;
-        }
+    const recordTimeToMeasureItemLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            onLayout?.(event);
+            if (didLayout.current) {
+                return;
+            }
 
-        didLayout.current = true;
+            didLayout.current = true;
 
-        markOpenReportEnd(report, {warm: true});
-    }, [report]);
+            markOpenReportEnd(report, {warm: true});
+        },
+        [report, onLayout],
+    );
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
