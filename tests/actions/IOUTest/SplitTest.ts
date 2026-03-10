@@ -2226,6 +2226,9 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Report = jest.requireMock('@src/libs/actions/Report');
 
+        // Given an expense report that is the only transaction in its parent chat,
+        // with an existing child transaction from a previous split (in a different report),
+        // so the expense report will be deleted when the reverse split happens
         const chatReport: Report = {
             ...createRandomReport(10, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
         };
@@ -2235,7 +2238,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             chatReportID: chatReport.reportID,
             parentReportID: chatReport.reportID,
         };
-        // The original transaction in the expense report (the one being reverse-split)
         const originalTransaction: Transaction = {
             amount: 10000,
             currency: 'USD',
@@ -2244,8 +2246,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             created: DateUtils.getDBTime(),
             merchant: 'test',
         };
-        // A child transaction from a previous split operation, in a different report
-        // so it doesn't count toward the expense report's transaction count
         const childReport: Report = {
             ...createRandomReport(12, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2294,6 +2294,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        // When the user reduces splits to 1 (triggering a reverse-split that will delete the expense report)
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -2301,7 +2302,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID: originalTransaction.transactionID,
-                // Single split expense triggers reverse-split
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
             },
             searchContext: {
@@ -2324,11 +2324,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         await waitForBatchedUpdates();
 
-        // Verify setDeleteTransactionNavigateBackUrl was called with the parent chat report route
+        // Then setDeleteTransactionNavigateBackUrl should be called with the parent chat route
+        // because the expense report is being deleted and we need to suppress the "Not here" page
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Report.setDeleteTransactionNavigateBackUrl).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
 
-        // Verify navigation goes to the parent chat report, not the deleted expense report
+        // Then navigation should go to the parent chat report instead of the deleted expense report
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: chatReport.reportID});
     });
@@ -2339,6 +2340,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const Report = jest.requireMock('@src/libs/actions/Report');
 
+        // Given an expense report with two transactions (so it won't be deleted by the reverse split),
+        // and one of those transactions has an existing child from a previous split
         const chatReport: Report = {
             ...createRandomReport(20, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
         };
@@ -2348,7 +2351,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             chatReportID: chatReport.reportID,
             parentReportID: chatReport.reportID,
         };
-        // Two transactions in the expense report — so it's NOT the last transaction
         const originalTransaction: Transaction = {
             amount: 10000,
             currency: 'USD',
@@ -2365,7 +2367,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             created: DateUtils.getDBTime(),
             merchant: 'other test',
         };
-        // A child transaction from a previous split
         const childReport: Report = {
             ...createRandomReport(22, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2415,6 +2416,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
 
+        // When the user reduces splits to 1 (triggering a reverse-split, but the expense report still has another transaction)
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -2422,7 +2424,6 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             transactionData: {
                 reportID: expenseReport.reportID,
                 originalTransactionID: originalTransaction.transactionID,
-                // Single split expense triggers reverse-split, but another transaction still exists in the report
                 splitExpenses: [{transactionID: childTransaction.transactionID, amount: 10000, created: DateUtils.getDBTime()}],
             },
             searchContext: {
@@ -2445,11 +2446,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         await waitForBatchedUpdates();
 
-        // setDeleteTransactionNavigateBackUrl should NOT be called since it's not the last transaction
+        // Then setDeleteTransactionNavigateBackUrl should not be called because the expense report
+        // still has other transactions and won't be deleted
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Report.setDeleteTransactionNavigateBackUrl).not.toHaveBeenCalled();
 
-        // Navigation should go to the expense report, not the parent chat
+        // Then navigation should go to the expense report since it still exists
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: expenseReport.reportID});
     });
