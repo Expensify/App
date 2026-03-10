@@ -276,9 +276,10 @@ function ComposerWithSuggestions({
     // The ref to check whether the comment saving is in progress
     const isDraftPendingSaved = useRef(false);
 
+    const editingState = getEditingState();
     useDraftMessageVideoAttributeCache({
         draftMessage: value,
-        isEditing: !!editingReportActionID,
+        isEditing: editingState === 'editing',
         editingReportAction,
         updateDraftMessage: setValue,
         isEditInProgressRef: isDraftPendingSaved,
@@ -290,7 +291,7 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const wasEditing = useRef(!!editingReportActionID);
+    const wasEditing = useRef(editingState === 'editing');
 
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
@@ -318,7 +319,7 @@ function ComposerWithSuggestions({
             return;
         }
 
-        const isEditing = !!editingReportActionID;
+        const isEditing = currentEditingState === 'editing';
         const previousEditingReportActionID = previousEditingReportActionIDRef.current;
         const currentEditingReportActionID = editingReportActionID ?? null;
         const didChangeEditedAction = isEditing && previousEditingReportActionID && currentEditingReportActionID && previousEditingReportActionID !== currentEditingReportActionID;
@@ -603,8 +604,8 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            const editingState = getEditingState();
-            if (editingState === 'editing' && shouldUseNarrowLayout) {
+            const currentEditingState = getEditingState();
+            if (currentEditingState === 'editing' && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     isDraftPendingSaved.current = true;
