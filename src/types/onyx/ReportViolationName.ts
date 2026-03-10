@@ -7,6 +7,4 @@ import type CONST from '@src/CONST';
  */
 type ReportViolationName = ValueOf<typeof CONST.REPORT_VIOLATIONS>;
 
-
-
 export default ReportViolationName;
