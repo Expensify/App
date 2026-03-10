@@ -122,7 +122,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
     const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
-    const source = isOdometerImage && odometerImage ? (odometerImageSource ?? receiptSource) : receiptSource;
+    const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
