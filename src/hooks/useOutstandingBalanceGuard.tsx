@@ -21,7 +21,7 @@ function useOutstandingBalanceGuard(ownedPaidPoliciesCount: number) {
     const {translate} = useLocalize();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
-    const wouldBlockDeletion = !!amountOwed && ownedPaidPoliciesCount === 1;
+    const wouldBlockDeletion = (amountOwed ?? 0) > 0 && ownedPaidPoliciesCount === 1;
 
     const shouldBlockDeletion = useCallback(() => {
         if (wouldBlockDeletion) {
