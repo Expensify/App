@@ -2,11 +2,10 @@ import Onyx from 'react-native-onyx';
 import {
     addAdminToDomain,
     addMemberToDomain,
-    clearDefaultSecurityGroupError,
     clearDomainErrors,
     clearDomainMemberError,
+    clearDomainSecurityGroupSettingError,
     clearTwoFactorAuthExemptEmailsErrors,
-    clearUpdateDomainSecurityGroupSettingError,
     clearVacationDelegateError,
     closeUserAccount,
     createDomain,
@@ -113,11 +112,11 @@ describe('actions/Domain', () => {
         const domainAccountID = 123;
         const timestamp = 456;
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
             errors: {[timestamp]: 'error'},
         });
 
-        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const, {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         });
 
@@ -881,7 +880,7 @@ describe('actions/Domain', () => {
                 enableRestrictedPrimaryLogin: false,
             };
 
-            updateDomainSecurityGroup(domainAccountID, groupID, currentSecurityGroup.name, currentSecurityGroup, {name: newGroupName}, settingsName);
+            updateDomainSecurityGroup(domainAccountID, groupID, currentSecurityGroup, {name: newGroupName}, settingsName);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP,
@@ -933,28 +932,28 @@ describe('actions/Domain', () => {
         });
     });
 
-    describe('clearUpdateDomainSecurityGroupSettingError', () => {
+    describe('clearDomainSecurityGroupSettingError', () => {
         it('clears setting errors for the given security group', async () => {
             const domainAccountID = 123;
             const groupID = '456';
-            const settingsName = 'name';
+            const settingsName = 'nameErrors';
             const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
             const timestamp = 789;
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
                 [SECURITY_GROUP_KEY]: {
-                    [`${settingsName}Errors`]: {[timestamp]: 'error'},
+                    [settingsName]: {[timestamp]: 'error'},
                 },
             });
 
-            clearUpdateDomainSecurityGroupSettingError(domainAccountID, groupID, settingsName);
+            clearDomainSecurityGroupSettingError(domainAccountID, groupID, settingsName);
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                 waitForCollectionCallback: false,
                 callback: (errors) => {
                     const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
-                    expect(groupErrors?.[`${settingsName}Errors`]).toBeFalsy();
+                    expect(groupErrors?.[settingsName]).toBeFalsy();
                 },
             });
         });
@@ -1051,32 +1050,6 @@ describe('actions/Domain', () => {
             );
 
             apiWriteSpy.mockRestore();
-        });
-    });
-
-    describe('clearDefaultSecurityGroupError', () => {
-        it('clears defaultSecurityGroupIDErrors for the given security group', async () => {
-            const domainAccountID = 123;
-            const groupID = '456';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
-            const timestamp = 789;
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
-                [SECURITY_GROUP_KEY]: {
-                    defaultSecurityGroupIDErrors: {[timestamp]: 'error'},
-                },
-            });
-
-            clearDefaultSecurityGroupError(domainAccountID, groupID);
-
-            await TestHelper.getOnyxData({
-                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
-                callback: (errors) => {
-                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as {defaultSecurityGroupIDErrors?: Record<string, string>} | undefined;
-                    expect(groupErrors?.defaultSecurityGroupIDErrors).toBeFalsy();
-                },
-            });
         });
     });
 });

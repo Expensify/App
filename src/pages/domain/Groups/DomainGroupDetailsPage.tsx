@@ -1,4 +1,4 @@
-import {selectGroupByID} from '@selectors/Domain';
+import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -12,8 +12,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearUpdateDomainSecurityGroupSettingError} from '@userActions/Domain';
-import CONST from '@src/CONST';
+import {clearDomainSecurityGroupSettingError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,8 +30,8 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
         selector: selectGroupByID(groupID),
     });
 
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
+    const [namePendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: domainSecurityGroupSettingPendingActionSelector('name', groupID)});
+    const [nameErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: domainSecurityGroupSettingErrorsSelector('nameErrors', groupID)});
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -47,10 +46,10 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                 />
                 <ScrollView>
                     <OfflineWithFeedback
-                        pendingAction={domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.name}
-                        errors={domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.nameErrors}
+                        pendingAction={namePendingAction}
+                        errors={nameErrors}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearUpdateDomainSecurityGroupSettingError(domainAccountID, groupID, 'name')}
+                        onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('common.name')}

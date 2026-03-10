@@ -1,4 +1,10 @@
-import {defaultSecurityGroupIDErrorsSelector, defaultSecurityGroupIDPendingActionSelector, defaultSecurityGroupIDSelector, domainNameSelector, selectGroupByID} from '@selectors/Domain';
+import {
+    defaultSecurityGroupIDSelector,
+    domainNameSelector,
+    domainSecurityGroupSettingErrorsSelector,
+    domainSecurityGroupSettingPendingActionSelector,
+    selectGroupByID,
+} from '@selectors/Domain';
 import React from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -6,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {clearDefaultSecurityGroupError, setDefaultSecurityGroup} from '@userActions/Domain';
+import {clearDomainSecurityGroupSettingError, setDefaultSecurityGroup} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type DefaultGroupToggleProps = {
@@ -29,9 +35,11 @@ function DefaultGroupToggle({domainAccountID, groupID, groupName}: DefaultGroupT
         selector: selectGroupByID(defaultSecurityGroupID),
     });
     const [defaultSecurityGroupIDPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        selector: defaultSecurityGroupIDPendingActionSelector(groupID),
+        selector: domainSecurityGroupSettingPendingActionSelector('defaultSecurityGroupID', groupID),
     });
-    const [defaultSecurityGroupIDErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: defaultSecurityGroupIDErrorsSelector(groupID)});
+    const [defaultSecurityGroupIDErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        selector: domainSecurityGroupSettingErrorsSelector('defaultSecurityGroupIDErrors', groupID),
+    });
 
     const {showConfirmModal} = useConfirmModal();
 
@@ -69,7 +77,7 @@ function DefaultGroupToggle({domainAccountID, groupID, groupName}: DefaultGroupT
             wrapperStyle={[styles.mv3, styles.ph5]}
             errors={defaultSecurityGroupIDErrors}
             pendingAction={defaultSecurityGroupIDPendingAction}
-            onCloseError={() => clearDefaultSecurityGroupError(domainAccountID, groupID)}
+            onCloseError={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'defaultSecurityGroupIDErrors')}
         />
     );
 }

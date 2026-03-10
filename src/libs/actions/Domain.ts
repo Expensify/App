@@ -26,6 +26,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {DomainSecurityGroupErrors} from '@src/types/onyx/DomainErrors';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
@@ -1697,19 +1698,11 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
  * Updates the name of a domain security group
  * @param domainAccountID - The account ID of the domain
  * @param groupID - The ID of the security group
- * @param groupName - The name of the security group
  * @param currentSecurityGroup - The current security group data
  * @param newSettingValue - The setting value we want to update
  * @param settingsName - The setting name we want to update
  */
-function updateDomainSecurityGroup(
-    domainAccountID: number,
-    groupID: string,
-    groupName: string,
-    currentSecurityGroup: DomainSecurityGroup,
-    newSettingValue: Partial<DomainSecurityGroup>,
-    settingsName: string,
-) {
+function updateDomainSecurityGroup(domainAccountID: number, groupID: string, currentSecurityGroup: DomainSecurityGroup, newSettingValue: Partial<DomainSecurityGroup>, settingsName: string) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
 
@@ -1796,7 +1789,7 @@ function updateDomainSecurityGroup(
 
     const params: UpdateDomainSecurityGroupParams = {
         domainAccountID,
-        name: groupName,
+        name: SECURITY_GROUP_KEY,
         value: JSON.stringify(newSecurityGroup),
         settingsName,
     };
@@ -1807,11 +1800,11 @@ function updateDomainSecurityGroup(
 /**
  * Removes an error after trying to change the security group setting
  */
-function clearUpdateDomainSecurityGroupSettingError(domainAccountID: number, groupID: string, settingsName: string) {
+function clearDomainSecurityGroupSettingError(domainAccountID: number, groupID: string, settingsName: keyof DomainSecurityGroupErrors) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         [SECURITY_GROUP_KEY]: {
-            [`${settingsName}Errors`]: null,
+            [settingsName]: null,
         },
     });
 }
@@ -1910,18 +1903,6 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domai
     API.write(WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
-/**
- * Removes an error after trying to set default security group
- */
-function clearDefaultSecurityGroupError(domainAccountID: number, groupID: string) {
-    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        [SECURITY_GROUP_KEY]: {
-            defaultSecurityGroupIDErrors: null,
-        },
-    });
-}
-
 export {
     getDomainValidationCode,
     validateDomain,
@@ -1959,7 +1940,6 @@ export {
     resetDomainMemberTwoFactorAuth,
     exportMembersToCSV,
     updateDomainSecurityGroup,
-    clearUpdateDomainSecurityGroupSettingError,
+    clearDomainSecurityGroupSettingError,
     setDefaultSecurityGroup,
-    clearDefaultSecurityGroupError,
 };

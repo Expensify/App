@@ -37,14 +37,6 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
 
     const inputRef = useRef<AnimatedTextInputRef>(null);
 
-    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM>) => {
-        if (!group?.name) {
-            return;
-        }
-        updateDomainSecurityGroup(domainAccountID, groupID, group.name, group, {name: values.name}, 'name');
-        Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
-    };
-
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM>): Errors => {
         const errors = {};
 
@@ -73,7 +65,13 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM}
                     validate={validate}
-                    onSubmit={handleSubmit}
+                    onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM>) => {
+                        if (!group) {
+                            return;
+                        }
+                        updateDomainSecurityGroup(domainAccountID, groupID, group, {name: values.name}, 'name');
+                        Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
+                    }}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
