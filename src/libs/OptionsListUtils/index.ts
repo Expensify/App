@@ -206,7 +206,6 @@ import type {
  */
 
 let allReports: OnyxCollection<Report>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -216,7 +215,6 @@ Onyx.connect({
 });
 
 let allReportNameValuePairsOnyxConnect: OnyxCollection<ReportNameValuePairs>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -229,7 +227,6 @@ const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 const cachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
 let allReportActions: OnyxCollection<ReportActions>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -273,7 +270,6 @@ Onyx.connect({
 });
 
 let activePolicyID: OnyxEntry<string>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),

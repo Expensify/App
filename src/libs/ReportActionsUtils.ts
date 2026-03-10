@@ -88,7 +88,6 @@ function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): bo
 }
 
 let allReportActions: OnyxCollection<ReportActions>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -101,7 +100,6 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<Report>;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -111,14 +109,12 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = val?.isOffline ?? false),
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
-// eslint-disable-next-line rulesdir/no-onyx-connect
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
