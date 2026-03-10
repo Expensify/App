@@ -336,7 +336,7 @@ function handleMoneyRequestStepScanParticipants({
     }
 
     if (isTestTransaction) {
-        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID) ?? {};
+        const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountID, personalDetails) ?? {};
         let reportIDParam = managerMcTestParticipant.reportID;
         if (!managerMcTestParticipant.reportID && report?.reportID) {
             reportIDParam = generateReportID();

@@ -59,6 +59,7 @@ function DebugReportPage({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`);
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
     const [reportAttributes] = useOnyx(
         ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
@@ -82,7 +83,7 @@ function DebugReportPage({
         }
 
         const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
+        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportViolations);
         const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
@@ -152,7 +153,20 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
+    }, [
+        report,
+        transactionViolations,
+        reportViolations,
+        isReportArchived,
+        chatReport,
+        reportActions,
+        transactions,
+        reportAttributes?.reportErrors,
+        betas,
+        priorityMode,
+        draftComment,
+        translate,
+    ]);
 
     const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 

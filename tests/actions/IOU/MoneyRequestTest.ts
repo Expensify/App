@@ -477,6 +477,14 @@ describe('MoneyRequest', () => {
                 ...baseParams,
                 isTestTransaction: true,
                 allTransactionDrafts: {},
+                personalDetails: {
+                    ...baseParams.personalDetails,
+                    [managerMcTestAccountID]: {
+                        accountID: managerMcTestAccountID,
+                        login: CONST.EMAIL.MANAGER_MCTEST,
+                        displayName: 'Manager MC Test',
+                    },
+                },
             });
 
             await waitForBatchedUpdates();
