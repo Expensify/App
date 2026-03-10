@@ -13,6 +13,8 @@ function ExampleCheckImage() {
 
     return (
         <Image
+            accessibilityLabel={translate('bankAccount.checkHelpLine')}
+            accessibilityRole={CONST.ROLE.IMAGE}
             resizeMode="contain"
             style={[styles.exampleCheckImage, styles.mb5]}
             source={isSpanish ? illustrations.ExampleCheckES : illustrations.ExampleCheckEN}
