@@ -72,7 +72,7 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-
+    const [reportViolations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
@@ -114,8 +114,9 @@ function TransactionPreviewContent({
                 currentUserEmail,
                 currentUserAccountID,
                 reportActions,
+                reportViolations,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserEmail, currentUserAccountID, reportActions, reportViolations],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -323,8 +324,8 @@ function TransactionPreviewContent({
                                                 {shouldShowMerchantOrDescription && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1, styles.preWrap]}
-                                                        numberOfLines={2}
+                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
+                                                        numberOfLines={1}
                                                     >
                                                         {merchantOrDescription}
                                                     </Text>
@@ -368,8 +369,8 @@ function TransactionPreviewContent({
                                                         fill={theme.icon}
                                                     />
                                                     <Text
-                                                        numberOfLines={2}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.preWrap, styles.flexShrink1]}
+                                                        numberOfLines={1}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {getDecodedCategoryName(category ?? '')}
                                                     </Text>
@@ -384,8 +385,8 @@ function TransactionPreviewContent({
                                                         fill={theme.icon}
                                                     />
                                                     <Text
-                                                        numberOfLines={2}
-                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.preWrap, styles.flexShrink1]}
+                                                        numberOfLines={1}
+                                                        style={[isDeleted && styles.lineThrough, styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                                     >
                                                         {getCommaSeparatedTagNameWithSanitizedColons(tag)}
                                                     </Text>

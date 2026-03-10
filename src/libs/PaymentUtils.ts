@@ -4,10 +4,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
-import type {ContinueActionParams, PaymentMethod as KYCPaymentMethod} from '@components/KYCWall/types';
+import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -32,7 +33,7 @@ type SelectPaymentTypeParams = {
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
     policy: OnyxEntry<Policy>;
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
     currentEmail: string;
     hasViolations: boolean;
@@ -43,6 +44,7 @@ type SelectPaymentTypeParams = {
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
 };
 
 /**
@@ -180,8 +182,9 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReportNextStep,
         betas,
         userBillingGraceEndPeriods,
+        amountOwed,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -199,12 +202,24 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, betas, userBillingGraceEndPeriods, true);
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy,
+                currentUserAccountIDParam: currentAccountID,
+                currentUserEmailParam: currentEmail,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+            });
         }
         return;
     }
 
-    onPress(iouPaymentType);
+    onPress({paymentType: iouPaymentType});
 };
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;

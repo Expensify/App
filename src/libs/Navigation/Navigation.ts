@@ -298,21 +298,17 @@ function navigate(route: Route, options?: LinkToOptions) {
         return;
     }
 
-    // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
-        const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
-        const reportID = reportIDMatch?.at(1);
+    // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    if (reportOpenMatch) {
+        const routePrefix = reportOpenMatch.at(1);
+        const reportID = reportOpenMatch.at(2);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
             if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
+                const spanName = `/${routePrefix}/*`;
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -321,7 +317,7 @@ function navigate(route: Route, options?: LinkToOptions) {
             span.setAttributes({
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
                 [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
-                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(route, '?'),
             });
         }
     }
@@ -741,13 +737,19 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  * Dismisses the modal and opens the given report.
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
+ * @param options.onBeforeNavigate - Called before performing navigation with whether the report will be opened (true) or we only dismiss because already on that report (false).
  */
-const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
+const dismissModalWithReport = (
+    {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
+    ref = navigationRef,
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+) => {
     isNavigationReady().then(() => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            options?.onBeforeNavigate?.(false);
             dismissToSuperWideRHP();
             return;
         }
@@ -756,9 +758,11 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+            options?.onBeforeNavigate?.(false);
             dismissModal();
             return;
         }
+        options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});

@@ -83,6 +83,7 @@ function useReceiptScan({
     const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
@@ -120,8 +121,8 @@ function useReceiptScan({
 
     function showBlink() {
         blinkOpacity.set(
-            withTiming(0.4, {duration: 10}, () => {
-                blinkOpacity.set(withTiming(0, {duration: 50}));
+            withTiming(1, {duration: 50}, () => {
+                blinkOpacity.set(withTiming(0, {duration: 150}));
             }),
         );
         HapticFeedback.press();
@@ -178,6 +179,7 @@ function useReceiptScan({
             betas,
             recentWaypoints,
             allTransactionDrafts,
+            amountOwed,
         });
     }
 

@@ -34,6 +34,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
                     <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
                 </View>
             }
+            success
             isVisible
             image={illustrations.ThreeLeggedLaptopWoman}
             imageStyles={StyleUtils.getBackgroundColorStyle(colors.pink800)}
