@@ -463,13 +463,10 @@ function ComposerWithSuggestions({
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                if (editingReportActionID) {
-                    return;
-                }
                 saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
-        [editingReportActionID],
+        [],
     );
 
     useEffect(() => {
