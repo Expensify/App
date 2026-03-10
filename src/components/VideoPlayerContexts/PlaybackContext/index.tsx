@@ -14,6 +14,7 @@ const ContextActions = React.createContext<PlaybackActionsContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<PlaybackStateContextValues['currentlyPlayingURL']>(null);
+    const currentlyPlayingURLRef = useRef<PlaybackStateContextValues['currentlyPlayingURL']>(null);
     const [sharedElement, setSharedElement] = useState<PlaybackStateContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
@@ -24,6 +25,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         setSharedElement(null);
         setOriginalParent(null);
         setCurrentlyPlayingURL(null);
+        currentlyPlayingURLRef.current = null;
         setCurrentRouteReportID(NO_REPORT_ID);
     };
 
@@ -35,7 +37,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (currentlyPlayingURL && url !== currentlyPlayingURL) {
+            if (currentlyPlayingURLRef.current && url !== currentlyPlayingURLRef.current) {
                 video.pause();
             }
 
@@ -43,6 +45,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             // without triggering the resetPlayerData in useEffect below
             if (!url) {
                 setCurrentlyPlayingURL(reportID);
+                currentlyPlayingURLRef.current = reportID;
                 return;
             }
 
@@ -62,8 +65,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             }
 
             setCurrentlyPlayingURL(url);
+            currentlyPlayingURLRef.current = url;
         },
-        [currentlyPlayingURL, video],
+        [video],
     );
 
     const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
