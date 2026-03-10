@@ -103,7 +103,7 @@ const connectionsVideoPaths = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-const brokenConnectionScrapeStatuses: number[] = [200, 531, 530, 500, 666];
+const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
