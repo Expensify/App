@@ -94,6 +94,7 @@ export default {
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
+    iouAmountTextSizeLarge: 48,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
