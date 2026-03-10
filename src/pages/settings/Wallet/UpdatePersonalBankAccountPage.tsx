@@ -65,11 +65,18 @@ const formPages = [
 ];
 
 /**
+ * Maps completed step numbers to their corresponding page names.
+ */
+function getPageNamesForCompletedSteps(completedSteps: number[]): string[] {
+    return completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
+}
+
+/**
  * Returns the first non-skipped page name for the update flow based on the bank account's existing data.
  */
 function getFirstPageName(bankAccountList?: OnyxEntry<BankAccountList>, bankAccountID?: number): string {
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
-    const skipPageNames = new Set(completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name));
+    const skipPageNames = new Set(getPageNamesForCompletedSteps(completedSteps));
     const firstPage = PAGE_NAMES.find((name) => !skipPageNames.has(name));
     return firstPage ?? PAGE_NAME.LEGAL_NAME;
 }
@@ -124,7 +131,7 @@ function UpdatePersonalBankAccountPage() {
 
         updatePersonalBankAccountInfo(personalBankAccount.bankAccountID, accountData);
     };
-    const skipPageCandidates = completedSteps.map((step) => PAGE_NAMES.at(step - 1)).filter((name): name is string => !!name);
+    const skipPageCandidates = getPageNamesForCompletedSteps(completedSteps);
     const skipPages = skipPageCandidates.length >= formPages.length ? [] : skipPageCandidates;
 
     const firstPageName = getFirstPageName(bankAccountList, personalBankAccount?.bankAccountID);
