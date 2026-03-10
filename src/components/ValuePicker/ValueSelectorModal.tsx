@@ -16,6 +16,8 @@ function ValueSelectorModal({
     shouldShowTooltips = true,
     onBackdropPress,
     shouldEnableKeyboardAvoidingView = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
 }: ValueSelectorModalProps) {
     return (
         <Modal
@@ -42,6 +44,8 @@ function ValueSelectorModal({
                     selectedItem={selectedItem}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             </ScreenWrapper>
         </Modal>

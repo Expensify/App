@@ -27,6 +27,12 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Subscription size */
     userCount?: number;
 
+    /** Applied Expensify code */
+    expensifyCode?: string;
+
+    /** Whether the promo code is secret and should be hidden from account settings */
+    isSecretPromoCode?: boolean;
+
     /** An error message */
     errors?: OnyxCommon.Errors;
 

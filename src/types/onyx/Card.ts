@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeedWithDomainID} from './CardFeeds';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -13,6 +13,33 @@ type CardStatusChanges = {
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
+/** Model of possible fraud data stored on a card */
+type PossibleFraudData = {
+    /** Fraud state of the card */
+    state?: number;
+
+    /** Date when fraud was detected */
+    date?: string;
+
+    /** Card ID that triggered the fraud detection (for domain-level fraud) */
+    triggerCardID?: number;
+
+    /** Amount that triggered the fraud detection (in cents) */
+    triggerAmount?: number;
+
+    /** Merchant name that triggered the fraud detection */
+    triggerMerchant?: string;
+
+    /** Currency of the transaction that triggered the fraud detection */
+    currency?: string;
+
+    /** Report ID for the fraud alert action (used for deeplink) */
+    fraudAlertReportID?: number;
+
+    /** Report action ID for the fraud alert (used for deeplink) */
+    fraudAlertReportActionID?: number;
+};
+
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -22,7 +49,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 
     /** Bank name */
-    bank: string;
+    bank: CardFeedWithNumber;
 
     /** Available amount to spend */
     availableSpend?: number;
@@ -148,11 +175,26 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
 
+        /** Date when card becomes valid (YYYY-MM-DD format) */
+        validFrom?: string;
+
+        /** Date when card expires (YYYY-MM-DD format) */
+        validThru?: string;
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
+
+        /**
+         * Metadata about when and by whom the card was frozen.
+         * null/undefined if card is not frozen
+         */
+        frozen?: FrozenCardData | null;
+
+        /** Possible fraud information */
+        possibleFraud?: PossibleFraudData;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -279,6 +321,12 @@ type IssueNewCardData = {
 
     /** Currency of the card */
     currency: string;
+
+    /** Optional start date for card validity (YYYY-MM-DD) */
+    validFrom?: string;
+
+    /** Optional end date for card validity (YYYY-MM-DD) */
+    validThru?: string;
 };
 
 /** Model of Issue new card flow */
@@ -346,18 +394,15 @@ type CardAssignmentData = {
 };
 
 /**
- * Pending action for a company card assignment
+ * Data for a frozen card
  */
-type FailedCompanyCardAssignment = CardAssignmentData & {
-    /** The domain or workspace account ID */
-    domainOrWorkspaceAccountID: number;
+type FrozenCardData = {
+    /** Account ID of the user who froze the card */
+    byAccountID: number;
 
-    /** The name of the feed */
-    feed: CompanyCardFeedWithDomainID;
+    /** UTC datetime when card was frozen (ISO format: YYYY-MM-DD HH:MM:SS) */
+    date: string;
 };
-
-/** Pending action for a company card assignment */
-type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
 
 export default Card;
 export type {
@@ -367,11 +412,11 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    CardAssignmentData,
-    FailedCompanyCardAssignment,
-    FailedCompanyCardAssignments,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
+    CardAssignmentData,
     UnassignedCard,
+    PossibleFraudData,
+    FrozenCardData,
 };

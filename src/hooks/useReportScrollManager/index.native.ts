@@ -1,44 +1,39 @@
-import {useCallback, useContext} from 'react';
+import {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import type ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, setScrollPosition} = useContext(ActionListContext);
+    const {flatListRef, scrollPositionRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
      */
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToIndex({index});
-        },
-        [flatListRef],
-    );
+    const scrollToIndex = (index: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
+        flatListRef.current.scrollToIndex({index});
+    };
 
     /**
      * Scroll to the bottom of the inverted FlatList.
      * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(() => {
+    const scrollToBottom = () => {
         if (!flatListRef?.current) {
             return;
         }
 
-        setScrollPosition({offset: 0});
-
+        scrollPositionRef.current = {offset: 0};
         flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef, setScrollPosition]);
+    };
 
     /**
      * Scroll to the end of the FlatList.
      */
-    const scrollToEnd = useCallback(() => {
+    const scrollToEnd = () => {
         if (!flatListRef?.current) {
             return;
         }
@@ -51,18 +46,14 @@ function useReportScrollManager(): ReportScrollManagerData {
         }
 
         flatListRef.current.scrollToEnd({animated: false});
-    }, [flatListRef]);
+    };
 
-    const scrollToOffset = useCallback(
-        (offset: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToOffset({offset, animated: false});
-        },
-        [flatListRef],
-    );
+    const scrollToOffset = (offset: number) => {
+        if (!flatListRef?.current) {
+            return;
+        }
+        flatListRef.current.scrollToOffset({offset, animated: false});
+    };
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }

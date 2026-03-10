@@ -1,5 +1,5 @@
 import {useEffect, useMemo} from 'react';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {Transaction} from '@src/types/onyx';
 
 /**
@@ -9,7 +9,8 @@ import type {Transaction} from '@src/types/onyx';
  * @param transactions - The current list of transactions
  */
 function useFilterSelectedTransactions(transactions: Transaction[]) {
-    const {selectedTransactionIDs, setSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions} = useSearchActionsContext();
 
     const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const filteredSelectedTransactionIDs = useMemo(() => selectedTransactionIDs.filter((id) => transactionIDs.includes(id)), [selectedTransactionIDs, transactionIDs]);

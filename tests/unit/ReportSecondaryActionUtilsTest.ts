@@ -1,7 +1,13 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getSecondaryExportReportActions, getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {
+    getSecondaryExportReportActions,
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isChangeWorkspaceAction,
+    isMergeActionForSelectedTransactions,
+} from '@libs/ReportSecondaryActionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -60,7 +66,12 @@ describe('getSecondaryAction', () => {
         const report = {} as unknown as Report;
         const policy = {} as unknown as Policy;
 
-        const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
+        const result = [
+            CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF,
+            CONST.REPORT.SECONDARY_ACTIONS.PRINT,
+            CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
+        ];
         expect(
             getSecondaryReportActions({
                 currentUserLogin: EMPLOYEE_EMAIL,
@@ -168,6 +179,45 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('include SUBMIT option for zero amount transaction', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 0,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID_1',
+            amount: 0,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {},
             bankAccountList: {},
@@ -413,6 +463,46 @@ describe('getSecondaryAction', () => {
             reportTransactions: [transaction],
             originalTransaction: {} as Transaction,
             violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+            bankAccountList: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('should not include SUBMIT option when smartscan failed with missing fields before violation is written', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
             bankAccountList: {},
             policy,
         });
@@ -1279,6 +1369,7 @@ describe('getSecondaryAction', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -1293,6 +1384,39 @@ describe('getSecondaryAction', () => {
             reportActions: [actionR14932],
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
+    });
+
+    it('does not include HOLD option for submitter after first approval', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID_R14932',
+            comment: {},
+        } as unknown as Transaction;
+        const policy = {} as unknown as Policy;
+
+        jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(false);
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [actionR14932],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(false);
     });
 
     it('does not include CHANGE_WORKSPACE option for submitted IOU report and manager being the payer of the new policy', async () => {
@@ -2614,6 +2738,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         const policy = {} as unknown as Policy;
 
         jest.spyOn(ReportUtils, 'canHoldUnholdReportAction').mockReturnValueOnce({canHoldRequest: true, canUnholdRequest: true});
+        jest.spyOn(ReportUtils, 'isAwaitingFirstLevelApproval').mockReturnValueOnce(true);
         const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
@@ -2818,6 +2943,47 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
+    it('does not include the SPLIT option for processing report with instant submit, submit-and-close, and payments disabled', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        } as unknown as Report;
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const policy = {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            isPolicyExpenseChatEnabled: true,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER},
+                [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, EMPLOYEE_ACCOUNT_ID, report, transaction, actionR14932, {} as Transaction, policy);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
+    });
+
     describe('isMergeAction', () => {
         beforeEach(() => {
             jest.clearAllMocks();
@@ -2929,133 +3095,6 @@ describe('getSecondaryTransactionThreadActions', () => {
             });
 
             expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
-        });
-    });
-
-    describe('REPORT_LAYOUT action', () => {
-        it('should not include REPORT_LAYOUT for non-expense reports', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-            } as unknown as Report;
-            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
-        });
-
-        it('should not include REPORT_LAYOUT for IOU reports', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.IOU,
-            } as unknown as Report;
-            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
-        });
-
-        it('should not include REPORT_LAYOUT for expense reports with less than 2 transactions', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-            const transactions = [{transactionID: '1'} as unknown as Transaction];
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
-        });
-
-        it('should not include REPORT_LAYOUT for expense reports with no transactions', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: [],
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(false);
-        });
-
-        it('should include REPORT_LAYOUT for expense reports with 2 transactions', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction];
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
-        });
-
-        it('should include REPORT_LAYOUT for expense reports with more than 2 transactions', () => {
-            const report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as unknown as Report;
-            const transactions = [{transactionID: '1'} as unknown as Transaction, {transactionID: '2'} as unknown as Transaction, {transactionID: '3'} as unknown as Transaction];
-
-            const result = getSecondaryReportActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                originalTransaction: {} as Transaction,
-                violations: {},
-                bankAccountList: {},
-            });
-
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT)).toBe(true);
         });
     });
 
@@ -3389,6 +3428,157 @@ describe('getSecondaryTransactionThreadActions', () => {
 
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('isChangeWorkspaceAction', () => {
+        // Helper functions
+        const createReport = (overrides = {}) =>
+            ({
+                reportID: String(REPORT_ID),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+                policyID: POLICY_ID,
+                ...overrides,
+            }) as Report;
+
+        const createPolicy = (id: string) =>
+            ({
+                id,
+                type: CONST.POLICY.TYPE.TEAM,
+            }) as Policy;
+
+        const createPolicies = (...policyIds: string[]) =>
+            policyIds.reduce(
+                (acc, id) => {
+                    acc[`${ONYXKEYS.COLLECTION.POLICY}${id}`] = createPolicy(id);
+                    return acc;
+                },
+                {} as Record<string, Policy>,
+            );
+
+        type MockFunction = ((...args: unknown[]) => unknown) | boolean;
+        type MockConfig = Partial<{
+            isIOUReport: boolean;
+            doesReportContainRequestsFromMultipleUsers: boolean;
+            isCurrentUserSubmitter: boolean;
+            isReportManager: boolean;
+            isWorkspaceEligibleForReportChange: MockFunction;
+            canEditReportPolicy: boolean;
+            isExported: boolean;
+        }>;
+
+        const setupMocks = (mocks: MockConfig = {}) => {
+            const defaults = {
+                isIOUReport: false,
+                doesReportContainRequestsFromMultipleUsers: false,
+                isCurrentUserSubmitter: false,
+                isReportManager: false,
+                isWorkspaceEligibleForReportChange: true,
+                canEditReportPolicy: true,
+                isExported: false,
+            };
+
+            for (const [method, value] of Object.entries({...defaults, ...mocks})) {
+                if (typeof value === 'function') {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockImplementation(value as any);
+                } else {
+                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockReturnValue(value);
+                }
+            }
+        };
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should return false when IOU report contains requests from multiple users', () => {
+            setupMocks({isIOUReport: true, doesReportContainRequestsFromMultipleUsers: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when IOU report and user is neither submitter nor manager', () => {
+            setupMocks({isIOUReport: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when there are no available policies', () => {
+            setupMocks({isWorkspaceEligibleForReportChange: false});
+            const report = createReport();
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when only one available policy and it is the same as current report policy', () => {
+            setupMocks();
+            const report = createReport({policyID: POLICY_ID});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return true when only one available policy but report has no policy', () => {
+            setupMocks();
+            const report = createReport({policyID: undefined});
+            const policies = createPolicies(POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when only one available policy and it is different from current report policy', () => {
+            setupMocks({isWorkspaceEligibleForReportChange: ((_, policy: Policy) => policy?.id === POLICY_ID) as MockFunction});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return false when cannot edit report policy', () => {
+            setupMocks({canEditReportPolicy: false});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(false);
+        });
+
+        it('should return false when report is exported', () => {
+            setupMocks({isExported: true});
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies, [])).toBe(false);
+        });
+
+        it('should return true when multiple available policies exist', () => {
+            setupMocks();
+            const report = createReport({policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID, 'another_policy');
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when IOU report with single user and user is submitter', () => {
+            setupMocks({isIOUReport: true, isCurrentUserSubmitter: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
+        });
+
+        it('should return true when IOU report with single user and user is manager', () => {
+            setupMocks({isIOUReport: true, isReportManager: true});
+            const report = createReport({type: CONST.REPORT.TYPE.IOU, policyID: OLD_POLICY_ID});
+            const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
+
+            expect(isChangeWorkspaceAction(report, policies)).toBe(true);
         });
     });
 });

@@ -2,6 +2,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
+import {translateLocal} from '../utils/TestHelper';
 
 const FAKE_POLICY: Policy = {
     id: 'CEEEDB0EC660F71A',
@@ -138,6 +139,69 @@ describe('DistanceRequestUtils', () => {
             });
 
             expect(result).toBe('B593F3FBBB0BD');
+        });
+    });
+
+    describe('getDistanceForDisplay', () => {
+        it('returns empty string when distance is 0 and isManualDistanceRequest is false', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, false);
+            expect(result).toBe('');
+        });
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceForDisplay(true, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, 67, translateLocal, false, true);
+            expect(result).toBe(`0.00 ${translateLocal('common.miles')}`);
+        });
+    });
+
+    describe('getDistanceMerchant', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return undefined;
+        };
+
+        it('formats zero distance when isManualDistanceRequest is true', () => {
+            const result = DistanceRequestUtils.getDistanceMerchant(
+                true,
+                0,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                67,
+                'USD',
+                translateLocal,
+                toLocaleDigitMock,
+                getCurrencySymbolMock,
+                true,
+            );
+            expect(result).toBe('0.00 mi @ $0.67 / mi');
+        });
+    });
+
+    describe('getRateForExpenseDisplay', () => {
+        const toLocaleDigitMock = (dot: string): string => dot;
+        const getCurrencySymbolMock = (currency: string): string | undefined => {
+            if (currency === 'USD') {
+                return '$';
+            }
+            return currency;
+        };
+        const rateParams = ['mi' as const, 67, 'USD', translateLocal, toLocaleDigitMock, getCurrencySymbolMock, false] as const;
+
+        it('should return rate name for workspace expenses', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', false, ...rateParams);
+            expect(result).toBe('Default Rate');
+        });
+
+        it('should return formatted rate value for P2P expenses (no rate name)', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay(undefined, false, ...rateParams);
+            expect(result).toBe(`$0.67 / ${translateLocal('common.mile')}`);
+        });
+
+        it('should return out-of-policy message for workspace expenses with invalid rate', () => {
+            const result = DistanceRequestUtils.getRateForExpenseDisplay('Default Rate', true, ...rateParams);
+            expect(result).toBe(translateLocal('common.rateOutOfPolicy'));
         });
     });
 });

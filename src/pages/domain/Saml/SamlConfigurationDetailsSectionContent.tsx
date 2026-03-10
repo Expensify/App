@@ -31,7 +31,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true});
+    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`);
 
     useEffect(() => {
         if (!domainName) {

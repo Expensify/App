@@ -1,6 +1,5 @@
 import React from 'react';
 import {Image, Linking, View} from 'react-native';
-import type {OnyxValue} from 'react-native-onyx';
 import HomeTestDriveImage from '@assets/images/home-testdrive-image.png';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -14,19 +13,11 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-// This selector returns true if the user has seen the tour, or if the onboarding NVP is not loaded yet. Thanks to this, discover section does not disappear when the onboarding NVP is loaded.
-function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    if (isEmptyObject(onboarding)) {
-        return true;
-    }
-
-    return !!onboarding?.selfTourViewed;
-}
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
@@ -34,7 +25,7 @@ function DiscoverSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
@@ -44,29 +35,30 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector, canBeMissing: true});
+    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
 
-        if (hasSeenTour || !viewTourTaskReport || viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
+        if (hasSeenTour) {
             return;
         }
 
-        completeTestDriveTask(
-            viewTourTaskReport,
-            viewTourTaskParentReport,
-            isViewTourTaskParentReportArchived,
-            currentUserPersonalDetails.accountID,
-            hasOutstandingChildTask,
-            parentReportAction,
-            false,
-        );
-    };
+        if (viewTourTaskReport && viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED) {
+            completeTestDriveTask(
+                viewTourTaskReport,
+                viewTourTaskParentReport,
+                isViewTourTaskParentReportArchived,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                false,
+            );
+            return;
+        }
 
-    if (hasSeenTour) {
-        return null;
-    }
+        setSelfTourViewed(false);
+    };
 
     return (
         <WidgetContainer title={translate('homePage.discoverSection.title')}>

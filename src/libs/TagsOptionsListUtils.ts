@@ -250,5 +250,29 @@ function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTa
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
+/**
+ * Gets enabled tags filtered by parent tag at a specific index level.
+ *
+ * Filters the policy tags to return only enabled tags whose parent tag filter
+ * matches the provided parent tag value at the given index level.
+ *
+ * @param tags - The policy tags object containing all available tags
+ * @param tag - The tag string (potentially multi-level, e.g., "California:North")
+ * @param index - The index level to truncate the tag to for parent filtering
+ * @returns Array of enabled policy tags that match the parent tag filter
+ */
+function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+    // Truncate tag to the current level (e.g., "California:North")
+    const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
+
+    return Object.values(tags).filter((policyTag) => {
+        if (!policyTag.enabled) {
+            return false;
+        }
+        const filterRegex = policyTag.rules?.parentTagsFilter ?? policyTag.parentTagsFilter;
+        return !filterRegex || new RegExp(filterRegex).test(parentTag);
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getEnabledTags};
 export type {SelectedTagOption, TagVisibility, TagOption};

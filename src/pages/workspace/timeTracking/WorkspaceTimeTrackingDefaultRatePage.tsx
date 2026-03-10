@@ -34,7 +34,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true, selector: policyTimeTrackingSelector});
+    const [policy, policyFetchStatus] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyTimeTrackingSelector});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
@@ -58,7 +58,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
                     }}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE])}
+                    validate={(values) => getFieldRequiredErrors(values, [INPUT_IDS.RATE], translate)}
                 >
                     <InputWrapper
                         label={translate('workspace.moreFeatures.timeTracking.defaultHourlyRate')}
