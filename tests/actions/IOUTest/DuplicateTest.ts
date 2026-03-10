@@ -2028,13 +2028,13 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2, tx3]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>][];
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
             expect(requestMoneyCalls).toHaveLength(3);
 
-            const firstPreviewID = requestMoneyCalls.at(0)?.at(1)?.reportPreviewReportActionID;
+            const firstPreviewID = requestMoneyCalls.at(0)?.[1]?.reportPreviewReportActionID;
             expect(firstPreviewID).toBeDefined();
             for (const call of requestMoneyCalls) {
-                expect(call.at(1)?.reportPreviewReportActionID).toBe(firstPreviewID);
+                expect(call[1].reportPreviewReportActionID).toBe(firstPreviewID);
             }
         });
 
@@ -2045,11 +2045,11 @@ describe('actions/Duplicate', () => {
             duplicateReport(getDefaultParams([tx1, tx2]));
             await waitForBatchedUpdates();
 
-            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as [string, Record<string, unknown>][];
+            const requestMoneyCalls = writeSpy.mock.calls.filter((call: unknown[]) => call.at(0) === WRITE_COMMANDS.REQUEST_MONEY) as Array<[string, Record<string, unknown>]>;
             expect(requestMoneyCalls).toHaveLength(2);
 
-            const firstChatReportID = requestMoneyCalls.at(0)?.at(1)?.chatReportID;
-            const secondChatReportID = requestMoneyCalls.at(1)?.at(1)?.chatReportID;
+            const firstChatReportID = requestMoneyCalls.at(0)?.[1]?.chatReportID;
+            const secondChatReportID = requestMoneyCalls.at(1)?.[1]?.chatReportID;
             expect(firstChatReportID).toBeDefined();
             expect(firstChatReportID).toBe(secondChatReportID);
         });
@@ -2130,7 +2130,7 @@ describe('actions/Duplicate', () => {
             const distanceCall = writeSpy.mock.calls.find((call: unknown[]) => call.at(0) === WRITE_COMMANDS.CREATE_DISTANCE_REQUEST) as [string, Record<string, unknown>] | undefined;
             expect(distanceCall).toBeDefined();
 
-            const waypoints = distanceCall?.at(1)?.waypoints;
+            const waypoints = distanceCall?.[1]?.waypoints;
             expect(waypoints).toBeDefined();
             expect(waypoints).not.toBe('null');
         });
