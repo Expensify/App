@@ -4675,6 +4675,13 @@ describe('actions/IOU', () => {
     });
 
     describe('split expense', () => {
+        const splitMockPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
+            [CARLOS_ACCOUNT_ID]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL, displayName: 'Carlos'},
+            [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
+            [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
+        };
+
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
             /*
@@ -4847,6 +4854,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedCurrencies: [],
                             policyRecentlyUsedTags: undefined,
                             betas: [CONST.BETAS.ALL],
+                            personalDetails: splitMockPersonalDetails,
                         },
                     );
                     return waitForBatchedUpdates();
@@ -5185,6 +5193,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5233,6 +5242,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5255,6 +5265,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
             await waitForBatchedUpdates();
 
@@ -5284,6 +5295,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5318,6 +5330,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5338,6 +5351,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5399,6 +5413,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5448,6 +5463,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             await waitForBatchedUpdates();
@@ -5508,6 +5524,7 @@ describe('actions/IOU', () => {
                 quickAction: {},
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
+                personalDetails: splitMockPersonalDetails,
             });
 
             waitForBatchedUpdates();
@@ -5580,7 +5597,7 @@ describe('actions/IOU', () => {
             expect(iouAction).toBeTruthy();
 
             // Complete this split bill without changing the description
-            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], RORY_EMAIL);
+            completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], splitMockPersonalDetails, RORY_EMAIL);
 
             await waitForBatchedUpdates();
 
@@ -13864,7 +13881,18 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be approved since admin took control and is the last approver
@@ -13902,7 +13930,18 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: managerAccountID,
+                currentUserEmailParam: managerEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be submitted to senior manager (normal flow) since take control was invalidated
@@ -13936,7 +13975,18 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Get the optimistic next step
@@ -14046,7 +14096,18 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report (no take control actions)
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: managerAccountID,
+                currentUserEmailParam: managerEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be submitted to admin (next in approval chain) since manager is not the final approver
@@ -14063,7 +14124,18 @@ describe('actions/IOU', () => {
                 accountID: managerAccountID,
             });
 
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: managerAccountID,
+                currentUserEmailParam: managerEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be submitted to admin
@@ -14078,7 +14150,18 @@ describe('actions/IOU', () => {
                 accountID: adminAccountID,
             });
 
-            approveMoneyRequest(updatedReport, policy, adminAccountID, adminEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport: updatedReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be fully approved
@@ -14123,7 +14206,18 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(singleApproverReport, singleApproverPolicy, managerAccountID, managerEmail, false, false, undefined, [CONST.BETAS.ALL], undefined);
+            approveMoneyRequest({
+                expenseReport: singleApproverReport,
+                policy: singleApproverPolicy,
+                currentUserAccountIDParam: managerAccountID,
+                currentUserEmailParam: managerEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+            });
             await waitForBatchedUpdates();
 
             // Should be fully approved since manager is the final approver in the chain
@@ -14224,7 +14318,19 @@ describe('actions/IOU', () => {
                 accountID: adminAccountID,
             });
 
-            const newExpenseReportID = approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined, [CONST.BETAS.ALL], undefined, false);
+            const newExpenseReportID = approveMoneyRequest({
+                expenseReport,
+                policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                expenseReportCurrentNextStepDeprecated: undefined,
+                betas: [CONST.BETAS.ALL],
+                userBillingGraceEndPeriods: undefined,
+                amountOwed: 0,
+                full: false,
+            });
             await waitForBatchedUpdates();
 
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
