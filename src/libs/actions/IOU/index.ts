@@ -1426,7 +1426,11 @@ function startMoneyRequest(
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
     if (isFromFloatingActionButton) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+            isFromFloatingActionButton,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            ...(requestType && {iouRequestType: requestType}),
+        });
     }
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
