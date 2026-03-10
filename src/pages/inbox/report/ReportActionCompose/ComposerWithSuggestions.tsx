@@ -276,10 +276,9 @@ function ComposerWithSuggestions({
     // The ref to check whether the comment saving is in progress
     const isDraftPendingSaved = useRef(false);
 
-    const editingState = getEditingState();
     useDraftMessageVideoAttributeCache({
         draftMessage: value,
-        isEditing: editingState === 'editing',
+        isEditing: !!editingReportActionID,
         editingReportAction,
         updateDraftMessage: setValue,
         isEditInProgressRef: isDraftPendingSaved,
@@ -291,7 +290,7 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const wasEditing = useRef(editingState === 'editing');
+    const wasEditing = useRef(!!editingReportActionID);
 
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const previousEditingReportActionIDRef = useRef<string | null>(editingReportActionID ?? null);
@@ -315,11 +314,12 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        if (getEditingState() === 'submitted') {
+        const editingState = getEditingState();
+        if (editingState === 'submitted') {
             return;
         }
 
-        const isEditing = currentEditingState === 'editing';
+        const isEditing = editingState === 'editing';
         const previousEditingReportActionID = previousEditingReportActionIDRef.current;
         const currentEditingReportActionID = editingReportActionID ?? null;
         const didChangeEditedAction = isEditing && previousEditingReportActionID && currentEditingReportActionID && previousEditingReportActionID !== currentEditingReportActionID;
@@ -604,8 +604,8 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            const currentEditingState = getEditingState();
-            if (currentEditingState === 'editing' && shouldUseNarrowLayout) {
+            const editingState = getEditingState();
+            if (editingState === 'editing' && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     isDraftPendingSaved.current = true;
