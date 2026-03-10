@@ -132,11 +132,11 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
 
 /**
  * Check if the navigation action is targeting an onboarding screen.
- * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
+ * This handles NAVIGATE/PUSH/REPLACE actions that target the OnboardingModalNavigator directly.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     if (
-        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
+        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) &&
         (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
     ) {
         return true;
@@ -172,7 +172,15 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const shouldSkipOnboarding =
-            CONFIG.SKIP_ONBOARDING || context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+            CONFIG.SKIP_ONBOARDING ||
+            context.isLoading ||
+            isTransitioning ||
+            isOnboardingCompleted ||
+            isMigratedUser ||
+            isSingleEntry ||
+            needsExplanationModal ||
+            isInvitedOrGroupMember ||
+            isNavigatingToOnboardingFlow(action);
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
