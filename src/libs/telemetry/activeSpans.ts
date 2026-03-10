@@ -1,6 +1,7 @@
 import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {spanToJSON} from '@sentry/react-native';
+import {AppState} from 'react-native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
@@ -15,6 +16,14 @@ type StartSpanExtraOptions = Partial<{
 }>;
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
+    if (AppState.currentState !== 'active') {
+        Log.info(`[Sentry][${spanId}] Skipping span start, app is not active`, undefined, {spanId, appState: AppState.currentState});
+        const skippedSpan = Sentry.startInactiveSpan(options);
+        skippedSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
+        skippedSpan.setStatus({code: 1});
+        skippedSpan.end();
+        return skippedSpan;
+    }
     // End any existing span for this name
     cancelSpan(spanId);
     Log.info(`[Sentry][${spanId}] Starting span`, undefined, {
