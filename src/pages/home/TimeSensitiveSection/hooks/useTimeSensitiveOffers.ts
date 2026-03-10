@@ -1,3 +1,4 @@
+import {isFromInternalDomainSelector} from '@selectors/Account';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -12,7 +13,7 @@ function useTimeSensitiveOffers() {
     const subscriptionPlan = useSubscriptionPlan();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isFromInternalDomain] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isFromInternalDomainSelector});
 
     // Use the same logic as the subscription page to determine if discount banner should be shown
     const shouldShowDiscount = shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
@@ -23,7 +24,7 @@ function useTimeSensitiveOffers() {
     const shouldShow25off = shouldShowDiscount && discountInfo?.discountType === 25;
 
     // Show add payment card for users whose trial ended and haven't added a payment card
-    const shouldShowAddPaymentCard = hasTeam2025Pricing && shouldShowTrialEndedUI(lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain);
+    const shouldShowAddPaymentCard = hasTeam2025Pricing && shouldShowTrialEndedUI(lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, isFromInternalDomain);
 
     return {
         shouldShow50off,
