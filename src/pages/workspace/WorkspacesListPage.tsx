@@ -207,6 +207,7 @@ function WorkspacesListPage() {
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
+            isConfirmLoading: isPendingDelete,
         }).then((result) => {
             if (!policyIDToDelete || !policyNameToDelete || result.action !== ModalActions.CONFIRM) {
                 return;

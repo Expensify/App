@@ -230,6 +230,31 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
+    const confirmDelete = () => {
+        if (!policyID || !policyName) {
+            return;
+        }
+
+        deleteWorkspace({
+            policies,
+            policyID,
+            activePolicyID,
+            policyName,
+            lastAccessedWorkspacePolicyID,
+            policyCardFeeds: defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            bankAccountList,
+            lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
+            personalPolicyID,
+        });
+        if (isOffline) {
+            goBackFromInvalidPolicy();
+        }
+    };
+
     const policyId = policy?.id;
     const continueDeleteWorkspace = useCallback(() => {
         showConfirmModal({
@@ -269,31 +294,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         usePayAndDowngrade(continueDeleteWorkspace);
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
-
-    const confirmDelete = () => {
-        if (!policyID || !policyName) {
-            return;
-        }
-
-        deleteWorkspace({
-            policies,
-            policyID,
-            activePolicyID,
-            policyName,
-            lastAccessedWorkspacePolicyID,
-            policyCardFeeds: defaultCardFeeds,
-            reportsToArchive,
-            transactionViolations,
-            reimbursementAccountError,
-            bankAccountList,
-            lastUsedPaymentMethods: lastPaymentMethod,
-            localeCompare,
-            personalPolicyID,
-        });
-        if (isOffline) {
-            goBackFromInvalidPolicy();
-        }
-    };
 
     const handleLeaveWorkspace = () => {
         if (!policy) {
