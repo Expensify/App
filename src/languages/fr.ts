@@ -5293,6 +5293,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         learnHow: 'Découvrez comment.',
                         subsections: {
                             currentTravelSpendLabel: 'Dépenses de voyage actuelles',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
                             currentTravelSpendCta: 'Payer le solde',
                             currentTravelLimitLabel: 'Plafond de déplacement actuel',
                             settlementAccountLabel: 'Compte de règlement',
@@ -5310,6 +5311,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         title: 'Impossible de désactiver la facturation Voyage',
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Régler le solde de ${amount} ?`,
+                        body: 'Le paiement sera mis en file d’attente et traité peu après. Cette action ne peut plus être annulée une fois lancée.',
                     },
                     exportToPDF: 'Exporter en PDF',
                     exportToCSV: 'Exporter en CSV',
@@ -8557,7 +8562,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         goToDomain: 'Aller au domaine',
         samlLogin: {
             title: 'Connexion SAML',
-            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Configurer la connexion des membres avec la <a href="${CONST.SAML_HELP_URL}">connexion unique SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Activer la connexion SAML',
             allowMembers: 'Autoriser les membres à se connecter avec SAML.',
             requireSamlLogin: 'Exiger la connexion SAML',
