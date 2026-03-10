@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
@@ -7,6 +7,7 @@ import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/par
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getExistingTransactionID} from '@libs/IOUUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -16,6 +17,7 @@ import {
     buildOptimisticHoldReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     buildTransactionThread,
+    generateReportID,
     getTransactionDetails,
 } from '@libs/ReportUtils';
 import {getRequestType, getTransactionType, isDistanceRequest, isExpenseSplit} from '@libs/TransactionUtils';
@@ -682,5 +684,81 @@ function duplicateExpenseTransaction({
     }
 }
 
-export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction};
-export type {DuplicateExpenseTransactionParams};
+type BulkDuplicateExpensesParams = {
+    transactionIDs: string[];
+    allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>>;
+    targetPolicy: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    targetReport: OnyxEntry<OnyxTypes.Report>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    isASAPSubmitBetaEnabled: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    isSelfTourViewed: boolean;
+    transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
+    draftTransactionIDs: string[];
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+};
+
+function bulkDuplicateExpenses({
+    transactionIDs,
+    allTransactions,
+    targetPolicy,
+    targetPolicyCategories,
+    targetPolicyTags,
+    targetReport,
+    personalDetails,
+    isASAPSubmitBetaEnabled,
+    introSelected,
+    activePolicyID,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    isSelfTourViewed,
+    transactionDrafts,
+    draftTransactionIDs,
+    betas,
+    recentWaypoints,
+}: BulkDuplicateExpensesParams) {
+    const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
+
+    if (transactionsToDuplicate.length === 0) {
+        return;
+    }
+
+    const optimisticChatReportID = generateReportID();
+    const optimisticIOUReportID = generateReportID();
+
+    for (const item of transactionsToDuplicate) {
+        const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
+        const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
+
+        duplicateExpenseTransaction({
+            transaction: item,
+            optimisticChatReportID,
+            optimisticIOUReportID,
+            isASAPSubmitBetaEnabled,
+            introSelected,
+            activePolicyID,
+            quickAction,
+            policyRecentlyUsedCurrencies,
+            isSelfTourViewed,
+            customUnitPolicyID: targetPolicy?.id,
+            targetPolicy: targetPolicy ?? undefined,
+            targetPolicyCategories: targetPolicyCategories ?? {},
+            targetReport,
+            existingTransactionDraft,
+            draftTransactionIDs,
+            betas,
+            personalDetails,
+            recentWaypoints,
+            targetPolicyTags,
+        });
+    }
+}
+
+export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses};
+export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams};

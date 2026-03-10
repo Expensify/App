@@ -3,13 +3,13 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
-import {duplicateExpenseTransaction} from '@libs/actions/IOU/Duplicate';
+import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomTransaction from '../../utils/collections/transaction';
 
 jest.mock('@libs/actions/IOU/Duplicate', () => ({
-    duplicateExpenseTransaction: jest.fn(),
+    bulkDuplicateExpenses: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
@@ -393,7 +393,7 @@ describe('useSearchBulkActions - duplicate option', () => {
         expect(duplicateOption).toBeUndefined();
     });
 
-    it('should call duplicateExpenseTransaction for each selected transaction when duplicate is triggered', async () => {
+    it('should call bulkDuplicateExpenses when duplicate is triggered', async () => {
         const transactionID1 = '600';
         const transactionID2 = '601';
 
@@ -442,7 +442,12 @@ describe('useSearchBulkActions - duplicate option', () => {
         const duplicateOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE);
         duplicateOption?.onSelected?.();
 
-        expect(duplicateExpenseTransaction).toHaveBeenCalledTimes(2);
+        expect(bulkDuplicateExpenses).toHaveBeenCalledTimes(1);
+        expect(bulkDuplicateExpenses).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionIDs: expect.arrayContaining([transactionID1, transactionID2]),
+            }),
+        );
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(undefined, true);
     });
 
