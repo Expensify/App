@@ -14,6 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
+import FocusUtils from '@libs/focusUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -203,36 +204,10 @@ function getMenuContainerElement(containerRefValue: unknown): HTMLElement | null
     return containerRefValue instanceof HTMLElement ? containerRefValue : null;
 }
 
-function isFocusableActionablePopoverCandidate(candidate: Element): candidate is HTMLElement {
-    if (!(candidate instanceof HTMLElement)) {
-        return false;
-    }
-
-    const role = candidate.getAttribute('role');
-    const isPopoverActionRole = role === CONST.ROLE.BUTTON || role === CONST.ROLE.MENUITEM;
-    if (!isPopoverActionRole) {
-        return false;
-    }
-
-    if (candidate.hasAttribute('disabled') || candidate.getAttribute('aria-disabled') === 'true') {
-        return false;
-    }
-
-    if (candidate.hasAttribute('inert') || !!candidate.closest('[inert]')) {
-        return false;
-    }
-
-    if (candidate.tabIndex < 0) {
-        return false;
-    }
-
-    return true;
-}
-
 function getInitialFocusTargetFromContainer(container: HTMLElement): HTMLElement | false {
     const candidates = container.querySelectorAll('[role="button"], [role="menuitem"]');
     for (const candidate of candidates) {
-        if (isFocusableActionablePopoverCandidate(candidate)) {
+        if (FocusUtils.isFocusableActionableElement(candidate)) {
             return candidate;
         }
     }

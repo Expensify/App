@@ -36,6 +36,7 @@ import React from 'react';
 // eslint-disable-next-line import/first
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen/index.web';
 import type {NavigationFocusManagerModule} from '@libs/NavigationFocusManager/types';
+import type FocusUtilsModule from '@libs/focusUtils/types';
 
 // ============================================================================
 // Test-specific configurable mocks (kept inline as they need per-test values)
@@ -80,6 +81,11 @@ jest.mock('@libs/Navigation/helpers/isNavigatorName', () => ({
 jest.mock('@libs/NavigationFocusManager', () => {
     const webNavigationFocusManager = jest.requireActual<{default: NavigationFocusManagerModule}>('@libs/NavigationFocusManager/index.web');
     return webNavigationFocusManager;
+});
+
+jest.mock('@libs/focusUtils', () => {
+    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../../src/libs/focusUtils/index.ts');
+    return webFocusUtils;
 });
 
 // Mock Log to break the import chain that causes CONST-related issues
@@ -254,6 +260,23 @@ describe('FocusTrapForScreen', () => {
             // Then: Should return the trigger element (for click-outside scenarios)
             expect(result).toBe(mockTriggerElement);
         });
+
+        it('should allow aria-disabled trigger elements to remain restorable', () => {
+            render(
+                <FocusTrapForScreen>
+                    <div data-testid="content">Test Content</div>
+                </FocusTrapForScreen>,
+            );
+
+            expect(typeof capturedFocusTrapOptions.setReturnFocus).toBe('function');
+
+            const ariaDisabledTrigger = createMockElement('button', 'aria-disabled-trigger');
+            ariaDisabledTrigger.setAttribute('aria-disabled', 'true');
+
+            const result = callSetReturnFocus(ariaDisabledTrigger);
+
+            expect(result).toBe(ariaDisabledTrigger);
+        });
     });
 
     describe('P0-2: Navigation back - focus restored to trigger element', () => {
@@ -405,6 +428,23 @@ describe('FocusTrapForScreen', () => {
     });
 
     describe('P0-5: Element focus checks', () => {
+        it('should reject document.documentElement as a return focus target', () => {
+            render(
+                <FocusTrapForScreen>
+                    <div data-testid="content">Test Content</div>
+                </FocusTrapForScreen>,
+            );
+
+            if (!isSetReturnFocusFunction()) {
+                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
+                return;
+            }
+
+            const result = callSetReturnFocus(document.documentElement);
+
+            expect(result).toBe(false);
+        });
+
         it('should use fallback when previously focused element becomes hidden (display: none)', () => {
             // Given: A button was focused before navigation
             const hiddenButton = createMockElement('button', 'hidden-button');
@@ -478,6 +518,86 @@ describe('FocusTrapForScreen', () => {
 
             // Then: Should return fallback since disabled element is not focusable
             expect(result).toBe(fallbackElement);
+        });
+
+        it('should return an element when only width is zero', () => {
+            render(
+                <FocusTrapForScreen>
+                    <div data-testid="content">Test Content</div>
+                </FocusTrapForScreen>,
+            );
+
+            if (!isSetReturnFocusFunction()) {
+                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
+                return;
+            }
+
+            const zeroWidthButton = createMockElement('button', 'zero-width-button');
+            zeroWidthButton.getBoundingClientRect = jest.fn(() => ({
+                width: 0,
+                height: 50,
+                top: 0,
+                left: 0,
+                bottom: 50,
+                right: 0,
+                x: 0,
+                y: 0,
+                toJSON: () => ({}),
+            }));
+
+            const result = callSetReturnFocus(zeroWidthButton);
+
+            expect(result).toBe(zeroWidthButton);
+        });
+
+        it('should return an element when only height is zero', () => {
+            render(
+                <FocusTrapForScreen>
+                    <div data-testid="content">Test Content</div>
+                </FocusTrapForScreen>,
+            );
+
+            if (!isSetReturnFocusFunction()) {
+                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
+                return;
+            }
+
+            const zeroHeightButton = createMockElement('button', 'zero-height-button');
+            zeroHeightButton.getBoundingClientRect = jest.fn(() => ({
+                width: 100,
+                height: 0,
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 100,
+                x: 0,
+                y: 0,
+                toJSON: () => ({}),
+            }));
+
+            const result = callSetReturnFocus(zeroHeightButton);
+
+            expect(result).toBe(zeroHeightButton);
+        });
+
+        it('should reject an element that is itself inert', () => {
+            render(
+                <FocusTrapForScreen>
+                    <div data-testid="content">Test Content</div>
+                </FocusTrapForScreen>,
+            );
+
+            if (!isSetReturnFocusFunction()) {
+                expect(capturedFocusTrapOptions.setReturnFocus).toBe(false);
+                return;
+            }
+
+            const inertButton = createMockElement('button', 'self-inert-button');
+            inertButton.setAttribute('inert', '');
+
+            const result = callSetReturnFocus(inertButton);
+
+            expect(result).toBe(false);
         });
 
         it('should use fallback when previously focused element is inside an inert container', () => {

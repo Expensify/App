@@ -5,47 +5,11 @@ import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import FocusUtils from '@libs/focusUtils';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import NavigationFocusManager from '@libs/NavigationFocusManager';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
-
-/**
- * Checks if an element is focusable (visible, not disabled, and in the DOM).
- * This prevents attempting to focus elements that have been hidden or disabled
- * since they were captured.
- */
-function isElementFocusable(element: Element | null): boolean {
-    if (!element || element === document.body || element === document.documentElement || !document.body.contains(element)) {
-        return false;
-    }
-
-    // Check if element is hidden (display: none makes offsetParent null, except for body/html/fixed elements)
-    // For fixed/absolute positioned elements, we check visibility and dimensions
-    const style = window.getComputedStyle(element);
-    if (style.display === 'none' || style.visibility === 'hidden') {
-        return false;
-    }
-
-    // Check if element has zero dimensions (effectively hidden)
-    // Only HTMLElement has offsetWidth/offsetHeight, SVGElement uses getBoundingClientRect
-    const rect = element.getBoundingClientRect();
-    if (rect.width === 0 && rect.height === 0) {
-        return false;
-    }
-
-    // Check for disabled attribute (applies to buttons, inputs, etc.)
-    if (element.hasAttribute('disabled')) {
-        return false;
-    }
-
-    // Check for inert attribute (makes element and descendants non-interactive)
-    if (element.hasAttribute('inert') || element.closest('[inert]')) {
-        return false;
-    }
-
-    return true;
-}
 
 function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const isFocused = useIsFocused();
@@ -165,7 +129,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
 
         shouldRestoreFocusWithoutTrap.current = false;
         const capturedElement = NavigationFocusManager.retrieveForRoute(routeKey);
-        if (!capturedElement || !isElementFocusable(capturedElement)) {
+        if (!capturedElement || !FocusUtils.isElementFocusRestorable(capturedElement)) {
             return;
         }
 
@@ -213,7 +177,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                     const capturedElement = NavigationFocusManager.retrieveForRoute(routeKey);
 
                     // Use captured element if it's still focusable
-                    if (capturedElement && isElementFocusable(capturedElement)) {
+                    if (capturedElement && FocusUtils.isElementFocusRestorable(capturedElement)) {
                         return capturedElement;
                     }
 
@@ -225,7 +189,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                 // It should NOT handle navigation focus restoration
                 setReturnFocus: (triggerElement) => {
                     // For click-outside deactivation, return to trigger element if focusable
-                    if (isElementFocusable(triggerElement)) {
+                    if (FocusUtils.isElementFocusRestorable(triggerElement)) {
                         return triggerElement;
                     }
                     return false;

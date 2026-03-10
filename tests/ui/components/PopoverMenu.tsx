@@ -4,7 +4,13 @@ import type {PropsWithChildren} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getInitialFocusTargetFromContainer, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+import type FocusUtilsModule from '@libs/focusUtils/types';
 import CONST from '@src/CONST';
+
+jest.mock('@libs/focusUtils', () => {
+    const webFocusUtils = jest.requireActual<{default: FocusUtilsModule}>('../../../src/libs/focusUtils/index.ts');
+    return webFocusUtils;
+});
 
 const mockRegisteredKeyboardShortcuts = new Map<string, (event?: KeyboardEvent) => void>();
 
@@ -236,6 +242,62 @@ describe('PopoverMenu initialFocus role/query behavior', () => {
         container.appendChild(ariaDisabled);
         container.appendChild(inertParent);
         container.appendChild(nonFocusable);
+        container.appendChild(actionable);
+        document.body.appendChild(container);
+
+        expect(getInitialFocusTargetFromContainer(container)).toBe(actionable);
+    });
+
+    it('skips a candidate that is itself inert even when otherwise actionable', () => {
+        const container = document.createElement('div');
+
+        const selfInert = document.createElement('div');
+        selfInert.setAttribute('role', 'button');
+        selfInert.setAttribute('inert', '');
+        selfInert.tabIndex = 0;
+
+        const actionable = document.createElement('div');
+        actionable.setAttribute('role', 'button');
+        actionable.tabIndex = 0;
+
+        container.appendChild(selfInert);
+        container.appendChild(actionable);
+        document.body.appendChild(container);
+
+        expect(getInitialFocusTargetFromContainer(container)).toBe(actionable);
+    });
+
+    it('skips aria-disabled menuitems even when they are tabbable', () => {
+        const container = document.createElement('div');
+
+        const ariaDisabledMenuItem = document.createElement('div');
+        ariaDisabledMenuItem.setAttribute('role', 'menuitem');
+        ariaDisabledMenuItem.setAttribute('aria-disabled', 'true');
+        ariaDisabledMenuItem.tabIndex = 0;
+
+        const actionable = document.createElement('div');
+        actionable.setAttribute('role', 'menuitem');
+        actionable.tabIndex = 0;
+
+        container.appendChild(ariaDisabledMenuItem);
+        container.appendChild(actionable);
+        document.body.appendChild(container);
+
+        expect(getInitialFocusTargetFromContainer(container)).toBe(actionable);
+    });
+
+    it('skips wrong-role candidates even when they are tabbable', () => {
+        const container = document.createElement('div');
+
+        const wrongRole = document.createElement('div');
+        wrongRole.setAttribute('role', 'link');
+        wrongRole.tabIndex = 0;
+
+        const actionable = document.createElement('div');
+        actionable.setAttribute('role', 'button');
+        actionable.tabIndex = 0;
+
+        container.appendChild(wrongRole);
         container.appendChild(actionable);
         document.body.appendChild(container);
 
