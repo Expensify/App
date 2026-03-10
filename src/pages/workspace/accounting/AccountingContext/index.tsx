@@ -11,7 +11,7 @@ import {isControlPolicy} from '@libs/PolicyUtils';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {getAccountingIntegrationData} from '../utils';
+import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
 import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
 
