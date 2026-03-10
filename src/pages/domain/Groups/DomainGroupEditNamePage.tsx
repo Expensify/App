@@ -15,7 +15,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {updateDomainSecurityGroupName} from '@userActions/Domain';
+import {updateDomainSecurityGroup} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,7 +41,7 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
         if (!group?.name) {
             return;
         }
-        updateDomainSecurityGroupName(domainAccountID, groupID, values.name, group);
+        updateDomainSecurityGroup(domainAccountID, groupID, group.name, group, {name: values.name}, 'name');
         Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
     };
 

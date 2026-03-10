@@ -6,7 +6,7 @@ import {
     clearDomainErrors,
     clearDomainMemberError,
     clearTwoFactorAuthExemptEmailsErrors,
-    clearUpdateDomainSecurityGroupNameError,
+    clearUpdateDomainSecurityGroupSettingError,
     clearVacationDelegateError,
     closeUserAccount,
     createDomain,
@@ -17,7 +17,7 @@ import {
     setDefaultSecurityGroup,
     setDomainVacationDelegate,
     setTwoFactorAuthExemptEmailForDomain,
-    updateDomainSecurityGroupName,
+    updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
@@ -865,13 +865,14 @@ describe('actions/Domain', () => {
         });
     });
 
-    describe('updateDomainSecurityGroupName', () => {
+    describe('updateDomainSecurityGroup', () => {
         it('sends UPDATE_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const groupID = '456';
             const accountID = 789;
             const newGroupName = 'New Group Name';
+            const settingsName = 'name';
             const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
             const currentSecurityGroup: DomainSecurityGroup = {
                 name: 'Old Group Name',
@@ -880,11 +881,11 @@ describe('actions/Domain', () => {
                 enableRestrictedPrimaryLogin: false,
             };
 
-            updateDomainSecurityGroupName(domainAccountID, groupID, newGroupName, currentSecurityGroup);
+            updateDomainSecurityGroup(domainAccountID, groupID, currentSecurityGroup.name, currentSecurityGroup, {name: newGroupName}, settingsName);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP,
-                {domainAccountID, name: SECURITY_GROUP_KEY, value: JSON.stringify({...currentSecurityGroup, name: newGroupName})},
+                {domainAccountID, name: SECURITY_GROUP_KEY, value: JSON.stringify({...currentSecurityGroup, name: newGroupName}), settingsName},
                 {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
@@ -893,21 +894,21 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                            value: {[SECURITY_GROUP_KEY]: {[settingsName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {nameErrors: null}},
+                            value: {[SECURITY_GROUP_KEY]: {[`${settingsName}Errors`]: null}},
                         }),
                     ]),
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {name: null}},
+                            value: {[SECURITY_GROUP_KEY]: {[settingsName]: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {nameErrors: null}},
+                            value: {[SECURITY_GROUP_KEY]: {[`${settingsName}Errors`]: null}},
                         }),
                     ]),
                     failureData: expect.arrayContaining([
@@ -917,12 +918,12 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {[SECURITY_GROUP_KEY]: {name: null}},
+                            value: {[SECURITY_GROUP_KEY]: {[settingsName]: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                            value: {[SECURITY_GROUP_KEY]: {nameErrors: expect.any(Object)}},
+                            value: {[SECURITY_GROUP_KEY]: {[`${settingsName}Errors`]: expect.any(Object)}},
                         }),
                     ]),
                 },
@@ -932,27 +933,28 @@ describe('actions/Domain', () => {
         });
     });
 
-    describe('clearUpdateDomainSecurityGroupNameError', () => {
-        it('clears nameErrors for the given security group', async () => {
+    describe('clearUpdateDomainSecurityGroupSettingError', () => {
+        it('clears setting errors for the given security group', async () => {
             const domainAccountID = 123;
             const groupID = '456';
+            const settingsName = 'name';
             const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
             const timestamp = 789;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
                 [SECURITY_GROUP_KEY]: {
-                    nameErrors: {[timestamp]: 'error'},
+                    [`${settingsName}Errors`]: {[timestamp]: 'error'},
                 },
             });
 
-            clearUpdateDomainSecurityGroupNameError(domainAccountID, groupID);
+            clearUpdateDomainSecurityGroupSettingError(domainAccountID, groupID, settingsName);
 
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                 waitForCollectionCallback: false,
                 callback: (errors) => {
-                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as {nameErrors?: Record<string, string>} | undefined;
-                    expect(groupErrors?.nameErrors).toBeFalsy();
+                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
+                    expect(groupErrors?.[`${settingsName}Errors`]).toBeFalsy();
                 },
             });
         });

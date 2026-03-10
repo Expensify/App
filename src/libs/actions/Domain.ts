@@ -1696,13 +1696,22 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
 /**
  * Updates the name of a domain security group
  * @param domainAccountID - The account ID of the domain
- * @param groupID - The ID of the security group to update
- * @param newGroupName - The new name for the security group
+ * @param groupID - The ID of the security group
+ * @param groupName - The name of the security group
  * @param currentSecurityGroup - The current security group data
+ * @param newSettingValue - The setting value we want to update
+ * @param settingsName - The setting name we want to update
  */
-function updateDomainSecurityGroupName(domainAccountID: number, groupID: string, newGroupName: string, currentSecurityGroup: DomainSecurityGroup) {
+function updateDomainSecurityGroup(
+    domainAccountID: number,
+    groupID: string,
+    groupName: string,
+    currentSecurityGroup: DomainSecurityGroup,
+    newSettingValue: Partial<DomainSecurityGroup>,
+    settingsName: string,
+) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
-    const newSecurityGroup = {...currentSecurityGroup, name: newGroupName};
+    const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
@@ -1719,7 +1728,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    [settingsName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1728,7 +1737,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    nameErrors: null,
+                    [`${settingsName}Errors`]: null,
                 },
             },
         },
@@ -1749,7 +1758,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    name: null,
+                    [settingsName]: null,
                 },
             },
         },
@@ -1758,7 +1767,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    nameErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.codeFetchError'),
+                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.codeFetchError'),
                 },
             },
         },
@@ -1770,7 +1779,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    name: null,
+                    [settingsName]: null,
                 },
             },
         },
@@ -1779,7 +1788,7 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    nameErrors: null,
+                    [`${settingsName}Errors`]: null,
                 },
             },
         },
@@ -1787,21 +1796,22 @@ function updateDomainSecurityGroupName(domainAccountID: number, groupID: string,
 
     const params: UpdateDomainSecurityGroupParams = {
         domainAccountID,
-        name: SECURITY_GROUP_KEY,
+        name: groupName,
         value: JSON.stringify(newSecurityGroup),
+        settingsName,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
 /**
- * Removes an error after trying to change the security group name
+ * Removes an error after trying to change the security group setting
  */
-function clearUpdateDomainSecurityGroupNameError(domainAccountID: number, groupID: string) {
+function clearUpdateDomainSecurityGroupSettingError(domainAccountID: number, groupID: string, settingsName: string) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
         [SECURITY_GROUP_KEY]: {
-            nameErrors: null,
+            [`${settingsName}Errors`]: null,
         },
     });
 }
@@ -1948,8 +1958,8 @@ export {
     clearTwoFactorAuthExemptEmailsErrors,
     resetDomainMemberTwoFactorAuth,
     exportMembersToCSV,
-    updateDomainSecurityGroupName,
+    updateDomainSecurityGroup,
+    clearUpdateDomainSecurityGroupSettingError,
     setDefaultSecurityGroup,
-    clearUpdateDomainSecurityGroupNameError,
     clearDefaultSecurityGroupError,
 };

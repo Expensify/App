@@ -12,7 +12,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearUpdateDomainSecurityGroupNameError} from '@userActions/Domain';
+import {clearUpdateDomainSecurityGroupSettingError} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,7 +50,7 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         pendingAction={domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.name}
                         errors={domainErrors?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]?.nameErrors}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearUpdateDomainSecurityGroupNameError(domainAccountID, groupID)}
+                        onClose={() => clearUpdateDomainSecurityGroupSettingError(domainAccountID, groupID, 'name')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('common.name')}
