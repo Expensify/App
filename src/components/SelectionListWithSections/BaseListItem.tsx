@@ -46,6 +46,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle,
     accessibilityRole = getButtonRole(true),
+    accessible,
 }: BaseListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
     const theme = useTheme();
@@ -83,6 +84,8 @@ function BaseListItem<TItem extends ListItem>({
     const accessibilityState =
         accessibilityRole === CONST.ROLE.CHECKBOX || accessibilityRole === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!isFocused};
 
+    const accessibleProps = accessible === false ? {accessible: false as const, role: undefined} : {accessibilityLabel, role: accessibilityRole};
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -111,9 +114,9 @@ function BaseListItem<TItem extends ListItem>({
                 }}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
-                accessibilityLabel={accessibilityLabel}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...accessibleProps}
                 accessibilityState={accessibilityState}
-                role={accessibilityRole}
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}

@@ -43,9 +43,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [currentUserPersonalDetails, loginList, contactMethod, formatPhoneNumber],
+        [contactMethod, formatPhoneNumber],
     );
 
     const handleCloseWithFallback = useCallback(() => {
