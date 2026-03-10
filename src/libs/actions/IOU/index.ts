@@ -1277,7 +1277,7 @@ function initMoneyRequest({
     newIouRequestType,
     report,
     parentReport,
-    currentDate = '',
+    currentDate,
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
     hasOnlyPersonalPolicies,
@@ -1287,9 +1287,7 @@ function initMoneyRequest({
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    // Disabling this line since currentDate can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const created = currentDate || format(new Date(), 'yyyy-MM-dd');
+    const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
 
     // We remove draft transactions created during multi scanning if there are some
     removeDraftTransactions(true, draftTransactions);
