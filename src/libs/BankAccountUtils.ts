@@ -102,10 +102,15 @@ function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.Ba
     return completedSteps;
 }
 
+function hasPersonalBankAccountMissingInfo(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => isPersonalBankAccountMissingInfo(bankAccount?.accountData));
+}
+
 export {
     getDefaultCompanyWebsite,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,

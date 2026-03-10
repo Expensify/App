@@ -120,11 +120,12 @@ function UpdatePersonalBankAccountPage() {
         if (!completedSteps.includes(PERSONAL_INFO_STEP.ADDRESS)) {
             const currentAddress = getCurrentAddress(privatePersonalDetails);
             const [street1, street2] = getStreetLines(currentAddress?.street);
-            accountData.addressStreet = personalBankAccountDraft?.addressStreet ?? homeAddressDraft?.addressLine1 ?? street1;
-            accountData.addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? homeAddressDraft?.addressLine2 ?? street2;
-            accountData.addressCity = personalBankAccountDraft?.addressCity ?? homeAddressDraft?.city ?? currentAddress?.city;
-            accountData.addressState = personalBankAccountDraft?.addressState ?? homeAddressDraft?.state ?? currentAddress?.state;
-            accountData.addressZipCode = personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip;
+            accountData.addressStreet = (personalBankAccountDraft?.addressStreet ? personalBankAccountDraft.addressStreet : undefined) ?? homeAddressDraft?.addressLine1 ?? street1;
+            accountData.addressStreet2 = (personalBankAccountDraft?.addressStreet2 ? personalBankAccountDraft.addressStreet2 : undefined) ?? homeAddressDraft?.addressLine2 ?? street2;
+            accountData.addressCity = (personalBankAccountDraft?.addressCity ? personalBankAccountDraft.addressCity : undefined) ?? homeAddressDraft?.city ?? currentAddress?.city;
+            accountData.addressState = (personalBankAccountDraft?.addressState ? personalBankAccountDraft.addressState : undefined) ?? homeAddressDraft?.state ?? currentAddress?.state;
+            accountData.addressZipCode =
+                (personalBankAccountDraft?.addressZipCode ? personalBankAccountDraft.addressZipCode : undefined) ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip;
         }
         if (!completedSteps.includes(PERSONAL_INFO_STEP.PHONE)) {
             const finalPhoneNumber = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? '';
