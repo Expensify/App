@@ -63,10 +63,6 @@ import {
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
 
-// =============================================
-// Subrate functions (per diem subrate management)
-// =============================================
-
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
@@ -169,10 +165,6 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
-// =============================================
-// Per diem helper functions
-// =============================================
-
 function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     const subRates = customUnit.subRates ?? [];
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
@@ -210,10 +202,6 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
     });
     return subRateComments.join(', ');
 }
-
-// =============================================
-// Per diem types
-// =============================================
 
 type BaseTransactionParams = {
     amount: number;
@@ -301,10 +289,6 @@ type PerDiemExpenseInformationForSelfDMResult = {
     >;
 };
 
-// =============================================
-// Per diem information builders
-// =============================================
-
 /**
  * Gathers all the data needed to submit a per diem expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
@@ -367,23 +351,23 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
     // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
-    let iouReportValue: OnyxInputValue<OnyxTypes.Report> = null;
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     if (moneyRequestReportID) {
-        iouReportValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
     } else {
-        iouReportValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReportValue, chatReport, false, betas);
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false, betas);
 
     // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = NumberUtils.rand64();
     const optimisticReportID = generateReportID();
 
-    if (!iouReportValue || shouldCreateNewMoneyRequestReport) {
+    if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
-        iouReportValue = isPolicyExpenseChat
+        iouReport = isPolicyExpenseChat
             ? buildOptimisticExpenseReport({
                   chatReportID: chatReport.reportID,
                   policyID: chatReport.policyID,
@@ -396,22 +380,20 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
-        iouReportValue = {...iouReportValue};
+        iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-        if (iouReportValue?.currency === currency) {
-            if (!Number.isNaN(iouReportValue.total) && iouReportValue.total !== undefined) {
-                iouReportValue.total -= amount;
+        if (iouReport?.currency === currency) {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+                iouReport.total -= amount;
             }
 
-            if (typeof iouReportValue.unheldTotal === 'number') {
-                iouReportValue.unheldTotal -= amount;
+            if (typeof iouReport.unheldTotal === 'number') {
+                iouReport.unheldTotal -= amount;
             }
         }
     } else {
-        iouReportValue = updateIOUOwnerAndTotal(iouReportValue, payeeAccountID, amount, currency);
+        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
-
-    const iouReport = iouReportValue;
 
     // STEP 3: Build an optimistic transaction
     const optimisticTransaction = buildOptimisticTransaction({
@@ -890,10 +872,9 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
     };
 }
 
-// =============================================
-// Per diem submission functions
-// =============================================
-
+/**
+ * Submit per diem expense to another user
+ */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {
         report,
