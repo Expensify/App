@@ -196,6 +196,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     accessibilityLabel={translate('common.privacy')}
                     href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                     style={[styles.mv2, styles.alignSelfStart]}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK}
                 >
                     <View style={[styles.flexRow]}>
                         <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
