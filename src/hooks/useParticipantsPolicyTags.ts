@@ -32,7 +32,7 @@ function useParticipantsPolicyTags(participants: ParticipantWithPolicyID[]): Rec
         [participants],
     );
 
-    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector}, [participants]);
+    const [participantsPolicyTags = getEmptyObject<Record<string, PolicyTagLists>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: policyTagsSelector});
 
     return participantsPolicyTags;
 }
