@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
@@ -33,17 +33,17 @@ function BaseSearchList({
     selectedTransactions,
     customCardNames,
 }: BaseSearchListProps) {
-    const hasKeyBeenPressed = useRef(false);
+    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
     const isFocused = useIsFocused();
 
-    const setHasKeyBeenPressed = useCallback(() => {
-        if (hasKeyBeenPressed.current) {
+    const markKeyAsPressed = useCallback(() => {
+        if (hasKeyBeenPressed) {
             return;
         }
         // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
         // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
-        hasKeyBeenPressed.current = true;
-    }, []);
+        setHasKeyBeenPressed(true);
+    }, [hasKeyBeenPressed]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -52,7 +52,7 @@ function BaseSearchList({
         onFocusedIndexChange: (index: number) => {
             scrollToIndex?.(index);
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        ...(!hasKeyBeenPressed && {setHasKeyBeenPressed: markKeyAsPressed}),
         isFocused,
         captureOnInputs: false,
     });
@@ -99,14 +99,15 @@ function BaseSearchList({
     });
 
     useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
+        addKeyDownPressListener(markKeyAsPressed);
 
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
+        return () => removeKeyDownPressListener(markKeyAsPressed);
+    }, [markKeyAsPressed]);
 
+    const newTransactionIDsKey = useMemo(() => newTransactions.map(({transactionID}) => transactionID).join(','), [newTransactions]);
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
-        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+        () => [focusedIndex, columns, newTransactionIDsKey, selectedTransactions, customCardNames],
+        [focusedIndex, columns, newTransactionIDsKey, selectedTransactions, customCardNames],
     );
 
     return (

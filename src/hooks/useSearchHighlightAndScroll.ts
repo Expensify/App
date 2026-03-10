@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -63,38 +63,44 @@ function useSearchHighlightAndScroll({
     });
     const searchResultsData = searchResults?.data;
 
-    const prevTransactionsIDs = Object.keys(previousTransactions ?? {});
-    const newTransactions: Transaction[] = [];
-    if (prevTransactionsIDs.length > 0) {
-        const previousIDs = new Set(prevTransactionsIDs);
+    const previousTransactionIDs = useMemo(() => Object.keys(previousTransactions ?? {}), [previousTransactions]);
+    const transactionIDs = useMemo(() => Object.keys(transactions ?? {}), [transactions]);
+    const reportActionsIDs = useMemo(() => getReportActionIDs(reportActions), [reportActions]);
+    const previousReportActionsIDs = useMemo(() => getReportActionIDs(previousReportActions), [previousReportActions]);
+    const scheduleNewSearchResultKeys = useCallback((keys: Set<string>) => {
+        Promise.resolve().then(() => {
+            setNewSearchResultKeys(keys);
+        });
+    }, []);
+
+    const newTransactions = useMemo(() => {
+        if (previousTransactionIDs.length === 0) {
+            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+        }
+
+        const previousIDs = new Set(previousTransactionIDs);
+        const nextTransactions: Transaction[] = [];
+
         for (const [id, transaction] of Object.entries(transactions ?? {})) {
             if (!previousIDs.has(id) && transaction) {
-                newTransactions.push(transaction);
+                nextTransactions.push(transaction);
             }
         }
-    }
+
+        return nextTransactions.length > 0 ? nextTransactions : (CONST.EMPTY_ARRAY as unknown as Transaction[]);
+    }, [previousTransactionIDs, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
-        const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
-        const transactionsIDs = Object.keys(transactions ?? {});
-
-        const reportActionsIDs = Object.values(reportActions ?? {})
-            .map((actions) => Object.keys(actions ?? {}))
-            .flat();
-        const previousReportActionsIDs = Object.values(previousReportActions ?? {})
-            .map((actions) => Object.keys(actions ?? {}))
-            .flat();
-
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if ((previousTransactionIDsLocal.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
+        if ((previousTransactionIDs.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
             return;
         }
 
-        const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
+        const previousTransactionsIDsSet = new Set(previousTransactionIDs);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
-        const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
+        const hasTransactionsIDsChange = transactionIDs.length !== previousTransactionIDs.length || transactionIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
         // Check if there is a change in the transactions or report actions list
@@ -106,7 +112,7 @@ function useSearchHighlightAndScroll({
             }
             hasPendingSearchRef.current = false;
 
-            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
+            const newIDs = isChat ? reportActionsIDs : transactionIDs;
             let currentSearchResultIDs: string[] = [];
             if (searchResultsData) {
                 currentSearchResultIDs = isChat ? extractReportActionIDsFromSearchResults(searchResultsData) : extractTransactionIDsFromSearchResults(searchResultsData);
@@ -126,7 +132,7 @@ function useSearchHighlightAndScroll({
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
-            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionIDsLocal.length;
+            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionIDs.length > previousTransactionIDs.length;
 
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
@@ -142,18 +148,18 @@ function useSearchHighlightAndScroll({
         }
     }, [
         isFocused,
-        transactions,
-        previousTransactions,
         queryJSON,
         searchKey,
         offset,
         shouldCalculateTotals,
-        reportActions,
-        previousReportActions,
         isChat,
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
+        transactionIDs,
+        previousTransactionIDs,
+        reportActionsIDs,
+        previousReportActionsIDs,
     ]);
 
     useEffect(() => {
@@ -199,9 +205,9 @@ function useSearchHighlightAndScroll({
                 highlightedIDs.current.add(newReportActionKey);
                 newKeys.add(newReportActionKey);
             }
-            setNewSearchResultKeys(newKeys);
+            scheduleNewSearchResultKeys(newKeys);
         } else {
-            const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
+            const previousSearchResultTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
             const manualHighlightTransactionIDs = new Set(Object.keys(transactionIDsToHighlight ?? {}).filter((id) => !!transactionIDsToHighlight?.[id]));
 
@@ -213,7 +219,7 @@ function useSearchHighlightAndScroll({
                 if (!triggeredByHookRef.current || !hasNewItemsRef.current) {
                     return false;
                 }
-                return !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id);
+                return !previousSearchResultTransactionIDs.includes(id) && !highlightedIDs.current.has(id);
             });
 
             if (newTransactionIDs.length === 0) {
@@ -226,9 +232,9 @@ function useSearchHighlightAndScroll({
                 highlightedIDs.current.add(newTransactionKey);
                 newKeys.add(newTransactionKey);
             }
-            setNewSearchResultKeys(newKeys);
+            scheduleNewSearchResultKeys(newKeys);
         }
-    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
+    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight, scheduleNewSearchResultKeys]);
 
     // Reset transactionIDsToHighlight after they have been highlighted
     useEffect(() => {
@@ -359,6 +365,12 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
     return Object.keys(searchResultsData ?? {})
         .filter(isReportActionEntry)
         .map((key) => Object.keys(searchResultsData[key] ?? {}))
+        .flat();
+}
+
+function getReportActionIDs(reportActions: OnyxCollection<ReportActions>): string[] {
+    return Object.values(reportActions ?? {})
+        .map((actions) => Object.keys(actions ?? {}))
         .flat();
 }
 
