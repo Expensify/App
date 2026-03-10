@@ -113,11 +113,15 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isActivePolicyRequest =
-        iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id);
+        iouType === CONST.IOU.TYPE.CREATE &&
+        isPaidGroupPolicy(activePolicy) &&
+        activePolicy?.isPolicyExpenseChatEnabled &&
+        !shouldRestrictUserBillableActions(activePolicy.id, undefined, undefined, ownerBillingGraceEndPeriod);
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();

@@ -52,7 +52,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    CardList,
+    Card,
     OnyxInputOrEntry,
     Policy,
     PolicyCategories,
@@ -331,10 +331,10 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
  * 'cash' for cash transactions, or 'card' for card transactions.
  *
  * @param transaction - The transaction to check
- * @param cardList - Optional card list to check for cash transactions
+ * @param card - Optional card to check for cash transactions
  * @returns The transaction type: 'distance', 'perDiem', 'time', 'cash', or 'card'
  */
-function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: CardList): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
+function getTransactionType(transaction: OnyxEntry<Transaction>, card?: Card): ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE> {
     if (isDistanceRequest(transaction)) {
         return CONST.SEARCH.TRANSACTION_TYPE.DISTANCE;
     }
@@ -351,8 +351,7 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
         return CONST.SEARCH.TRANSACTION_TYPE.CARD;
     }
 
-    const cardID = transaction?.cardID;
-    if (cardID && cardList?.[cardID]?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
+    if (card?.cardName === CONST.COMPANY_CARDS.CARD_NAME.CASH) {
         return CONST.SEARCH.TRANSACTION_TYPE.CASH;
     }
 
@@ -2659,6 +2658,16 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Checks if a split transaction has more than one child transaction.
+ */
+function hasMultipleSplitChildren(transactions: OnyxCollection<Transaction>, reports: OnyxCollection<Report>, originalTransactionID: string | undefined): boolean {
+    if (!originalTransactionID) {
+        return false;
+    }
+    return getChildTransactions(transactions, reports, originalTransactionID).length > 1;
+}
+
+/**
  * Determines whether a report should display the expense breakdown.
  */
 function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
@@ -2742,6 +2751,15 @@ function shouldReuseInitialTransaction(
     }
 
     return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
+}
+
+/**
+ * Check if the transaction has a smartscan failed with missing fields before violation is written
+ */
+function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
+    return transactions.some(
+        (transaction) => isScanRequest(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && hasMissingSmartscanFields(transaction, report),
+    );
 }
 
 export {
@@ -2858,6 +2876,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
+    hasMultipleSplitChildren,
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
@@ -2880,6 +2899,7 @@ export {
     isTimeRequest,
     getExpenseTypeTranslationKey,
     isDistanceTypeRequest,
+    hasSmartScanFailedWithMissingFields,
 };
 
 export type {TransactionChanges};

@@ -113,6 +113,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         canEvict: false,
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -281,7 +282,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -318,7 +319,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
         }
     };
 

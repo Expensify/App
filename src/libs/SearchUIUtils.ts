@@ -138,6 +138,7 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isSettled,
+    shouldReportShowSubscript,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
@@ -195,6 +196,7 @@ type GetReportSectionsParams = {
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
     queryJSON?: SearchQueryJSON;
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 type GetTransactionSectionsParams = {
@@ -490,6 +492,7 @@ type GetSectionsParams = {
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 const GROUP_BY_TO_SORT_COLUMN: Partial<Record<ValueOf<typeof CONST.SEARCH.GROUP_BY>, string>> = {
@@ -981,7 +984,19 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
-        const isApprover = policy.approver === currentUserEmail;
+        let isSubmittedTo = false;
+        let isUserApprover = policy.approver === currentUserEmail;
+        for (const employee of Object.values(policy.employeeList ?? {})) {
+            if (employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail) {
+                isSubmittedTo = true;
+                isUserApprover = true;
+            } else if (employee?.overLimitForwardsTo === currentUserEmail) {
+                isUserApprover = true;
+            }
+            if (isSubmittedTo && isUserApprover) {
+                break;
+            }
+        }
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
         const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
@@ -991,13 +1006,10 @@ function getSuggestedSearchesVisibility(
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
         const isECardEnabled = !!policy.areExpensifyCardsEnabled;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === currentUserEmail || employee.forwardsTo === currentUserEmail;
-        });
 
         const isEligibleForSubmitSuggestion = isPaidPolicy;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
-        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isApprover, isSubmittedTo);
+        const isPolicyEligibleForApproveSuggestion = isPaidPolicy && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
@@ -1006,10 +1018,10 @@ function getSuggestedSearchesVisibility(
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && isAdmin && isPaymentEnabled && hasVBBA && hasReimburser;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
-        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover) && memberCount >= 2;
+        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isPaidPolicy && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isPaidPolicy;
-        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
+        const isEligibleForSpendOverTimeSuggestion = isPaidPolicy && (isAdmin || isAuditor || isUserApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -1834,6 +1846,49 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
+ * Computes the avatar props (primaryAvatar, secondaryAvatar, avatarType) for a search report row.
+ * Encapsulates the getIcons + shouldReportShowSubscript combination used in expense-report search results.
+ *
+ * For IOU reports under a personal policy with two user avatars (both users sent expenses),
+ * the diagonal MultipleAvatars layout is used to match ReportActionAvatars behaviour.
+ * For workspace IOU/expense reports both user+workspace avatars are shown via subscript layout.
+ * For reports under a personal policy that are not IOU reports, subscript is suppressed.
+ */
+function getSearchReportAvatarProps(
+    report: OnyxTypes.Report,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    personalDetailsList: OnyxTypes.PersonalDetailsList,
+    policy?: OnyxTypes.Policy,
+    isReportArchived = false,
+) {
+    const avatarIcons = getIcons(report, formatPhoneNumber, personalDetailsList, null, '', -1, policy, undefined, isReportArchived);
+    const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
+
+    let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
+
+    if (isIOUReportReportUtil(report)) {
+        const isPersonalPolicy = policy?.type === CONST.POLICY.TYPE.PERSONAL;
+        const bothAreUserAvatars = avatarIcons.at(0)?.type === CONST.ICON_TYPE_AVATAR && avatarIcons.at(1)?.type === CONST.ICON_TYPE_AVATAR;
+        if (isPersonalPolicy && bothAreUserAvatars && hasSecondAvatar) {
+            // DM IOU where both users sent expenses — use diagonal MultipleAvatars to match ReportActionAvatars
+            avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL;
+        } else {
+            avatarType = hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+        }
+    } else if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    } else {
+        avatarType = shouldReportShowSubscript(report, isReportArchived) && hasSecondAvatar ? CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT : CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE;
+    }
+
+    return {
+        primaryAvatar: avatarIcons.at(0),
+        secondaryAvatar: avatarIcons.at(1),
+        avatarType,
+    };
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2173,6 +2228,7 @@ function getReportSections({
     reportActions = {},
     allReportMetadata,
     queryJSON,
+    onyxPersonalDetailsList,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const lastExportedActionByReportID = buildLastExportedActionByReportIDMap(data);
@@ -2236,6 +2292,7 @@ function getReportSections({
     );
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
+    const mergedPersonalDetails = {...(onyxPersonalDetailsList ?? {}), ...(data.personalDetailsList ?? {})};
 
     for (const key of orderedKeys) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
@@ -2305,6 +2362,8 @@ function getReportSections({
                     );
 
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(reportItem);
+                const reportIsArchived = isArchivedReport(getReportNameValuePairsFromKey(data, reportItem));
+                const avatarProps = getSearchReportAvatarProps(reportItem, formatPhoneNumber, mergedPersonalDetails, policy, reportIsArchived);
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -2330,6 +2389,7 @@ function getReportSections({
                     nonReimbursableSpend,
                     reimbursableSpend,
                     isAllScanning: false,
+                    ...avatarProps,
                 };
 
                 if (isIOUReport) {
@@ -2475,6 +2535,7 @@ function getCardSections(
     cardList?: OnyxTypes.CardList,
 ): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
+    const cardDescriptionByCardID = new Map<number, string>();
 
     for (const key in data) {
         if (isGroupEntry(key)) {
@@ -2487,16 +2548,13 @@ function getCardSections(
             }
 
             const card = cardList?.[cardGroup.cardID];
-
-            cardSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
-                transactions: [],
-                transactionsQueryJSON,
-                ...personalDetails,
-                ...cardGroup,
-                formattedCardName:
-                    customCardNames?.[cardGroup.cardID] ??
-                    getCardDescription(
+            let formattedCardName = customCardNames?.[cardGroup.cardID];
+            if (formattedCardName === undefined) {
+                const cached = cardDescriptionByCardID.get(cardGroup.cardID);
+                if (cached !== undefined) {
+                    formattedCardName = cached;
+                } else {
+                    formattedCardName = getCardDescription(
                         {
                             cardID: cardGroup.cardID,
                             bank: cardGroup.bank,
@@ -2505,7 +2563,18 @@ function getCardSections(
                             lastFourPAN: cardGroup.lastFourPAN,
                         } as OnyxTypes.Card,
                         translate,
-                    ),
+                    );
+                    cardDescriptionByCardID.set(cardGroup.cardID, formattedCardName);
+                }
+            }
+
+            cardSections[key] = {
+                groupedBy: CONST.SEARCH.GROUP_BY.CARD,
+                transactions: [],
+                transactionsQueryJSON,
+                ...personalDetails,
+                ...cardGroup,
+                formattedCardName,
                 formattedFeedName: getFeedNameForDisplay(translate, cardGroup.bank as OnyxTypes.CompanyCardFeed, cardFeeds),
             };
         }
@@ -2840,6 +2909,7 @@ function getSections({
     visibleReportActionsData,
     allReportMetadata,
     cardList,
+    onyxPersonalDetailsList,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data, visibleReportActionsData);
@@ -2864,6 +2934,7 @@ function getSections({
             reportActions,
             allReportMetadata,
             queryJSON,
+            onyxPersonalDetailsList,
         });
     }
 
@@ -3086,8 +3157,8 @@ function getSortedTransactionData(
             const aIsUnreported = a.report?.type !== CONST.REPORT.TYPE.EXPENSE && a.report?.type !== CONST.REPORT.TYPE.INVOICE;
             const bIsUnreported = b.report?.type !== CONST.REPORT.TYPE.EXPENSE && b.report?.type !== CONST.REPORT.TYPE.INVOICE;
 
-            const aValue = !aIsUnreported ? getPolicyName({report: a.report}) : '';
-            const bValue = !bIsUnreported ? getPolicyName({report: b.report}) : '';
+            const aValue = !aIsUnreported ? getPolicyName({report: a.report, policy: a.policy}) : '';
+            const bValue = !bIsUnreported ? getPolicyName({report: b.report, policy: b.policy}) : '';
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4499,6 +4570,40 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+/**
+ * Determine policyID based on selected transactions:
+ * - If all selected transactions belong to the same policy, use that policy
+ * - Otherwise, fall back to the user's active workspace policy
+ */
+function getSearchBulkEditPolicyID(
+    selectedTransactionIDs: string[],
+    activePolicyID: string | undefined,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): string | undefined {
+    if (selectedTransactionIDs.length === 0) {
+        return activePolicyID;
+    }
+
+    const policyIDs = selectedTransactionIDs.map((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID) {
+            return undefined;
+        }
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        return report?.policyID;
+    });
+
+    const firstPolicyID = policyIDs.at(0);
+    const allSamePolicy = policyIDs.every((policyID) => policyID === firstPolicyID);
+
+    if (allSamePolicy && firstPolicyID) {
+        return firstPolicyID;
+    }
+
+    return activePolicyID;
+}
+
 function filterValidHasValues(hasValues: string[] | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): string[] | undefined {
     if (!hasValues || !type) {
         return undefined;
@@ -4630,6 +4735,7 @@ function applySelectionToItem(
 }
 
 export {
+    getSearchBulkEditPolicyID,
     getSuggestedSearches,
     getListItem,
     getSections,
@@ -4675,6 +4781,7 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     getDatePresets,
+    getDateRangeForPreset,
     createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
     getActionOptions,
@@ -4691,6 +4798,7 @@ export {
     navigateToSearchRHP,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
+    getSearchReportAvatarProps,
     isTodoSearch,
     adjustTimeRangeToDateFilters,
     isEligibleForApproveSuggestion,
