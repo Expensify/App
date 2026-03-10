@@ -1,5 +1,6 @@
+import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
-import {isReportMessageAttachment} from '../../src/libs/isReportMessageAttachment';
+import {isAttachmentOnlyMessage, isReportMessageAttachment} from '../../src/libs/isReportMessageAttachment';
 
 describe('isReportMessageAttachment', () => {
     it('returns true if a report action is attachment', () => {
@@ -20,5 +21,48 @@ describe('isReportMessageAttachment', () => {
 
         message = {text: '[Attachment]', html: '<a href="https://www.google.com/?data-expensify-source=" target="_blank" rel="noreferrer noopener">[Attachment]</a>', type: ''};
         expect(isReportMessageAttachment(message)).toBe(false);
+    });
+});
+
+describe('isAttachmentOnlyMessage', () => {
+    it('returns true for a translated attachment-only message', () => {
+        const message: Message = {
+            text: CONST.ATTACHMENT_MESSAGE_TEXT,
+            html: '<img src="https://www.expensify.com/chat-attachments/test.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/test.jpg" />',
+            translationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+            type: '',
+        };
+
+        expect(isAttachmentOnlyMessage(message)).toBe(true);
+    });
+
+    it('returns true for an attachment-only file message', () => {
+        const message: Message = {
+            text: 'file-sample_100kB.doc https://www.expensify.com/chat-attachments/test.doc',
+            html: '<a href="https://www.expensify.com/chat-attachments/test.doc" data-expensify-source="https://www.expensify.com/chat-attachments/test.doc">file-sample_100kB.doc</a>',
+            type: '',
+        };
+
+        expect(isAttachmentOnlyMessage(message)).toBe(true);
+    });
+
+    it('returns false for an attachment with text', () => {
+        const message: Message = {
+            text: 'AAAAAAAAA\n\nfile-sample_100kB.doc https://www.expensify.com/chat-attachments/test.doc',
+            html: 'AAAAAAAAA<br /><br /><a href="https://www.expensify.com/chat-attachments/test.doc" data-expensify-source="https://www.expensify.com/chat-attachments/test.doc">file-sample_100kB.doc</a>',
+            type: '',
+        };
+
+        expect(isAttachmentOnlyMessage(message)).toBe(false);
+    });
+
+    it('returns false for a non-attachment message', () => {
+        const message: Message = {
+            text: 'Hello world',
+            html: 'Hello world',
+            type: '',
+        };
+
+        expect(isAttachmentOnlyMessage(message)).toBe(false);
     });
 });
