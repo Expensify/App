@@ -1766,7 +1766,7 @@ function updateDomainSecurityGroup(
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.groups.error.groupDetails.${settingsName}`),
+                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.groups.error.settings`),
                 },
             },
         },
@@ -1873,7 +1873,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domai
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    defaultSecurityGroupIDErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.error.defaultGroupError'),
+                    defaultSecurityGroupIDErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.error.settings'),
                 },
             },
         },
