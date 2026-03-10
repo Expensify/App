@@ -1133,6 +1133,7 @@ describe('Transaction', () => {
             };
 
             // When sanitizing the waypoints
+            // Test intentionally passes extra fields not in WaypointCollection to verify they are stripped
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
 
@@ -1161,6 +1162,7 @@ describe('Transaction', () => {
             };
 
             // When sanitizing the waypoints
+            // Test uses a partial waypoint object to verify sanitization handles missing fields
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
             const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
 
@@ -1179,6 +1181,43 @@ describe('Transaction', () => {
 
             // Then the result should also be empty
             expect(sanitizedWaypoints).toEqual({});
+        });
+
+        it('should skip null waypoint entries without crashing', () => {
+            // Given waypoints where some entries are null (can happen during rollback of failed distance edits)
+            const waypointsWithNulls = {
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint1: null,
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Null entries can occur at runtime even though WaypointCollection type doesn't include null
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls as any);
+
+            // Then null entries should be dropped and valid entries sanitized
+            expect(sanitizedWaypoints).toEqual({
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            });
+            expect(sanitizedWaypoints.waypoint1).toBeUndefined();
         });
     });
 

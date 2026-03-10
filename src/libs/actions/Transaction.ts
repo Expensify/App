@@ -355,9 +355,12 @@ function getOnyxDataForRouteRequest(
  */
 function sanitizeWaypointsForAPI(waypoints: WaypointCollection): WaypointCollection {
     return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
+        if (!waypoint) {
+            return acc;
+        }
+
         const sanitizedWaypoint: Record<string, string | number> = {};
 
-        // Only include allowed fields
         if (waypoint.name !== undefined) {
             sanitizedWaypoint.name = waypoint.name;
         }
@@ -374,6 +377,15 @@ function sanitizeWaypointsForAPI(waypoints: WaypointCollection): WaypointCollect
         acc[key] = sanitizedWaypoint;
         return acc;
     }, {});
+}
+
+/**
+ * Sanitizes waypoints and serializes them to a JSON string for API params.
+ * Preserves keyForList and other Onyx-only fields by sanitizing at the serialization boundary
+ * rather than when building transactionChanges.
+ */
+function stringifyWaypointsForAPI(waypoints: WaypointCollection): string {
+    return JSON.stringify(sanitizeWaypointsForAPI(waypoints));
 }
 
 /**
@@ -1695,6 +1707,7 @@ export {
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
     sanitizeWaypointsForAPI,
+    stringifyWaypointsForAPI,
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
