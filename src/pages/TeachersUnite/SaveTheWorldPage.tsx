@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import BillingCardDetails from '@components/BillingCardDetails';
+import PaymentCardDetails from '@components/PaymentCardDetails';
 import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -175,7 +175,7 @@ function SaveTheWorldPage() {
                             wrapperStyle={styles.mt8}
                         />
                         {personalOffsetsEnabled && (
-                            <BillingCardDetails
+                            <PaymentCardDetails
                                 card={billingCard}
                                 wrapperStyle={styles.mt8}
                             />

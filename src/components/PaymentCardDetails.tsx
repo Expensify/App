@@ -13,7 +13,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Text from './Text';
 import Icon from './Icon';
 
-type BillingCardDetailsProps = {
+type PaymentCardDetailsProps = {
     /** The billing card data */
     card?: Fund;
 
@@ -24,7 +24,7 @@ type BillingCardDetailsProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function BillingCardDetails({card, rightComponent, wrapperStyle}: BillingCardDetailsProps) {
+function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -55,4 +55,4 @@ function BillingCardDetails({card, rightComponent, wrapperStyle}: BillingCardDet
     );
 }
 
-export default BillingCardDetails;
+export default PaymentCardDetails;

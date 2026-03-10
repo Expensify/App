@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import BillingCardDetails from '@components/BillingCardDetails';
+import PaymentCardDetails from '@components/PaymentCardDetails';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -215,7 +215,7 @@ function CardSection() {
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
-                    <BillingCardDetails
+                    <PaymentCardDetails
                         card={defaultCard}
                         rightComponent={<CardSectionActions />}
                     />
