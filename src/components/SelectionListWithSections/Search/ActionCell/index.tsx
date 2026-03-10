@@ -10,7 +10,6 @@ import PayActionCell from './PayActionCell';
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
     isChildListItem?: boolean;
@@ -25,7 +24,6 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
     isChildListItem = false,
@@ -47,7 +45,7 @@ function ActionCell({
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
-        return isLargeScreenWidth ? (
+        return (
             <Button
                 testID="ActionCell"
                 text={text}
@@ -63,7 +61,7 @@ function ActionCell({
                 isNested
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_VIEW}
             />
-        ) : null;
+        );
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
