@@ -196,7 +196,8 @@ import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, ge
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     allHavePendingRTERViolation,
     buildOptimisticTransaction,
@@ -211,6 +212,7 @@ import {
     getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -333,6 +335,7 @@ type PayInvoiceArgs = {
     paymentMethod?: PaymentMethod;
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 };
 
 type RejectMoneyRequestData = {
@@ -657,7 +660,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserEmailParam: string;
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-    personalDetails?: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -711,6 +714,7 @@ type CreateSplitsAndOnyxDataParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -907,6 +911,7 @@ type PayMoneyRequestFunctionParams = {
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1074,12 +1079,26 @@ function getPolicyTagsData(policyID: string | undefined) {
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: boolean) {
     const rootState = navigationRef.getRootState();
+    const hasSubmitToDestinationVisibleSpan = !!getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
+
     if (!isInvoice && isReportOpenInRHP(rootState)) {
         const rhpKey = rootState.routes.at(-1)?.state?.key;
         if (rhpKey) {
             const hasMultipleTransactions = Object.values(allTransactions).filter((transaction) => transaction?.reportID === reportID).length > 0;
+            const isSuperWideRHP = isReportOpenInSuperWideRHP(rootState);
+
+            // submit_follow_up_action: only set when the span was started.
+            if (hasSubmitToDestinationVisibleSpan) {
+                if (isSuperWideRHP) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                } else if (hasMultipleTransactions && reportID) {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
+                } else {
+                    setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
+                }
+            }
             // When a report is opened in the super wide RHP, we need to dismiss to the first RHP to show the same report with new expense.
-            if (isReportOpenInSuperWideRHP(rootState)) {
+            if (isSuperWideRHP) {
                 Navigation.dismissToPreviousRHP();
                 return;
             }
@@ -1093,7 +1112,6 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
                 } else {
                     Navigation.dismissToPreviousRHP();
                 }
-
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
                 });
@@ -1104,10 +1122,30 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
         }
     }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
+        if (hasSubmitToDestinationVisibleSpan) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+        }
         Navigation.dismissModal();
+        if (hasSubmitToDestinationVisibleSpan) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
+            InteractionManager.runAfterInteractions(() => {
+                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+            });
+        }
         return;
     }
-    Navigation.dismissModalWithReport({reportID});
+    if (hasSubmitToDestinationVisibleSpan) {
+        Navigation.dismissModalWithReport({reportID}, undefined, {
+            onBeforeNavigate: (willOpenReport) => {
+                setPendingSubmitFollowUpAction(
+                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                    reportID,
+                );
+            },
+        });
+    } else {
+        Navigation.dismissModalWithReport({reportID});
+    }
 }
 
 /**
@@ -1151,6 +1189,17 @@ function handleNavigateAfterExpenseCreate({
         return;
     }
 
+    // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
+    // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
+    const rootState = navigationRef.getRootState();
+    const searchNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const lastSearchRoute = searchNavigatorRoute?.state?.routes?.at(-1);
+    const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
+    const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
+    const isSameSearchType = currentSearchQueryJSON?.type === type;
+    setPendingSubmitFollowUpAction(
+        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
+    );
     startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
         name: 'navigate-after-expense-create',
         op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
@@ -3794,11 +3843,12 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
 
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     let mergedCurrencies: string[];
+    const currenciesArray = policyRecentlyUsedCurrencies ?? [];
     if (currency) {
-        const currenciesWithNew = [currency, ...policyRecentlyUsedCurrencies];
+        const currenciesWithNew = [currency, ...currenciesArray];
         mergedCurrencies = Array.from(new Set(currenciesWithNew));
     } else {
-        mergedCurrencies = policyRecentlyUsedCurrencies;
+        mergedCurrencies = currenciesArray;
     }
     return mergedCurrencies.slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
@@ -7834,6 +7884,7 @@ function createSplitsAndOnyxData({
     quickAction,
     policyRecentlyUsedCurrencies,
     betas,
+    personalDetails,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -8271,6 +8322,7 @@ function createSplitsAndOnyxData({
             currentUserEmailParam: currentUserEmail,
             hasViolations,
             quickAction,
+            personalDetails,
         });
 
         const individualSplit = {
@@ -8422,6 +8474,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             quickAction,
             policyRecentlyUsedCurrencies,
             betas,
+            personalDetails,
         });
         onyxData = splitOnyxData;
 
@@ -10063,6 +10116,7 @@ function getPayMoneyRequestParams({
     activePolicy,
     iouReportCurrentNextStepDeprecated,
     betas,
+    isSelfTourViewed,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -10081,6 +10135,7 @@ function getPayMoneyRequestParams({
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    isSelfTourViewed: boolean | undefined;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -10118,6 +10173,7 @@ function getPayMoneyRequestParams({
             introSelected,
             activePolicyID: activePolicy?.id,
             companySize: introSelected?.companySize as OnboardingCompanySize,
+            isSelfTourViewed,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -10554,6 +10610,7 @@ function canSubmitReport(
         hasTransactionWithoutRTERViolation &&
         !isReportArchived &&
         !hasAnySubmissionBlockingViolations &&
+        !hasSmartScanFailedWithMissingFields(transactions, report) &&
         transactions.length > 0
     );
 }
@@ -10595,23 +10652,38 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
     return createdAction?.created ?? expenseReport.created;
 }
 
-function approveMoneyRequest(
-    expenseReport: OnyxEntry<OnyxTypes.Report>,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    hasViolations: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>,
-    full?: boolean,
-) {
+type ApproveMoneyRequestParam = {
+    expenseReport: OnyxEntry<OnyxTypes.Report>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    full?: boolean;
+};
+
+function approveMoneyRequest({
+    expenseReport,
+    policy,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    expenseReportCurrentNextStepDeprecated,
+    betas,
+    userBillingGraceEndPeriods,
+    amountOwed,
+    full,
+}: ApproveMoneyRequestParam) {
     if (!expenseReport) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -12021,6 +12093,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         activePolicy,
         policy,
         betas,
+        isSelfTourViewed,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, userBillingGraceEndPeriods)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -12043,6 +12116,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         betas,
+        isSelfTourViewed,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -12069,6 +12143,7 @@ function payInvoice({
     activePolicy,
     invoiceReportCurrentNextStepDeprecated,
     betas,
+    isSelfTourViewed,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -12100,6 +12175,7 @@ function payInvoice({
         currentUserEmailParam,
         introSelected,
         betas,
+        isSelfTourViewed,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
