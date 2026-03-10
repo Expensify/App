@@ -125,12 +125,12 @@ function VerifyPage({route}: VerifyPageProps) {
                             textChecked={translate('common.copied')}
                             tooltipText=""
                             tooltipTextChecked=""
+                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.secretKey')}`}
                             icon={icons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
-                            accessibilityLabel={translate('twoFactorAuth.copy')}
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}
                         />
                     </View>

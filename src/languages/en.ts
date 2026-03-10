@@ -2137,6 +2137,7 @@ const translations = {
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
         addKey: 'Or add this secret key to your authenticator app:',
+        secretKey: 'secret key',
         enterCode: 'Then enter the six-digit code generated from your authenticator app.',
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication enabled',
@@ -7238,6 +7239,10 @@ const translations = {
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
+            editMultiple: 'Edit multiple',
+            editMultipleTitle: 'Edit multiple expenses',
+            // cspell:disable
+            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
@@ -7650,6 +7655,9 @@ const translations = {
         notActivated: 'Not activated',
         outOfPocket: 'Reimbursable',
         companySpend: 'Non-reimbursable',
+        personalCard: 'Personal card',
+        companyCard: 'Company card',
+        expensifyCard: 'Expensify Card',
     },
     distance: {
         addStop: 'Add stop',
