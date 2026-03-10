@@ -241,6 +241,8 @@ function WorkspacesListPage() {
         isOffline,
         lastAccessedWorkspacePolicyID,
         lastPaymentMethod,
+        isPendingDelete,
+        policies,
         localeCompare,
         policyIDToDelete,
         policyNameToDelete,
@@ -280,7 +282,7 @@ function WorkspacesListPage() {
                     prompt: policyToDeleteLatestErrorMessage,
                     confirmText: translate('common.buttonConfirm'),
                     cancelText: translate('common.cancel'),
-                    success: true,
+                    success: false,
                     shouldShowCancelButton: false,
                 }).then(() => {
                     hideDeleteWorkspaceErrorModal();
