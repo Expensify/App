@@ -1258,8 +1258,9 @@ function MoneyReportHeader({
                     if (!moneyRequestAction) {
                         return;
                     }
-
-                    changeMoneyRequestHoldStatus(moneyRequestAction, transaction);
+                    const actionIOUTransactionID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUTransactionID : undefined;
+                    const linkedTransaction = actionIOUTransactionID ? transactions.find((item) => item.transactionID === actionIOUTransactionID) : undefined;
+                    changeMoneyRequestHoldStatus(moneyRequestAction, linkedTransaction);
                 }}
             />
         ),
