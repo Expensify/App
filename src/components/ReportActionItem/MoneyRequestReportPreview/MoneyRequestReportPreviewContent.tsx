@@ -302,6 +302,7 @@ function MoneyRequestReportPreviewContent({
                         betas,
                         isSelfTourViewed,
                         userBillingGraceEndPeriods,
+                        amountOwed,
                     });
                 }
             }
@@ -322,6 +323,7 @@ function MoneyRequestReportPreviewContent({
             betas,
             isSelfTourViewed,
             userBillingGraceEndPeriods,
+            amountOwed,
         ],
     );
 
@@ -351,18 +353,19 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(
-                iouReport,
-                activePolicy,
-                currentUserAccountID,
-                currentUserEmail,
+            approveMoneyRequest({
+                expenseReport: iouReport,
+                policy: activePolicy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                iouReportNextStep,
+                expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
                 userBillingGraceEndPeriods,
-                true,
-            );
+                amountOwed,
+                full: true,
+            });
         }
     };
 
@@ -726,7 +729,17 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, userBillingGraceEndPeriods);
+                    submitReport(
+                        iouReport,
+                        policy,
+                        currentUserAccountID,
+                        currentUserEmail,
+                        hasViolations,
+                        isASAPSubmitBetaEnabled,
+                        iouReportNextStep,
+                        userBillingGraceEndPeriods,
+                        amountOwed,
+                    );
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
