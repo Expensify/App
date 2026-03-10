@@ -10,12 +10,12 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import RefreshCardFeedConnectionPage from '@pages/workspace/companyCards/RefreshCardFeedConnectionPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -246,6 +246,13 @@ describe('RefreshCardFeedConnection', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(mockClearAssignCardStepAndData).toHaveBeenCalled();
+        });
+    });
+
+    describe('Route generation', () => {
+        it('should generate correct route for refresh card feed connection', () => {
+            const route = ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(POLICY_ID, DIRECT_FEED);
+            expect(route).toBe(`workspaces/${POLICY_ID}/company-cards/${encodeURIComponent(DIRECT_FEED)}/refresh-card-feed-connection`);
         });
     });
 });
