@@ -284,7 +284,7 @@ function ComposerWithSuggestions({
         isEditInProgressRef: isDraftPendingSaved,
     });
 
-    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length, positionX: 0, positionY: 0});
+    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: value.length, end: value.length});
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
