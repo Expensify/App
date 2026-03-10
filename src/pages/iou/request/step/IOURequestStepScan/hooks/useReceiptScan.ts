@@ -1,7 +1,6 @@
-import {shouldStartLocationPermissionFlowSelector} from '@selectors/LocationPermission';
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';

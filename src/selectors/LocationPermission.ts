@@ -14,4 +14,4 @@ function shouldStartLocationPermissionFlowSelector(lastLocationPermissionPrompt:
     );
 }
 
-export {shouldStartLocationPermissionFlowSelector};
+export default shouldStartLocationPermissionFlowSelector;

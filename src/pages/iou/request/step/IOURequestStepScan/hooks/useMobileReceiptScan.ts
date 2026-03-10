@@ -1,4 +1,4 @@
-import {shouldStartLocationPermissionFlowSelector} from '@selectors/LocationPermission';
+import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
