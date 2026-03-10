@@ -77,6 +77,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     onDEWModalOpen,
     isDEWBetaEnabled,
+    lastPaymentMethod,
+    personalPolicyID,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -385,6 +387,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isHovered={hovered}
                     onDEWModalOpen={onDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
                 />
