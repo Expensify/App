@@ -33,7 +33,7 @@ import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -128,6 +128,29 @@ const currentUserPersonalDetails: CurrentUserPersonalDetails = {
     email: RORY_EMAIL,
     displayName: RORY_EMAIL,
     avatar: 'https://example.com/avatar.jpg',
+};
+
+const mockPersonalDetails: PersonalDetailsList = {
+    [RORY_ACCOUNT_ID]: {
+        accountID: RORY_ACCOUNT_ID,
+        login: RORY_EMAIL,
+        displayName: RORY_EMAIL,
+    },
+    [CARLOS_ACCOUNT_ID]: {
+        accountID: CARLOS_ACCOUNT_ID,
+        login: CARLOS_EMAIL,
+        displayName: CARLOS_EMAIL,
+    },
+    [JULES_ACCOUNT_ID]: {
+        accountID: JULES_ACCOUNT_ID,
+        login: JULES_EMAIL,
+        displayName: JULES_EMAIL,
+    },
+    [VIT_ACCOUNT_ID]: {
+        accountID: VIT_ACCOUNT_ID,
+        login: VIT_EMAIL,
+        displayName: VIT_EMAIL,
+    },
 };
 
 const getPolicyTags = async (reportID: string) => {
@@ -363,6 +386,7 @@ describe('split expense', () => {
                         policyRecentlyUsedCurrencies: [],
                         policyRecentlyUsedTags: undefined,
                         betas: [CONST.BETAS.ALL],
+                        personalDetails: mockPersonalDetails,
                     },
                 );
                 return waitForBatchedUpdates();
@@ -700,6 +724,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -748,6 +773,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -770,6 +796,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
         await waitForBatchedUpdates();
 
@@ -799,6 +826,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: initialCurrencies,
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -833,6 +861,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -853,6 +882,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -912,6 +942,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -961,6 +992,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         await waitForBatchedUpdates();
@@ -1021,6 +1053,7 @@ describe('split expense', () => {
             quickAction: {},
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
+            personalDetails: mockPersonalDetails,
         });
 
         waitForBatchedUpdates();
@@ -1093,7 +1126,7 @@ describe('split expense', () => {
         expect(iouAction).toBeTruthy();
 
         // Complete this split bill without changing the description
-        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], RORY_EMAIL);
+        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], mockPersonalDetails, RORY_EMAIL);
 
         await waitForBatchedUpdates();
 
@@ -1252,6 +1285,244 @@ describe('split expense', () => {
         for (const splitTransaction of splitTransactions) {
             expect(splitTransaction.convertedAmount).toBe(expectedProportionalConvertedAmount);
         }
+    });
+
+    it('should use personalDetails parameter to create split transactions', async () => {
+        // Given a DM chat and personalDetails passed explicitly
+        const reportID = '1';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+        });
+
+        const testPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory Test',
+            },
+            [CARLOS_ACCOUNT_ID]: {
+                accountID: CARLOS_ACCOUNT_ID,
+                login: CARLOS_EMAIL,
+                displayName: 'Carlos Test',
+            },
+        };
+
+        // When splitting a bill with explicit personalDetails
+        splitBill({
+            participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: '',
+            amount: 300,
+            currency: CONST.CURRENCY.USD,
+            merchant: 'personalDetails test',
+            created: '',
+            existingSplitChatReportID: reportID,
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: testPersonalDetails,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then the split should be created successfully with the correct amount
+        const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+
+        const splitTransactions = Object.values(transactions ?? {}).filter((t) => t?.merchant === 'personalDetails test');
+        expect(splitTransactions.length).toBeGreaterThan(0);
+    });
+
+    it('should create split bill with personalDetails containing all participants', async () => {
+        // Given personal details for multiple participants
+        const participantPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory',
+            },
+            [CARLOS_ACCOUNT_ID]: {
+                accountID: CARLOS_ACCOUNT_ID,
+                login: CARLOS_EMAIL,
+                displayName: 'Carlos',
+            },
+            [JULES_ACCOUNT_ID]: {
+                accountID: JULES_ACCOUNT_ID,
+                login: JULES_EMAIL,
+                displayName: 'Jules',
+            },
+        };
+
+        // When splitting a bill among multiple participants with explicit personalDetails
+        splitBill({
+            participants: [
+                {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
+                {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL},
+            ],
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: 'multi-participant split',
+            amount: 600,
+            currency: CONST.CURRENCY.USD,
+            merchant: 'multi split merchant',
+            created: '',
+            existingSplitChatReportID: '',
+            isASAPSubmitBetaEnabled: false,
+            transactionViolations: {},
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            policyRecentlyUsedTags: undefined,
+            betas: [CONST.BETAS.ALL],
+            personalDetails: participantPersonalDetails,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Then reports and transactions should be created
+        const allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (reports) => {
+                    Onyx.disconnect(connection);
+                    resolve(reports);
+                },
+            });
+        });
+
+        // There should be reports created for the split
+        expect(Object.values(allReports ?? {}).length).toBeGreaterThan(0);
+
+        const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+
+        const splitTransactions = Object.values(transactions ?? {}).filter((t) => t?.merchant === 'multi split merchant');
+        expect(splitTransactions.length).toBeGreaterThan(0);
+    });
+
+    it('should pass personalDetails to completeSplitBill and create split transactions', async () => {
+        // Given a group chat report and a started split bill
+        const reportID = '1';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            participants: {
+                [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+        });
+
+        const participants: IOUParticipant[] = [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}];
+        const participantsPolicyTags = await getParticipantsPolicyTags(participants);
+
+        startSplitBill({
+            participants,
+            currentUserLogin: RORY_EMAIL,
+            currentUserAccountID: RORY_ACCOUNT_ID,
+            comment: 'completeSplitBill personalDetails test',
+            receipt: {source: 'abc', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            existingSplitChatReportID: reportID,
+            billable: false,
+            reimbursable: true,
+            category: '',
+            tag: '',
+            currency: CONST.CURRENCY.USD,
+            taxCode: '',
+            taxAmount: 0,
+            policyRecentlyUsedCategories: undefined,
+            policyRecentlyUsedTags: undefined,
+            quickAction: undefined,
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags,
+        });
+
+        await waitForBatchedUpdates();
+
+        // Find the split transaction
+        const allTransactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (transactions) => {
+                    Onyx.disconnect(connection);
+                    resolve(transactions);
+                },
+            });
+        });
+
+        const splitTransaction = Object.values(allTransactions ?? {}).find((t) => t?.comment?.comment === 'completeSplitBill personalDetails test');
+        expect(splitTransaction).toBeTruthy();
+
+        // Find the IOU action
+        const allReportActions = await new Promise<OnyxCollection<Record<string, ReportAction>>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (actions) => {
+                    Onyx.disconnect(connection);
+                    resolve(actions as OnyxCollection<Record<string, ReportAction>>);
+                },
+            });
+        });
+
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+        const iouAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action));
+        expect(iouAction).toBeTruthy();
+
+        // When completing the split bill with explicit personalDetails
+        const updatedSplitTransaction: OnyxEntry<Transaction> = splitTransaction
+            ? {
+                  ...splitTransaction,
+                  amount: -200,
+                  currency: CONST.CURRENCY.USD,
+                  merchant: 'completeSplitBill test merchant',
+              }
+            : undefined;
+
+        const completeSplitPersonalDetails: PersonalDetailsList = {
+            [RORY_ACCOUNT_ID]: {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Rory Complete',
+            },
+            [CARLOS_ACCOUNT_ID]: {
+                accountID: CARLOS_ACCOUNT_ID,
+                login: CARLOS_EMAIL,
+                displayName: 'Carlos Complete',
+            },
+        };
+
+        completeSplitBill(reportID, iouAction, updatedSplitTransaction, RORY_ACCOUNT_ID, false, undefined, {}, [CONST.BETAS.ALL], completeSplitPersonalDetails, RORY_EMAIL);
+
+        await waitForBatchedUpdates();
+
+        // Then the split transaction should be updated
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction?.transactionID}`);
+        expect(updatedTransaction).toBeTruthy();
+        expect(updatedTransaction?.merchant).toBe('completeSplitBill test merchant');
     });
 });
 
