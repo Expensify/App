@@ -223,18 +223,18 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: report
-                    ? computeReportName(
+                    ? computeReportName({
                           report,
                           reports,
                           policies,
                           transactions,
-                          reportNameValuePairs,
-                          personalDetails,
+                          allReportNameValuePairs: reportNameValuePairs,
+                          personalDetailsList: personalDetails,
                           reportActions,
-                          session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                          undefined,
-                          policyTags,
-                      )
+                          currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                          currentUserLogin: session?.email ?? '',
+                          allPolicyTags: policyTags,
+                      })
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
