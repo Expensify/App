@@ -1,7 +1,7 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useRef, useState} from 'react';
-import {AccessibilityInfo, InteractionManager, View} from 'react-native';
+import {AccessibilityInfo, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
@@ -60,13 +60,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             return false;
         }
         pendingHeaderFocusIndexRef.current = null;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            if (!headerRef.current) {
-                return;
-            }
-            AccessibilityInfo.sendAccessibilityEvent(headerRef.current, 'focus');
-        });
+        AccessibilityInfo.sendAccessibilityEvent(headerRef.current, 'focus');
         return true;
     }, []);
 
@@ -97,11 +91,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         setFilteredEmojis(emojiData);
         setHeaderIndices(headerData);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
-            });
+        requestAnimationFrame(() => {
+            emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
         });
     };
 
