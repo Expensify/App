@@ -52,7 +52,7 @@ function SearchFiltersTagPage() {
         items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
 
         return items;
-    }, [allPolicyTagLists, policyIDs, selectedPoliciesTagLists, translate]);
+    }, [allPolicyTagLists, policyIDs.length, selectedPoliciesTagLists, translate]);
 
     const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 

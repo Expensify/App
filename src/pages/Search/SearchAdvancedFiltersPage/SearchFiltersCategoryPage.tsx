@@ -80,7 +80,7 @@ function SearchFiltersCategoryPage() {
                 }),
         );
         return items;
-    }, [allPolicyCategories, policyIDs, selectedPoliciesCategories, translate]);
+    }, [allPolicyCategories, policyIDs.length, selectedPoliciesCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({category: values}), []);
 
