@@ -20,7 +20,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function ReplaceDeviceVerifyOldPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -45,7 +45,6 @@ function ReplaceDeviceVerifyOldPage() {
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_OLD}
             title={translate('twoFactorAuth.replaceDeviceTitle')}
-            shouldEnableViewportOffsetTop
         >
             <ScrollView
                 contentContainerStyle={styles.flexGrow1}
@@ -55,7 +54,9 @@ function ReplaceDeviceVerifyOldPage() {
                     <Text style={[styles.textLabel, styles.mb4]}>{translate('twoFactorAuth.verifyOldDeviceDescription')}</Text>
                     <TwoFactorAuthForm
                         ref={formRef}
-                        onSubmit={(code) => replaceTwoFactorDevice('verify_old', code)}
+                        onSubmit={(code) => {
+                            replaceTwoFactorDevice('verify_old', code);
+                        }}
                         onInputChange={clearAccountErrorsIfPresent}
                         errorMessage={errorMessage}
                     />

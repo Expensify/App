@@ -26,7 +26,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Sync']);
 
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {login} = useCurrentUserPersonalDetails();
@@ -67,7 +67,7 @@ function EnabledPage() {
                 <MenuItem
                     title={translate('twoFactorAuth.replaceDevice')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_REPLACE_VERIFY_OLD)}
-                    icon={Expensicons.Sync}
+                    icon={icons.Sync}
                 />
                 <MenuItem
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}

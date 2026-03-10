@@ -61,6 +61,7 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                     textStyles={[styles.buttonMediumText]}
                     accessible={false}
+                    sentryLabel="TwoFactorAuthSecret-Copy"
                 />
             </View>
         </>

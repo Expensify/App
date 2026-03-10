@@ -24,8 +24,8 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 function ReplaceDeviceVerifyNewPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -61,7 +61,6 @@ function ReplaceDeviceVerifyNewPage() {
         <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.REPLACE_VERIFY_NEW}
             title={translate('twoFactorAuth.replaceDeviceTitle')}
-            shouldEnableViewportOffsetTop
         >
             <ScrollView
                 ref={scrollViewRef}
@@ -77,7 +76,9 @@ function ReplaceDeviceVerifyNewPage() {
                     <Text style={[styles.mt5, styles.mb3, styles.textLabel]}>{translate('twoFactorAuth.enterCode')}</Text>
                     <TwoFactorAuthForm
                         ref={formRef}
-                        onSubmit={(code) => replaceTwoFactorDevice('verify_new', code)}
+                        onSubmit={(code) => {
+                            replaceTwoFactorDevice('verify_new', code);
+                        }}
                         onInputChange={clearAccountErrorsIfPresent}
                         errorMessage={errorMessage}
                         onFocus={handleInputFocus}
