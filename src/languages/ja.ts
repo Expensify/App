@@ -475,6 +475,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: '検証',
         downloadAsPDF: 'PDFとしてダウンロード',
         downloadAsCSV: 'CSVとしてダウンロード',
+        print: '印刷',
         help: 'ヘルプ',
         expenseReport: '経費精算書',
         expenseReports: '経費レポート',
@@ -7174,9 +7175,6 @@ ${reportName}
         topMerchants: '上位加盟店',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
-            editMultiple: '複数を編集',
-            editMultipleTitle: '複数の経費を編集',
-            editMultipleDescription: '変更は選択したすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
             delete: '削除',
