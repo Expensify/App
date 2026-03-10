@@ -17,9 +17,6 @@ type Network = {
 
     /** The time when network change from online to offline */
     lastOfflineAt?: string;
-
-    /** The reason the network is in hard stop, if any */
-    hardStopReason?: string;
 };
 
 export default Network;
