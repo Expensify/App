@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useContext, useRef, useState} from 'react';
 
 type LabelEntry = {id: number; text: string};
 
@@ -28,31 +28,28 @@ function DialogLabelProvider({children}: {children: React.ReactNode}) {
     const nextIdRef = useRef(0);
     const [labelStack, setLabelStack] = useState<LabelEntry[]>([]);
 
-    const pushLabel = useCallback((text: string): number => {
+    const pushLabel = (text: string): number => {
         const id = nextIdRef.current++;
         setLabelStack((prev) => [...prev, {id, text}]);
         return id;
-    }, []);
+    };
 
-    const popLabel = useCallback((id: number) => {
+    const popLabel = (id: number) => {
         setLabelStack((prev) => prev.filter((entry) => entry.id !== id));
-    }, []);
+    };
 
-    const updateLabel = useCallback((id: number, text: string) => {
+    const updateLabel = (id: number, text: string) => {
         setLabelStack((prev) => prev.map((entry) => (entry.id === id ? {id, text} : entry)));
-    }, []);
+    };
 
-    const actions = useMemo<DialogLabelActions>(
-        () => ({
-            pushLabel,
-            popLabel,
-            updateLabel,
-            isInsideDialog: true,
-        }),
-        [pushLabel, popLabel, updateLabel],
-    );
+    const actions: DialogLabelActions = {
+        pushLabel,
+        popLabel,
+        updateLabel,
+        isInsideDialog: true,
+    };
 
-    const value = useMemo<DialogLabelValue>(() => ({labelText: labelStack.at(-1)?.text}), [labelStack]);
+    const value: DialogLabelValue = {labelText: labelStack.at(-1)?.text};
 
     return (
         <DialogLabelActionsContext.Provider value={actions}>
