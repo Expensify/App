@@ -208,7 +208,7 @@ function AccessOrNotFoundWrapper({
     if (shouldShowFullScreenLoadingIndicator) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'AccessOrNotFoundWrapper',
-            isLoadingReportData: isLoadingReportData !== false,
+            isLoadingReportData,
             isPolicyEmpty: !Object.entries(policy ?? {}).length || !policy?.id,
         };
         return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
