@@ -31,8 +31,9 @@ function TaskListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv3,
+        isLargeScreenWidth ? styles.pv2 : styles.pv3,
         styles.ph3,
+        isLargeScreenWidth && {minHeight: variables.optionRowHeightCompact},
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
@@ -59,7 +60,7 @@ function TaskListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={isLargeScreenWidth ? [styles.mb1] : [styles.mb2]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
