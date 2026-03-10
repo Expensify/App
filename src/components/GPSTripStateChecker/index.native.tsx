@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
-import useUpdateGpsNotification from './useUpdateGpsNotification/index.ios';
+import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
 function GPSTripStateChecker() {
