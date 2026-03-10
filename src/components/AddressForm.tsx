@@ -83,6 +83,13 @@ function AddressForm({
 
     const isUSAForm = country === CONST.COUNTRY.US;
 
+    /**
+     * @param translate - translate function
+     * @param isUSAForm - selected country ISO code is US
+     * @param values - form input values
+     * @returns - An object containing the errors for each inputID
+     */
+
     const validator = useCallback(
         (rawValues: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
             // When hidden, the country input is unregistered so fall back to the country prop.
