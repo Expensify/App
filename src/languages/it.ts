@@ -5142,6 +5142,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addedShippingDetails: (assignee: string) => `${assignee} ha aggiunto i dettagli di spedizione. La Carta Expensify arriverà in 2-3 giorni lavorativi.`,
             replacedCard: (assignee: string) => `${assignee} ha sostituito la propria Carta Expensify. La nuova carta arriverà tra 2-3 giorni lavorativi.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} ha sostituito la sua Carta Expensify virtuale! Il ${link} può essere usato subito.`,
+            frozeCard: (assignee: string) => `ha bloccato la Carta Expensify di ${assignee}.`,
+            unfrozeCard: (assignee: string) => `ha sbloccato la Carta Expensify di ${assignee}.`,
             card: 'carta',
             replacementCard: 'carta sostitutiva',
             verifyingHeader: 'Verifica in corso',

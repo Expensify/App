@@ -5024,6 +5024,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addedShippingDetails: (assignee: string) => `${assignee} 已添加运输详情。Expensify 卡将在 2-3 个工作日内送达。`,
             replacedCard: (assignee: string) => `${assignee} 已更换了他们的 Expensify 卡。新卡将在 2–3 个工作日内送达。`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} 已更换其虚拟 Expensify 卡！现在就可以使用 ${link}。`,
+            frozeCard: (assignee: string) => `已冻结 ${assignee} 的 Expensify 卡。`,
+            unfrozeCard: (assignee: string) => `已解冻 ${assignee} 的 Expensify 卡。`,
             card: '卡片',
             replacementCard: '替换卡',
             verifyingHeader: '正在验证',

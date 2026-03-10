@@ -4153,6 +4153,7 @@ function isCardIssuedAction(
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE
 > {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
@@ -4160,7 +4161,8 @@ function isCardIssuedAction(
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL) ||
-        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED)
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE)
     );
 }
 
@@ -4185,6 +4187,25 @@ function isCardActive(card?: Card): boolean {
     }
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
     return !closedStates.has(card.state);
+}
+
+function isFreezeActionFrozen(reportAction: OnyxEntry<ReportAction>, expensifyCard?: Card): boolean {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE)) {
+        return false;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    if (typeof originalMessage?.frozen === 'boolean') {
+        return originalMessage.frozen;
+    }
+    if (typeof originalMessage?.isFrozen === 'boolean') {
+        return originalMessage.isFrozen;
+    }
+    if (originalMessage?.state !== undefined) {
+        return String(originalMessage.state) === String(CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED);
+    }
+
+    return expensifyCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED;
 }
 
 function getCardIssuedMessage({
@@ -4235,6 +4256,8 @@ function getCardIssuedMessage({
             return translate('workspace.expensifyCard.replacedVirtualCard', assignee, expensifyCardLink(translate('workspace.expensifyCard.replacementCard')));
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
             return translate('workspace.expensifyCard.replacedCard', assignee);
+        case CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE:
+            return isFreezeActionFrozen(reportAction, expensifyCard) ? translate('workspace.expensifyCard.frozeCard', assignee) : translate('workspace.expensifyCard.unfrozeCard', assignee);
         default:
             return '';
     }

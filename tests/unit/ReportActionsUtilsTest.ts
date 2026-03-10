@@ -1554,6 +1554,28 @@ describe('ReportActionsUtils', () => {
         } as Card;
 
         const testPolicyID = 'test-policy-123';
+        const mockCardFreezeAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE,
+            reportActionID: 'card-freeze-action-123',
+            actorAccountID: 123,
+            created: '2024-01-01',
+            message: [],
+            originalMessage: {
+                assigneeAccountID: 456,
+                cardID: 789,
+                frozen: true,
+            },
+        } as ReportAction;
+
+        const mockCardUnfreezeAction: ReportAction = {
+            ...mockCardFreezeAction,
+            reportActionID: 'card-unfreeze-action-123',
+            originalMessage: {
+                assigneeAccountID: 456,
+                cardID: 789,
+                frozen: false,
+            },
+        } as ReportAction;
 
         describe('render virtual card issued messages', () => {
             it('should render a plain text message without card link when no card data is available', () => {
@@ -1580,6 +1602,26 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
+            });
+        });
+
+        describe('render card freeze messages', () => {
+            it('should render the freeze system message when the card is frozen', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardFreezeAction,
+                    translate: translateLocal,
+                });
+
+                expect(messageResult).toBe(`froze @456's Expensify Card.`);
+            });
+
+            it('should render the unfreeze system message when the card is unfrozen', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockCardUnfreezeAction,
+                    translate: translateLocal,
+                });
+
+                expect(messageResult).toBe(`unfroze @456's Expensify Card.`);
             });
         });
     });

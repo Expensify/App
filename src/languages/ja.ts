@@ -5100,6 +5100,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addedShippingDetails: (assignee: string) => `${assignee} さんが配送先情報を追加しました。Expensify カードは営業日2～3日で届きます。`,
             replacedCard: (assignee: string) => `${assignee} さんが Expensify カードを再発行しました。新しいカードは 2〜3 営業日以内に到着します。`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} はバーチャル Expensify カードを再発行しました！${link} はすぐにご利用いただけます。`,
+            frozeCard: (assignee: string) => `${assignee} の Expensify カードを一時停止しました。`,
+            unfrozeCard: (assignee: string) => `${assignee} の Expensify カードの一時停止を解除しました。`,
             card: 'カード',
             replacementCard: '再発行カード',
             verifyingHeader: '確認中',

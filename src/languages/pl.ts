@@ -5124,6 +5124,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addedShippingDetails: (assignee: string) => `${assignee} dodał dane wysyłki. Karta Expensify dotrze w ciągu 2–3 dni roboczych.`,
             replacedCard: (assignee: string) => `${assignee} wymienił(a) swoją Kartę Expensify. Nowa karta dotrze w ciągu 2–3 dni roboczych.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} wymienił(-a) swoją wirtualną Kartę Expensify! ${link} można używać od razu.`,
+            frozeCard: (assignee: string) => `zamroził(-a) Kartę Expensify użytkownika ${assignee}.`,
+            unfrozeCard: (assignee: string) => `odmroził(-a) Kartę Expensify użytkownika ${assignee}.`,
             card: 'karta',
             replacementCard: 'karta zastępcza',
             verifyingHeader: 'Weryfikowanie',

@@ -1266,6 +1266,20 @@ type OriginalMessageCard = {
 };
 
 /**
+ * Model of CARDFREEZE action
+ */
+type OriginalMessageCardFreeze = OriginalMessageCard & {
+    /** Whether the action froze or unfroze the card */
+    frozen?: boolean;
+
+    /** Fallback boolean the backend may use to indicate the new frozen state */
+    isFrozen?: boolean;
+
+    /** Fallback state value the backend may use to indicate the new card state */
+    state?: number | string;
+};
+
+/**
  * Model of PERSONAL_CARD_CONNECTION_BROKEN action
  */
 type OriginalPersonalCard = {
@@ -1317,7 +1331,7 @@ type OriginalMessageSettlementAccountLocked = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
+ * Original message for Expensify Card system message actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
@@ -1326,6 +1340,7 @@ type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE
 >;
 
 /**
@@ -1434,6 +1449,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_FREEZE]: OriginalMessageCardFreeze;
     [CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN]: OriginalPersonalCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;

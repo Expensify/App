@@ -5162,6 +5162,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             addedShippingDetails: (assignee: string) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Karte wird in 2–3 Werktagen ankommen.`,
             replacedCard: (assignee: string) => `${assignee} hat ihre Expensify Karte ersetzt. Die neue Karte wird in 2–3 Werktagen ankommen.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} hat ihre virtuelle Expensify Karte ersetzt! Der ${link} kann sofort verwendet werden.`,
+            frozeCard: (assignee: string) => `hat die Expensify Karte von ${assignee} gesperrt.`,
+            unfrozeCard: (assignee: string) => `hat die Expensify Karte von ${assignee} entsperrt.`,
             card: 'Karte',
             replacementCard: 'Ersatzkarte',
             verifyingHeader: 'Wird überprüft',

@@ -5133,6 +5133,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             addedShippingDetails: (assignee: string) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Kaart komt over 2-3 werkdagen aan.`,
             replacedCard: (assignee: string) => `${assignee} heeft hun Expensify Kaart vervangen. De nieuwe kaart arriveert binnen 2-3 werkdagen.`,
             replacedVirtualCard: (assignee: string, link: string) => `${assignee} heeft zijn/haar virtuele Expensify Kaart vervangen! De ${link} kan meteen worden gebruikt.`,
+            frozeCard: (assignee: string) => `heeft de Expensify Kaart van ${assignee} geblokkeerd.`,
+            unfrozeCard: (assignee: string) => `heeft de Expensify Kaart van ${assignee} gedeblokkeerd.`,
             card: 'kaart',
             replacementCard: 'vervangende kaart',
             verifyingHeader: 'Bezig met verifiëren',
