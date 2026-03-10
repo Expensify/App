@@ -40,8 +40,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
-    getPolicyExpenseChat,
     canEditMultipleTransactions,
+    getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
@@ -50,9 +50,8 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
-import {hasTransactionBeenRejected, isManagedCardTransaction, isScanning} from '@libs/TransactionUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected, isManagedCardTransaction, isScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
@@ -108,7 +107,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -713,37 +711,53 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
     const handleDuplicateSelectedTransactions = useCallback(() => {
-        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
-        const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+        const groupedByPolicy: Record<string, string[]> = {};
+        for (const id of selectedTransactionsKeys) {
+            const policyID = selectedTransactions[id]?.policyID ?? '';
+            if (!groupedByPolicy[policyID]) {
+                groupedByPolicy[policyID] = [];
+            }
+            groupedByPolicy[policyID].push(id);
+        }
 
-        bulkDuplicateExpenses({
-            transactionIDs: selectedTransactionsKeys,
-            allTransactions: allTransactions ?? {},
-            targetPolicy: defaultExpensePolicy ?? undefined,
-            targetPolicyCategories: activePolicyCategories,
-            targetPolicyTags,
-            targetReport: activePolicyExpenseChat,
-            personalDetails,
-            isASAPSubmitBetaEnabled,
-            introSelected,
-            activePolicyID,
-            quickAction,
-            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-            isSelfTourViewed,
-            transactionDrafts,
-            draftTransactionIDs,
-            betas,
-            recentWaypoints,
-        });
+        for (const [policyID, txnIDs] of Object.entries(groupedByPolicy)) {
+            const effectivePolicyID = policyID || defaultExpensePolicy?.id;
+            const policy = effectivePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicyID}`] : undefined;
+            const targetReport = getPolicyExpenseChat(accountID, effectivePolicyID);
+            const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${effectivePolicyID}`] ?? {};
+            const policyTags = effectivePolicyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`] ?? {}) : {};
+
+            bulkDuplicateExpenses({
+                transactionIDs: txnIDs,
+                allTransactions: allTransactions ?? {},
+                targetPolicy: policy ?? undefined,
+                targetPolicyCategories: policyCategories,
+                targetPolicyTags: policyTags,
+                targetReport,
+                personalDetails,
+                isASAPSubmitBetaEnabled,
+                introSelected,
+                activePolicyID,
+                quickAction,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                isSelfTourViewed,
+                transactionDrafts,
+                draftTransactionIDs,
+                betas,
+                recentWaypoints,
+            });
+        }
 
         clearSelectedTransactions(undefined, true);
     }, [
         selectedTransactionsKeys,
+        selectedTransactions,
+        defaultExpensePolicy?.id,
+        policies,
+        accountID,
         allTransactions,
         allPolicyCategories,
         allPolicyTags,
-        defaultExpensePolicy,
-        activePolicyExpenseChat,
         personalDetails,
         isASAPSubmitBetaEnabled,
         introSelected,
@@ -1095,7 +1109,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (shouldShowDuplicateOption) {
             options.push({
-                text: translate('search.bulkActions.duplicate'),
+                text: translate('search.bulkActions.duplicateExpense'),
                 icon: expensifyIcons.ExpenseCopy,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.DUPLICATE,
                 shouldCloseModalOnSelect: true,

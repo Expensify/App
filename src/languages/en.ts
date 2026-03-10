@@ -7235,7 +7235,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            duplicate: 'Duplicate',
+            duplicateExpense: 'Duplicate expense',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
