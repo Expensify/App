@@ -48,6 +48,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);

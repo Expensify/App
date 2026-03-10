@@ -181,6 +181,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
                 setIsDownloading(false),
             );
         } else {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsDownloading(false);
         }
     }, [prevIsGenerating, isGenerating, travelInvoiceStatement, policyID, getDateRange, translate, baseURL, currentUserPersonalDetails?.login, session?.encryptedAuthToken]);

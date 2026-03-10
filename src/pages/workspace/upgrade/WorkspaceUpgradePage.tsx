@@ -87,6 +87,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const defaultApprover = getDefaultApprover(policy);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
@@ -131,6 +132,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         upgradeToCorporate(policy.id, feature?.name);
     };
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const confirmUpgrade = useCallback(() => {
         if (!policyID) {
             return;

@@ -123,6 +123,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             errors: null,
             originalApprovers: currentApprovalWorkflow.approvers,
         });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 
