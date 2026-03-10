@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -32,26 +31,22 @@ function usePasskeys(): UseBiometricsReturn {
     const {serverHasAnyCredentials, serverKnownCredentialIDs} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
-    const doesDeviceSupportBiometrics = useCallback(() => {
-        return isWebAuthnSupported();
-    }, []);
+    const doesDeviceSupportBiometrics = () => isWebAuthnSupported();
 
-    const hasLocalCredentials = useCallback(async () => {
-        return getLocalCredentials(localPasskeyCredentials).length > 0;
-    }, [localPasskeyCredentials]);
+    const hasLocalCredentials = async () => getLocalCredentials(localPasskeyCredentials).length > 0;
 
-    const areLocalCredentialsKnownToServer = useCallback(async () => {
+    const areLocalCredentialsKnownToServer = async () => {
         const credentials = getLocalCredentials(localPasskeyCredentials);
         if (credentials.length === 0) {
             return false;
         }
         const serverSet = new Set(serverKnownCredentialIDs);
         return credentials.some((c) => serverSet.has(c.id));
-    }, [localPasskeyCredentials, serverKnownCredentialIDs]);
+    };
 
-    const resetKeysForAccount = useCallback(async () => {
+    const resetKeysForAccount = async () => {
         deleteLocalPasskeyCredentials(userId);
-    }, [userId]);
+    };
 
     const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge?: RegistrationChallenge) => {
         if (!registrationChallenge) {
