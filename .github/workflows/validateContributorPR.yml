@@ -2,7 +2,7 @@ name: Validate Contributor PRs
 
 on:
   pull_request_target:
-    types: [opened, ready_for_review]
+    types: [opened, ready_for_review, reopened]
     branches: [main]
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
             const cleanBody = prBody.replace(/<!--[\s\S]*?-->/g, '');
 
             // Step 2: Check linked issues — is the PR author assigned to any?
-            const issuePattern = /https:\/\/github\.com\/([^/]+\/[^/]+)\/issues\/(\d+)/g;
+            const issuePattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
             let match;
             while ((match = issuePattern.exec(cleanBody)) !== null) {
               const [, repo, num] = match;
@@ -58,7 +58,7 @@ jobs:
             }
 
             // Step 3: Check linked PRs — is the PR author the author or a reviewer?
-            const prUrlPattern = /https:\/\/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/g;
+            const prUrlPattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
             while ((match = prUrlPattern.exec(cleanBody)) !== null) {
               const [, repo, num] = match;
               const linkedPRNumber = parseInt(num);
