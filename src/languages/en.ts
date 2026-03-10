@@ -8619,6 +8619,12 @@ const translations = {
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
             nevermind: 'Nevermind',
+            error: {
+                groupDetails: {
+                    name: 'Unable to change the group name. Please try again.',
+                },
+                defaultGroupError: 'Unable to change the default group. Please try again.',
+            },
         },
     },
 };

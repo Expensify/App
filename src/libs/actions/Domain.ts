@@ -1702,7 +1702,13 @@ function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => voi
  * @param newSettingValue - The setting value we want to update
  * @param settingsName - The setting name we want to update
  */
-function updateDomainSecurityGroup(domainAccountID: number, groupID: string, currentSecurityGroup: DomainSecurityGroup, newSettingValue: Partial<DomainSecurityGroup>, settingsName: string) {
+function updateDomainSecurityGroup(
+    domainAccountID: number,
+    groupID: string,
+    currentSecurityGroup: DomainSecurityGroup,
+    newSettingValue: Partial<DomainSecurityGroup>,
+    settingsName: keyof Pick<DomainSecurityGroup, 'name'>,
+) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
 
@@ -1760,7 +1766,7 @@ function updateDomainSecurityGroup(domainAccountID: number, groupID: string, cur
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.codeFetchError'),
+                    [`${settingsName}Errors`]: getMicroSecondOnyxErrorWithTranslationKey(`domain.groups.error.groupDetails.${settingsName}`),
                 },
             },
         },
@@ -1867,7 +1873,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, domai
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    defaultSecurityGroupIDErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.verifyDomain.codeFetchError'),
+                    defaultSecurityGroupIDErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.error.defaultGroupError'),
                 },
             },
         },
