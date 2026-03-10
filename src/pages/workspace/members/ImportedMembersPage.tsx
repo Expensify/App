@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
@@ -175,6 +174,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         setIsClosing(true);
         setIsImporting(false);
         setShouldShowConfirmModal(false);
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     return (
@@ -199,10 +199,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
-                onModalHide={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)));
-                }}
             />
         </ScreenWrapper>
     );

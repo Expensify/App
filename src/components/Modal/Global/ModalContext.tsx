@@ -1,5 +1,5 @@
 import noop from 'lodash/noop';
-import React, {useContext, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
@@ -42,7 +42,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     const modalIDRef = useRef(1);
     const modalPromisesStack = useRef<Record<string, CloseModalPromiseWithResolvers>>({});
 
-    const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
+    const showModal: ModalContextType['showModal'] = useCallback(({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed
         let closeModalPromise: CloseModalPromiseWithResolvers | null = id ? modalPromisesStack.current?.[id] : null;
 
@@ -63,9 +63,9 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         modalPromisesStack.current[newModalId] = closeModalPromise;
 
         return closeModalPromise.promise;
-    };
+    }, []);
 
-    const closeModal: ModalContextType['closeModal'] = (data = {action: 'CLOSE'}) => {
+    const closeModal: ModalContextType['closeModal'] = useCallback((data = {action: 'CLOSE'}) => {
         setModalStack((prevState) => {
             const lastModalId = prevState.modals.at(-1)?.id;
 
@@ -86,13 +86,15 @@ function ModalProvider({children}: {children: React.ReactNode}) {
                 modals: prevState.modals.slice(0, -1),
             };
         });
-    };
+    }, []);
+
+    const contextValue = useMemo(() => ({showModal, closeModal}), [showModal, closeModal]);
 
     const modalToRender = modalStack.modals.length > 0 ? modalStack.modals.at(modalStack.modals.length - 1) : null;
     const ModalComponent = modalToRender?.component;
 
     return (
-        <ModalContext.Provider value={{showModal, closeModal}}>
+        <ModalContext.Provider value={contextValue}>
             {children}
             {!!ModalComponent && (
                 <ModalComponent
