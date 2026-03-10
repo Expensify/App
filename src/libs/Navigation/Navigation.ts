@@ -737,13 +737,19 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  * Dismisses the modal and opens the given report.
  * For detailed information about dismissing modals,
  * see the NAVIGATION.md documentation.
+ * @param options.onBeforeNavigate - Called before performing navigation with whether the report will be opened (true) or we only dismiss because already on that report (false).
  */
-const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT], ref = navigationRef) => {
+const dismissModalWithReport = (
+    {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
+    ref = navigationRef,
+    options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
+) => {
     isNavigationReady().then(() => {
         const topmostSuperWideRHPReportID = getTopmostSuperWideRHPReportID();
         let areReportsIDsDefined = !!topmostSuperWideRHPReportID && !!reportID;
 
         if (topmostSuperWideRHPReportID === reportID && areReportsIDsDefined) {
+            options?.onBeforeNavigate?.(false);
             dismissToSuperWideRHP();
             return;
         }
@@ -752,9 +758,11 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
         areReportsIDsDefined = !!topmostReportID && !!reportID;
         const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
+            options?.onBeforeNavigate?.(false);
             dismissModal();
             return;
         }
+        options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
         if (getIsNarrowLayout()) {
             navigate(reportRoute, {forceReplace: true});
