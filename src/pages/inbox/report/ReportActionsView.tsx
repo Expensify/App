@@ -1,6 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -56,6 +57,7 @@ type ReportActionsViewProps = {
     isLoadingInitialReportActions?: boolean;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
+    // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
     /** If the report has newer actions to load */
@@ -75,6 +77,9 @@ type ReportActionsViewProps = {
 
     /** Concierge status label */
     conciergeStatusLabel?: string;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -91,6 +96,7 @@ function ReportActionsView({
     isConciergeProcessing,
     conciergeReasoningHistory,
     conciergeStatusLabel,
+    onLayout,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     usePendingConciergeResponse(report.reportID);
@@ -268,6 +274,7 @@ function ReportActionsView({
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const allReportActionIDs = useMemo(() => {
@@ -287,15 +294,19 @@ function ReportActionsView({
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
-        if (didLayout.current) {
-            return;
-        }
+    const recordTimeToMeasureItemLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            onLayout?.(event);
+            if (didLayout.current) {
+                return;
+            }
 
-        didLayout.current = true;
+            didLayout.current = true;
 
-        markOpenReportEnd(report, {warm: true});
-    }, [report]);
+            markOpenReportEnd(report, {warm: true});
+        },
+        [report, onLayout],
+    );
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;

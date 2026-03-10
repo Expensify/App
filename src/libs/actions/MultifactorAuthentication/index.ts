@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';
@@ -85,6 +86,7 @@ async function registerAuthenticationKey({keyInfo, authenticationMethod}: Multif
 type RegistrationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: RegistrationChallenge | undefined;
     publicKeys: string[] | undefined;
 };
@@ -92,6 +94,7 @@ type RegistrationChallengeResponse = {
 type AuthenticationChallengeResponse = {
     httpStatusCode: number;
     reason: MultifactorAuthenticationReason;
+    message: string | undefined;
     challenge: AuthenticationChallenge | undefined;
     publicKeys: string[] | undefined;
 };

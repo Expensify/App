@@ -107,7 +107,6 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
-
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -215,18 +214,18 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: report
-                    ? computeReportName(
+                    ? computeReportName({
                           report,
                           reports,
                           policies,
                           transactions,
-                          reportNameValuePairs,
-                          personalDetails,
+                          allReportNameValuePairs: reportNameValuePairs,
+                          personalDetailsList: personalDetails,
                           reportActions,
-                          session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                          undefined,
-                          policyTags,
-                      )
+                          currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                          currentUserLogin: session?.email ?? '',
+                          allPolicyTags: policyTags,
+                      })
                     : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,

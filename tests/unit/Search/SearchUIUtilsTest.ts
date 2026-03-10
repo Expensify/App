@@ -2,6 +2,7 @@
 import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
@@ -306,6 +307,29 @@ const policy = {
         },
     },
 } as OnyxTypes.Policy;
+
+const adminAvatarIcon = {
+    id: adminAccountID,
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Admin',
+    fallbackIcon: undefined,
+};
+
+const approverAvatarIcon = {
+    source: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+    id: approverAccountID,
+    type: CONST.ICON_TYPE_AVATAR,
+    name: 'Approver',
+    fallbackIcon: undefined,
+};
+
+const policyWorkspaceIcon = {
+    source: defaultWorkspaceAvatars.WorkspaceU,
+    type: CONST.ICON_TYPE_WORKSPACE,
+    name: 'Unavailable workspace',
+    id: policyID,
+};
 
 const allViolations = {
     [`transactionViolations_${transactionID2}`]: [
@@ -1100,6 +1124,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1210,6 +1237,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: -0,
         reimbursableSpend: 5000,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 1,
         transactions: [
             {
@@ -1319,6 +1349,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 4400,
         isAllScanning: false,
+        primaryAvatar: approverAvatarIcon,
+        secondaryAvatar: adminAvatarIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
@@ -1503,6 +1536,9 @@ const transactionReportGroupListItems = [
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         isAllScanning: false,
+        primaryAvatar: adminAvatarIcon,
+        secondaryAvatar: policyWorkspaceIcon,
+        avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
         transactionCount: 0,
         transactions: [],
         type: 'expense',
@@ -2535,6 +2571,96 @@ describe('SearchUIUtils', () => {
                     allReportMetadata: {},
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
+        });
+
+        it('should use custom avatar from onyxPersonalDetailsList when search API personalDetailsList is absent', () => {
+            // Reproduce the bug: the search API response does not include the report owner in
+            // personalDetailsList (data.personalDetailsList is empty/undefined), so without the
+            // Onyx fallback the avatar resolves to FallbackAvatar instead of the user's custom avatar.
+            const customAvatarUrl = 'https://example.com/custom-avatar.png';
+
+            // Simulate the API returning an empty personalDetailsList (owner details not included)
+            const dataWithoutPersonalDetails: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                personalDetailsList: {},
+            };
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: customAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // Without onyxPersonalDetailsList, the report owner avatar is not found — not the custom URL
+            const [resultWithoutOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithoutOnyx.at(0)?.primaryAvatar?.source).not.toBe(customAvatarUrl);
+
+            // With onyxPersonalDetailsList, the custom avatar from Onyx fills the gap
+            const [resultWithOnyx] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: dataWithoutPersonalDetails,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(resultWithOnyx.at(0)?.primaryAvatar?.source).toBe(customAvatarUrl);
+        });
+
+        it('should prefer API personalDetailsList avatar over onyxPersonalDetailsList when both have an avatar', () => {
+            const onyxAvatarUrl = 'https://example.com/onyx-avatar.png';
+            const apiAvatarUrl = 'https://example.com/api-avatar.png';
+
+            const onyxPersonalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    avatar: onyxAvatarUrl,
+                    displayName: 'Admin',
+                    login: adminEmail,
+                },
+            };
+
+            // API response provides its own avatar — should take precedence over Onyx
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                data: {
+                    ...searchResults.data,
+                    personalDetailsList: {
+                        [adminAccountID]: {
+                            accountID: adminAccountID,
+                            avatar: apiAvatarUrl,
+                            displayName: 'Admin',
+                            login: adminEmail,
+                        },
+                    },
+                },
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                allReportMetadata: {},
+                onyxPersonalDetailsList,
+            }) as [TransactionReportGroupListItemType[], number];
+
+            expect(result?.at(0)?.primaryAvatar?.source).toBe(apiAvatarUrl);
         });
 
         it('should handle data where transaction keys appear before report keys in getReportSections', () => {
@@ -4378,6 +4504,108 @@ describe('SearchUIUtils', () => {
                 expect(fields.isAllScanning).toBe(false);
             });
         });
+
+        describe('getReportSections pre-computed avatar fields (primaryAvatar, secondaryAvatar, avatarType)', () => {
+            const avatarTestReportID = 'avatar-test-report';
+            const avatarTestTxID = 'avatar-tx-1';
+
+            function makeAvatarTestData(reportOverrides: Partial<OnyxTypes.Report> = {}) {
+                return {
+                    ...searchResults.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${avatarTestReportID}`]: {
+                        ...report1,
+                        reportID: avatarTestReportID,
+                        ownerAccountID: adminAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                        policyID,
+                        ...reportOverrides,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${avatarTestReportID}`]: {},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${avatarTestTxID}`]: {
+                        ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                        transactionID: avatarTestTxID,
+                        reportID: avatarTestReportID,
+                    },
+                };
+            }
+
+            function getAvatarFields(data: typeof searchResults.data) {
+                const sections = SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    allReportMetadata: {},
+                })[0] as TransactionReportGroupListItemType[];
+
+                const item = sections.find((s) => s.keyForList === avatarTestReportID);
+                expect(item).toBeDefined();
+                return {
+                    primaryAvatar: item?.primaryAvatar,
+                    secondaryAvatar: item?.secondaryAvatar,
+                    avatarType: item?.avatarType,
+                };
+            }
+
+            it('should pre-compute primaryAvatar from the report owner personal details', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.primaryAvatar?.id).toBe(adminAccountID);
+                expect(fields.primaryAvatar?.type).toBe(CONST.ICON_TYPE_AVATAR);
+            });
+
+            it('should pre-compute secondaryAvatar as workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+                expect(fields.secondaryAvatar?.id).toBe(policyID);
+            });
+
+            it('should set avatarType=SUBSCRIPT for expense reports with a named workspace icon', () => {
+                const data = makeAvatarTestData();
+                const fields = getAvatarFields(data);
+                expect(fields.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT);
+            });
+
+            it('should set avatarType for IOU reports', () => {
+                const data = makeAvatarTestData({type: CONST.REPORT.TYPE.IOU, managerID: adminAccountID});
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar).toBeDefined();
+                expect(fields.secondaryAvatar).toBeDefined();
+                expect(fields.avatarType).toBeDefined();
+            });
+
+            it('should use owner avatar from personalDetailsList when available', () => {
+                const data = makeAvatarTestData({ownerAccountID: receiverAccountID});
+                // Add receiver to personalDetailsList
+                data.personalDetailsList = {
+                    ...data.personalDetailsList,
+                    [receiverAccountID]: {
+                        accountID: receiverAccountID,
+                        avatar: 'https://example.com/receiver-avatar.png',
+                        displayName: 'Receiver',
+                        login: receiverEmail,
+                    },
+                };
+                const fields = getAvatarFields(data);
+                expect(fields.primaryAvatar?.id).toBe(receiverAccountID);
+                expect(fields.primaryAvatar?.source).toBe('https://example.com/receiver-avatar.png');
+            });
+
+            it('should produce stable avatar structure across identical calls', () => {
+                const data = makeAvatarTestData();
+                const fields1 = getAvatarFields(data);
+                const fields2 = getAvatarFields(data);
+                expect(fields1.primaryAvatar?.id).toBe(fields2.primaryAvatar?.id);
+                expect(fields1.secondaryAvatar?.id).toBe(fields2.secondaryAvatar?.id);
+                expect(fields1.avatarType).toBe(fields2.avatarType);
+            });
+        });
     });
 
     describe('Test getSortedSections', () => {
@@ -5347,6 +5575,7 @@ describe('SearchUIUtils', () => {
             const results: OnyxTypes.SearchResults = {
                 data: {
                     personalDetailsList: {},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
                         category: 'Employee Meals Remote (Fringe Benefit)',
@@ -5420,6 +5649,7 @@ describe('SearchUIUtils', () => {
                         displayName: 'You',
                         login: 'you@expensifail.com',
                     },
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     '2074551': {
                         accountID: 2074551,
                         avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/fake2.jpeg',
@@ -5427,6 +5657,7 @@ describe('SearchUIUtils', () => {
                         login: 'jason@expensifail.com',
                     },
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 policy_137DA25D273F2423: {
                     approvalMode: 'ADVANCED',
                     approver: '',
@@ -5453,6 +5684,7 @@ describe('SearchUIUtils', () => {
                     outputCurrency: 'USD',
                     isPolicyExpenseChatEnabled: true,
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 report_6523565988285061: {
                     chatReportID: '4128157185472356',
                     created: '2025-05-26 19:49:56',
@@ -5474,6 +5706,7 @@ describe('SearchUIUtils', () => {
                     type: 'expense',
                     unheldTotal: -1000,
                 },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
                     cardID: undefined,
@@ -6398,6 +6631,49 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getSearchBulkEditPolicyID', () => {
+        it('returns the active policy when there are no selected transactions', () => {
+            const result = SearchUIUtils.getSearchBulkEditPolicyID([], 'policy-1', undefined, undefined);
+            expect(result).toBe('policy-1');
+        });
+
+        it('returns the shared policy when all selected transactions match', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-1'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-2', transactions, reports);
+            expect(result).toBe('policy-1');
+        });
+
+        it('falls back to the active policy when selected transactions are from different policies', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-2'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
+            expect(result).toBe('policy-3');
         });
     });
 

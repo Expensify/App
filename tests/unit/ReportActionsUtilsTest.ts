@@ -32,6 +32,7 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasReasoning,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -1175,6 +1176,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 originalMessage: {
                     to: 'example@gmail.com',
+                    message: '',
                 },
             };
 
@@ -2641,7 +2643,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '2',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com', message: ''}},
                 {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -2649,7 +2651,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '4',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com', message: ''}},
             ];
             const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
 
@@ -2710,12 +2712,12 @@ describe('ReportActionsUtils', () => {
             const secondDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '2DEW',
-                originalMessage: {to: 'example@gmail.com'},
+                originalMessage: {to: 'example@gmail.com', message: ''},
             } as ReportAction;
             const fourthDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '4DEW',
-                originalMessage: {to: 'example2@gmail.com'},
+                originalMessage: {to: 'example2@gmail.com', message: ''},
             } as ReportAction;
             const expected: ReportActions = {
                 [firstAction.reportActionID]: firstAction,
@@ -2766,14 +2768,33 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 created: '',
-                originalMessage: {to},
+                originalMessage: {to, message: ''},
             };
 
             // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
             // Then it should return the routed due to DEW message with the correct "to" value
-            const expected = translateLocal('iou.routedDueToDEW', to);
+            const expected = translateLocal('iou.routedDueToDEW', to, '');
+            expect(actual).toBe(expected);
+        });
+
+        it('should return the routed message with reason', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action with a reason message
+            const to = 'example@gmail.com';
+            const reason = 'the report total exceeds the auto-approval limit';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                created: '',
+                originalMessage: {to, message: reason},
+            };
+
+            // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
+            const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+
+            // Then it should return the routed due to DEW message with the correct "to" value and reason
+            const expected = translateLocal('iou.routedDueToDEW', to, reason);
             expect(actual).toBe(expected);
         });
     });
@@ -3848,6 +3869,129 @@ describe('ReportActionsUtils', () => {
             };
 
             expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+    });
+
+    describe('isRejectedAction', () => {
+        it('should return true for REJECTED action type', () => {
+            // Given a report action with REJECTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for REJECTED_TO_SUBMITTER action type', () => {
+            // Given a report action with REJECTED_TO_SUBMITTER action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true because REJECTED_TO_SUBMITTER is also a rejected action
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-rejected action type', () => {
+            // Given a report action with SUBMITTED action type (not rejected)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasReasoning', () => {
+        it('should return true when the action has a non-empty reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: 'This expense was moved because it violated the max amount rule.',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(true);
+        });
+
+        it('should return false when the action has no reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when reasoning is an empty string', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: '',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when the action is null or undefined', () => {
+            expect(hasReasoning(null)).toBe(false);
+            expect(hasReasoning(undefined)).toBe(false);
         });
     });
 });
