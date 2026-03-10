@@ -171,6 +171,7 @@ function ReportActionCompose({
     const {editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const isEditingInComposer = shouldUseNarrowLayout && !!editingReportActionID;
+    const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
 
     const reportActionEntries = useMemo(() => (reportActions ? Object.entries(reportActions) : []), [reportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionEntries.at(-1)?.[0], [editingReportActionID, reportActionEntries]);
@@ -191,8 +192,6 @@ function ReportActionCompose({
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
-    const effectiveDraft = shouldUseNarrowLayout ? editingMessage : draftComment;
 
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
@@ -470,10 +469,16 @@ function ReportActionCompose({
             return;
         }
 
-        composerRef.current?.resetHeight();
         if (isComposerFullSize) {
             setIsComposerFullSize(reportID, false);
         }
+
+        if (isEditingInComposer && effectiveDraft && draftComment) {
+            submitForm(effectiveDraft);
+            return;
+        }
+
+        composerRef.current?.resetHeight();
 
         scheduleOnUI(() => {
             const {clearWorklet} = composerRefShared.get();
@@ -484,7 +489,7 @@ function ReportActionCompose({
 
             clearWorklet?.();
         });
-    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isComposerFullSize, reportID, composerRefShared]);
+    }, [isSendDisabled, debouncedCommentMaxLengthValidation, isComposerFullSize, isEditingInComposer, effectiveDraft, draftComment, reportID, submitForm, composerRefShared]);
     onSubmitAction = sendMessage;
 
     const emojiPositionValues = useMemo(
