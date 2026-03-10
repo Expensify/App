@@ -8490,7 +8490,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         goToDomain: 'Przejdź do domeny',
         samlLogin: {
             title: 'Logowanie SAML',
-            subtitle: `<muted-text>Skonfiguruj logowanie członków za pomocą <a href="${CONST.SAML_HELP_URL}">jednokrotnego logowania SAML (SSO).</a></muted-text>`,
+            subtitle: `<muted-text>Skonfiguruj logowanie członków za pomocą <a href="${CONST.SAML_HELP_URL}">jednokrotnego logowania SAML (SSO)</a>.</muted-text>`,
             enableSamlLogin: 'Włącz logowanie SAML',
             allowMembers: 'Zezwól członkom logować się przy użyciu SAML.',
             requireSamlLogin: 'Wymagaj logowania SAML',

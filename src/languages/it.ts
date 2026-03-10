@@ -8526,7 +8526,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         goToDomain: 'Vai al dominio',
         samlLogin: {
             title: 'Accesso SAML',
-            subtitle: `<muted-text>Configura l’accesso dei membri con <a href="${CONST.SAML_HELP_URL}">accesso Single Sign-On (SSO) SAML.</a></muted-text>`,
+            subtitle: `<muted-text>Configura l’accesso dei membri con <a href="${CONST.SAML_HELP_URL}">accesso Single Sign-On (SSO) SAML</a>.</muted-text>`,
             enableSamlLogin: 'Abilita accesso SAML',
             allowMembers: 'Consenti ai membri di accedere con SAML.',
             requireSamlLogin: 'Richiedi accesso SAML',
