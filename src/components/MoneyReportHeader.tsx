@@ -98,6 +98,7 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
     isOpenExpenseReport,
+    isOpenReport,
     isProcessingReport,
     isReportOwner,
     isSelfDM,
@@ -110,6 +111,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     allHavePendingRTERViolation,
+    getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
     hasDuplicateTransactions,
@@ -155,7 +157,7 @@ import AnimatedSubmitButton from './AnimatedSubmitButton';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
@@ -394,9 +396,22 @@ function MoneyReportHeader({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const hasMultipleSplits = useMemo(() => {
+        if (!transaction?.comment?.originalTransactionID) {
+            return false;
+        }
+        const children = getChildTransactions(allTransactions, allReports, transaction.comment.originalTransactionID);
+        return children.length > 1;
+    }, [allTransactions, allReports, transaction?.comment?.originalTransactionID]);
+    const isReportOpen = isOpenReport(moneyRequestReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
+    const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null);
+
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -478,6 +493,19 @@ function MoneyReportHeader({
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
     );
+
+    const shouldDuplicateCloseModalOnSelect =
+        isDistanceExpenseUnsupportedForDuplicating ||
+        isPerDiemRequestOnNonDefaultWorkspace ||
+        hasCustomUnitOutOfPolicyViolation ||
+        activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
+
+    useEffect(() => {
+        if (!isDuplicateActive || shouldDuplicateCloseModalOnSelect) {
+            return;
+        }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
+    }, [isDuplicateActive, shouldDuplicateCloseModalOnSelect]);
 
     const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
     const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
@@ -662,6 +690,7 @@ function MoneyReportHeader({
                     paymentMethod,
                     activePolicy,
                     betas,
+                    isSelfTourViewed,
                 });
             } else {
                 startAnimation();
@@ -675,6 +704,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
+                    isSelfTourViewed,
                     userBillingGraceEndPeriods,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
@@ -710,6 +740,7 @@ function MoneyReportHeader({
             shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
             betas,
+            isSelfTourViewed,
             userBillingGraceEndPeriods,
         ],
     );
@@ -739,7 +770,19 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, betas, userBillingGraceEndPeriods, true);
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                full: true,
+            });
         }
     };
 
@@ -1524,7 +1567,7 @@ function MoneyReportHeader({
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
-            text: isExpenseSplit ? translate('iou.editSplits') : translate('iou.split'),
+            text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SPLIT,
@@ -1578,11 +1621,7 @@ function MoneyReportHeader({
 
                 duplicateExpenseTransaction([transaction]);
             },
-            shouldCloseModalOnSelect:
-                isDistanceExpenseUnsupportedForDuplicating ||
-                isPerDiemRequestOnNonDefaultWorkspace ||
-                hasCustomUnitOutOfPolicyViolation ||
-                activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID,
+            shouldCloseModalOnSelect: shouldDuplicateCloseModalOnSelect,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_REPORT]: {
             text: translate('common.duplicateReport'),
@@ -1777,7 +1816,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -1911,7 +1950,7 @@ function MoneyReportHeader({
             }
             return option;
         });
-    }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation]);
+    }, [originalSelectedTransactionsOptions, showDeleteModal, dismissedRejectUseExplanation, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
@@ -1991,6 +2030,7 @@ function MoneyReportHeader({
                                 onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
                                 ref={kycWallRef}
                             />
                         )}
@@ -2035,6 +2075,7 @@ function MoneyReportHeader({
                                 onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
                                 ref={kycWallRef}
                             />
                         )}

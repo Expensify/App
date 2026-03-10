@@ -126,6 +126,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     const transactionDisplayName = targetTransaction
         ? getTransactionReportName({
+              translate,
               reportAction: undefined,
               transactions: [targetTransaction],
               reports: targetTransactionReport ? [targetTransactionReport] : [],
