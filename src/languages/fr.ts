@@ -1582,7 +1582,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisir un espace de travail',
-        routedDueToDEW: (to: string) => `note de frais transmise à ${to} en raison du flux d’approbation personnalisé`,
+        routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? 'heure' : 'heures'} @ ${rate} / heure`,
             hrs: 'h',
@@ -2087,6 +2087,7 @@ const translations: TranslationDeepObject<typeof en> = {
         authenticatorApp: 'application d’authentification',
         addKey: 'Ou ajoutez cette clé secrète à votre application d’authentification :',
         enterCode: 'Saisissez ensuite le code à six chiffres généré par votre application d’authentification.',
+        secretKey: 'clé secrète',
         stepSuccess: 'Terminé',
         enabled: 'Authentification à deux facteurs activée',
         congrats: 'Félicitations ! Vous bénéficiez désormais de cette sécurité supplémentaire.',
@@ -3032,8 +3033,6 @@ ${
                 '# Nous allons vous configurer tout ça\n👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour profiter pleinement de vos 30 jours d’essai gratuit, suivez simplement les dernières étapes de configuration ci-dessous !',
             onboardingChatSplitMessage: 'Partager des notes de frais avec des amis est aussi simple que d’envoyer un message. Voici comment faire.',
             onboardingAdminMessage: 'Découvrez comment gérer l’espace de travail de votre équipe en tant qu’administrateur et soumettre vos propres dépenses.',
-            onboardingLookingAroundMessage:
-                'Expensify est surtout connu pour la gestion des dépenses, des voyages et des cartes d’entreprise, mais nous faisons bien plus que cela. Dites-moi ce qui vous intéresse et je vous aiderai à démarrer.',
             onboardingTestDriveReceiverMessage: '*Vous bénéficiez de 3 mois gratuits ! Commencez ci-dessous.*',
         },
         workspace: {
@@ -5312,6 +5311,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         body: 'Vous avez encore un solde de voyage impayé. Veuillez d’abord régler ce solde.',
                         confirm: 'Compris',
                     },
+                    exportToPDF: 'Exporter en PDF',
+                    exportToCSV: 'Exporter en CSV',
+                    selectDateRangeError: 'Veuillez sélectionner une plage de dates à exporter',
+                    invalidDateRangeError: 'La date de début doit être antérieure à la date de fin',
                     enabled: 'Facturation centralisée activée !',
                     enabledDescription: 'Toutes les dépenses de voyage sur cet espace de travail seront désormais centralisées dans une facture mensuelle.',
                 },
@@ -7280,6 +7283,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',
@@ -7696,6 +7702,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         notActivated: 'Non activé',
         outOfPocket: 'Remboursable',
         companySpend: 'Non remboursable',
+        personalCard: 'Carte personnelle',
+        companyCard: 'Carte d’entreprise',
+        expensifyCard: 'Carte Expensify',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -7800,6 +7809,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             prompt: 'Veuillez autoriser l’accès à la localisation dans les réglages de votre appareil pour commencer le suivi de distance GPS.',
         },
         fabGpsTripExplained: 'Aller à l’écran GPS (action flottante)',
+        liveActivity: {subtitle: 'Suivi de la distance', button: 'Voir la progression'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'relevé de notes perdu ou endommagé',
