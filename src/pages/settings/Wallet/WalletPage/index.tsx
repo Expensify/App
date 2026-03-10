@@ -178,13 +178,13 @@ function WalletPage() {
         }
     };
 
-    const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
+    const onBankAccountRowPressed = async ({accountData}: PaymentMethodPressHandlerParams) => {
         if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
             const [street1 = '', street2 = ''] = additionalData?.addressStreet?.split('\n') ?? [];
             clearPersonalBankAccount();
             setPersonalBankAccountID(accountData.bankAccountID);
-            Promise.all([
+            await Promise.all([
                 setDraftValues(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM, {
                     legalFirstName: additionalData?.firstName ?? '',
                     legalLastName: additionalData?.lastName ?? '',
@@ -203,9 +203,8 @@ function WalletPage() {
                     zipPostCode: additionalData?.addressZipCode ?? '',
                     country: CONST.COUNTRY.US,
                 }),
-            ]).then(() => {
-                Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
-            });
+            ]);
+            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
             return;
         }
 
