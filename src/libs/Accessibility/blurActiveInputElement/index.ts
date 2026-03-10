@@ -1,7 +1,8 @@
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import CONST from '@src/CONST';
+import type BlurActiveInputElement from './types';
 
-function blurActiveInputElement(): void {
+const blurActiveInputElement: BlurActiveInputElement = () => {
     const activeElement = document.activeElement;
 
     if (!(activeElement instanceof HTMLElement)) {
@@ -13,6 +14,6 @@ function blurActiveInputElement(): void {
     }
 
     blurActiveElement();
-}
+};
 
 export default blurActiveInputElement;

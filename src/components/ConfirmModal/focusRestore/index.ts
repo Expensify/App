@@ -1,24 +1,12 @@
-type InitialFocusParams = {
-    isOpenedViaKeyboard: boolean;
-    containerElementRef: unknown;
+import type {FocusRestoreModule} from './types';
+
+const focusRestore: FocusRestoreModule = {
+    getInitialFocusTarget: () => false,
+    restoreCapturedAnchorFocus: () => {},
+    shouldTryKeyboardInitialFocus: () => false,
+    isWebPlatform: () => false,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getInitialFocusTarget(_params: InitialFocusParams): HTMLElement | false {
-    return false;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function restoreCapturedAnchorFocus(_capturedAnchorElement: HTMLElement | null): void {}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function shouldTryKeyboardInitialFocus(_isOpenedViaKeyboard: boolean): boolean {
-    return false;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isWebPlatform(_platform: string): boolean {
-    return false;
-}
+const {getInitialFocusTarget, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus, isWebPlatform} = focusRestore;
 
 export {getInitialFocusTarget, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus, isWebPlatform};

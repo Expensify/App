@@ -1,10 +1,6 @@
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
-
-type InitialFocusParams = {
-    isOpenedViaKeyboard: boolean;
-    containerElementRef: unknown;
-};
+import type {FocusRestoreModule, InitialFocusParams} from './types';
 
 const DIALOG_SELECTOR = '[role="dialog"]';
 const CONFIRM_MODAL_CONTAINER_SELECTOR = '[data-testid="confirm-modal-container"]';
@@ -28,40 +24,37 @@ function findFirstButtonInLastConfirmModalContainer(): HTMLElement | false {
     return firstButton instanceof HTMLElement ? firstButton : false;
 }
 
-function getInitialFocusTarget({isOpenedViaKeyboard, containerElementRef}: InitialFocusParams): HTMLElement | false {
-    if (!isOpenedViaKeyboard) {
-        return false;
-    }
-
-    const containerElement = getHTMLElementFromUnknown(containerElementRef);
-    if (!containerElement) {
-        const firstButtonInConfirmModal = findFirstButtonInLastConfirmModalContainer();
-        if (firstButtonInConfirmModal) {
-            return firstButtonInConfirmModal;
+const focusRestore: FocusRestoreModule = {
+    getInitialFocusTarget: ({isOpenedViaKeyboard, containerElementRef}: InitialFocusParams) => {
+        if (!isOpenedViaKeyboard) {
+            return false;
         }
 
-        Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
-        return findFirstButtonInLastDialog();
-    }
+        const containerElement = getHTMLElementFromUnknown(containerElementRef);
+        if (!containerElement) {
+            const firstButtonInConfirmModal = findFirstButtonInLastConfirmModalContainer();
+            if (firstButtonInConfirmModal) {
+                return firstButtonInConfirmModal;
+            }
 
-    const firstButton = containerElement.querySelector(FIRST_BUTTON_SELECTOR);
-    return firstButton instanceof HTMLElement ? firstButton : false;
-}
+            Log.warn('[ConfirmModal] modalContainerRef is null, falling back to last dialog');
+            return findFirstButtonInLastDialog();
+        }
 
-function restoreCapturedAnchorFocus(capturedAnchorElement: HTMLElement | null): void {
-    if (!capturedAnchorElement || !document.body.contains(capturedAnchorElement)) {
-        return;
-    }
+        const firstButton = containerElement.querySelector(FIRST_BUTTON_SELECTOR);
+        return firstButton instanceof HTMLElement ? firstButton : false;
+    },
+    restoreCapturedAnchorFocus: (capturedAnchorElement: HTMLElement | null): void => {
+        if (!capturedAnchorElement || !document.body.contains(capturedAnchorElement)) {
+            return;
+        }
 
-    capturedAnchorElement.focus();
-}
+        capturedAnchorElement.focus();
+    },
+    shouldTryKeyboardInitialFocus: (isOpenedViaKeyboard: boolean): boolean => isOpenedViaKeyboard,
+    isWebPlatform: (platform: string): boolean => platform === CONST.PLATFORM.WEB,
+};
 
-function shouldTryKeyboardInitialFocus(isOpenedViaKeyboard: boolean): boolean {
-    return isOpenedViaKeyboard;
-}
-
-function isWebPlatform(platform: string): boolean {
-    return platform === CONST.PLATFORM.WEB;
-}
+const {getInitialFocusTarget, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus, isWebPlatform} = focusRestore;
 
 export {getInitialFocusTarget, restoreCapturedAnchorFocus, shouldTryKeyboardInitialFocus, isWebPlatform};
