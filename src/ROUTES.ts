@@ -78,6 +78,10 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
  *
  */
 const DYNAMIC_ROUTES = {
+    PROFILE: {
+        path: 'profile',
+        entryScreens: [SCREENS.SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
+    },
     VERIFY_ACCOUNT: {
         path: 'verify-account',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
@@ -286,12 +290,6 @@ const ROUTES = {
         getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
     },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: {
-        route: 'settings/profile',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
-    },
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
