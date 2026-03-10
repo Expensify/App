@@ -25,6 +25,7 @@ const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentSelectedTransactionReportID: undefined,
     currentSearchResults: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
@@ -43,6 +44,7 @@ const mockSearchStateContext = {
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),

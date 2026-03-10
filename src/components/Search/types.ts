@@ -157,6 +157,7 @@ type SearchContextData = {
     currentSimilarSearchHash: number;
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
+    currentSelectedTransactionReportID: string | undefined;
     currentSearchResults: SearchResults | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
@@ -178,6 +179,7 @@ type SearchStateContextValue = SearchContextData & {
 };
 
 type SearchActionsContextValue = {
+    setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;

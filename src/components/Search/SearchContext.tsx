@@ -43,6 +43,7 @@ const defaultSearchInfo: SearchResultsInfo = {
 const defaultSearchContextData: SearchContextData = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
+    currentSelectedTransactionReportID: undefined,
     currentSearchResults: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
@@ -67,6 +68,7 @@ const defaultSearchStateContext: SearchStateContextValue = {
 
 const defaultSearchActionsContext: SearchActionsContextValue = {
     setLastSearchType: () => {},
+    setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -267,6 +269,19 @@ function SearchContextProvider({children}: SearchContextProps) {
         }
     };
 
+    const setCurrentSelectedTransactionReportID: SearchActionsContextValue['setCurrentSelectedTransactionReportID'] = (reportID) => {
+        setSearchContextData((prevState) => {
+            if (prevState.currentSelectedTransactionReportID === reportID) {
+                return prevState;
+            }
+
+            return {
+                ...prevState,
+                currentSelectedTransactionReportID: reportID,
+            };
+        });
+    };
+
     const setShouldResetSearchQuery = (shouldReset: boolean) => {
         setSearchContextData((prevState) => ({
             ...prevState,
@@ -291,6 +306,7 @@ function SearchContextProvider({children}: SearchContextProps) {
 
     const searchActionsContextValue: SearchActionsContextValue = {
         removeTransaction,
+        setCurrentSelectedTransactionReportID,
         setSelectedTransactions,
         clearSelectedTransactions,
         setShouldShowFiltersBarLoading,

@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/prefer-early-return */
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
@@ -204,9 +204,15 @@ function MoneyRequestReportActionsList({
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
     const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
 
-    useFilterSelectedTransactions(transactions);
+    useFocusEffect(
+        useCallback(() => {
+            setCurrentSelectedTransactionReportID(reportID);
+        }, [reportID, setCurrentSelectedTransactionReportID]),
+    );
+
+    useFilterSelectedTransactions(transactions, reportID);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
@@ -744,7 +750,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, reportMetadata?.hasOnceLoadedReportActions, introSelected]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
