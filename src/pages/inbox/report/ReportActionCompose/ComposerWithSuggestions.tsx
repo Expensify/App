@@ -38,11 +38,6 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
-import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
-import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -58,6 +53,11 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+import getCursorPosition from './getCursorPosition';
+import getScrollPosition from './getScrollPosition';
+import type {SuggestionsRef} from './ReportActionCompose';
+import SilentCommentUpdater from './SilentCommentUpdater';
+import Suggestions from './Suggestions';
 
 type SyncSelection = {
     position: number;
