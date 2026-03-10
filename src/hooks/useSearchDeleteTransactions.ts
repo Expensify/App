@@ -2,6 +2,7 @@ import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequestOnSearch, revertSplitTransactionOnSearch} from '@libs/actions/Search';
+import type {RevertSplitTransactionParams} from '@libs/API/parameters';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,24 +100,24 @@ function useSearchDeleteTransactions() {
                             originalTransactionID: undefined,
                         },
                     };
-                    revertSplitTransactionOnSearch(
-                        hash,
-                        originalTransactionID,
-                        {
-                            transactionID: remaining.transactionID,
-                            amount: remainingPortion,
-                            created: remaining.created ?? '',
-                            category: remaining.category ?? '',
-                            tag: remaining.tag ?? '',
-                            merchant: remaining.modifiedMerchant ?? remaining.merchant ?? '',
-                            comment: remaining.comment?.comment ?? '',
-                            reimbursable: remaining.reimbursable,
-                            billable: remaining.billable,
-                            reportID: remaining.reportID,
-                        },
-                        optimisticDeletedSplitTransactions,
-                        optimisticRestoredTransaction,
-                    );
+                    const revertSplitTransactionParams = {
+                        transactionID: remaining.transactionID,
+                        amount: remainingPortion,
+                        created: remaining.created ?? '',
+                        category: remaining.category ?? '',
+                        tag: remaining.tag ?? '',
+                        merchant: remaining.modifiedMerchant ?? remaining.merchant ?? '',
+                        comment: remaining.comment?.comment ?? '',
+                        reimbursable: remaining.reimbursable,
+                        billable: remaining.billable,
+                        reportID: remaining.reportID,
+                        quantity: remaining.comment?.customUnit?.quantity ?? undefined,
+                        customUnitRateID: remaining.comment?.customUnit?.customUnitRateID,
+                        odometerStart: remaining.comment?.odometerStart,
+                        odometerEnd: remaining.comment?.odometerEnd,
+                        waypoints: remaining.comment?.waypoints ? JSON.stringify(remaining.comment.waypoints) : undefined,
+                    } as RevertSplitTransactionParams;
+                    revertSplitTransactionOnSearch(hash, originalTransactionID, revertSplitTransactionParams, optimisticDeletedSplitTransactions, optimisticRestoredTransaction);
                     continue;
                 }
 
