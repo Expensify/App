@@ -948,7 +948,7 @@ function getLastMessageTextForReport({
 /**
  * Creates a report list option - optimized for SearchOption context
  */
-// eslint-disable-next-line max-params
+// eslint-disable-next-line @typescript-eslint/max-params
 function createOption(
     accountIDs: number[],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
@@ -2933,6 +2933,7 @@ function shouldOptionShowTooltip(option: SearchOptionData): boolean {
 /**
  * Handles the logic for displaying selected participants from the search term
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: SearchOptionData[],
