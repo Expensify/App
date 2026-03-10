@@ -8,13 +8,13 @@ import CONST from '@src/CONST';
 function ExampleCheckImage() {
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const isSpanish = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.ES;
 
     return (
         <Image
             accessibilityLabel={translate('bankAccount.checkHelpLine')}
-            accessibilityRole={CONST.ROLE.IMAGE}
+            accessibilityRole={CONST.ROLE.IMG}
             resizeMode="contain"
             style={[styles.exampleCheckImage, styles.mb5]}
             source={isSpanish ? illustrations.ExampleCheckES : illustrations.ExampleCheckEN}
