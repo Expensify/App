@@ -3,7 +3,7 @@ import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, Platform, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
@@ -25,7 +25,6 @@ import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/u
 import type IconAsset from '@src/types/utils/IconAsset';
 import AttachmentCamera from './AttachmentCamera';
 import type {CapturedPhoto} from './AttachmentCamera';
-import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
 
 type LocalCopy = {
@@ -137,7 +136,7 @@ function AttachmentPicker({
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
-    // In-app camera state (Android only - keeps the app in foreground to prevent OS from reclaiming memory)
+    // In-app camera state — uses VisionCamera to keep the app in the foreground during photo capture
     const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
     const cameraResolveRef = useRef<((photos?: CapturedPhoto[]) => void) | null>(null);
 
@@ -155,7 +154,7 @@ function AttachmentPicker({
     );
 
     /**
-     * Launch the in-app camera using VisionCamera (Android only).
+     * Launch the in-app camera using VisionCamera.
      * Returns a Promise that resolves with the captured photo as an Asset-compatible object,
      * or resolves with void if the user closes the camera without capturing.
      */
@@ -341,9 +340,7 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                // On Android, use an in-app VisionCamera to keep the app in the foreground
-                // and prevent the OS from reclaiming memory while the camera is open.
-                pickAttachment: Platform.OS === 'android' ? launchInAppCamera : () => showImagePicker(launchCamera),
+                pickAttachment: launchInAppCamera,
             });
         }
 
