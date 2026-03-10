@@ -162,7 +162,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
-    const backTo: string | undefined = route.params.backTo;
+    const backTo = route.params.backTo;
 
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -533,7 +533,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
-                        Navigation.goBack(backTo as Route | undefined);
+                        Navigation.goBack(backTo);
                         reopenTask(report, parentReport, currentUserPersonalDetails?.accountID);
                     }),
                 });
@@ -741,7 +741,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
             return result;
         },
-        [canJoin, report, backTo, currentUserPersonalDetails.accountID] as React.DependencyList,
+        [canJoin, report, backTo, currentUserPersonalDetails.accountID],
     );
 
     const nameSectionExpenseIOU = (
@@ -1036,7 +1036,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack(backTo as Route | undefined)}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>

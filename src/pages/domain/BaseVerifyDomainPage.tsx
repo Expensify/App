@@ -48,7 +48,6 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const forwardToPath: string = forwardTo;
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
@@ -56,15 +55,12 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
-    useEffect(
-        () => {
-            if (!domain?.hasValidationSucceeded) {
-                return;
-            }
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardToPath as Route, {forceReplace: true}));
-        },
-        [domain?.hasValidationSucceeded, forwardToPath] as React.DependencyList,
-    );
+   useEffect(() => {
+        if (!domain?.hasValidationSucceeded) {
+            return;
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
+    }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
     useEffect(() => {
         if (!doesDomainExist) {
