@@ -240,6 +240,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
         >
@@ -248,7 +249,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     <ExpenseReportListItemRow
                         item={reportItem}
                         columns={columns}
-                        policy={snapshotPolicy}
                         reportActions={reportActions}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}

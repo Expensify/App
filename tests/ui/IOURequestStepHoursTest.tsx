@@ -166,8 +166,8 @@ describe('IOURequestStepHours', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            // NumberWithSymbolForm should display the existing hours value
-            expect(screen.getByText(String(existingHours))).toBeDefined();
+            // NumberWithSymbolForm should prefill the input with existing hours value
+            expect(screen.getByDisplayValue(String(existingHours))).toBeDefined();
         });
     });
 
