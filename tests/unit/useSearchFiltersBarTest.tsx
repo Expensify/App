@@ -1,3 +1,4 @@
+import type * as ReactNavigation from '@react-navigation/native';
 import {render, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -7,6 +8,15 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import CONST from '@src/CONST';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+
+jest.mock('@react-navigation/native', () => {
+    const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
+
+    return {
+        ...actualNavigation,
+        useIsFocused: () => true,
+    };
+});
 
 jest.mock('@components/Search/FilterDropdowns/UserSelectPopup', () => jest.fn(() => null));
 jest.mock('@components/Search/FilterDropdowns/MultiSelectPopup', () => jest.fn(() => null));
