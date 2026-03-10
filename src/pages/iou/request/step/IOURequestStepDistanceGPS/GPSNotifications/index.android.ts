@@ -57,6 +57,7 @@ function updateGpsTripNotificationLanguage(_translate: LocalizedTranslate) {}
 
 export {
     startGpsTripNotification,
+    stopGpsTripNotification,
     updateGpsTripNotificationDistance,
     updateGpsTripNotificationUnit,
     updateGpsTripNotificationLanguage,
