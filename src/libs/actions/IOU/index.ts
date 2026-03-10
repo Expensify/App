@@ -1170,23 +1170,22 @@ function handleNavigateAfterExpenseCreate({
     transactionID,
     isFromGlobalCreate,
     isInvoice,
-    shouldHandleNavigation = true,
+    navigationHandler,
 }: {
     activeReportID?: string;
     transactionID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
-    shouldHandleNavigation?: boolean;
+    navigationHandler?: (navigate: () => void) => void;
 }) {
+    const executeNavigation = navigationHandler ?? ((navigate) => navigate());
     const isUserOnInbox = isReportTopmostSplitNavigator();
 
     // If the expense is not created from global create or is currently on the inbox tab,
     // we just need to dismiss the money request flow screens
     // and open the report chat containing the IOU report
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
-        if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
-        }
+        executeNavigation(() => dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice));
         return;
     }
 
@@ -1194,10 +1193,6 @@ function handleNavigateAfterExpenseCreate({
 
     // We mark this transaction to be highlighted when opening the expense search route page
     mergeTransactionIdsHighlightOnSearchRoute(type, {[transactionID]: true});
-
-    if (!shouldHandleNavigation) {
-        return;
-    }
 
     // When already on Search ROOT with the same type (expense vs invoice), we navigate to the same screen (no-op or refresh); record as dismiss_modal_only.
     // When on another Search sub-tab (e.g. Chats), or on Search with a different type (e.g. on Invoice, submitting expense), record as navigate_to_search.
@@ -1207,25 +1202,27 @@ function handleNavigateAfterExpenseCreate({
     const alreadyOnSearchRoot = isSearchTopmostFullScreenRoute() && lastSearchRoute?.name === SCREENS.SEARCH.ROOT;
     const currentSearchQueryJSON = alreadyOnSearchRoot ? getCurrentSearchQueryJSON() : undefined;
     const isSameSearchType = currentSearchQueryJSON?.type === type;
-    setPendingSubmitFollowUpAction(
-        alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
-    );
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
-        name: 'navigate-after-expense-create',
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
-    });
+    executeNavigation(() => {
+        setPendingSubmitFollowUpAction(
+            alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
+        );
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE, {
+            name: 'navigate-after-expense-create',
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE,
+        });
 
-    const queryString = buildCannedSearchQuery({type});
-    Navigation.isNavigationReady().then(() => {
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
-        } else {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
-            });
-        }
+        const queryString = buildCannedSearchQuery({type});
+        Navigation.isNavigationReady().then(() => {
+            if (getIsNarrowLayout()) {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            } else {
+                Navigation.dismissModal();
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                });
+            }
+        });
     });
 }
 
@@ -6927,7 +6924,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             activeReportID: backToReport ?? activeReportID,
             transactionID: transaction.transactionID,
             isFromGlobalCreate,
-            shouldHandleNavigation,
+            navigationHandler: shouldHandleNavigation ? undefined : () => {},
         });
     }
 
@@ -7054,7 +7051,12 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
-    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
+    handleNavigateAfterExpenseCreate({
+        activeReportID,
+        transactionID: transaction.transactionID,
+        isFromGlobalCreate,
+        navigationHandler: shouldHandleNavigation ? undefined : () => {},
+    });
 
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
@@ -7820,7 +7822,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             activeReportID,
             transactionID: transaction?.transactionID,
             isFromGlobalCreate,
-            shouldHandleNavigation,
+            navigationHandler: shouldHandleNavigation ? undefined : () => {},
         });
     }
 
