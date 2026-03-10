@@ -7,6 +7,7 @@ import type {
     ConfigureTravelInvoicingForPolicyParams,
     DeactivateTravelInvoicingParams,
     OpenPolicyTravelPageParams,
+    PayTravelInvoicingSpendParams,
     SetTravelInvoicingSettlementAccountParams,
     UpdateTravelInvoicingSettlementFrequencyParams,
 } from '@libs/API/parameters';
@@ -382,6 +383,35 @@ function clearTravelInvoicingErrors(workspaceAccountID: number) {
 }
 
 /**
+ * Pays the outstanding Travel Invoicing balance for a workspace.
+ * Optimistically sets the manual billing flag to true (payment queued state).
+ * The backend will send updates for private_expensifyCardManualBilling_ to clear it when billing runs.
+ */
+function payTravelInvoicingSpend(workspaceAccountID: number) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
+            value: true,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`,
+            value: false,
+        },
+    ];
+
+    const params: PayTravelInvoicingSpendParams = {
+        domainAccountID: workspaceAccountID,
+    };
+
+    return API.write(WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND, params, {optimisticData, failureData});
+}
+
+/**
  * Generates the Travel Invoice Statement PDF for a policy and date range.
  * Uses Onyx to track generation state and cache the filename.
  */
@@ -451,6 +481,7 @@ export {
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
     updateTravelInvoiceSettlementFrequency,
+    payTravelInvoicingSpend,
     getTravelInvoiceStatementPDF,
     exportTravelInvoiceStatementCSV,
     configureTravelInvoicingForPolicy,
