@@ -447,11 +447,11 @@ function MoneyReportHeader({
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
     const canMoveSingleExpense = useMemo(() => {
-        if (transactions.length !== 1) {
+        if (nonPendingDeleteTransactions.length !== 1) {
             return false;
         }
 
-        const transactionToMove = transactions.at(0);
+        const transactionToMove = nonPendingDeleteTransactions.at(0);
         if (!transactionToMove) {
             return false;
         }
@@ -462,7 +462,7 @@ function MoneyReportHeader({
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
         return canMoveExpense && canUserPerformWriteAction;
-    }, [transactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
 
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
@@ -1615,10 +1615,10 @@ function MoneyReportHeader({
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.MOVE_EXPENSE,
             shouldShow: canMoveSingleExpense,
             onSelected: () => {
-                if (!moneyRequestReport || transactions.length !== 1) {
+                if (!moneyRequestReport || nonPendingDeleteTransactions.length !== 1) {
                     return;
                 }
-                const transactionToMove = transactions.at(0);
+                const transactionToMove = nonPendingDeleteTransactions.at(0);
                 if (!transactionToMove?.transactionID) {
                     return;
                 }
