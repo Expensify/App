@@ -311,7 +311,7 @@ function ComposerWithSuggestions({
 
     const applyComposerValue = useCallback(
         (nextValue: string, isEditingInComposer?: boolean) => {
-            const defaultSelection = {start: nextValue.length, end: nextValue.length, positionX: 0, positionY: 0} satisfies TextSelection;
+            const defaultSelection: TextSelection = {start: nextValue.length, end: nextValue.length};
             const selectionToApply = isEditingInComposer ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection;
 
             commentRef.current = nextValue;
