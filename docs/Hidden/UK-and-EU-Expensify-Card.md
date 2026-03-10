@@ -2,9 +2,14 @@
 title: Set up the Expensify Card in the UK and EU
 description: Learn how to set up and use the Expensify Card in the UK and EU, including eligibility, supported countries, and step-by-step setup instructions.
 keywords: [New Expensify, Expensify Card UK, EU, Global Reimbursements, GBP, EUR, card setup, issue cards, Smart Limit, virtual cards, supported countries, early release]
+noindex: true
+sitemap: false
 internalScope: Audience is Workspace Admins in the UK and EU. Covers eligibility, supported countries, enabling the Expensify Card, linking a settlement account, issuing virtual cards, spending limits, foreign exchange details. Does not cover US Expensify Card setup, physical card shipping timelines, non-GBP/EUR settlement accounts
 ---
 
+<!--
+REMOVE noindex: true AND sitemap: false FROM YAML HEADER BEFORE PUBLISHING!
+-->
 
 # Set up the Expensify Card in the UK and EU
 
@@ -12,9 +17,7 @@ The Expensify Card is available for companies in the United Kingdom and select E
 
 Workspace Admins can issue virtual Expensify Cards to members and manage spending in GBP or EUR. Physical cards will be available soon.
 
-<!-- Can only be requested through New Expensify. Expensify Classic customers need to navigate to New Expensify and follow the instructions below -->
-
-
+---
 
 ## Who can set up the Expensify Cards in the UK and EU
 
@@ -24,8 +27,9 @@ The card is currently available for:
 
 If your company hasn’t yet connected a GBP or EUR business bank account, [follow this process](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement) to get started.
 
-## Check Which Countries Can Enable the Expensify Card in the UK and EU
+---
 
+## Check Which Countries Can Enable the Expensify Card in the UK and EU
 
 The Expensify Card can be used **anywhere Visa is accepted**.
 
@@ -52,9 +56,6 @@ However, only companies registered in the following 20 UK and EU countries can e
 - Sweden  
 - United Kingdom
 
-
-## How to set up the Expensify Card
-
 ## What are the pre-requisites to set up the Expensify Card in the UK and EU
 
 To set up the Expensify Card in the UK and EU, you must: 
@@ -62,6 +63,8 @@ To set up the Expensify Card in the UK and EU, you must:
 1. Have a GBP or EUR bank account connected. To connect one, [Enable Global Reimbursement](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 2. Complete the **[Know Your Customer (KYC)](https://launch-workflow.trulioo.com/68223577c5dae52a6ec9347f)** and **[Know Your Business (KYB)](https://launch-workflow.trulioo.com/681a7cc4e65d2e48f19de9c3)** forms.
 3. Share the last 90 days of statements from your connected GBP or EUR bank account with Concierge so they can assess your eligible limit
+
+---
 
 ## 1. How to enable the Expensify Card on your workspace
 
@@ -71,11 +74,15 @@ To set up the Expensify Card in the UK and EU, you must:
 
 Once enabled, **Expensify Card** will appear in the navigation tabs. 
 
+---
+
 ##  How to link a bank account to settle the Expensify Card
 
 1. From navigation tabs (on the left on Web, on the bottom on Mobile), choose **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**.
 3. Choose the GBP or EUR business bank account that should be used to settle all Expensify Card transactions.
+
+---
 
 ## How to issue virtual Expensify Cards to employees
 
@@ -93,6 +100,7 @@ Once enabled, **Expensify Card** will appear in the navigation tabs.
 
 The member can begin spending with the virtual Expensify Card immediately after it’s issued.
 
+---
 
 # FAQ
 
