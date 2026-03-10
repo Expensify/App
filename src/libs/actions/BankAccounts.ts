@@ -169,6 +169,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
         ...(accountData?.phoneNumber && {companyPhone: accountData.phoneNumber}),
     };
 
+    type AdditionalDataRollback = {[K in keyof AdditionalDataUpdate]: AdditionalDataUpdate[K] | null};
+
     const bankAccountListUpdates: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {
         [bankAccountKey]: {
             accountData: {
@@ -177,17 +179,17 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Parti
         },
     };
 
-    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataUpdate}}> = {
+    const bankAccountListRollback: Record<string, {accountData: {additionalData: AdditionalDataRollback}}> = {
         [bankAccountKey]: {
             accountData: {
                 additionalData: {
-                    firstName: prevData?.firstName,
-                    lastName: prevData?.lastName,
-                    addressStreet: prevData?.addressStreet,
-                    addressCity: prevData?.addressCity,
-                    addressState: prevData?.addressState,
-                    addressZipCode: prevData?.addressZipCode,
-                    companyPhone: prevData?.companyPhone,
+                    firstName: prevData?.firstName ?? null,
+                    lastName: prevData?.lastName ?? null,
+                    addressStreet: prevData?.addressStreet ?? null,
+                    addressCity: prevData?.addressCity ?? null,
+                    addressState: prevData?.addressState ?? null,
+                    addressZipCode: prevData?.addressZipCode ?? null,
+                    companyPhone: prevData?.companyPhone ?? null,
                 },
             },
         },
