@@ -2184,7 +2184,7 @@ const translations: TranslationDeepObject<typeof en> = {
         addAdditionalCards: 'Aggiungi altre carte',
         upgradeDescription: 'Devi aggiungere altre carte? Crea uno spazio di lavoro per aggiungere carte personali o assegnare carte aziendali a tutto il team.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) => `<muted-text>Disponibile nel piano Collect, <strong>${formattedPrice}</strong> per membro al mese.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink: string) =>
             `<muted-text>Crea uno spazio di lavoro per usare questa funzione, o <a href="${subscriptionLink}">scopri di più</a> su piani e prezzi.</muted-text>`,
         workspaceCreated: 'Spazio di lavoro creato',
         newWorkspace: 'Hai creato uno spazio di lavoro!',

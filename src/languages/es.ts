@@ -9,7 +9,6 @@ import type {
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
-    WorkspaceUpgradeNoteParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
 
@@ -2076,7 +2075,7 @@ const translations: TranslationDeepObject<typeof en> = {
         upgradeDescription: '¿Necesitas añadir más tarjetas? Crea un espacio de trabajo para añadir tarjetas personales o asignar tarjetas de empresa a todo el equipo.',
         onlyAvailableOnPlan: ({formattedPrice}: {formattedPrice: string}) =>
             `<muted-text>Disponible en el plan Collect, que cuesta <strong>${formattedPrice}</strong> por miembro al mes.</muted-text>`,
-        note: ({subscriptionLink}: WorkspaceUpgradeNoteParams) =>
+        note: (subscriptionLink) =>
             `<muted-text>Crea un espacio de trabajo para acceder a esta función, o <a href="${subscriptionLink}">más información</a> sobre nuestros planes y precios.</muted-text>`,
         workspaceCreated: 'Espacio de trabajo creado',
         newWorkspace: '¡Has creado un espacio de trabajo!',
