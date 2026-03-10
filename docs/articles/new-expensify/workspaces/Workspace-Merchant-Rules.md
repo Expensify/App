@@ -118,7 +118,7 @@ This ensures office-related purchases follow company coding standards.
 
 ## Who Can Enable Workspace Merchant Rules?
 
-Only **Workspace Admins** on the **Control** plan can create, edit, or delete Workspace Merchant Rules.
+## Who can enable Workspace Merchant Rules?
 
 ## What fields can Workspace Merchant Rules update?
 
