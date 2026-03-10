@@ -192,6 +192,12 @@ const translations: TranslationDeepObject<typeof en> = {
         home: 'Home',
         inbox: 'Inbox',
         yourReviewIsRequired: 'Uw beoordeling is vereist',
+        actionBadge: {
+            submit: 'Indienen',
+            approve: 'Goedkeuren',
+            pay: 'Betalen',
+            fix: 'Herstellen',
+        },
         success: 'Gelukt',
         group: 'Groep',
         profile: 'Profiel',
