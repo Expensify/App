@@ -13,7 +13,7 @@ index 3169c25..19acc49 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -53,7 +53,43 @@ function htmlTreeAsString(
+@@ -53,7 +53,47 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
@@ -62,7 +62,7 @@ index 3169c25..19acc49 100644
    } catch {
      return '<unknown>';
    }
-@@ -77,8 +113,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -77,8 +117,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
@@ -91,7 +91,7 @@ index 2ad52b0..796cac9 100644
   * @returns generated DOM path
   */
  function htmlTreeAsString(
-@@ -51,7 +51,43 @@ function htmlTreeAsString(
+@@ -51,7 +51,47 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
 
@@ -140,7 +140,7 @@ index 2ad52b0..796cac9 100644
    } catch {
      return '<unknown>';
    }
-@@ -75,8 +111,12 @@ function _htmlElementAsString(el, keyAttrs) {
+@@ -75,8 +115,12 @@ function _htmlElementAsString(el, keyAttrs) {
 
    // @ts-expect-error WINDOW has HTMLElement
    if (WINDOW.HTMLElement) {
