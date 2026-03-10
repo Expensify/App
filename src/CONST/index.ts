@@ -7161,6 +7161,7 @@ const CONST = {
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
+            DUPLICATE: 'duplicate',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
