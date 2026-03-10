@@ -29,6 +29,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice, isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
@@ -41,7 +42,7 @@ import {clearUpdateSubscriptionSizeError, requestTaxExempt, updateSubscriptionAd
 import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
@@ -82,7 +83,7 @@ function SubscriptionSettings() {
             return;
         }
         if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.route);
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DOWNGRADE_BLOCKED.path));
             return;
         }
 

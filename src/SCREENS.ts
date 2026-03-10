@@ -130,6 +130,7 @@ const SCREENS = {
         TROUBLESHOOT: 'Settings_Troubleshoot',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
+        DYNAMIC_SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Dynamic_Subscription_Downgrade_Blocked',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -254,7 +255,6 @@ const SCREENS = {
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
             REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
-            SUBSCRIPTION_DOWNGRADE_BLOCKED: 'Settings_Subscription_DowngradeBlocked',
         },
     },
     TWO_FACTOR_AUTH: {

@@ -97,6 +97,10 @@ const DYNAMIC_ROUTES = {
         path: 'owner-selector',
         entryScreens: [],
     },
+    DOWNGRADE_BLOCKED: {
+        path: 'downgrade-blocked',
+        entryScreens: [SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.PLAN, SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -330,12 +334,6 @@ const ROUTES = {
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
-    SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED: {
-        route: 'settings/subscription/downgrade-blocked',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription/downgrade-blocked', backTo),
-    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',

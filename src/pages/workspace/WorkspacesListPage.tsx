@@ -47,6 +47,7 @@ import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -68,7 +69,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
@@ -401,7 +402,7 @@ function WorkspacesListPage() {
                             currentUserPersonalDetails?.accountID,
                         )
                     ) {
-                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DOWNGRADE_BLOCKED.path));
                         return;
                     }
 

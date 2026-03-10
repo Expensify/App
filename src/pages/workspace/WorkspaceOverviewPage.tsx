@@ -44,6 +44,7 @@ import {
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -63,7 +64,7 @@ import StringUtils from '@libs/StringUtils';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
@@ -303,7 +304,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
-            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DOWNGRADE_BLOCKED.path));
             return;
         }
 

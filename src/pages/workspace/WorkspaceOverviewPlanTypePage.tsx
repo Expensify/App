@@ -17,12 +17,13 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -88,7 +89,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
         if (policyID && policy?.type === CONST.POLICY.TYPE.CORPORATE && currentPlan === CONST.POLICY.TYPE.TEAM) {
             if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
-                Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DOWNGRADE_BLOCKED.path));
                 return;
             }
             Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID));
