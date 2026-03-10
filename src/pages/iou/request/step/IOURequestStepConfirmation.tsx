@@ -1054,19 +1054,28 @@ function IOURequestStepConfirmation({
                 hasReceiptFiles,
             });
 
+            const submitSpanAttributes = {
+                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            };
+
             startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
                 name: 'submit-expense',
                 op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-                    [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                    [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-                },
+                attributes: submitSpanAttributes,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+                name: 'submit-to-destination-visible',
+                op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+                attributes: submitSpanAttributes,
             });
 
             // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
+            // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
             // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
             // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
@@ -1151,6 +1160,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1184,6 +1194,7 @@ function IOURequestStepConfirmation({
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
+                        personalDetails,
                     });
                 }
                 markSubmitExpenseEnd();
@@ -1339,6 +1350,7 @@ function IOURequestStepConfirmation({
             requestType,
             betas,
             allPolicyTags,
+            personalDetails,
         ],
     );
 
