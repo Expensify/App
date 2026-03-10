@@ -1539,7 +1539,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择工作区',
-        routedDueToDEW: (to: string) => `报表因自定义审批流程被转交给 ${to}`,
+        routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
             hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
             hrs: '小时',
@@ -2036,6 +2036,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanCode: '使用你的 扫描二维码',
         authenticatorApp: '身份验证器应用',
         addKey: '或者将此密钥添加到你的验证器应用：',
+        secretKey: '密钥',
         enterCode: '然后输入您的身份验证器应用生成的六位数字代码。',
         stepSuccess: '已完成',
         enabled: '已启用双重身份验证',
@@ -5135,6 +5136,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                         learnHow: '了解方法。',
                         subsections: {
                             currentTravelSpendLabel: '当前差旅支出',
+                            currentTravelSpendPaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
                             currentTravelSpendCta: '支付余额',
                             currentTravelLimitLabel: '当前出行限额',
                             settlementAccountLabel: '结算账户',
@@ -5144,6 +5146,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     },
                     disableModal: {title: '关闭差旅开票？', body: '即将到来的酒店和汽车租赁预订可能需要使用不同的付款方式重新预订，以避免被取消。', confirm: '关闭'},
                     outstandingBalanceModal: {title: '无法关闭差旅开票', body: '你仍有未结清的差旅余额。请先支付该余额。', confirm: '明白了'},
+                    payBalanceModal: {title: (amount: string) => `支付 ${amount} 的余额？`, body: '付款将被加入队列，并会在稍后处理。此操作一旦开始将无法撤销。'},
+                    exportToPDF: '导出为 PDF',
+                    exportToCSV: '导出为 CSV',
+                    selectDateRangeError: '请选择要导出的日期范围',
+                    invalidDateRangeError: '开始日期必须早于结束日期',
                     enabled: '中央开票已启用！',
                     enabledDescription: '此工作区的所有差旅支出现在将集中在一张月度发票中。',
                 },
@@ -7050,6 +7057,9 @@ ${reportName}
         topMerchants: '热门商家',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
+            editMultiple: '批量编辑',
+            editMultipleTitle: '编辑多个费用',
+            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',
@@ -7448,11 +7458,7 @@ ${reportName}
             tryDifferentEmail: '请尝试使用其他邮箱',
         },
     },
-    cardTransactions: {
-        notActivated: '未激活',
-        outOfPocket: '可报销',
-        companySpend: '不可报销',
-    },
+    cardTransactions: {notActivated: '未激活', outOfPocket: '可报销', companySpend: '不可报销', personalCard: '个人银行卡', companyCard: '公司卡', expensifyCard: 'Expensify 卡'},
     distance: {
         addStop: '添加站点',
         address: '地址',
@@ -7551,6 +7557,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         fabGpsTripExplained: '前往 GPS 页面（浮动操作）',
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',
