@@ -35,6 +35,13 @@ jest.mock('@libs/Navigation/Navigation', () => {
         getTopmostReportId: jest.fn(() => undefined),
         dismissModal: jest.fn(),
         getActiveRoute: jest.fn(() => ''),
+        useNavigationState: () => true,
+        useIsFocused: () => true,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: jest.fn(),
+        }),
+        usePreventRemove: jest.fn(),
     };
 });
 
