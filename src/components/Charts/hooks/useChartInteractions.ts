@@ -1,7 +1,7 @@
-import {useMemo, useRef, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
-import {useAnimatedReaction, useDerivedValue} from 'react-native-reanimated';
+import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {useChartInteractionState} from './useChartInteractionState';
 
@@ -50,29 +50,85 @@ type UseChartInteractionsProps = {
 };
 
 /**
- * Type for Victory's actionsRef handle.
- * Used to manually trigger Victory's internal touch handling logic.
+ * Binary search over canvas x positions to find the index of the closest data point.
+ * Equivalent to victory-native's internal findClosestPoint utility.
  */
-type CartesianActionsHandle = {
-    handleTouch: (state: unknown, x: number, y: number) => void;
-};
+function findClosestPoint(xValues: number[], targetX: number): number {
+    'worklet';
+
+    const n = xValues.length;
+    if (n === 0) {
+        return -1;
+    }
+    if (targetX <= (xValues.at(0) ?? 0)) {
+        return 0;
+    }
+    if (targetX >= (xValues.at(-1) ?? 0)) {
+        return n - 1;
+    }
+    let lo = 0;
+    let hi = n;
+    let mid = 0;
+    while (lo < hi) {
+        mid = Math.floor((lo + hi) / 2);
+        const midVal = xValues.at(mid) ?? 0;
+        if (midVal === targetX) {
+            return mid;
+        }
+        if (targetX < midVal) {
+            if (mid > 0 && targetX > (xValues.at(mid - 1) ?? 0)) {
+                const prevVal = xValues.at(mid - 1) ?? 0;
+                return targetX - prevVal >= midVal - targetX ? mid : mid - 1;
+            }
+            hi = mid;
+        } else {
+            if (mid < n - 1 && targetX < (xValues.at(mid + 1) ?? 0)) {
+                const nextVal = xValues.at(mid + 1) ?? 0;
+                return targetX - midVal >= nextVal - targetX ? mid + 1 : mid;
+            }
+            lo = mid + 1;
+        }
+    }
+    return mid;
+}
 
 /**
  * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
+ * Uses RNGH gestures directly — no dependency on Victory's actionsRef/handleTouch.
  * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
 function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
     const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
 
-    /** Ref passed to CartesianChart to allow manual touch injection */
-    const actionsRef = useRef<CartesianActionsHandle>(null);
-
     /** React state for the index of the point currently being interacted with */
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     /** React state indicating if the cursor is currently "hitting" a target based on checkIsOver */
     const [isOverTarget, setIsOverTarget] = useState(false);
+
+    /**
+     * Canvas-space x positions for each data point, set by the chart content via setPointPositions.
+     * These replace Victory's internal tData.ox array, enabling worklet-safe nearest-point lookup.
+     */
+    const pointOX = useSharedValue<number[]>([]);
+
+    /**
+     * Canvas-space y positions for each data point, set by the chart content via setPointPositions.
+     */
+    const pointOY = useSharedValue<number[]>([]);
+
+    /**
+     * Called by chart content from handleScaleChange to populate canvas positions.
+     * Must be called with the positions derived from the current d3 scale.
+     */
+    const setPointPositions = useCallback(
+        (ox: number[], oy: number[]) => {
+            pointOX.set(ox);
+            pointOY.set(oy);
+        },
+        [pointOX, pointOY],
+    );
 
     /**
      * Derived value performing the hit-test on the UI thread.
@@ -131,12 +187,16 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
                     chartInteractionState.cursor.x.set(e.x);
                     chartInteractionState.cursor.y.set(e.y);
                     const bottom = chartBottom?.get() ?? e.y;
-                    // When entering from within the label area, snap to the tick X of the label
-                    // the cursor is visually inside rather than using the raw cursor X.
-                    // This fixes cases where rotated labels extend past the midpoint to the
-                    // previous tick, causing Victory to match the wrong data point.
                     const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                    actionsRef.current?.handleTouch(chartInteractionState, touchX, Math.min(e.y, bottom));
+                    const ox = pointOX.get();
+                    const oy = pointOY.get();
+                    const idx = findClosestPoint(ox, touchX);
+                    if (idx >= 0) {
+                        chartInteractionState.matchedIndex.set(idx);
+                        chartInteractionState.x.position.set(ox.at(idx) ?? 0);
+                        chartInteractionState.x.value.set(idx);
+                        chartInteractionState.y.y.position.set(oy.at(idx) ?? 0);
+                    }
                 })
                 .onUpdate((e) => {
                     'worklet';
@@ -149,7 +209,15 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
                     if (!isCursorOverTarget.get()) {
                         const bottom = chartBottom?.get() ?? e.y;
                         const touchX = e.y >= bottom && resolveLabelTouchX ? resolveLabelTouchX(e.x, e.y) : e.x;
-                        actionsRef.current?.handleTouch(chartInteractionState, touchX, Math.min(e.y, bottom));
+                        const ox = pointOX.get();
+                        const oy = pointOY.get();
+                        const idx = findClosestPoint(ox, touchX);
+                        if (idx >= 0) {
+                            chartInteractionState.matchedIndex.set(idx);
+                            chartInteractionState.x.position.set(ox.at(idx) ?? 0);
+                            chartInteractionState.x.value.set(idx);
+                            chartInteractionState.y.y.position.set(oy.at(idx) ?? 0);
+                        }
                     }
                 })
                 .onEnd(() => {
@@ -157,45 +225,47 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
 
                     chartInteractionState.isActive.set(false);
                 }),
-        [chartInteractionState, chartBottom, isCursorOverTarget, resolveLabelTouchX],
+        [chartInteractionState, chartBottom, isCursorOverTarget, resolveLabelTouchX, pointOX, pointOY],
     );
 
     /**
-     * Tap gesture configuration.
-     * Handles clicks/touches and triggers handlePress if Victory matched a data point.
+     * Tap gesture. Resolves the nearest data point entirely on the UI thread,
+     * then schedules handlePress on the JS thread if the cursor is over the target.
      */
     const tapGesture = useMemo(
         () =>
             Gesture.Tap().onEnd((e) => {
                 'worklet';
 
-                // Update cursor position
                 chartInteractionState.cursor.x.set(e.x);
                 chartInteractionState.cursor.y.set(e.y);
-
-                // Let Victory calculate which data point was tapped
-                actionsRef.current?.handleTouch(chartInteractionState, e.x, e.y);
-                const matchedIndex = chartInteractionState.matchedIndex.get();
-
-                // If Victory matched a valid data point, trigger the press handler
+                const ox = pointOX.get();
+                const oy = pointOY.get();
+                const idx = findClosestPoint(ox, e.x);
+                if (idx < 0) {
+                    return;
+                }
+                const targetX = ox.at(idx) ?? 0;
+                const targetY = oy.at(idx) ?? 0;
+                chartInteractionState.matchedIndex.set(idx);
+                chartInteractionState.x.position.set(targetX);
+                chartInteractionState.x.value.set(idx);
+                chartInteractionState.y.y.position.set(targetY);
+                const currentChartBottom = chartBottom?.get() ?? 0;
                 if (
-                    matchedIndex >= 0 &&
                     checkIsOver({
                         cursorX: e.x,
                         cursorY: e.y,
-                        targetX: chartInteractionState.x.position.get(),
-                        targetY: chartInteractionState.y.y.position.get(),
-                        chartBottom: chartBottom?.get() ?? 0,
+                        targetX,
+                        targetY,
+                        chartBottom: currentChartBottom,
                     })
                 ) {
-                    scheduleOnRN(handlePress, matchedIndex);
+                    scheduleOnRN(handlePress, idx);
                 }
             }),
-        [chartInteractionState, checkIsOver, chartBottom, handlePress],
+        [chartInteractionState, pointOX, pointOY, chartBottom, checkIsOver, handlePress],
     );
-
-    /** Tap-only gesture passed to CartesianChart. Hover is handled by hoverGesture on the container. */
-    const customGestures = useMemo(() => Gesture.Race(tapGesture), [tapGesture]);
 
     /**
      * Raw tooltip positioning data.
@@ -214,16 +284,16 @@ function useChartInteractions({handlePress, checkIsOver, checkIsOverLabel, resol
         };
     });
 
+    const customGestures = useMemo(() => Gesture.Race(hoverGesture, tapGesture), [hoverGesture, tapGesture]);
+
     return {
-        /** Ref to be passed to CartesianChart */
-        actionsRef,
-        /** Tap-only gesture to be passed to CartesianChart's customGestures prop */
+        /** Custom gestures to be passed to CartesianChart */
         customGestures,
         /**
-         * Hover gesture to be attached to the full-height container wrapping CartesianChart.
-         * Covers both the plot area and the label area below chartBounds.bottom.
+         * Call this from handleScaleChange with the canvas x/y positions of each data point.
+         * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale(data[i].total).
          */
-        hoverGesture,
+        setPointPositions,
         /** The currently active data index (React state) */
         activeDataIndex,
         /** Whether the tooltip should currently be rendered and visible */

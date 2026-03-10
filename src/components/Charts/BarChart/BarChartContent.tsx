@@ -10,7 +10,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ChartHeader from '@components/Charts/components/ChartHeader';
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
-import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, DIAGONAL_ANGLE_RAD_THRESHOLD, X_AXIS_LINE_WIDTH, Y_AXIS_LINE_WIDTH, Y_AXIS_TICK_COUNT} from '@components/Charts/constants';
 import fontSource from '@components/Charts/font';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
@@ -37,11 +37,17 @@ const BASE_DOMAIN_PADDING = {top: 32, bottom: 1, left: 0, right: 0};
 const computeBarLabelGeometry: ComputeGeometryFn = ({ascent, descent, sinA, angleRad, labelWidths, padding}) => {
     const maxLabelWidth = labelWidths.length > 0 ? Math.max(...labelWidths) : 0;
     const centeredUpwardOffset = angleRad > 0 ? (maxLabelWidth / 2) * sinA : 0;
-    const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA);
+    const halfLabelSins = labelWidths.map((w) => (w / 2) * sinA - variables.iconSizeExtraSmall / 3);
     const halfWidths = labelWidths.map((w) => w / 2);
+    let additionalOffset = 0;
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RAD_THRESHOLD) {
+        additionalOffset = variables.iconSizeExtraSmall / 1.5;
+    } else if (angleRad > 1) {
+        additionalOffset = variables.iconSizeExtraSmall / 3;
+    }
     return {
         // variables.iconSizeExtraSmall / 3 is the vertical offset of label from the axis line
-        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - variables.iconSizeExtraSmall / 3,
+        labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset - additionalOffset,
         iconSin: variables.iconSizeExtraSmall * sinA,
         labelSins: labelWidths.map((w) => w * sinA),
         halfWidths,
@@ -143,11 +149,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         setBoundsRight(bounds.right);
     };
 
-    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
-        yZero.set(yScale(0));
-        updateTickPositions(xScale, data.length);
-    };
-
     const checkIsOverBar = (args: HitTestArgs) => {
         'worklet';
 
@@ -165,7 +166,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         return args.cursorX >= barLeft && args.cursorX <= barRight && args.cursorY >= barTop && args.cursorY <= barBottom;
     };
 
-    const {actionsRef, customGestures, hoverGesture, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, activeDataIndex, isTooltipActive, initialTooltipPosition} = useChartInteractions({
         handlePress: handleBarPress,
         checkIsOver: checkIsOverBar,
         checkIsOverLabel,
@@ -173,6 +174,15 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
         chartBottom,
         yZero,
     });
+
+    const handleScaleChange = (xScale: Scale, yScale: Scale) => {
+        yZero.set(yScale(0));
+        updateTickPositions(xScale, data.length);
+        setPointPositions(
+            chartData.map((point) => xScale(point.x)),
+            chartData.map((point) => yScale(point.y)),
+        );
+    };
 
     const tooltipData = useTooltipData(activeDataIndex, data, formatValue);
 
@@ -234,7 +244,7 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                 title={title}
                 titleIcon={titleIcon}
             />
-            <GestureDetector gesture={hoverGesture}>
+            <GestureDetector gesture={customGestures}>
                 <View
                     style={[styles.barChartChartContainer, dynamicChartStyle]}
                     onLayout={handleLayout}
@@ -245,8 +255,6 @@ function BarChartContent({data, title, titleIcon, isLoading, yAxisUnit, yAxisUni
                             padding={chartPadding}
                             yKeys={['y']}
                             domainPadding={domainPadding}
-                            actionsRef={actionsRef}
-                            customGestures={customGestures}
                             onChartBoundsChange={handleChartBoundsChange}
                             onScaleChange={handleScaleChange}
                             renderOutside={renderOutside}
