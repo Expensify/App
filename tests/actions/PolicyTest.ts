@@ -1358,7 +1358,12 @@ describe('actions/Policy', () => {
 
             // When updating the reimbursable mode to NON_REIMBURSABLE_DEFAULT
             mockFetch.pause();
-            Policy.setPolicyReimbursableMode(policy.id, CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT, policy.defaultReimbursable, policy.disabledFields.reimbursable);
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
             await waitForBatchedUpdates();
 
             // Then defaultReimbursable is updated to false and disabledFields.reimbursable is updated to false
@@ -1424,7 +1429,12 @@ describe('actions/Policy', () => {
 
             // When updating the reimbursable mode to ALWAYS_NON_REIMBURSABLE
             mockFetch.pause();
-            Policy.setPolicyReimbursableMode(policy.id, CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE, policy.defaultReimbursable, policy.disabledFields.reimbursable);
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
             await waitForBatchedUpdates();
 
             // Then defaultReimbursable is updated to false and disabledFields.reimbursable is updated to true
@@ -1457,7 +1467,12 @@ describe('actions/Policy', () => {
 
             // When updating the reimbursable mode and fails
             mockFetch.fail();
-            Policy.setPolicyReimbursableMode(policy.id, CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT, policy.defaultReimbursable, policy.disabledFields.reimbursable);
+            Policy.setPolicyReimbursableMode(
+                policy.id,
+                CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT,
+                policy.defaultReimbursable,
+                policy.disabledFields.reimbursable,
+            );
             await waitForBatchedUpdates();
 
             // Then defaultReimbursable is reverted to true and disabledFields.reimbursable is reverted to false
