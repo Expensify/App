@@ -5,11 +5,13 @@ import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {Keyboard, View} from 'react-native';
+import Text from '@components/Text';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
+import useLocalize from '@hooks/useLocalize';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -94,6 +96,7 @@ function BaseSelectionList<TItem extends ListItem>({
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const scrollEnabled = useScrollEnabled();
     const {singleExecution} = useSingleExecution();
@@ -110,6 +113,23 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
+    const [announcedResultCount, setAnnouncedResultCount] = useState<string>('');
+    const announceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Debounced announcement of result count for screen readers
+    useEffect(() => {
+        if (!shouldShowTextInput) {
+            return;
+        }
+
+        announceTimeoutRef.current = setTimeout(() => {
+            setAnnouncedResultCount(translate('common.resultsAvailable', data.length));
+        }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+        return () => {
+            clearTimeout(announceTimeoutRef.current ?? undefined);
+        };
+    }, [data.length, shouldShowTextInput, translate]);
 
     const isItemSelected = useCallback(
         (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
@@ -544,6 +564,14 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
+            {shouldShowTextInput && (
+                <Text
+                    style={styles.visuallyHidden}
+                    accessibilityLiveRegion="polite"
+                >
+                    {announcedResultCount}
+                </Text>
+            )}
             {data.length === 0 && (shouldShowLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (

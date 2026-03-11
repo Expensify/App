@@ -4,6 +4,8 @@ import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -23,6 +25,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     measuredHeightOfSuggestionRows,
 }: ExternalProps<TSuggestion>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
@@ -92,6 +95,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
+            accessibilityLiveRegion="polite"
             onPointerDown={(e) => {
                 if (hasHoverSupport()) {
                     return;
@@ -99,6 +103,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                 e.preventDefault();
             }}
         >
+            <Text style={styles.visuallyHidden}>{translate('common.suggestionsAvailable', suggestions.length)}</Text>
             <ColorSchemeWrapper>
                 <FlatList
                     ref={scrollRef}
