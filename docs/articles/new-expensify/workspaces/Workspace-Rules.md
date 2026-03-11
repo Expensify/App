@@ -40,7 +40,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
 
-![Rules page showing all available workspace-level expense rules with Itemized Receipt flagged]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_01.png){:width="100%"}
+![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
 ---
 
