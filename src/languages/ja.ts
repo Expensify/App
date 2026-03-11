@@ -7560,10 +7560,9 @@ ${reportName}
         iKnowATeacher: '私は先生を知っています',
         iAmATeacher: '私は教師です',
         personalKarma: {
-            title: 'パーソナルカルマ',
-            description: '毎月の支出500ドルごとに1ドルをExpensify.orgに寄付します',
-            addPaymentCardPrompt: 'パーソナルカルマの寄付を有効にするには、支払いカードを追加してください。',
-            stopDonationsPrompt: '本当によろしいですか？毎月のKarma寄付は大きな影響をもたらします。',
+            title: 'パーソナルカルマを有効にする',
+            description: '毎月の支出500ドルごとに1ドルを Expensify.org に寄付します',
+            stopDonationsPrompt: 'Expensify.org への寄付をやめてもよろしいですか？',
         },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',

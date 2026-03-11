@@ -7620,10 +7620,9 @@ const translations = {
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         personalKarma: {
-            title: 'Personal Karma',
+            title: 'Enable Personal Karma',
             description: 'Donate $1 to Expensify.org for every $500 you spend each month',
-            addPaymentCardPrompt: 'Add a payment card to enable Personal Karma donations.',
-            stopDonationsPrompt: 'Are you sure? Your monthly Karma donation makes a huge impact.',
+            stopDonationsPrompt: 'Are you sure you want to stop donating to Expensify.org?',
         },
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
         introSchoolPrincipal: 'Intro to your school principal',

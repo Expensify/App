@@ -7624,10 +7624,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         iKnowATeacher: 'Ik ken een leraar',
         iAmATeacher: 'Ik ben een leraar',
         personalKarma: {
-            title: 'Persoonlijke karma',
+            title: 'Persoonlijke karma inschakelen',
             description: 'Doneer $1 aan Expensify.org voor elke $500 die je elke maand uitgeeft',
-            addPaymentCardPrompt: 'Voeg een betaalkaart toe om persoonlijke karma-donaties in te schakelen.',
-            stopDonationsPrompt: 'Weet je het zeker? Je maandelijkse Karma-donatie heeft een grote impact.',
+            stopDonationsPrompt: 'Weet je zeker dat je wilt stoppen met doneren aan Expensify.org?',
         },
         getInTouch: 'Uitstekend! Deel hun gegevens zodat we contact met hen kunnen opnemen.',
         introSchoolPrincipal: 'Introductie bij je schooldirecteur',

@@ -7645,10 +7645,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         iKnowATeacher: 'Conosco un insegnante',
         iAmATeacher: 'Sono un insegnante',
         personalKarma: {
-            title: 'Karma personale',
+            title: 'Attiva il Karma personale',
             description: 'Dona 1 $ a Expensify.org per ogni 500 $ che spendi ogni mese',
-            addPaymentCardPrompt: 'Aggiungi una carta di pagamento per abilitare le donazioni di Karma personale.',
-            stopDonationsPrompt: 'Sei sicuro? La tua donazione mensile Karma ha un grande impatto.',
+            stopDonationsPrompt: 'Sei sicuro di voler smettere di donare a Expensify.org?',
         },
         getInTouch: 'Eccellente! Condividi le loro informazioni così possiamo metterci in contatto con loro.',
         introSchoolPrincipal: 'Introduzione al dirigente scolastico',

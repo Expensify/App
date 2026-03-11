@@ -7616,10 +7616,9 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         iKnowATeacher: 'Eu conheço um professor',
         iAmATeacher: 'Sou professor(a)',
         personalKarma: {
-            title: 'Karma pessoal',
-            description: 'Doe US$ 1 para o Expensify.org a cada US$ 500 que você gastar por mês',
-            addPaymentCardPrompt: 'Adicione um cartão de pagamento para ativar as doações do Karma pessoal.',
-            stopDonationsPrompt: 'Tem certeza? Sua doação mensal de Karma causa um grande impacto.',
+            title: 'Ativar Karma pessoal',
+            description: 'Doe US$ 1 para Expensify.org a cada US$ 500 que você gastar por mês',
+            stopDonationsPrompt: 'Tem certeza de que deseja parar de doar para Expensify.org?',
         },
         getInTouch: 'Excelente! Compartilhe as informações deles para que possamos entrar em contato.',
         introSchoolPrincipal: 'Apresentação ao diretor da sua escola',

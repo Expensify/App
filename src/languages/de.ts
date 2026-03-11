@@ -7659,10 +7659,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         iKnowATeacher: 'Ich kenne eine Lehrkraft',
         iAmATeacher: 'Ich bin Lehrer',
         personalKarma: {
-            title: 'Persönliches Karma',
-            description: 'Spende 1 $ an Expensify.org für jeweils 500 $, die du pro Monat ausgibst',
-            addPaymentCardPrompt: 'Füge eine Zahlungskarte hinzu, um persönliche Karma-Spenden zu aktivieren.',
-            stopDonationsPrompt: 'Bist du sicher? Deine monatliche Karma-Spende bewirkt viel.',
+            title: 'Persönliches Karma aktivieren',
+            description: 'Spende 1 $ an Expensify.org für je 500 $, die du jeden Monat ausgibst',
+            stopDonationsPrompt: 'Bist du sicher, dass du nicht mehr an Expensify.org spenden möchtest?',
         },
         getInTouch: 'Ausgezeichnet! Bitte teile ihre Kontaktdaten, damit wir sie erreichen können.',
         introSchoolPrincipal: 'Einführung für Ihre Schulleitung',

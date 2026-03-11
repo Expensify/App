@@ -7681,10 +7681,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
         personalKarma: {
-            title: 'Karma personnel',
+            title: 'Activer le Karma personnel',
             description: 'Faites un don de 1 $ à Expensify.org pour chaque tranche de 500 $ dépensée chaque mois',
-            addPaymentCardPrompt: 'Ajoutez une carte de paiement pour activer les dons de Karma personnel.',
-            stopDonationsPrompt: 'Êtes-vous sûr ? Votre don mensuel Karma a un impact considérable.',
+            stopDonationsPrompt: 'Êtes-vous sûr de vouloir arrêter de faire des dons à Expensify.org ?',
         },
         getInTouch: 'Excellent ! Veuillez partager leurs coordonnées afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Présentation de la direction de votre école',

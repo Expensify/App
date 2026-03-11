@@ -7612,10 +7612,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         iKnowATeacher: 'Znam nauczyciela',
         iAmATeacher: 'Jestem nauczycielem',
         personalKarma: {
-            title: 'Karma osobista',
+            title: 'Włącz osobistą karmę',
             description: 'Przekaż 1 USD na Expensify.org za każde 500 USD wydane w miesiącu',
-            addPaymentCardPrompt: 'Dodaj kartę płatniczą, aby włączyć darowizny w ramach Osobistej Karmy.',
-            stopDonationsPrompt: 'Czy na pewno? Twoja comiesięczna darowizna Karma ma ogromny wpływ.',
+            stopDonationsPrompt: 'Czy na pewno chcesz przestać przekazywać darowizny na rzecz Expensify.org?',
         },
         getInTouch: 'Świetnie! Udostępnij ich dane kontaktowe, abyśmy mogli się z nimi skontaktować.',
         introSchoolPrincipal: 'Wprowadzenie dla dyrektora szkoły',
