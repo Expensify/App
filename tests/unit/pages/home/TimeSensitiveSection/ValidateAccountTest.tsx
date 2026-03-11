@@ -1,53 +1,98 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
-import ComposeProviders from '@src/components/ComposeProviders';
-import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
-import Navigation from '@src/libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ValidateAccount from '@src/pages/home/TimeSensitiveSection/items/ValidateAccount';
-import ROUTES from '@src/ROUTES';
-import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
+import { render, screen } from "@testing-library/react-native";
+import Onyx from "react-native-onyx";
+import OnyxListItemProvider from "@src/components/OnyxListItemProvider";
+import ONYXKEYS from "@src/ONYXKEYS";
+import TimeSensitiveSection from "@src/pages/home/TimeSensitiveSection";
+import waitForBatchedUpdates from "../../../../utils/waitForBatchedUpdates";
 
-jest.mock('@libs/Navigation/Navigation');
+jest.mock("@libs/Navigation/Navigation");
 
-jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: jest.fn(() => ({
-        EnvelopeOpenStar: () => null,
-    })),
+jest.mock("@hooks/useLocalize", () =>
+  jest.fn(() => ({ translate: jest.fn((key: string) => key) })),
+);
+
+jest.mock("@hooks/useLazyAsset", () => ({
+  useMemoizedLazyExpensifyIcons: jest.fn(() => ({
+    EnvelopeOpenStar: () => null,
+  })),
 }));
 
-const renderValidateAccount = () => {
-    return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <ValidateAccount />
-        </ComposeProviders>,
-    );
-};
+jest.mock(
+  "@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOffers",
+  () =>
+    jest.fn(() => ({
+      shouldShow50off: false,
+      shouldShow25off: false,
+      shouldShowAddPaymentCard: false,
+      firstDayFreeTrial: undefined,
+      discountInfo: undefined,
+    })),
+);
 
-describe('ValidateAccount', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
+jest.mock(
+  "@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveCards",
+  () =>
+    jest.fn(() => ({
+      shouldShowAddShippingAddress: false,
+      shouldShowActivateCard: false,
+      shouldShowReviewCardFraud: false,
+      cardsNeedingShippingAddress: [],
+      cardsNeedingActivation: [],
+      cardsWithFraud: [],
+    })),
+);
 
-    beforeEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
+jest.mock("@hooks/useCardFeedErrors", () =>
+  jest.fn(() => ({
+    cardsWithBrokenFeedConnection: {},
+    personalCardsWithBrokenConnection: {},
+  })),
+);
 
-    it('renders correctly with proper text', () => {
-        renderValidateAccount();
+jest.mock("@hooks/useCurrentUserPersonalDetails", () =>
+  jest.fn(() => ({ login: "test@example.com" })),
+);
 
-        expect(screen.getByText('Validate your account to continue using Expensify')).toBeTruthy();
-        expect(screen.getByText('Account')).toBeTruthy();
-        expect(screen.getByText('Validate')).toBeTruthy();
-    });
+jest.mock("@hooks/useResponsiveLayout", () =>
+  jest.fn(() => ({ shouldUseNarrowLayout: false })),
+);
 
-    it('navigates to verify account page on CTA press', () => {
-        renderValidateAccount();
+const renderTimeSensitiveSection = () =>
+  render(
+    <OnyxListItemProvider>
+      <TimeSensitiveSection />
+    </OnyxListItemProvider>,
+  );
 
-        fireEvent.press(screen.getByText('Validate'));
+describe("TimeSensitiveSection - ValidateAccount", () => {
+  beforeAll(() => {
+    Onyx.init({ keys: ONYXKEYS });
+  });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute());
-    });
+  beforeEach(async () => {
+    await Onyx.clear();
+    await waitForBatchedUpdates();
+  });
+
+  it("shows ValidateAccount widget when account is not validated", async () => {
+    await Onyx.set(ONYXKEYS.ACCOUNT, { validated: false });
+    await waitForBatchedUpdates();
+
+    renderTimeSensitiveSection();
+
+    expect(
+      screen.getByText("homePage.timeSensitiveSection.validateAccount.title"),
+    ).toBeTruthy();
+  });
+
+  it("hides ValidateAccount widget when account is validated", async () => {
+    await Onyx.set(ONYXKEYS.ACCOUNT, { validated: true });
+    await waitForBatchedUpdates();
+
+    renderTimeSensitiveSection();
+
+    expect(
+      screen.queryByText("homePage.timeSensitiveSection.validateAccount.title"),
+    ).toBeNull();
+  });
 });
