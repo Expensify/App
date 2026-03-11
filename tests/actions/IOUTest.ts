@@ -10,7 +10,6 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
-import type {PerDiemExpenseTransactionParams, RequestMoneyParticipantParams} from '@libs/actions/IOU';
 import {
     approveMoneyRequest,
     calculateDiffAmount,
@@ -25,9 +24,9 @@ import {
     deleteMoneyRequest,
     getDeleteTrackExpenseInformation,
     getIOUReportActionToApproveOrPay,
-    getPerDiemExpenseInformation,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
+    getTrackExpenseInformation,
     handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     markRejectViolationAsResolved,
@@ -38,7 +37,6 @@ import {
     retractReport,
     setMoneyRequestCategory,
     shouldOptimisticallyUpdateSearch,
-    submitPerDiemExpense,
     submitReport,
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
@@ -109,7 +107,6 @@ import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -155,6 +152,7 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
@@ -583,6 +581,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -685,6 +684,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -772,6 +772,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -826,6 +827,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -908,6 +910,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -962,6 +965,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1027,6 +1031,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             };
         }
 
@@ -1245,6 +1250,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1335,6 +1341,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1563,6 +1570,246 @@ describe('actions/IOU', () => {
 
             const createdTransaction = Object.values(transactions ?? {}).at(0);
             expect(createdTransaction?.merchant).toBe(specialMerchant);
+        });
+
+        it('should pass isSelfTourViewed true to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: true
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(12000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Viewed Merchant');
+        });
+
+        it('should pass isSelfTourViewed false to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: false
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(9000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Not Viewed Merchant');
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed true', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-1',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant',
+                    comment: 'test comment',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed false', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-2',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 7000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant False',
+                    comment: 'test comment false',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information for policy expense chat with both isSelfTourViewed values', () => {
+            // Given a policy expense chat report
+            const policy = createRandomPolicy(1);
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'policy-chat-tour-test',
+                policyID: policy.id,
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const resultWithTourViewed = getTrackExpenseInformation({
+                parentChatReport: policyExpenseChat,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then result should be valid
+            expect(resultWithTourViewed).toBeDefined();
+            expect(resultWithTourViewed.chatReport).toBeDefined();
+            expect(resultWithTourViewed.transaction).toBeDefined();
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const resultWithoutTourViewed = getTrackExpenseInformation({
+                parentChatReport: {
+                    ...policyExpenseChat,
+                    reportID: 'policy-chat-tour-test-2',
+                },
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            expect(resultWithoutTourViewed).toBeDefined();
+            expect(resultWithoutTourViewed.chatReport).toBeDefined();
+            expect(resultWithoutTourViewed.transaction).toBeDefined();
         });
     });
 
@@ -2850,6 +3097,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
 
             mockFetch?.resume?.();
@@ -2917,6 +3165,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -3440,6 +3689,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -8716,6 +8966,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -10761,6 +11012,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
@@ -12145,6 +12397,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -13126,456 +13379,6 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('getPerDiemExpenseInformation', () => {
-        it('should include policyRecentlyUsedCurrencies when provided', () => {
-            const testCurrency = CONST.CURRENCY.GBP;
-            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
-            const mockTransactionParams: PerDiemExpenseTransactionParams = {
-                comment: '',
-                currency: testCurrency,
-                created: '2024-02-02',
-                category: 'Meals',
-                tag: 'PerDiem',
-                customUnit: {
-                    customUnitID: 'per_diem_unit',
-                    customUnitRateID: 'rate_1',
-                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    attributes: {
-                        dates: {
-                            start: '2024-02-02',
-                            end: '2024-02-02',
-                        },
-                    },
-                    subRates: [],
-                    quantity: 1,
-                },
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 123,
-                payeeEmail: 'payee@example.com',
-                participant: {
-                    accountID: 123,
-                    login: 'payee@example.com',
-                },
-            };
-
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams as unknown as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'payee@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: initialCurrencies,
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipantParams.payeeAccountID]: {accountID: mockParticipantParams.payeeAccountID, login: 'payee@example.com'}},
-            });
-
-            expect(result.onyxData).toBeDefined();
-            expect(result.onyxData.optimisticData).toBeDefined();
-
-            const optimisticData = result.onyxData?.optimisticData;
-            expect(optimisticData).toBeDefined();
-            const currencyUpdate = optimisticData?.find((update) => update.key === ONYXKEYS.RECENTLY_USED_CURRENCIES && update.onyxMethod === Onyx.METHOD.SET);
-            expect(currencyUpdate).toBeDefined();
-            expect(currencyUpdate?.value).toEqual([testCurrency, ...initialCurrencies]);
-        });
-
-        it('should return correct per diem expense information with new chat report', () => {
-            // Given: Mock data for per diem expense
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_123',
-                customUnitRateID: 'rate_456',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-15',
-                        end: '2024-01-15',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'breakfast_1',
-                        name: 'Breakfast',
-                        rate: 25,
-                        quantity: 1,
-                    },
-                    {
-                        id: 'lunch_1',
-                        name: 'Lunch',
-                        rate: 35,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 1,
-            };
-
-            const mockParticipant = {
-                accountID: 123,
-                login: 'test@example.com',
-                displayName: 'Test User',
-                isPolicyExpenseChat: false,
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockTransactionParams = {
-                currency: 'USD',
-                created: '2024-01-15',
-                category: 'Travel',
-                tag: 'Project A',
-                customUnit: mockCustomUnit,
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-                comment: 'Business trip per diem',
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            const mockPolicyParams = {
-                policy: createRandomPolicy(1),
-                policyCategories: createRandomPolicyCategories(3),
-                policyTagList: createRandomPolicyTags('tagList', 2),
-            };
-
-            // When: Call getPerDiemExpenseInformation
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: mockParticipantParams,
-                policyParams: mockPolicyParams,
-                recentlyUsedParams: {},
-                moneyRequestReportID: '1',
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify the result structure and key values
-            expect(result).toMatchObject({
-                payerAccountID: 123,
-                payerEmail: 'test@example.com',
-                billable: true,
-                reimbursable: true,
-            });
-
-            // Verify chat report was created
-            expect(result.chatReport).toBeDefined();
-            expect(result.chatReport.reportID).toBeDefined();
-
-            // Verify IOU report was created
-            expect(result.iouReport).toBeDefined();
-            expect(result.iouReport.reportID).toBeDefined();
-            expect(result.iouReport.type).toBe(CONST.REPORT.TYPE.IOU);
-
-            // Verify transaction was created with correct per diem data
-            expect(result.transaction).toBeDefined();
-            expect(result.transaction.transactionID).toBeDefined();
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.transaction.currency).toBe('USD');
-            expect(result.transaction.category).toBe('Travel');
-            expect(result.transaction.tag).toBe('Project A');
-            expect(result.transaction.comment?.comment).toBe('Business trip per diem');
-
-            // Verify IOU action was created
-            expect(result.iouAction).toBeDefined();
-            expect(result.iouAction.reportActionID).toBeDefined();
-            expect(result.iouAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.IOU);
-
-            // Verify report preview action
-            expect(result.reportPreviewAction).toBeDefined();
-            expect(result.reportPreviewAction.reportActionID).toBeDefined();
-
-            // Verify Onyx data structure
-            expect(result.onyxData).toBeDefined();
-            expect(result.onyxData.optimisticData).toBeDefined();
-            expect(result.onyxData.successData).toBeDefined();
-            expect(result.onyxData.failureData).toBeDefined();
-
-            // Verify created action IDs for new reports
-            expect(result.createdChatReportActionID).toBeDefined();
-            expect(result.createdIOUReportActionID).toBeDefined();
-        });
-
-        it('should return correct per diem expense information with existing chat report', () => {
-            // Given: Existing chat report
-            const existingChatReport = {
-                reportID: 'chat_123',
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '123': {
-                        accountID: 123,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    '456': {
-                        accountID: 456,
-                        role: CONST.REPORT.ROLE.MEMBER,
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                    },
-                },
-                iouReportID: 'iou_456',
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_789',
-                customUnitRateID: 'rate_101',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-20',
-                        end: '2024-01-20',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'dinner_1',
-                        name: 'Dinner',
-                        rate: 45,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 2,
-            };
-
-            const mockParticipant = {
-                accountID: 123,
-                login: 'existing@example.com',
-                displayName: 'Existing User',
-                isPolicyExpenseChat: false,
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockTransactionParams = {
-                comment: 'Conference per diem',
-                currency: 'USD',
-                created: '2024-01-20',
-                category: 'Meals',
-                tag: 'Conference',
-                customUnit: mockCustomUnit,
-                billable: false,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            // When: Call getPerDiemExpenseInformation with existing chat report
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: existingChatReport as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify the result uses existing chat report
-            expect(result.chatReport.reportID).toBe('chat_123');
-            expect(result.chatReport.chatType).toBe(CONST.REPORT.CHAT_TYPE.GROUP);
-
-            // Verify transaction has correct per diem data
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.transaction.currency).toBe('USD');
-            expect(result.transaction.category).toBe('Meals');
-            expect(result.transaction.tag).toBe('Conference');
-            expect(result.transaction.comment?.comment).toBe('Conference per diem');
-
-            // Verify no new chat report action ID since using existing
-            expect(result.createdChatReportActionID).toBeUndefined();
-        });
-
-        it('should handle policy expense chat correctly', () => {
-            // Given: Policy expense chat participant
-            const mockParticipant = {
-                accountID: 123,
-                login: 'policy@example.com',
-                displayName: 'Policy User',
-                isPolicyExpenseChat: true,
-                reportID: 'policy_chat_123',
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
-                role: CONST.REPORT.ROLE.MEMBER,
-            };
-
-            const mockCustomUnit = {
-                customUnitID: 'per_diem_policy',
-                customUnitRateID: 'rate_policy',
-                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                attributes: {
-                    dates: {
-                        start: '2024-01-25',
-                        end: '2024-01-25',
-                    },
-                },
-                subRates: [
-                    {
-                        id: 'lodging_1',
-                        name: 'Lodging',
-                        rate: 150,
-                        quantity: 1,
-                    },
-                ],
-                quantity: 1,
-            };
-
-            const mockTransactionParams = {
-                comment: 'Policy per diem',
-                currency: 'USD',
-                created: '2024-01-25',
-                category: 'Lodging',
-                tag: 'Policy',
-                customUnit: mockCustomUnit,
-                billable: true,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const mockParticipantParams = {
-                payeeAccountID: 456,
-                payeeEmail: 'payee@example.com',
-                participant: mockParticipant,
-            };
-
-            const mockPolicyParams = {
-                policy: createRandomPolicy(2),
-            };
-
-            // When: Call getPerDiemExpenseInformation for policy expense chat
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
-                participantParams: mockParticipantParams as RequestMoneyParticipantParams,
-                policyParams: mockPolicyParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[mockParticipant.accountID]: {accountID: mockParticipant.accountID, login: 'existing@example.com'}},
-            });
-
-            // Then: Verify policy expense chat handling
-            expect(result.payerAccountID).toBe(123);
-            expect(result.payerEmail).toBe('policy@example.com');
-            expect(result.transaction.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(result.transaction.hasEReceipt).toBe(true);
-            expect(result.billable).toBe(true);
-            expect(result.reimbursable).toBe(true);
-        });
-    });
-
-    describe('submitPerDiemExpense', () => {
-        it('should update policyRecentlyUsedTags when tag is provided', async () => {
-            // Given a transaction with a tag
-            const iouReportID = '2';
-            const policyID = 'A';
-            const transactionTag = 'new tag';
-            const tagName = 'Tag';
-            const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
-                [tagName]: ['old tag'],
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
-                reportID: iouReportID,
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserPersonalDetails.accountID,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
-                [tagName]: {name: tagName},
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
-
-            // When submitting a per diem expense
-            submitPerDiemExpense({
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
-                transactionParams: {
-                    created: DateUtils.getDBTime(),
-                    currency: CONST.CURRENCY.USD,
-                    tag: transactionTag,
-                    customUnit: {
-                        customUnitID: 'A',
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        customUnitRateID: 'B',
-                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
-                        attributes: {dates: {end: '', start: ''}},
-                    },
-                },
-                policyRecentlyUsedCurrencies: [],
-                policyParams: {
-                    policy: {...createRandomPolicy(1)},
-                    policyRecentlyUsedTags,
-                },
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-            });
-
-            waitForBatchedUpdates();
-
-            // Then the transaction tag should be added to the recently used tags collection
-            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
-                const connection = Onyx.connectWithoutView({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
-                    callback: (recentlyUsedTags) => {
-                        resolve(recentlyUsedTags ?? {});
-                        Onyx.disconnect(connection);
-                    },
-                });
-            });
-            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
-            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
-        });
-    });
-
     describe('getManagerMcTestParticipant', () => {
         it('should return manager mctest participant when personalDetails contains manager_mctest', () => {
             // Given personalDetails that include manager_mctest
@@ -13622,148 +13425,6 @@ describe('actions/IOU', () => {
 
             // Then it should return undefined
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('getPerDiemExpenseInformation with personalDetails', () => {
-        it('should pass personalDetails through to buildOnyxDataForMoneyRequest', () => {
-            // Given personalDetails with the current user
-            const mockTransactionParams: PerDiemExpenseTransactionParams = {
-                comment: '',
-                currency: CONST.CURRENCY.USD,
-                created: '2024-02-02',
-                category: 'Meals',
-                tag: '',
-                customUnit: {
-                    customUnitID: 'per_diem_unit',
-                    customUnitRateID: 'rate_1',
-                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                    attributes: {
-                        dates: {
-                            start: '2024-02-02',
-                            end: '2024-02-02',
-                        },
-                    },
-                    subRates: [],
-                    quantity: 1,
-                },
-                billable: false,
-                attendees: [],
-                reimbursable: true,
-            };
-
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When calling getPerDiemExpenseInformation with personalDetails
-            const result = getPerDiemExpenseInformation({
-                parentChatReport: {} as OnyxEntry<Report>,
-                transactionParams: mockTransactionParams,
-                participantParams: {
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    payeeEmail: RORY_EMAIL,
-                    participant: {
-                        accountID: RORY_ACCOUNT_ID,
-                        login: RORY_EMAIL,
-                    },
-                } as unknown as RequestMoneyParticipantParams,
-                recentlyUsedParams: {},
-                isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: RORY_ACCOUNT_ID,
-                currentUserEmailParam: RORY_EMAIL,
-                hasViolations: false,
-                policyRecentlyUsedCurrencies: [],
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: personalDetailsList,
-            });
-
-            // Then the result should be valid (personalDetails is correctly passed through the chain)
-            expect(result).toBeDefined();
-            expect(result.onyxData).toBeDefined();
-            expect(result.transaction).toBeDefined();
-            expect(result.iouReport).toBeDefined();
-        });
-    });
-
-    describe('submitPerDiemExpense with personalDetails', () => {
-        it('should correctly submit per diem expense with personalDetails', async () => {
-            // Given a valid per diem expense setup with personalDetails
-            const iouReportID = '2';
-            const policyID = 'B';
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {
-                reportID: iouReportID,
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: currentUserPersonalDetails.accountID,
-            });
-
-            const personalDetailsList: PersonalDetailsList = {
-                [RORY_ACCOUNT_ID]: {
-                    accountID: RORY_ACCOUNT_ID,
-                    login: RORY_EMAIL,
-                    displayName: 'Rory',
-                },
-            };
-
-            // When submitting a per diem expense with personalDetails
-            submitPerDiemExpense({
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                hasViolations: false,
-                isASAPSubmitBetaEnabled: false,
-                participantParams: {
-                    payeeEmail: currentUserPersonalDetails.login,
-                    payeeAccountID: currentUserPersonalDetails.accountID,
-                    participant: {},
-                },
-                report: {
-                    reportID: '1',
-                    iouReportID,
-                },
-                transactionParams: {
-                    created: DateUtils.getDBTime(),
-                    currency: CONST.CURRENCY.USD,
-                    customUnit: {
-                        customUnitID: 'A',
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        customUnitRateID: 'B',
-                        subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
-                        attributes: {dates: {end: '', start: ''}},
-                    },
-                },
-                policyRecentlyUsedCurrencies: [],
-                policyParams: {
-                    policy: {...createRandomPolicy(1)},
-                },
-                quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
-                personalDetails: personalDetailsList,
-            });
-
-            await waitForBatchedUpdates();
-
-            // Then the expense should be submitted successfully (no errors thrown)
-            // Verify that at least one transaction was created
-            const transactions = await new Promise<OnyxCollection<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.TRANSACTION,
-                    waitForCollectionCallback: true,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            const perDiemTransactions = Object.values(transactions ?? {}).filter((tx) => tx?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM);
-            expect(perDiemTransactions.length).toBeGreaterThan(0);
         });
     });
 
