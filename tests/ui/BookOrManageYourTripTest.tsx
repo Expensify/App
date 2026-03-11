@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -13,7 +12,6 @@ import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const POLICY_ID = 'testPolicy123';
-const WORKSPACE_ACCOUNT_ID = 999888;
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
@@ -34,11 +32,13 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => 999888,
 }));
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
@@ -96,7 +96,7 @@ describe('BookOrManageYourTrip', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Travel booking')).toBeTruthy();
-            expect(screen.getByText('Book or manage')).toBeTruthy();
+            expect(screen.getByText('Manage travel')).toBeTruthy();
         });
 
         it('renders with the travel invoicing beta', async () => {
@@ -109,7 +109,7 @@ describe('BookOrManageYourTrip', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Travel booking')).toBeTruthy();
-            expect(screen.getByText('Book or manage')).toBeTruthy();
+            expect(screen.getByText('Manage travel')).toBeTruthy();
         });
     });
 
