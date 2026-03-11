@@ -453,7 +453,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    (createDraftTransactionAndNavigateToParticipantSelector)({
+                    createDraftTransactionAndNavigateToParticipantSelector({
                         transactionID: iouTransactionID,
                         reportID: actionReportID,
                         actionName: CONST.IOU.ACTION.SUBMIT,
