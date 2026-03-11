@@ -22,6 +22,7 @@ function ScrollableTabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    onLongTabPress,
     forceOnTabPressWhenActive = false,
     position,
     shouldShowLabelWhenInactive = true,
@@ -109,6 +110,7 @@ function ScrollableTabSelectorBase({
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
+                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}

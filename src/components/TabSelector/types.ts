@@ -10,6 +10,9 @@ type TabSelectorProps = MaterialTopTabBarProps & {
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
 
+    /* Callback fired when tab is long pressed */
+    onLongTabPress?: (key: string) => void;
+
     /** Callback to register focus trap container element */
     onFocusTrapContainerElementChanged?: (element: HTMLElement | null) => void;
 
@@ -59,6 +62,9 @@ type TabSelectorBaseProps = {
     /** Called when a tab is pressed with its key. */
     onTabPress?: (key: string) => void;
 
+    /* Callback fired when tab is long pressed */
+    onLongTabPress?: (key: string) => void;
+
     /** Force onTabPress call when tab is already active */
     forceOnTabPressWhenActive?: boolean;
 
@@ -81,6 +87,9 @@ type TabSelectorBaseProps = {
 type TabSelectorItemProps = WithSentryLabel & {
     /** Function to call when onPress */
     onPress?: () => void;
+
+    /* Callback fired when tab is long pressed */
+    onLongPress?: () => void;
 
     /** Icon to display on tab */
     icon?: IconAsset;

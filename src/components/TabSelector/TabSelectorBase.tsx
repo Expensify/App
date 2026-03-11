@@ -21,6 +21,7 @@ function TabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    onLongTabPress,
     forceOnTabPressWhenActive = false,
     position,
     shouldShowLabelWhenInactive = true,
@@ -124,6 +125,7 @@ function TabSelectorBase({
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
+                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}

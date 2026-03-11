@@ -22,6 +22,7 @@ function ScrollableTabSelectorItem({
     tabKey,
     title = '',
     onPress = () => {},
+    onLongPress,
     backgroundColor = '',
     activeOpacity = 0,
     inactiveOpacity = 1,
@@ -57,6 +58,7 @@ function ScrollableTabSelectorItem({
                 scrollToTab(tabKey);
                 onPress();
             }}
+            onLongPress={onLongPress}
             onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}

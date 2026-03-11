@@ -29,6 +29,7 @@ function TabSelectorItem({
     icon,
     title = '',
     onPress = () => {},
+    onLongPress,
     backgroundColor = '',
     activeOpacity = 0,
     inactiveOpacity = 1,
@@ -89,6 +90,7 @@ function TabSelectorItem({
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, disabled, backgroundColor), styles.userSelectNone]}
             wrapperStyle={[equalWidth ? styles.flex1 : styles.flexGrow1, isOfflinePendingAction && styles.offlineFeedbackPending]}
             onPress={onPress}
+            onLongPress={onLongPress}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.TAB}

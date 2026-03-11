@@ -12,6 +12,7 @@ function ScrollableTabSelector({
     state,
     navigation,
     onTabPress = () => {},
+    onLongTabPress,
     position,
     onFocusTrapContainerElementChanged,
     shouldShowLabelWhenInactive = true,
@@ -64,6 +65,7 @@ function ScrollableTabSelector({
                     tabs={tabs}
                     activeTabKey={activeRouteName}
                     onTabPress={handleTabPress}
+                    onLongTabPress={onLongTabPress}
                     position={position}
                     shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                     equalWidth={equalWidth}

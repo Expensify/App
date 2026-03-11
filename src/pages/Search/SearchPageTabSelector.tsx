@@ -1,11 +1,15 @@
 import {useNavigation} from '@react-navigation/native';
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type BaseModalProps from '@components/Modal/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PopoverMenu from '@components/PopoverMenu';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ScrollableTabSelectorBase from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorBase';
 import ScrollableTabSelectorContextProvider from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +20,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildUserReadableQueryString} from '@libs/SearchQueryUtils';
-import {getItemBadgeText} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {getItemBadgeText, getOverflowMenu} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
@@ -38,6 +42,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     const {typeMenuSections} = useSearchTypeMenuSections();
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
@@ -50,6 +55,10 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
+
+    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<string | null>(null);
+    const menuAnchorRef = useRef<View>(null);
+    const {showDeleteModal} = useDeleteSavedSearch();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
@@ -65,11 +74,13 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         'CalendarSolid',
         'Bookmark',
         'ExpensifyCard',
+        'Pencil',
     ] as const);
 
     const flattenedItems = typeMenuSections.flatMap((section) => section.menuItems);
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
+    const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
     let activeKey = '';
 
     for (const item of flattenedItems) {
@@ -96,9 +107,10 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
             }
 
             let title = item.name;
-            if (queryJSON && title === item.query) {
+            const itemJsonQuery = buildSearchQueryJSON(item.query);
+            if (queryJSON && itemJsonQuery && title === item.query) {
                 title = buildUserReadableQueryString({
-                    queryJSON,
+                    queryJSON: itemJsonQuery,
                     PersonalDetails: personalDetails,
                     reports,
                     taxRates,
@@ -120,12 +132,16 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 pendingAction: item.pendingAction,
             });
             queryMap.set(key, {query: item.query ?? '', name: item.name});
+            savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, Number(key), item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null));
 
             if (queryJSON && Number(key) === queryJSON.hash) {
                 activeKey = key;
             }
         }
     }
+
+    const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
+    const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
 
     const handleTabPress = (tabKey: string) => {
         const searchData = queryMap.get(tabKey);
@@ -142,16 +158,46 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         });
     };
 
+    const handleLongTabPress = (tabKey: string) => {
+        if (!savedSearchesPopoverMenuItems?.[tabKey]) {
+            return;
+        }
+
+        setSavedSearchToModifyKey(tabKey);
+    };
+
     return (
-        <View style={[styles.appBG]}>
+        <View
+            ref={menuAnchorRef}
+            style={[styles.appBG]}
+        >
             <ScrollableTabSelectorContextProvider activeTabKey={activeKey}>
                 <ScrollableTabSelectorBase
                     tabs={tabItems}
                     activeTabKey={activeKey}
                     forceOnTabPressWhenActive
                     onTabPress={handleTabPress}
+                    onLongTabPress={handleLongTabPress}
                 />
             </ScrollableTabSelectorContextProvider>
+            <PopoverMenu
+                onClose={() => setSavedSearchToModifyKey(null)}
+                onModalHide={() => setRestoreFocusType(undefined)}
+                isVisible={!!shouldShowSavedSearchPopover}
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                onItemSelected={() => {
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
+                    setSavedSearchToModifyKey(null);
+                }}
+                menuItems={popoverMenuItems}
+                anchorRef={menuAnchorRef}
+                shouldEnableNewFocusManagement
+                restoreFocusType={restoreFocusType}
+            />
         </View>
     );
 }
