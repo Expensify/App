@@ -10392,8 +10392,8 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
-                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0, pastDate);
+                const ownerBillingGraceEndPeriod = Math.floor(Date.now() / 1000) - 86400 * 30;
+                submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, true, nextStep, undefined, 0, ownerBillingGraceEndPeriod);
 
                 await waitForBatchedUpdates();
 
