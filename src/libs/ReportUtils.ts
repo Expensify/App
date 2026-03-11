@@ -3499,8 +3499,7 @@ function getParticipantsAccountIDsForDisplay(
 
     const participantsAccountIDs: number[] = [];
 
-    for (const entry of Object.entries(reportParticipants)) {
-        const [accountID] = entry;
+    for (const accountID of Object.keys(reportParticipants)) {
         const personalDetail = allPersonalDetails?.[accountID];
 
         // We should not show participants that have an optimistic entry with the same login in the personal details
