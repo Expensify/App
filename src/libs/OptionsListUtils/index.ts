@@ -206,18 +206,6 @@ import type {
  * methods should be named for the views they build options for and then exported for use in a component.
  */
 
-// TODO: This allReports Onyx.connect is only needed by the REPORT_ACTIONS callback below
-// for cross-referencing reports when building sorted report actions. Remove once that logic
-// is refactored to receive reports from callers (https://github.com/Expensify/App/issues/66378)
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
-
 let allReportNameValuePairsOnyxConnect: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -248,18 +236,8 @@ Onyx.connect({
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
+            const sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             allSortedReportActions[reportID] = sortedReportActions;
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
-            if (transactionThreadReportID) {
-                const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
-            }
 
             const firstReportAction = sortedReportActions.at(0);
             if (!firstReportAction) {
@@ -276,6 +254,28 @@ Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
+
+/**
+ * Gets sorted report actions for a given report, with optional combination for one-transaction reports.
+ * For one-transaction reports (IOU/Expense/Invoice), this will combine the parent report actions
+ * with the transaction thread actions so the LHN can display modifications correctly.
+ */
+function getSortedReportActionsForReport(reportID: string | undefined, report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>): ReportAction[] {
+    if (!reportID) {
+        return [];
+    }
+
+    const sortedActions = allSortedReportActions[reportID] ?? [];
+
+    // For one-transaction reports, combine with transaction thread actions
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, sortedActions);
+    if (transactionThreadReportID && allReportActions) {
+        const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
+        return getCombinedReportActions(sortedActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
+    }
+
+    return sortedActions;
+}
 
 /**
  * Returns the personal details for an array of accountIDs
