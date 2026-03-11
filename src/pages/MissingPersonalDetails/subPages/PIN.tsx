@@ -88,7 +88,7 @@ function PIN({onNext}: CustomSubPageProps) {
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
-                <View style={[styles.mb4, styles.ph8]}>
+                <View style={[styles.mv4, styles.ph11]}>
                     <MagicCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
@@ -103,7 +103,7 @@ function PIN({onNext}: CustomSubPageProps) {
                     {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
                 </View>
 
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb4, styles.alignItemsCenter, styles.w100]}>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
                     <Button
                         icon={isPINHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                         text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
