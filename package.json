@@ -246,7 +246,7 @@
     "@rock-js/platform-ios": "0.12.10",
     "@rock-js/plugin-metro": "0.12.10",
     "@rock-js/provider-s3": "0.12.10",
-    "@sentry/cli": "3.2.2",
+    "@sentry/cli": "3.3.0",
     "@sentry/webpack-plugin": "4.6.0",
     "@storybook/addon-a11y": "10.1.10",
     "@storybook/addon-docs": "10.1.10",
