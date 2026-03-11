@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React from 'react';
 import MenuItem from '@components/MenuItem';
@@ -14,9 +15,8 @@ import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {emailSelector} from '@selectors/Session';
-import colors from '@styles/theme/colors';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
