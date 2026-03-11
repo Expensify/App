@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {getUnixTime, subDays} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -260,5 +261,85 @@ describe('SearchFiltersBarCreateButton', () => {
         expect(screen.getByText(translateLocal('iou.createExpense'))).toBeOnTheScreen();
         expect(screen.getByText(translateLocal('iou.trackDistance'))).toBeOnTheScreen();
         expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeOnTheScreen();
+    });
+
+    it('should navigate to workspace selector when owner billing is restricted and multiple workspaces exist', async () => {
+        // Given the current user owns a workspace that is past due billing with an outstanding amount
+        const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
+
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, {
+                ...MOCK_POLICY,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy-456`, {
+                ...MOCK_POLICY,
+                id: 'policy-456',
+                name: 'Second Workspace',
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDueGracePeriod);
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 8010);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When component is rendered and "Create report" is pressed
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it navigates to workspace selection since there are multiple workspaces and the default is restricted
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+    });
+
+    it('should navigate to restricted action page when owner billing is restricted and only one workspace exists', async () => {
+        // Given the current user owns a single workspace that is past due billing with an outstanding amount
+        const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
+
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, {
+                ...MOCK_POLICY,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDueGracePeriod);
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 8010);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When component is rendered and "Create report" is pressed
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it navigates to the restricted action page for the single restricted workspace
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(MOCK_POLICY_ID));
     });
 });
