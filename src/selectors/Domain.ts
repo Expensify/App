@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import isObject from 'lodash/isObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
@@ -103,14 +104,7 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
  */
 function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroupKey, DomainSecurityGroup] {
     const [key, value] = entry;
-    return (
-        key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) &&
-        typeof value === 'object' &&
-        value !== null &&
-        'shared' in value &&
-        typeof value?.shared === 'object' &&
-        value?.shared !== null
-    );
+    return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && isObject(value) && 'shared' in value && isObject(value.shared);
 }
 
 /**
