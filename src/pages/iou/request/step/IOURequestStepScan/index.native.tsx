@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/core';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, StyleSheet, View} from 'react-native';
+import {Alert, AppState, Platform as RNPlatform, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -73,7 +73,7 @@ function IOURequestStepScan({
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: {width: 4032, height: 3024}}]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
 
@@ -362,12 +362,16 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-                path,
-            })
+        const useSnapshot = RNPlatform.OS === 'android' && !(flash && hasFlash);
+        const photoPromise = useSnapshot
+            ? camera.current.takeSnapshot({quality: 100, path})
+            : camera.current.takePhoto({
+                  flash: flash && hasFlash ? 'on' : 'off',
+                  enableShutterSound: !isPlatformMuted,
+                  path,
+              });
+
+        photoPromise
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
