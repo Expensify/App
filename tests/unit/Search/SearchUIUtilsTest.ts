@@ -5112,7 +5112,19 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: undefined,
+                currentUserAccountID: undefined,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            })
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -5191,18 +5203,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
@@ -5253,18 +5266,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                mockSavedSearches,
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
             expect(monthlyAccrualSection).toBeDefined();
@@ -5301,7 +5315,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -5311,7 +5337,19 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -5328,18 +5366,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                false, // not offline
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -5356,18 +5395,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {},
-                undefined,
-                {},
-                mockSavedSearches,
-                true, // offline
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: mockSavedSearches,
+                isOffline: true,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -5388,7 +5428,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -5409,18 +5461,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                {}, // no card feeds
-                undefined,
-                mockPolicies,
-                {},
-                false,
-                undefined,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const monthlyAccrualSection = sections.find((section) => section.translationPath === 'search.monthlyAccrual');
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
@@ -5453,7 +5506,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
 
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
@@ -5480,7 +5545,19 @@ describe('SearchUIUtils', () => {
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
             const reconciliationSection = sections.find((section) => section.translationPath === 'search.reconciliation');
             expect(reconciliationSection).toBeDefined();
 
@@ -5492,7 +5569,19 @@ describe('SearchUIUtils', () => {
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: undefined,
+                currentUserAccountID: undefined,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            })
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -5555,7 +5644,19 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false);
+            const sections = SearchUIUtils.createTypeMenuSections({
+                icons: icons.current,
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: mockCardFeedsByPolicy,
+                defaultCardFeed: undefined,
+                policies: mockPolicies,
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                shouldRedirectToExpensifyClassic: false,
+                draftTransactionIDs: [],
+            });
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeDefined();
 
