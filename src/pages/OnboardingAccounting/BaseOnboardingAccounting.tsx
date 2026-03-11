@@ -27,8 +27,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {BaseOnboardingAccountingProps} from './types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
     key: OnboardingAccounting;

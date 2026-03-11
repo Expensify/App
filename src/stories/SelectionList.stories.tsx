@@ -218,38 +218,29 @@ function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
     const styles = useThemeStyles();
 
-    const memo = useMemo(() => {
-        const allIds: string[] = [];
+    const sections = props.sections.map((section) => {
+        const data = section.data.map((item, index) => {
+            const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
+            const isAdmin = index === 0;
 
-        const sections = props.sections.map((section) => {
-            const data = section.data.map((item, index) => {
-                if (item.keyForList) {
-                    allIds.push(item.keyForList);
-                }
-                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = index === 0;
-
-                return {
-                    ...item,
-                    isSelected,
-                    alternateText: `${item.keyForList}@email.com`,
-                    accountID: Number(item.keyForList),
-                    login: item.text,
-                    rightElement: isAdmin && (
-                        <Badge
-                            text="Admin"
-                            textStyles={styles.textStrong}
-                            badgeStyles={styles.alignSelfCenter}
-                        />
-                    ),
-                };
-            });
-
-            return {...section, data};
+            return {
+                ...item,
+                isSelected,
+                alternateText: `${item.keyForList}@email.com`,
+                accountID: Number(item.keyForList),
+                login: item.text,
+                rightElement: isAdmin && (
+                    <Badge
+                        text="Admin"
+                        textStyles={styles.textStrong}
+                        badgeStyles={styles.alignSelfCenter}
+                    />
+                ),
+            };
         });
 
-        return {sections, allIds};
-    }, [props.sections, selectedIds]);
+        return {...section, data};
+    });
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -263,7 +254,7 @@ function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            sections={memo.sections}
+            sections={sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
         />
@@ -279,38 +270,29 @@ function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
     const styles = useThemeStyles();
 
-    const memo = useMemo(() => {
-        const allIds: string[] = [];
+    const sections = props.sections.map((section, sectionIndex) => {
+        const data = section.data.map((item, itemIndex) => {
+            const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
+            const isAdmin = itemIndex === 0;
 
-        const sections = props.sections.map((section, sectionIndex) => {
-            const data = section.data.map((item, itemIndex) => {
-                if (item.keyForList) {
-                    allIds.push(item.keyForList);
-                }
-                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = itemIndex === 0;
-
-                return {
-                    ...item,
-                    isSelected,
-                    alternateText: `${item.keyForList}@email.com`,
-                    accountID: Number(item.keyForList),
-                    login: item.text,
-                    rightElement: isAdmin && (
-                        <Badge
-                            text="Admin"
-                            textStyles={styles.textStrong}
-                            badgeStyles={styles.alignSelfCenter}
-                        />
-                    ),
-                };
-            });
-
-            return {...section, data, title: `Section ${sectionIndex + 1}`};
+            return {
+                ...item,
+                isSelected,
+                alternateText: `${item.keyForList}@email.com`,
+                accountID: Number(item.keyForList),
+                login: item.text,
+                rightElement: isAdmin && (
+                    <Badge
+                        text="Admin"
+                        textStyles={styles.textStrong}
+                        badgeStyles={styles.alignSelfCenter}
+                    />
+                ),
+            };
         });
 
-        return {sections, allIds};
-    }, [props.sections, selectedIds]);
+        return {...section, data, title: `Section ${sectionIndex + 1}`};
+    });
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -324,7 +306,7 @@ function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            sections={memo.sections}
+            sections={sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
         />
@@ -370,7 +352,7 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
         });
 
         return {sections, allIds};
-    }, [props.sections, selectedIds]);
+    }, [props.sections, selectedIds, styles.alignSelfCenter, styles.textStrong]);
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {

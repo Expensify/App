@@ -32,7 +32,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
-import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
@@ -123,7 +122,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     contentContainerStyle,
     shouldKeepFocusedItemAtTopOfViewableArea = false,
     shouldDebounceScrolling = false,
-    shouldPreventActiveCellVirtualization = false,
     shouldScrollToFocusedIndex = true,
     isSmallScreenWidth,
     onContentSizeChange,
@@ -685,7 +683,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
-                    sectionIndex={section?.indexOffset}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
                     showTooltip={shouldShowTooltips}

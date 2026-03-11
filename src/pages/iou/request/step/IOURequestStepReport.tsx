@@ -26,12 +26,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ListItem} from '@components/SelectionList/types';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import type {ListItem} from '@components/SelectionList/types';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */

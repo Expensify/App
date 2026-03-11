@@ -1,4 +1,4 @@
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import React from 'react';
 import {View} from 'react-native';
 import type {CellRendererProps, FocusEvent} from 'react-native';

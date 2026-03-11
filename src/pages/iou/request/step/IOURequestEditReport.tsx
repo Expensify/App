@@ -20,10 +20,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {ListItem} from '@components/SelectionList/types';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import {ListItem} from '@components/SelectionList/types';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */

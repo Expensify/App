@@ -5,8 +5,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import CONST from '@src/CONST';
+import type {ListItem} from '@components/SelectionList/types';
 import CategorySelectorModal from './CategorySelectorModal';
-import {ListItem} from '@components/SelectionList/types';
 
 type CategorySelectorProps = {
     /** The ID of the associated policy */

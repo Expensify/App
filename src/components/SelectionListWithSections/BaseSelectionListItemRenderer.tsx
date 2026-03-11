@@ -11,7 +11,6 @@ import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListPr
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect' | 'canShowProductTrainingTooltip'> & {
         index: number;
-        sectionIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
         normalizedIndex: number;
@@ -28,7 +27,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
     index,
-    sectionIndex,
     isFocused,
     isDisabled,
     showTooltip,

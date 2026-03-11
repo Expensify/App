@@ -1,6 +1,8 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {useState} from 'react';
+import {FlatList} from 'react-native';
+import type ReactNative from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -11,9 +13,9 @@ import CONST from '@src/CONST';
 
 // FlashList requires layout events to render items; mock it with FlatList for tests
 jest.mock('@shopify/flash-list', () => {
-    const {FlatList} = require('react-native');
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
     return {
-        FlashList: FlatList,
+        FlashList: RN.FlatList,
     };
 });
 
@@ -128,7 +130,6 @@ describe('BaseSelectionList', () => {
     });
 
     it('should scroll to top when selecting a multi option list', () => {
-        const {FlatList} = require('react-native');
         const spy = jest.spyOn(FlatList.prototype, 'scrollToIndex');
         render(
             <BaseListItemRenderer

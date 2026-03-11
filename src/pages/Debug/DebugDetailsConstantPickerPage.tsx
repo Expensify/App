@@ -15,7 +15,6 @@ import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import ConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
-import {ListItem} from '@components/SelectionList/types';
 
 type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
@@ -28,7 +27,7 @@ function DebugDetailsConstantPickerPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const onSubmit = useCallback(
-        (item: ListItem) => {
+        (item: {text?: string; keyForList?: string}) => {
             const value = item.text === fieldValue ? '' : (item.text ?? '');
             // Check the navigation state and "backTo" parameter to decide navigation behavior
             if (navigation.getState().routes.length === 1 && !backTo) {
