@@ -436,6 +436,9 @@ type TransactionGroupListItemType = ListItem & {
 
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
+
+    /** Whether the report was rejected (REJECTED or REJECTEDTOSUBMITTER) */
+    isRejectedReport?: boolean;
 };
 
 type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {

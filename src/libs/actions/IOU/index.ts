@@ -25,6 +25,7 @@ import type {
     MarkTransactionViolationAsResolvedParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
+    RejectExpenseReportParams,
     RejectMoneyRequestParams,
     ReopenReportParams,
     ReplaceReceiptParams,
@@ -128,6 +129,8 @@ import {
     buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
+    buildOptimisticReportLevelRejectAction,
+    buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticReopenedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRetractedReportAction,
@@ -13921,6 +13924,163 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function rejectExpenseReport(reportID: string, targetAccountID: number, comment: string) {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!report) {
+        return;
+    }
+
+    const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
+    const baseTimestamp = DateUtils.getDBTime();
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, targetAccountID, baseTimestamp);
+    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
+        comment,
+        DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
+    );
+
+    const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                managerID: targetAccountID,
+                stateNum: optimisticStateNum,
+                statusNum: optimisticStatusNum,
+                pendingFields: {
+                    partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRejectAction.reportActionID]: {
+                    ...(optimisticRejectAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+                [optimisticCommentAction.reportActionID]: {
+                    ...(optimisticCommentAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    ];
+
+    if (isRejectToSubmitter) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            value: buildNextStepNew({
+                report,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                isRejectedReport: true,
+            }),
+        });
+    }
+
+    if (report.parentReportID && report.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childStateNum: optimisticStateNum,
+                    childStatusNum: optimisticStatusNum,
+                },
+            },
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+                errorFields: {
+                    partial: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRejectAction.reportActionID]: {
+                    pendingAction: null,
+                },
+                [optimisticCommentAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                managerID: report.managerID,
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
+                pendingFields: {
+                    partial: null,
+                },
+                errorFields: {
+                    partial: getMicroSecondOnyxErrorWithTranslationKey('iou.rejectReport.couldNotReject'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRejectAction.reportActionID]: null as unknown as OnyxTypes.ReportAction,
+                [optimisticCommentAction.reportActionID]: null as unknown as OnyxTypes.ReportAction,
+            },
+        },
+    ];
+
+    if (isRejectToSubmitter) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+            value: null,
+        });
+    }
+
+    if (report.parentReportID && report.parentReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [report.parentReportActionID]: {
+                    childStateNum: report.stateNum,
+                    childStatusNum: report.statusNum,
+                },
+            },
+        });
+    }
+
+    const parameters: RejectExpenseReportParams = {
+        reportID,
+        targetAccountID,
+        comment,
+        rejectedReportActionID: optimisticRejectAction.reportActionID,
+        rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+}
+
 export {
     approveMoneyRequest,
     canApproveIOU,
@@ -14009,6 +14169,7 @@ export {
     submitPerDiemExpenseForSelfDM,
     calculateDiffAmount,
     dismissRejectUseExplanation,
+    rejectExpenseReport,
     rejectMoneyRequest,
     prepareRejectMoneyRequestData,
     markRejectViolationAsResolved,

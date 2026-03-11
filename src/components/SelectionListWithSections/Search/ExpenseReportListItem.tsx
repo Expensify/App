@@ -194,6 +194,20 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const hasAnyVisibleViolations = reportItem?.hasVisibleViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
+        if (reportItem?.isRejectedReport) {
+            return (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={theme.danger}
+                        additionalStyles={[styles.mr1]}
+                        width={12}
+                        height={12}
+                    />
+                    <Text style={[styles.textMicro, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                </View>
+            );
+        }
         if (!hasAnyVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
@@ -210,6 +224,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             </View>
         );
     }, [
+        reportItem?.isRejectedReport,
         hasAnyVisibleViolations,
         shouldShowViolationDescription,
         styles.flexRow,

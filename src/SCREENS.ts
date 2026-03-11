@@ -325,6 +325,7 @@ const SCREENS = {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
+        REPORT_REJECT: 'Money_Request_Report_Reject',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',

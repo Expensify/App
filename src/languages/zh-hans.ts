@@ -1522,6 +1522,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },
         },
+        rejectReport: {
+            title: 'Reject report',
+            description: 'Explain why you are rejecting this report.',
+            rejectReason: 'Rejection reason',
+            selectTarget: 'Select a member to reject this report back to.',
+            lastApprover: 'Last approver',
+            submitter: 'Submitter',
+            rejectedReportMessage: 'This report was rejected.',
+            rejectedNextStep: 'This report was rejected. Waiting on you to fix the issues and manually resubmit.',
+            selectMemberError: 'Select a member to reject this report back to.',
+            couldNotReject: 'The report could not be rejected. Please try again.',
+        },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         changeApprover: {
@@ -1744,6 +1756,17 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
                 `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你的报销单提交对象。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',

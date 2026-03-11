@@ -55,6 +55,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isMoneyRequestReportEligibleForMerge,
+    isOneTransactionReport,
     isOpenReport as isOpenReportUtils,
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
@@ -932,6 +933,7 @@ function getSecondaryReportActions({
     }
 
     if (canRejectReportAction(currentUserLogin, report)) {
+        console.log("xxxxxxxxxxxxxxx", report)
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
