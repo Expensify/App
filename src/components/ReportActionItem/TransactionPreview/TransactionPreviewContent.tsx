@@ -132,7 +132,7 @@ function TransactionPreviewContent({
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash)
+        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash, transaction)
         : undefined;
 
     const previewText = useMemo(

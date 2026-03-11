@@ -196,7 +196,17 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const violationMessage = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    canEdit,
+                    undefined,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    transaction,
+                );
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
@@ -204,7 +214,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, transaction]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);

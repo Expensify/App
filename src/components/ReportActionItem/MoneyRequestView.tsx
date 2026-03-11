@@ -1120,6 +1120,7 @@ function MoneyRequestView({
                                     canEdit={canEdit}
                                     companyCardPageURL={companyCardPageURL}
                                     connectionLink={connectionLink}
+                                    transaction={transaction}
                                 />
                             )}
                         </View>
