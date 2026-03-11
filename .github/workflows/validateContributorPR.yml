@@ -1,3 +1,6 @@
+# Validates that external contributors are authorized to submit PRs.
+# Calls the reusable gate workflow, then closes + locks unauthorized PRs.
+
 name: Validate Contributor PRs
 
 on:
@@ -11,54 +14,24 @@ permissions:
 
 jobs:
   validate:
-    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.type != 'Bot' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
+  close-if-unauthorized:
+    needs: [validate]
+    if: needs.validate.outputs.IS_AUTHORIZED == 'false'
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Validate contributor authorization
+      - name: Close PR and leave comment
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
-            const prNumber = context.payload.pull_request.number;
-            const prAuthor = context.payload.pull_request.user.login;
-            const authorAssociation = context.payload.pull_request.author_association;
-
-            // Step 1: Allow org members, non-first time contributors, and repo owners
-            if (['MEMBER', 'OWNER', 'CONTRIBUTOR'].includes(authorAssociation)) {
-              console.log(`${prAuthor} is an org ${authorAssociation}. No validation needed.`);
-              return;
-            }
-
-            console.log(`${prAuthor} has association "${authorAssociation}". Validating linked issues...`);
-
-            const prBody = context.payload.pull_request.body || '';
-            // Strip HTML comments to avoid matching template placeholders
-            const cleanBody = prBody.replace(/<!--[\s\S]*?-->/g, '');
-
-            // Step 2: Check linked issues — is the PR author assigned to any?
-            const issuePattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/issues\/(\d+)/g;
-            let match;
-            while ((match = issuePattern.exec(cleanBody)) !== null) {
-              const [, repo, num] = match;
-              const issueNumber = parseInt(num);
-              try {
-                const [owner, repoName] = repo.split('/');
-                const {data: issue} = await github.rest.issues.get({
-                  owner,
-                  repo: repoName,
-                  issue_number: issueNumber,
-                });
-                if (issue.assignees.some(a => a.login.toLowerCase() === prAuthor.toLowerCase())) {
-                  console.log(`${prAuthor} is assigned to ${repo}#${issueNumber}. PR is authorized.`);
-                  return;
-                }
-                console.log(`${prAuthor} is NOT assigned to ${repo}#${issueNumber}.`);
-              } catch (e) {
-                console.log(`Could not verify ${repo}#${issueNumber}: ${e.message}`);
-              }
-            }
-
-            // Step 3: Validation failed — close the PR
-            console.log(`Closing PR #${prNumber} by ${prAuthor} — no valid authorization found.`);
+            const prNumber = ${{ github.event.pull_request.number }};
+            const prAuthor = '${{ github.event.pull_request.user.login }}';
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
