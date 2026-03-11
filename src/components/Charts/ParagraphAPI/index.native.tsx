@@ -18,6 +18,7 @@ function MyParagraph() {
             require('@assets/fonts/native/ExpensifyMono-BoldItalic.otf') as DataModule,
         ],
         ExpensifyNewKansas: [require('@assets/fonts/native/ExpensifyNewKansas-Medium.otf') as DataModule, require('@assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf') as DataModule],
+        CustomEmojiFont: [require('@assets/fonts/native/CustomEmojiNativeFont.ttf') as DataModule],
     });
 
     const paragraph = useMemo(() => {
@@ -26,18 +27,18 @@ function MyParagraph() {
         };
         const textStyle = {
             color: Skia.Color('black'),
-            fontFamilies: customFontMgr ? ['ExpensifyNeue'] : [],
-            fontSize: variables.iconSizeExtraSmall,
+            fontFamilies: ['CustomEmojiFont'],
+            fontSize: 60,
         };
         const builder = customFontMgr ? Skia.ParagraphBuilder.Make(paragraphStyle, customFontMgr) : Skia.ParagraphBuilder.Make(paragraphStyle);
-        return builder.pushStyle(textStyle).addText('xd ₹').pop().build();
+        return builder.pushStyle(textStyle).addText('$ € ¥ £ ₹ ₪ ₦ ₨ ₱ ₲ ₴ ₭ ₮ ₩ ₽ ₡ ₫ ฿ ﷼ ₵ ល 〒').pop().build();
     }, [customFontMgr]);
 
     return (
-        <Canvas style={{width: 256, height: 256}}>
+        <Canvas style={{width: 350, height: 400}}>
             <Circle
-                cx={128}
-                cy={128}
+                cx={175}
+                cy={175}
                 r={5}
                 color="red"
             />
@@ -45,7 +46,7 @@ function MyParagraph() {
                 paragraph={paragraph}
                 x={0}
                 y={0}
-                width={300}
+                width={350}
             />
         </Canvas>
     );

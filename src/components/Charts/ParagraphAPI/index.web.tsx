@@ -1,47 +1,77 @@
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {Canvas, Circle, Paragraph, Skia, TextAlign} from '@shopify/react-native-skia';
+import type {DataModule, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {Canvas, Circle, FontWeight, Paragraph, Skia, TextAlign, useFonts} from '@shopify/react-native-skia';
 import React, {useEffect, useMemo, useState} from 'react';
-import variables from '@styles/variables';
 
-// Font URLs served as static assets — same convention used by Charts/font/index.ts
-const FONT_URLS: Record<string, string[]> = {
-    ExpensifyNeue: ['/fonts/ExpensifyNeue-Regular.woff', '/fonts/ExpensifyNeue-Bold.woff', '/fonts/ExpensifyNeue-Italic.woff', '/fonts/ExpensifyNeue-BoldItalic.woff'],
-    ExpensifyMono: ['/fonts/ExpensifyMono-Regular.woff', '/fonts/ExpensifyMono-Bold.woff', '/fonts/ExpensifyMono-Italic.woff', '/fonts/ExpensifyMono-BoldItalic.woff'],
-    ExpensifyNewKansas: ['/fonts/ExpensifyNewKansas-Medium.woff', '/fonts/ExpensifyNewKansas-MediumItalic.woff'],
-};
+// On web, webpack's `type: 'asset'` returns a plain URL string for font files,
+// but Skia's useFonts/resolveAsset expects a DataModule (ESModule or MetroAsset object).
+// Wrapping the URL in {__esModule: true, default: url} satisfies the ESModule variant.
+function webFont(url: string): DataModule {
+    return {__esModule: true, default: url} as unknown as DataModule;
+}
 
-// useFonts() expects DataModule (require() results), which on web are URL strings that go through
-// Platform.resolveAsset — that path fails for plain strings. Instead, we fetch each font,
-// convert to Uint8Array, and register typefaces directly into a TypefaceFontProvider.
-async function buildFontProvider(): Promise<SkTypefaceFontProvider> {
-    const provider = Skia.TypefaceFontProvider.Make();
-    await Promise.all(
-        Object.entries(FONT_URLS).map(async ([family, urls]) => {
-            await Promise.all(
-                urls.map(async (url) => {
-                    const response = await fetch(url);
-                    const buffer = await response.arrayBuffer();
-                    const data = Skia.Data.fromBytes(new Uint8Array(buffer));
+const FONT_SOURCES: Array<{family: string; url: string}> = [
+    {family: 'ExpensifyNeue', url: require('@assets/fonts/web/ExpensifyNeue-Regular.woff') as string},
+    {family: 'ExpensifyNeue', url: require('@assets/fonts/web/ExpensifyNeue-Bold.woff') as string},
+    {family: 'ExpensifyNeue', url: require('@assets/fonts/web/ExpensifyNeue-Italic.woff') as string},
+    {family: 'ExpensifyNeue', url: require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff') as string},
+    {family: 'ExpensifyMono', url: require('@assets/fonts/web/ExpensifyMono-Regular.woff') as string},
+    {family: 'ExpensifyMono', url: require('@assets/fonts/web/ExpensifyMono-Bold.woff') as string},
+    {family: 'ExpensifyMono', url: require('@assets/fonts/web/ExpensifyMono-Italic.woff') as string},
+    {family: 'ExpensifyMono', url: require('@assets/fonts/web/ExpensifyMono-BoldItalic.woff') as string},
+    {family: 'ExpensifyNewKansas', url: require('@assets/fonts/web/ExpensifyNewKansas-Medium.woff') as string},
+    {family: 'ExpensifyNewKansas', url: require('@assets/fonts/web/ExpensifyNewKansas-MediumItalic.woff') as string},
+    {family: 'CustomEmojiFont', url: require('@assets/fonts/web/CustomEmojiWebFont.ttf') as string},
+];
+
+function useWebFonts(): SkTypefaceFontProvider | null {
+    const [fontMgr, setFontMgr] = useState<SkTypefaceFontProvider | null>(null);
+
+    useEffect(() => {
+        Promise.all(
+            FONT_SOURCES.map(({family, url}) =>
+                Skia.Data.fromURI(url).then((data) => {
                     const typeface = Skia.Typeface.MakeFreeTypeFaceFromData(data);
-                    if (typeface) {
-                        provider.registerFont(typeface, family);
-                    }
+                    return typeface ? {family, typeface} : null;
                 }),
-            );
-        }),
-    );
-    return provider;
+            ),
+        ).then((results) => {
+            const provider = Skia.TypefaceFontProvider.Make();
+            for (const result of results) {
+                if (result) {
+                    provider.registerFont(result.typeface, result.family);
+                }
+            }
+            setFontMgr(provider);
+        });
+    }, []);
+
+    return fontMgr;
 }
 
 function MyParagraph() {
-    const [fontProvider, setFontProvider] = useState<SkTypefaceFontProvider | null>(null);
-
-    useEffect(() => {
-        buildFontProvider().then(setFontProvider);
-    }, []);
+    const customFontManager1 = useFonts({
+        ExpensifyNeue: [
+            webFont(require('@assets/fonts/web/ExpensifyNeue-Regular.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyNeue-Bold.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyNeue-Italic.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
+        ],
+        ExpensifyMono: [
+            webFont(require('@assets/fonts/web/ExpensifyMono-Regular.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyMono-Bold.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyMono-Italic.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyMono-BoldItalic.woff2') as string),
+        ],
+        ExpensifyNewKansas: [
+            webFont(require('@assets/fonts/web/ExpensifyNewKansas-Medium.woff2') as string),
+            webFont(require('@assets/fonts/web/ExpensifyNewKansas-MediumItalic.woff2') as string),
+        ],
+        CustomEmojiFont: [webFont(require('@assets/fonts/web/CustomEmojiWebFont.ttf') as string)],
+    });
+    const customFontMgr = useWebFonts();
 
     const paragraph = useMemo(() => {
-        if (!fontProvider) {
+        if (!customFontManager1) {
             return null;
         }
         const paragraphStyle = {
@@ -49,17 +79,18 @@ function MyParagraph() {
         };
         const textStyle = {
             color: Skia.Color('black'),
-            fontFamilies: ['ExpensifyNeue'],
-            fontSize: variables.iconSizeExtraSmall,
+            fontFamilies: ['CustomEmojiFont', 'ExpensifyNeue'],
+            fontSize: 60,
+            fontWeight: FontWeight.Bold,
         };
-        return Skia.ParagraphBuilder.Make(paragraphStyle, fontProvider).pushStyle(textStyle).addText('xd ₹').pop().build();
-    }, [fontProvider]);
+        return Skia.ParagraphBuilder.Make(paragraphStyle, customFontManager1).pushStyle(textStyle).addText('$ € ¥ £ ₹ ₪ ₦ ₨ ₱ ₲ ₴ ₭ ₮ ₩ ₽ ₡ ₫ ฿ ﷼ ₵ ល 〒').pop().build();
+    }, [customFontManager1]);
 
     return (
-        <Canvas style={{width: 256, height: 256}}>
+        <Canvas style={{width: 512, height: 512}}>
             <Circle
-                cx={128}
-                cy={128}
+                cx={256}
+                cy={256}
                 r={5}
                 color="red"
             />
@@ -68,7 +99,7 @@ function MyParagraph() {
                     paragraph={paragraph}
                     x={0}
                     y={0}
-                    width={300}
+                    width={512}
                 />
             )}
         </Canvas>
