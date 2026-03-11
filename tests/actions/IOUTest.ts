@@ -26,6 +26,7 @@ import {
     getIOUReportActionToApproveOrPay,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
+    getTrackExpenseInformation,
     handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     markRejectViolationAsResolved,
@@ -581,6 +582,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [fakeTransaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -684,6 +686,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -772,6 +775,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -827,6 +831,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -910,6 +915,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -965,6 +971,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1031,6 +1038,7 @@ describe('actions/IOU', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             };
         }
 
@@ -1250,6 +1258,7 @@ describe('actions/IOU', () => {
                 recentWaypoints: [],
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1341,6 +1350,7 @@ describe('actions/IOU', () => {
                 recentWaypoints: [],
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -1569,6 +1579,246 @@ describe('actions/IOU', () => {
 
             const createdTransaction = Object.values(transactions ?? {}).at(0);
             expect(createdTransaction?.merchant).toBe(specialMerchant);
+        });
+
+        it('should pass isSelfTourViewed true to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-1',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: true
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 12000, merchant: 'Tour Viewed Merchant'}),
+                isSelfTourViewed: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(12000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Viewed Merchant');
+        });
+
+        it('should pass isSelfTourViewed false to trackExpense and create transaction successfully', async () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-tour-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When trackExpense is called with isSelfTourViewed: false
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 9000, merchant: 'Tour Not Viewed Merchant'}),
+                isSelfTourViewed: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction should be created with correct values
+            let transactions: OnyxCollection<Transaction>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (val) => {
+                    transactions = val;
+                },
+            });
+
+            const createdTransactionResult = Object.values(transactions ?? {}).at(0);
+            expect(createdTransactionResult).toBeTruthy();
+            expect(Math.abs(createdTransactionResult?.amount ?? 0)).toBe(9000);
+            expect(createdTransactionResult?.merchant).toBe('Tour Not Viewed Merchant');
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed true', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-1',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 5000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant',
+                    comment: 'test comment',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information from getTrackExpenseInformation with isSelfTourViewed false', () => {
+            // Given a selfDM report
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-info-2',
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const result = getTrackExpenseInformation({
+                parentChatReport: selfDMReport,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                policyParams: {
+                    policy: undefined,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 7000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Info Test Merchant False',
+                    comment: 'test comment false',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            // Then the result should contain valid track expense data
+            expect(result).toBeDefined();
+            expect(result.chatReport).toBeDefined();
+            expect(result.transaction).toBeDefined();
+            expect(result.iouAction).toBeDefined();
+            expect(result.onyxData).toBeDefined();
+        });
+
+        it('should return valid track expense information for policy expense chat with both isSelfTourViewed values', () => {
+            // Given a policy expense chat report
+            const policy = createRandomPolicy(1);
+            const policyExpenseChat: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: 'policy-chat-tour-test',
+                policyID: policy.id,
+            };
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: true
+            const resultWithTourViewed = getTrackExpenseInformation({
+                parentChatReport: policyExpenseChat,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: true,
+            });
+
+            // Then result should be valid
+            expect(resultWithTourViewed).toBeDefined();
+            expect(resultWithTourViewed.chatReport).toBeDefined();
+            expect(resultWithTourViewed.transaction).toBeDefined();
+
+            // When getTrackExpenseInformation is called with isSelfTourViewed: false
+            const resultWithoutTourViewed = getTrackExpenseInformation({
+                parentChatReport: {
+                    ...policyExpenseChat,
+                    reportID: 'policy-chat-tour-test-2',
+                },
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy,
+                    policyCategories: undefined,
+                    policyTagList: undefined,
+                },
+                transactionParams: {
+                    amount: 3000,
+                    currency: 'USD',
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'Policy Chat Merchant',
+                    comment: '',
+                    receipt: undefined,
+                },
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
+                quickAction: undefined,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+            });
+
+            expect(resultWithoutTourViewed).toBeDefined();
+            expect(resultWithoutTourViewed.chatReport).toBeDefined();
+            expect(resultWithoutTourViewed.transaction).toBeDefined();
         });
     });
 
@@ -2857,6 +3107,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
 
             mockFetch?.resume?.();
@@ -2925,6 +3176,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -3415,7 +3667,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -3449,6 +3701,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -7340,7 +7593,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8688,7 +8941,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -8726,6 +8979,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await waitForBatchedUpdates();
 
@@ -9631,7 +9885,6 @@ describe('actions/IOU', () => {
                                 reportsToArchive: reportToArchive,
                                 transactionViolations: undefined,
                                 reimbursementAccountError: undefined,
-                                bankAccountList: {},
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                             });
@@ -10772,6 +11025,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
 
             await waitForBatchedUpdates();
@@ -12157,6 +12411,7 @@ describe('actions/IOU', () => {
                 recentWaypoints,
                 betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
+                isSelfTourViewed: false,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

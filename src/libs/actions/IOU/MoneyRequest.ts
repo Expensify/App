@@ -170,6 +170,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
     personalOutputCurrency?: string;
+    isSelfTourViewed: boolean;
     amountOwed: OnyxEntry<number>;
 };
 
@@ -235,6 +236,7 @@ function createTransaction({
                 draftTransactionIDs,
                 recentWaypoints,
                 betas,
+                isSelfTourViewed,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
@@ -592,6 +594,7 @@ function handleMoneyRequestStepDistanceNavigation({
     recentWaypoints,
     unit,
     personalOutputCurrency,
+    isSelfTourViewed,
     amountOwed,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
@@ -676,6 +679,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     draftTransactionIDs,
                     recentWaypoints,
                     betas,
+                    isSelfTourViewed,
                 });
                 return;
             }

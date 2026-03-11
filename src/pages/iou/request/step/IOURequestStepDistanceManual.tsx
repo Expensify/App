@@ -36,6 +36,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -94,6 +95,8 @@ function IOURequestStepDistanceManual({
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -240,6 +243,7 @@ function IOURequestStepDistanceManual({
                 unit,
                 personalOutputCurrency: personalPolicy?.outputCurrency,
                 draftTransactionIDs,
+                isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
             });
         },
@@ -286,6 +290,7 @@ function IOURequestStepDistanceManual({
             betas,
             personalPolicy?.outputCurrency,
             draftTransactionIDs,
+            isSelfTourViewed,
             amountOwed,
         ],
     );

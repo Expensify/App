@@ -891,6 +891,7 @@ describe('MoneyRequest', () => {
             selfDMReport,
             betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
+            isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
         };
@@ -973,6 +974,9 @@ describe('MoneyRequest', () => {
             expect(IOU.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
+                activePolicyID: undefined,
+                introSelected: undefined,
+                isSelfTourViewed: false,
                 participantParams: {
                     payeeEmail: baseParams.currentUserLogin,
                     payeeAccountID: baseParams.currentUserAccountID,
@@ -1003,6 +1007,8 @@ describe('MoneyRequest', () => {
                     gpsCoordinates: undefined,
                     odometerEnd: undefined,
                     odometerStart: undefined,
+                    odometerStart: undefined,
+                    odometerEnd: undefined,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,

@@ -309,6 +309,7 @@ function IOURequestStepAmount({
                         recentWaypoints,
                         betas,
                         draftTransactionIDs,
+                        isSelfTourViewed,
                     });
                     return;
                 }
