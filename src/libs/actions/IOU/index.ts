@@ -13011,16 +13011,19 @@ function removeUnchangedBulkEditFields(
     return filteredChanges;
 }
 
-function updateMultipleMoneyRequests(
-    transactionIDs: string[],
-    changes: TransactionChanges,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    transactions: OnyxCollection<OnyxTypes.Transaction>,
-    reportActions: OnyxCollection<OnyxTypes.ReportActions>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    hash?: number,
-) {
+type UpdateMultipleMoneyRequestsParams = {
+    transactionIDs: string[];
+    changes: TransactionChanges;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    transactions: OnyxCollection<OnyxTypes.Transaction>;
+    reportActions: OnyxCollection<OnyxTypes.ReportActions>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    hash?: number;
+    allPolicies?: OnyxCollection<OnyxTypes.Policy>;
+};
+
+function updateMultipleMoneyRequests({transactionIDs, changes, policy, reports, transactions, reportActions, policyCategories, hash, allPolicies}: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
     for (const transactionID of transactionIDs) {
@@ -13185,15 +13188,20 @@ function updateMultipleMoneyRequests(
                 transactionChanges.category !== undefined && transactionChanges.category === ''
                     ? optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY)
                     : optimisticViolations;
-            const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] ?? {};
+            // Use the transaction's own policy for violation calculation when available.
+            // This prevents cross-policy false violations (e.g. CUSTOM_UNIT_OUT_OF_POLICY)
+            // when bulk editing distance expenses that belong to a different workspace than
+            // the bulk-edit policy.
+            const transactionPolicy = (iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined) ?? policy;
+            const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`] ?? {};
             optimisticData.push(
                 ViolationsUtils.getViolationsOnyxData(
                     updatedTransaction,
                     optimisticViolations,
-                    policy,
+                    transactionPolicy,
                     policyTagList,
                     policyCategories ?? {},
-                    hasDependentTags(policy, policyTagList),
+                    hasDependentTags(transactionPolicy, policyTagList),
                     isInvoiceReportReportUtils(iouReport),
                     isSelfDM(iouReport),
                     iouReport,
