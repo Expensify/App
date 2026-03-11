@@ -65,16 +65,8 @@ function recordFailure() {
  * prevents stale failure history from immediately re-triggering a hard stop
  * if the first reconnect attempt fails.
  */
-function resetCounters() {
-    Log.info(`[FailureTracker] Resetting counters (was: ${failureCount} failures)`);
-    failureCount = 0;
-    firstFailureTimestamp = 0;
-}
-
-/**
- * Reset the tracker (for testing).
- */
 function reset() {
+    Log.info(`[FailureTracker] Resetting counters (was: ${failureCount} failures)`);
     failureCount = 0;
     firstFailureTimestamp = 0;
 }
@@ -83,4 +75,4 @@ function getFailureCount(): number {
     return failureCount;
 }
 
-export {recordSuccess, recordFailure, reset, resetCounters, getFailureCount, onSustainedFailureChange};
+export {recordSuccess, recordFailure, reset, getFailureCount, onSustainedFailureChange};

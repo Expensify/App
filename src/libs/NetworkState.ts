@@ -2,7 +2,7 @@ import NetInfo from '@react-native-community/netinfo';
 import {setIsOffline} from './actions/Network';
 import {reconnect} from './actions/Reconnect';
 import AppStateMonitor from './AppStateMonitor';
-import {onSustainedFailureChange, resetCounters as resetFailureCounters} from './FailureTracker';
+import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
 import {pause, unpause} from './Network/SequentialQueue';
 

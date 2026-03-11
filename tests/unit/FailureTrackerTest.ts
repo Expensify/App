@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {getFailureCount, onSustainedFailureChange, recordFailure, recordSuccess, reset, resetCounters} from '@src/libs/FailureTracker';
+import {getFailureCount, onSustainedFailureChange, recordFailure, recordSuccess, reset} from '@src/libs/FailureTracker';
 
 describe('FailureTracker', () => {
     beforeEach(() => {
@@ -84,7 +84,7 @@ describe('FailureTracker', () => {
         jest.useRealTimers();
     });
 
-    test('resetCounters clears failure count without notifying listeners', () => {
+    test('reset clears failure count without notifying listeners', () => {
         const listener = jest.fn();
         const unsubscribe = onSustainedFailureChange(listener);
 
@@ -93,7 +93,7 @@ describe('FailureTracker', () => {
         expect(getFailureCount()).toBe(2);
 
         listener.mockClear();
-        resetCounters();
+        reset();
 
         expect(getFailureCount()).toBe(0);
         // resetCounters should NOT call listeners — it only resets the counters
@@ -102,7 +102,7 @@ describe('FailureTracker', () => {
         unsubscribe();
     });
 
-    test('after resetCounters, sustained failure requires fresh threshold', () => {
+    test('after reset, sustained failure requires fresh threshold', () => {
         jest.useFakeTimers();
         const listener = jest.fn();
         const unsubscribe = onSustainedFailureChange(listener);
@@ -114,7 +114,7 @@ describe('FailureTracker', () => {
         jest.advanceTimersByTime(CONST.NETWORK.SUSTAINED_FAILURE_WINDOW_MS + 1);
 
         // Reset counters (simulating reachability restored)
-        resetCounters();
+        reset();
         listener.mockClear();
 
         // One failure after reset should NOT trigger sustained failure
