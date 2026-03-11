@@ -7,6 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import CONST from '@src/CONST';
 
 type PaymentVolumeProps = SubStepProps;
 
@@ -20,7 +21,8 @@ function PaymentVolume({onNext, onMove, isEditing}: PaymentVolumeProps) {
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = reimbursementAccountDraft?.country ?? reimbursementAccount?.achData?.country ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
 
     const annualVolumeRangeListOptions = useMemo(
         () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.AnnualVolumeRange),

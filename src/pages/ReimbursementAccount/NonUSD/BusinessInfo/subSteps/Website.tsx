@@ -26,7 +26,8 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = reimbursementAccountDraft?.country ?? reimbursementAccount?.achData?.country ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
