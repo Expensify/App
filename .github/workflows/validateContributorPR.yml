@@ -22,13 +22,13 @@ jobs:
             const prAuthor = context.payload.pull_request.user.login;
             const authorAssociation = context.payload.pull_request.author_association;
 
-            // Step 1: Allow org members and repo owners
+            // Step 1: Allow org members, non-first time contributors, and repo owners
             if (['MEMBER', 'OWNER', 'CONTRIBUTOR'].includes(authorAssociation)) {
               console.log(`${prAuthor} is an org ${authorAssociation}. No validation needed.`);
               return;
             }
 
-            console.log(`${prAuthor} has association "${authorAssociation}". Validating linked issues/PRs...`);
+            console.log(`${prAuthor} has association "${authorAssociation}". Validating linked issues...`);
 
             const prBody = context.payload.pull_request.body || '';
             // Strip HTML comments to avoid matching template placeholders
@@ -57,51 +57,7 @@ jobs:
               }
             }
 
-            // Step 3: Check linked PRs — is the PR author the author or a reviewer?
-            const prUrlPattern = /https:\/\/github\.com\/(Expensify\/[^/]+)\/pull\/(\d+)/g;
-            while ((match = prUrlPattern.exec(cleanBody)) !== null) {
-              const [, repo, num] = match;
-              const linkedPRNumber = parseInt(num);
-              try {
-                const [owner, repoName] = repo.split('/');
-
-                const {data: linkedPR} = await github.rest.pulls.get({
-                  owner,
-                  repo: repoName,
-                  pull_number: linkedPRNumber,
-                });
-                if (linkedPR.user.login.toLowerCase() === prAuthor.toLowerCase()) {
-                  console.log(`${prAuthor} is the author of ${repo}#${linkedPRNumber}. PR is authorized.`);
-                  return;
-                }
-
-                const {data: reviews} = await github.rest.pulls.listReviews({
-                  owner,
-                  repo: repoName,
-                  pull_number: linkedPRNumber,
-                });
-                if (reviews.some(r => r.user?.login?.toLowerCase() === prAuthor.toLowerCase())) {
-                  console.log(`${prAuthor} is a reviewer of ${repo}#${linkedPRNumber}. PR is authorized.`);
-                  return;
-                }
-
-                const {data: requestedReviewers} = await github.rest.pulls.listRequestedReviewers({
-                  owner,
-                  repo: repoName,
-                  pull_number: linkedPRNumber,
-                });
-                if (requestedReviewers.users.some(u => u.login.toLowerCase() === prAuthor.toLowerCase())) {
-                  console.log(`${prAuthor} is a requested reviewer of ${repo}#${linkedPRNumber}. PR is authorized.`);
-                  return;
-                }
-
-                console.log(`${prAuthor} is not author or reviewer of ${repo}#${linkedPRNumber}.`);
-              } catch (e) {
-                console.log(`Could not verify ${repo}#${linkedPRNumber}: ${e.message}`);
-              }
-            }
-
-            // Step 4: Validation failed — close the PR
+            // Step 3: Validation failed — close the PR
             console.log(`Closing PR #${prNumber} by ${prAuthor} — no valid authorization found.`);
 
             await github.rest.issues.createComment({
