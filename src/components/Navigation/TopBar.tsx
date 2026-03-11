@@ -78,4 +78,6 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     );
 }
 
+export type {TopBarProps};
+
 export default TopBar;
