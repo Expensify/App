@@ -9,6 +9,6 @@
     This patch adds `userSelect` (including the 'contain' value) to allow setting text selection behavior in styles without TypeScript errors.
     ```
 
-- Upstream PR/issue: 🛑 TODO
+- Upstream PR/issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/74673
 - E/App issue: 🛑 TODO
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/84856
