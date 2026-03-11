@@ -3763,6 +3763,9 @@ ${
             `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni del firmatario da un direttore.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
+            connectToWorkspacePrefix: 'Per favore, collega questo conto bancario a un',
+            connectToWorkspaceLink: 'workspace',
+            connectToWorkspaceSuffix: 'per invitare un direttore a firmare.',
         },
     },
     agreementsStep: {

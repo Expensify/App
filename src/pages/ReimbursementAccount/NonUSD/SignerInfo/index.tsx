@@ -1,13 +1,17 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import TextLink from '@components/TextLink';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import getInitialSubStepForSignerInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForSignerInfoStep';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
@@ -15,6 +19,7 @@ import {askForCorpaySignerInformation, clearReimbursementAccountSaveCorpayOnboar
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
@@ -55,6 +60,7 @@ const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Jo
 
 function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -72,6 +78,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const initialSubStep = getInitialSubStepForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
     const [currentSubStep, setCurrentSubStep] = useState<number>(initialSubStep);
     const [isUserDirector, setIsUserDirector] = useState(false);
+    const [showNoPolicyError, setShowNoPolicyError] = useState(false);
     const primaryLogin = account?.primaryLogin ?? '';
     // Corpay does not accept emails with a "+" character and will not let us connect account at the end of whole flow
     const signerEmail = !isProduction ? Str.replaceAll(primaryLogin, '+', '') : primaryLogin;
@@ -139,23 +146,15 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
 
     const handleNextSubStep = useCallback(
         (value: boolean) => {
-            if (currentSubStep === SUBSTEP.IS_DIRECTOR) {
-                // user is director so we gather their data
-                if (value) {
-                    setIsUserDirector(value);
-                    setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
-                    return;
-                }
-
-                setIsUserDirector(value);
-                setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+            if (!value && !policyID) {
+                setShowNoPolicyError(true);
                 return;
             }
-
+            setShowNoPolicyError(false);
             setIsUserDirector(value);
-            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+            setCurrentSubStep(value ? SUBSTEP.SIGNER_DETAILS_FORM : SUBSTEP.ENTER_EMAIL);
         },
-        [currentSubStep],
+        [policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -218,6 +217,32 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
                     description={translate('signerInfoStep.regulationRequiresUs')}
                     defaultValue={isUserDirector}
                     onSelectedValue={handleNextSubStep}
+                    onValueChange={() => setShowNoPolicyError(false)}
+                    submitFlexEnabled={!showNoPolicyError}
+                    footerContent={
+                        showNoPolicyError && (
+                            <View style={[styles.flex1, styles.justifyContentEnd]}>
+                                <DotIndicatorMessage
+                                    style={[styles.mt3]}
+                                    type="error"
+                                    messages={{
+                                        connectToWorkspace: (
+                                            <>
+                                                {`${translate('signerInfoStep.error.connectToWorkspacePrefix')} `}
+                                                <TextLink
+                                                    style={styles.fontSizeLabel}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
+                                                >
+                                                    {translate('signerInfoStep.error.connectToWorkspaceLink')}
+                                                </TextLink>
+                                                {` ${translate('signerInfoStep.error.connectToWorkspaceSuffix')}`}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            </View>
+                        )
+                    }
                 />
             )}
 

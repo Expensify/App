@@ -3777,6 +3777,9 @@ ${
             `verknüpft ein ${currency}-Geschäftskonto mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Unterzeichnungsinformationen von einer Führungsperson.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+            connectToWorkspacePrefix: 'Bitte verbinden Sie dieses Bankkonto mit einem',
+            connectToWorkspaceLink: 'Arbeitsbereich',
+            connectToWorkspaceSuffix: 'um eine Führungsperson zum Unterzeichnen einzuladen.',
         },
     },
     agreementsStep: {

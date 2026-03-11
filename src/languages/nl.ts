@@ -3761,6 +3761,9 @@ ${
             `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
+            connectToWorkspacePrefix: 'Koppel deze bankrekening alstublieft aan een',
+            connectToWorkspaceLink: 'werkruimte',
+            connectToWorkspaceSuffix: 'om een directeur uit te nodigen te ondertekenen.',
         },
     },
     agreementsStep: {
