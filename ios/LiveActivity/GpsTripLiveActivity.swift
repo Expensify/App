@@ -24,7 +24,7 @@ struct GpsTripLiveActivity: Widget {
                             .resizable()
                             .scaledToFit()
                             .frame(maxWidth: 64)
-                        Text(context.attributes.subtitle)
+                        Text(context.state.subtitle)
                             .font(.custom("ExpensifyNeue-Regular", size: 15))
                             .foregroundColor(.white)
                     }
@@ -61,7 +61,7 @@ struct GpsTripLiveActivity: Widget {
                             .resizable()
                             .scaledToFit()
                             .frame(maxWidth: 64)
-                        Text(context.attributes.subtitle)
+                        Text(context.state.subtitle)
                             .font(.custom("ExpensifyNeue-Regular", size: 15))
                             .foregroundColor(.white)
                             .lineLimit(1)
@@ -83,7 +83,7 @@ struct GpsTripLiveActivity: Widget {
                     .frame(minHeight: 70, maxHeight: .infinity, alignment: .bottom)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.attributes.buttonText)
+                    Text(context.state.buttonText)
                         .font(.custom("ExpensifyNeue-Bold", size: 15))
                         .foregroundColor(.expensifyGreen)
                         .frame(maxWidth: .infinity)
