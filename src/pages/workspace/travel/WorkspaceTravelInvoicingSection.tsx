@@ -1,24 +1,29 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
-    clearToggleTravelInvoicingErrors,
+    clearTravelInvoicingErrors,
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
-    toggleTravelInvoicing,
+    configureTravelInvoicingForPolicy,
+    deactivateTravelInvoicing,
+    payTravelInvoicingSpend,
 } from '@libs/actions/TravelInvoicing';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
+import {getCardSettings, getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {areTravelPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {
     getIsTravelInvoicingEnabled,
@@ -48,33 +53,49 @@ type WorkspaceTravelInvoicingSectionProps = {
  */
 function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSectionProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    // Modal states
     const [isDisableConfirmModalVisible, setIsDisableConfirmModalVisible] = useState(false);
     const [isOutstandingBalanceModalVisible, setIsOutstandingBalanceModalVisible] = useState(false);
+    const [isPayBalanceModalVisible, setIsPayBalanceModalVisible] = useState(false);
+
+    // Ref to track if we should auto-resume the toggle flow after returning from TravelLegalNamePage
+    const shouldResumeToggleRef = useRef(false);
 
     // For Travel Invoicing, we use a travel-specific card settings key
     // Uses the same key pattern as Expensify Card: private_expensifyCardSettings_{workspaceAccountID}
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
+
+    // Resolve travel-specific settings from the shared card settings key
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
 
     // Use pure selectors to derive state
-    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(cardSettings);
-    const travelSpend = getTravelSpend(cardSettings);
-    const travelLimit = getTravelLimit(cardSettings);
-    const settlementAccount = getTravelSettlementAccount(cardSettings, bankAccountList);
-    const settlementFrequency = getTravelSettlementFrequency(cardSettings);
-    const localizedFrequency =
-        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY
-            ? translate('workspace.expensifyCard.frequency.monthly')
-            : translate('workspace.expensifyCard.frequency.daily');
+    const hasSettlementAccount = hasTravelInvoicingSettlementAccount(travelSettings);
+    const travelSpend = getTravelSpend(travelSettings);
 
+    // Derive the payment queued state from the manual billing Onyx key
+    const isPaymentQueued = !!cardManualBilling;
+    const travelLimit = getTravelLimit(travelSettings);
+    const settlementAccount = getTravelSettlementAccount(travelSettings, bankAccountList);
+    const settlementFrequency = getTravelSettlementFrequency(travelSettings);
+    const isMonthlySettlementFrequency = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
+    const localizedFrequency = isMonthlySettlementFrequency ? translate('workspace.expensifyCard.frequency.monthly') : translate('workspace.expensifyCard.frequency.daily');
+
+    const shouldShowPayButton = travelSpend > 0 && isMonthlySettlementFrequency && !isPaymentQueued;
     // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
-    const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
+    // Current spend resets to $0.00 once payment is queued, since the balance has been paid
+    const formattedSpend = convertToDisplayString(isPaymentQueued ? 0 : travelSpend, CONST.CURRENCY.USD);
+
+    // Queued amount preserves the original travelSpend value for the "payment queued" subtitle
+    const formattedQueuedAmount = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
     const formattedLimit = convertToDisplayString(travelLimit, CONST.CURRENCY.USD);
 
     // Settlement account display - show empty if no account is selected
@@ -95,6 +116,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     // Only show errors/pending under the settlement account if it's a settlement account action
     const settlementAccountErrors = isSettlementAccountPendingAction ? cardSettings?.errorFields?.paymentBankAccountID : undefined;
     const settlementAccountPendingAction = isSettlementAccountPendingAction ? cardSettings?.pendingFields?.paymentBankAccountID : undefined;
+
     // Only show error indicator if we have settlement account errors
     const hasSettlementAccountError = !!settlementAccountErrors;
     const hasSettlementFrequencyError = !!cardSettings?.errorFields?.[CONST.TRAVEL.MONTHLY_SETTLEMENT_DATE];
@@ -105,14 +127,32 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
     // Determine if Travel Invoicing is enabled based on isEnabled field
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(cardSettings);
+    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isOnWaitlist = !!cardOnWaitlist;
+    const isLoading = !!cardSettings?.isLoading;
+
+    /**
+     * Opens the pay balance confirmation modal.
+     */
+    const handlePayBalance = () => {
+        setIsPayBalanceModalVisible(true);
+    };
+
+    /**
+     * Handles the confirmed payment of the outstanding travel balance.
+     * Closes the modal and triggers the API call with optimistic Onyx update.
+     */
+    const handleConfirmPayBalance = () => {
+        setIsPayBalanceModalVisible(false);
+        payTravelInvoicingSpend(workspaceAccountID);
+    };
 
     /**
      * Handle toggle change for Central Invoicing.
      * When turning ON:
-     *   - If has settlement account: call toggleTravelInvoicing(true)
+     *   - If has settlement account: call configureTravelInvoicingForPolicy
      *   - If no settlement account: navigate to selection (enable happens after selection)
-     * When turning OFF: show confirmation modal, then call toggleTravelInvoicing(false).
+     * When turning OFF: show confirmation modal, then call deactivateTravelInvoicing.
      */
     const handleToggle = (isEnabled: boolean) => {
         // Check if user is on a public domain - Travel Invoicing requires a private domain
@@ -123,13 +163,19 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
 
         if (!isEnabled) {
             // Trying to disable - check for outstanding balance first
-            if (hasOutstandingTravelBalance(cardSettings)) {
+            if (hasOutstandingTravelBalance(travelSettings)) {
                 // Show blocker modal with error message
                 setIsOutstandingBalanceModalVisible(true);
                 return;
             }
             // Show confirmation modal before disabling
             setIsDisableConfirmModalVisible(true);
+            return;
+        }
+
+        if (areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            shouldResumeToggleRef.current = true;
+            Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS.getRoute(policyID));
             return;
         }
 
@@ -153,14 +199,30 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
             return;
         }
 
-        // Has settlement account - enable Travel Invoicing directly
-        toggleTravelInvoicing(policyID, workspaceAccountID, true);
+        // Has settlement account - enable Travel Invoicing and navigate to settlement page to show verification state
+        if (settlementAccount?.bankAccountID) {
+            configureTravelInvoicingForPolicy(policyID, workspaceAccountID, settlementAccount.bankAccountID);
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID));
     };
 
     const handleConfirmDisable = () => {
         setIsDisableConfirmModalVisible(false);
-        toggleTravelInvoicing(policyID, workspaceAccountID, false);
+        deactivateTravelInvoicing(policyID, workspaceAccountID);
     };
+
+    // Auto-resume the toggle flow after returning from TravelLegalNamePage
+    // When the user saves their legal name and navigates back, privatePersonalDetails updates
+    // and this effect re-triggers handleToggle(true) to continue the enabling flow
+    useEffect(() => {
+        if (!shouldResumeToggleRef.current || areTravelPersonalDetailsMissing(privatePersonalDetails)) {
+            return;
+        }
+
+        shouldResumeToggleRef.current = false;
+        handleToggle(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to trigger this effect when privatePersonalDetails changes
+    }, [privatePersonalDetails]);
 
     const getCentralInvoicingSubtitle = () => {
         if (!isTravelInvoicingEnabled) {
@@ -172,28 +234,29 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const centralInvoicingSubMenuItems = (
         <>
             <View style={[styles.dFlex, styles.flexRow, styles.mt6, styles.gap4, styles.alignItemsCenter]}>
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
-                    title={formattedSpend}
-                    rootWrapperStyle={styles.flex1}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
-                    descriptionTextStyle={styles.textLabelSupportingNormal}
-                    interactive={false}
-                />
-                <View style={[styles.wFitContent]}>
-                    <AnimatedSubmitButton
-                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
-                        success={false}
-                        onPress={() => {}}
-                        isSubmittingAnimationRunning={false}
-                        onAnimationFinish={() => {}}
-                        // TODO: Release 7.2 - Pay balance
-                        // isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                        // onAnimationFinish={stopAnimation}
-                        // isDisabled={shouldBlockSubmit}
+                <View style={styles.flex1}>
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendLabel')}
+                        title={formattedSpend}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, isPaymentQueued && styles.pb1]}
+                        titleStyle={[styles.textNormalThemeText, styles.headerAnonymousFooter]}
+                        descriptionTextStyle={styles.textLabelSupportingNormal}
+                        interactive={false}
                     />
+                    {isPaymentQueued && (
+                        <Text style={[styles.textLabelSupporting, styles.pb3]}>
+                            {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendPaymentQueued', formattedQueuedAmount)}
+                        </Text>
+                    )}
                 </View>
+                {shouldShowPayButton && (
+                    <Button
+                        text={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                        onPress={handlePayBalance}
+                        isDisabled={isOffline}
+                        success
+                    />
+                )}
             </View>
             <MenuItemWithTopDescription
                 description={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelLimitLabel')}
@@ -252,9 +315,11 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                     switchAccessibilityLabel={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')}
                     onToggle={handleToggle}
                     isActive={isTravelInvoicingEnabled}
+                    disabled={isLoading || isOnWaitlist}
+                    disabledAction={isOnWaitlist ? () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)) : undefined}
                     pendingAction={togglePendingAction}
                     errors={toggleErrors}
-                    onCloseError={() => clearToggleTravelInvoicingErrors(workspaceAccountID)}
+                    onCloseError={() => clearTravelInvoicingErrors(workspaceAccountID)}
                     subMenuItems={centralInvoicingSubMenuItems}
                 />
             </Section>
@@ -278,6 +343,17 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                 prompt={translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.body')}
                 confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.outstandingBalanceModal.confirm')}
                 shouldShowCancelButton={false}
+            />
+
+            <ConfirmModal
+                title={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.title', formattedSpend)}
+                isVisible={isPayBalanceModalVisible}
+                onConfirm={handleConfirmPayBalance}
+                onCancel={() => setIsPayBalanceModalVisible(false)}
+                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.payBalanceModal.body')}
+                confirmText={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.currentTravelSpendCta')}
+                cancelText={translate('common.cancel')}
+                success
             />
         </>
     );
