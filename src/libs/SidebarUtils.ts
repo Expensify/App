@@ -128,6 +128,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
+import {getReportName as getReportNameFromDerived} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -188,6 +189,20 @@ import {
 import {getTaskReportActionMessage} from './TaskUtils';
 
 type WelcomeMessage = {phrase1?: string; messageText?: string; messageHtml?: string};
+
+type WelcomeMessageParams = {
+    report: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    participantPersonalDetailList: PersonalDetails[];
+    translate: LocalizedTranslate;
+    localeCompare: LocaleContextProps['localeCompare'];
+    conciergeReportID: string | undefined;
+    isReportArchived?: boolean;
+    reportDetailsLink?: string;
+    shouldShowUsePlusButtonText?: boolean;
+    additionalText?: string;
+};
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
@@ -916,8 +931,7 @@ function getOptionData({
                     : translate('workspace.invite.removed');
             const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const roomName = getReportName({report: lastActionReport}) || lastActionOriginalMessage?.roomName;
+            const roomName = getReportNameFromDerived(lastActionReport ?? undefined, reportAttributesDerived) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -1126,8 +1140,16 @@ function getOptionData({
 
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(
-                    getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ??
-                        translate('report.noActivityYet'),
+                    getWelcomeMessage({
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
+                        translate,
+                        localeCompare,
+                        conciergeReportID,
+                        isReportArchived,
+                    }).messageText ?? translate('report.noActivityYet'),
                 );
             }
         }
@@ -1135,9 +1157,17 @@ function getOptionData({
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                getWelcomeMessage(report, policy, invoiceReceiverPolicy, participantPersonalDetailListExcludeCurrentUser, translate, localeCompare, isReportArchived).messageText ||
-                    translate('report.noActivityYet'),
+                getWelcomeMessage({
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
+                    translate,
+                    localeCompare,
+                    conciergeReportID,
+                    isReportArchived,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                }).messageText || translate('report.noActivityYet'),
             );
         }
         if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID) && !isReportArchived) {
@@ -1163,8 +1193,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report, policy, invoiceReceiverPolicy, isReportArchived, conciergeReportID});
+    const reportName = getReportNameFromDerived(report, reportAttributesDerived);
 
     result.text = reportName;
     result.subtitle = subtitle;
@@ -1202,25 +1231,28 @@ function getOptionData({
     return result;
 }
 
-function getWelcomeMessage(
-    report: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    participantPersonalDetailList: PersonalDetails[],
-    translate: LocalizedTranslate,
-    localeCompare: LocaleContextProps['localeCompare'],
-    isReportArchived = false,
-    reportDetailsLink = '',
-    shouldShowUsePlusButtonText = false,
-    additionalText = '',
-): WelcomeMessage {
+function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
+    const {
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        participantPersonalDetailList,
+        translate,
+        localeCompare,
+        conciergeReportID,
+        isReportArchived = false,
+        reportDetailsLink = '',
+        shouldShowUsePlusButtonText = false,
+        additionalText = '',
+    } = params;
+
     const welcomeMessage: WelcomeMessage = {};
     if (isChatThread(report) || isTaskReport(report)) {
         return welcomeMessage;
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, conciergeReportID, isReportArchived, reportDetailsLink);
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1230,7 +1262,7 @@ function getWelcomeMessage(
         } else {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report}),
+                getPolicyName({report, policy}),
                 getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
@@ -1263,7 +1295,7 @@ function getWelcomeMessage(
     if (shouldShowUsePlusButtonText) {
         messageHtml += translate('reportActionsView.usePlusButton', {additionalText});
     }
-    if (isConciergeChatReport(report)) {
+    if (isConciergeChatReport(report, conciergeReportID)) {
         messageHtml = translate('reportActionsView.askConcierge');
     }
 
@@ -1279,13 +1311,14 @@ function getRoomWelcomeMessage(
     translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     invoiceReceiverPolicy: OnyxEntry<Policy>,
+    conciergeReportID: string | undefined,
     isReportArchived = false,
     reportDetailsLink = '',
 ): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = getReportName({report});
+    const reportName = getReportName({report, conciergeReportID});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
