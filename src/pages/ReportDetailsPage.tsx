@@ -729,15 +729,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         () => {
             const result: PromotedAction[] = [];
 
-            if (canJoin) {
-                result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
-            }
+        if (canJoin) {
+            result.push(PromotedActions.join(report, currentUserPersonalDetails.accountID));
+        }
 
-            if (report) {
-                result.push(PromotedActions.pin(report));
-            }
+        if (report) {
+            result.push(PromotedActions.pin(report));
+        }
 
-            result.push(PromotedActions.share(report, backTo));
+        result.push(PromotedActions.share(report, backTo));
 
             return result;
         },

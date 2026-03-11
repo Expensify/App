@@ -62,7 +62,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
                 return;
             }
 
-            onValidationSuccess?.();
+        onValidationSuccess?.();
 
             if (navigateForwardTo) {
                 Navigation.navigate(navigateForwardTo, {forceReplace: true});

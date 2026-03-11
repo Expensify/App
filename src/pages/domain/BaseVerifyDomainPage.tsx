@@ -55,7 +55,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
-   useEffect(() => {
+    useEffect(() => {
         if (!domain?.hasValidationSucceeded) {
             return;
         }
