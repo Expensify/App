@@ -2804,6 +2804,7 @@ const translations = {
         },
         workEmailValidationError: {
             publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
+            sameAsSignupEmail: 'Please enter a different email than the one you signed up with',
             offline: 'We couldn’t add your work email as you appear to be offline',
         },
         mergeBlockScreen: {

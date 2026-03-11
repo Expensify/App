@@ -2761,6 +2761,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Insira um e-mail de trabalho válido de um domínio privado, por exemplo: mitch@company.com',
+            sameAsSignupEmail: 'Insira um e-mail diferente daquele com que você se cadastrou',
             offline: 'Não foi possível adicionar seu e-mail profissional, pois você parece estar offline',
         },
         mergeBlockScreen: {

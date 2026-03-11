@@ -2750,6 +2750,7 @@ ${date} の ${merchant} への ${amount}`,
         },
         workEmailValidationError: {
             publicEmail: 'プライベートドメインの有効な勤務先メールアドレスを入力してください（例：mitch@company.com）',
+            sameAsSignupEmail: 'サインアップ時に使用したものとは別のメールアドレスを入力してください',
             offline: 'オフラインのため、勤務先のメールアドレスを追加できませんでした',
         },
         mergeBlockScreen: {
