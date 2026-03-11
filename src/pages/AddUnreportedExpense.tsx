@@ -58,6 +58,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -293,7 +294,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
-                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, amountOwed, undefined, ownerBillingGraceEndPeriod)) {
                                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                     return;
                                 }

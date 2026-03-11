@@ -40,6 +40,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportID = useMemo(() => generateReportID(), []);
 
     const policyChatForActivePolicySelector = useCallback(
@@ -58,7 +59,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         interceptAnonymousUser(() => {
             if (
                 policyChatForActivePolicy?.policyID &&
-                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, undefined, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)
+                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, amountOwed, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;

@@ -182,7 +182,7 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, undefined, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)) {
+        if (policy && shouldRestrictUserBillableActions(policy.id, amountOwed, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }

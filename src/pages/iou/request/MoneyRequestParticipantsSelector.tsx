@@ -116,6 +116,7 @@ function MoneyRequestParticipantsSelector({
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
@@ -530,7 +531,7 @@ function MoneyRequestParticipantsSelector({
             if (
                 option.isPolicyExpenseChat &&
                 option.policyID &&
-                shouldRestrictUserBillableActions(option.policyID, undefined, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod)
+                shouldRestrictUserBillableActions(option.policyID, amountOwed, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
