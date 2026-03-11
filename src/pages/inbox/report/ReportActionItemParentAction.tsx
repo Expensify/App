@@ -21,16 +21,13 @@ import {
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
-    /** All the data of the policy collection */
-    policies: OnyxCollection<Policy>;
-
     /** All the data of the action item */
     action: ReportAction;
 
@@ -88,7 +85,6 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
-    policies,
     report,
     action,
     transactionThreadReport,
@@ -160,6 +156,7 @@ function ReportActionItemParentAction({
         [ancestors],
     );
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     return (
         <View style={[styles.pRelative]}>
@@ -170,7 +167,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -195,7 +192,7 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
@@ -204,7 +201,6 @@ function ReportActionItemParentAction({
                                 />
                             )}
                             <ReportActionItem
-                                policies={policies}
                                 onPress={
                                     canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)

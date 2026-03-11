@@ -254,6 +254,8 @@ const SCREENS = {
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
+        REPLACE_VERIFY_OLD: 'Settings_TwoFactorAuth_Replace_VerifyOld',
+        REPLACE_VERIFY_NEW: 'Settings_TwoFactorAuth_Replace_VerifyNew',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -371,6 +373,7 @@ const SCREENS = {
         STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         ODOMETER_IMAGE: 'Money_Request_Odometer_Image',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
+        ODOMETER_PREVIEW: 'Money_Request_Odometer_Preview',
         STEP_TIME_RATE: 'Money_Request_Step_Time_Rate',
         STEP_HOURS: 'Money_Request_Step_Hours',
         STEP_HOURS_EDIT: 'Money_Request_Step_Hours_Edit',
