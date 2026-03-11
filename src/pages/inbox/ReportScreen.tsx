@@ -23,6 +23,7 @@ import ReportFetchController from './ReportFetchController';
 import ReportFooter from './ReportFooter';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
+import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
@@ -67,6 +68,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             navigation={navigation}
                         />
                         <ReportFetchController />
+                        <ReportNavigateAwayHandler />
                         <ReportNotFoundGuard>
                             <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
                             <ReportHeader />
