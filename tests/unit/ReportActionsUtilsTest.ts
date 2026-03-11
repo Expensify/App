@@ -32,6 +32,7 @@ import {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getUpdateACHAccountMessage,
+    hasReasoning,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
@@ -1633,6 +1634,72 @@ describe('ReportActionsUtils', () => {
             };
 
             // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [123],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is false', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: false,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [456],
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
@@ -3870,6 +3937,7 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
         });
     });
+
     describe('isRejectedAction', () => {
         it('should return true for REJECTED action type', () => {
             // Given a report action with REJECTED action type
@@ -3939,6 +4007,57 @@ describe('ReportActionsUtils', () => {
 
             // Then it should return false because the action is null
             expect(result).toBe(false);
+        });
+    });
+
+    describe('hasReasoning', () => {
+        it('should return true when the action has a non-empty reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: 'This expense was moved because it violated the max amount rule.',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(true);
+        });
+
+        it('should return false when the action has no reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when reasoning is an empty string', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: '',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when the action is null or undefined', () => {
+            expect(hasReasoning(null)).toBe(false);
+            expect(hasReasoning(undefined)).toBe(false);
         });
     });
 });
