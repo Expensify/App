@@ -1,7 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -10,7 +9,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -18,9 +16,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getFilteredReportActionsForReportView, isDeletedParentAction, isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
+import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {
-    canUserPerformWriteAction,
     isAdminRoom,
     isAnnounceRoom,
     isGroupChat,
@@ -42,6 +39,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
+import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
@@ -72,8 +70,8 @@ type ReportNotFoundGuardProps = {
 };
 
 /**
- * Owns not-found/deletion/linking logic. Renders FullPageNotFoundView or children.
- * Subscribes to its own data internally via useRoute().
+ * Owns not-found/deletion/navigation logic. Renders FullPageNotFoundView or children.
+ * Linked action not-found logic is delegated to LinkedActionNotFoundGuard (child).
  */
 // eslint-disable-next-line rulesdir/no-negated-variables
 function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
@@ -81,7 +79,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
-    const reportActionIDFromRoute = routeParams?.reportActionID;
 
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -89,8 +86,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [firstRender, setFirstRender] = useState(true);
-    const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
-    const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
@@ -100,7 +95,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     const parentReportAction = useParentReportAction(report);
@@ -112,34 +106,11 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
 
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
-
-    // --- Linked action status ---
-    const isLinkedActionDeleted = useMemo(() => {
-        if (!linkedAction) {
-            return false;
-        }
-        const actionReportID = linkedAction.reportID ?? reportID;
-        if (!actionReportID) {
-            return true;
-        }
-        return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
-    }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
-
-    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-    const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
-
-    const isLinkedActionInaccessibleWhisper = useMemo(
-        () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
-        [currentUserAccountID, linkedAction],
-    );
 
     // --- Parent action deletion status ---
     const {isParentActionMissingAfterLoad, isParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -151,17 +122,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     });
     const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
 
-    // --- Not found derivation ---
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedAction) ||
-        (!reportMetadata?.isLoadingInitialReportActions &&
-            !!reportActionIDFromRoute &&
-            !!sortedAllReportActions &&
-            sortedAllReportActions?.length > 0 &&
-            reportActions.length === 0 &&
-            !isLinkingToMessage);
-
     const currentReportIDFormRoute = (route.params as {reportID?: string} | undefined)?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -170,9 +130,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
         const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
         if (deleteTransactionNavigateBackUrl) {
             return false;
         }
@@ -190,7 +147,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         }
         return !reportExists;
     }, [
-        shouldShowNotFoundLinkedAction,
         isLoadingApp,
         isLoadingReportData,
         isOffline,
@@ -316,39 +272,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         });
     }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID]);
 
-    // --- Reset isLinkingToMessage ---
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setIsLinkingToMessage(false);
-        });
-    }, [reportMetadata?.isLoadingInitialReportActions]);
-
-    // --- Handle deleted linked action ---
-    useEffect(() => {
-        if (!isLinkedActionDeleted) {
-            setIsNavigatingToDeletedAction(false);
-            return;
-        }
-        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
-            setIsNavigatingToDeletedAction(true);
-            return;
-        }
-        if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
-            Navigation.setParams({reportActionID: ''});
-        }
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
-
-    // --- Handle inaccessible whisper ---
-    useEffect(() => {
-        if (!isLinkedActionInaccessibleWhisper) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            Navigation.setParams({reportActionID: ''});
-        });
-    }, [isLinkedActionInaccessibleWhisper]);
-
     // --- Task report init ---
     useEffect(() => {
         if (!!report?.lastReadTime || !isTaskReport(report)) {
@@ -357,32 +280,18 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
     }, [report, reportMetadata?.hasOnceLoadedReportActions]);
 
-    const navigateToEndOfReport = useCallback(() => {
-        Navigation.setParams({reportActionID: ''});
-    }, []);
-
-    const lastRoute = usePrevious(route);
-
-    // Render-time guard: prevent flash while linking state syncs
-    if ((lastRoute !== route || lastReportActionIDFromRoute !== reportActionIDFromRoute) && isLinkingToMessage !== !!reportActionIDFromRoute) {
-        setIsLinkingToMessage(!!reportActionIDFromRoute);
-        return null;
-    }
-
     return (
         <FullPageNotFoundView
             shouldShow={shouldShowNotFoundPage}
-            subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
+            subtitleKey="notFound.noAccess"
             subtitleStyle={[styles.textSupporting]}
             shouldShowBackButton={shouldUseNarrowLayout}
-            onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
-            shouldShowLink={shouldShowNotFoundLinkedAction}
-            linkTranslationKey="notFound.goToChatInstead"
-            subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
-            onLinkPress={navigateToEndOfReport}
+            onBackButtonPress={Navigation.goBack}
             shouldDisplaySearchRouter
         >
-            <DragAndDropProvider isDisabled={isEditingDisabled}>{children}</DragAndDropProvider>
+            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                <LinkedActionNotFoundGuard>{children}</LinkedActionNotFoundGuard>
+            </DragAndDropProvider>
         </FullPageNotFoundView>
     );
 }
