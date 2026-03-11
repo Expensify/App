@@ -61,22 +61,6 @@ function IOURequestStepScan({
 
     const getSource = useCallback((file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob), []);
 
-    const receiptScan = useReceiptScan({
-        report,
-        reportID,
-        initialTransactionID,
-        initialTransaction,
-        iouType,
-        action,
-        currentUserPersonalDetails,
-        backTo,
-        backToReport,
-        isMultiScanEnabled,
-        isStartingScan,
-        updateScanAndNavigate,
-        getSource,
-    });
-
     const {
         transactions,
         isEditing,
@@ -92,7 +76,25 @@ function IOURequestStepScan({
         PDFValidationComponent,
         ErrorModal,
         setTestReceiptAndNavigate,
-    } = receiptScan;
+    } = useReceiptScan({
+        report,
+        reportID,
+        initialTransactionID,
+        initialTransaction,
+        iouType,
+        action,
+        currentUserPersonalDetails,
+        backTo,
+        backToReport,
+        isMultiScanEnabled,
+        isStartingScan,
+        updateScanAndNavigate,
+        getSource,
+    });
+
+    const handleOnLayout = useCallback(() => {
+        onLayout?.(setTestReceiptAndNavigate);
+    }, [onLayout, setTestReceiptAndNavigate]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -168,11 +170,10 @@ function IOURequestStepScan({
                     isEditing={isEditing}
                     validateFiles={validateFiles}
                     setReceiptFiles={setReceiptFiles}
-                    setTestReceiptAndNavigate={setTestReceiptAndNavigate}
                     navigateToConfirmationStep={navigateToConfirmationStep}
                     shouldSkipConfirmation={shouldSkipConfirmation}
                     setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onLayout={onLayout}
+                    onLayout={handleOnLayout}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
                 />
@@ -181,7 +182,7 @@ function IOURequestStepScan({
                     PDFValidationComponent={PDFValidationComponent}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                     isReplacingReceipt={isReplacingReceipt}
-                    onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
+                    onLayout={handleOnLayout}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}

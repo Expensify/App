@@ -278,23 +278,6 @@ function IOURequestStepScan({
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
-    const receiptScanParams = {
-        report,
-        reportID,
-        initialTransactionID,
-        initialTransaction,
-        iouType,
-        action,
-        currentUserPersonalDetails,
-        backTo,
-        backToReport,
-        isMultiScanEnabled,
-        isStartingScan,
-        updateScanAndNavigate,
-        getSource,
-    };
-    const receiptScan = useReceiptScan(receiptScanParams);
-
     const {
         isEditing,
         shouldAcceptMultipleFiles,
@@ -308,21 +291,34 @@ function IOURequestStepScan({
         PDFValidationComponent,
         ErrorModal,
         setTestReceiptAndNavigate,
-    } = receiptScan;
-
-    const mobileReceiptScan = useMobileReceiptScan({
+    } = useReceiptScan({
+        report,
+        reportID,
+        initialTransactionID,
         initialTransaction,
         iouType,
+        action,
+        currentUserPersonalDetails,
+        backTo,
+        backToReport,
         isMultiScanEnabled,
         isStartingScan,
-        receiptFiles,
-        navigateToConfirmationStep,
-        shouldSkipConfirmation,
-        setStartLocationPermissionFlow,
-        setIsMultiScanEnabled,
+        updateScanAndNavigate,
+        getSource,
     });
+
     const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
-        mobileReceiptScan;
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
+        });
 
     const maybeCancelShutterSpan = useCallback(() => {
         if (isMultiScanEnabled) {

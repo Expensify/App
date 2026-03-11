@@ -52,11 +52,10 @@ type MobileWebCameraViewProps = {
     isEditing: boolean;
     validateFiles: (files: FileObject[], items?: DataTransferItem[]) => void;
     setReceiptFiles: React.Dispatch<React.SetStateAction<ReceiptFile[]>>;
-    setTestReceiptAndNavigate: () => void;
     navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
-    onLayout?: (setTestReceiptAndNavigate: () => void) => void;
+    onLayout?: () => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
 };
@@ -77,7 +76,6 @@ function MobileWebCameraView({
     isEditing,
     validateFiles,
     setReceiptFiles,
-    setTestReceiptAndNavigate,
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
@@ -85,20 +83,18 @@ function MobileWebCameraView({
     onBackButtonPress,
     shouldShowWrapper,
 }: MobileWebCameraViewProps) {
-    const mobileReceiptScan = useMobileReceiptScan({
-        initialTransaction,
-        iouType,
-        isMultiScanEnabled,
-        isStartingScan,
-        receiptFiles,
-        navigateToConfirmationStep,
-        shouldSkipConfirmation,
-        setStartLocationPermissionFlow,
-        setIsMultiScanEnabled,
-    });
-
-    const {canUseMultiScan, blinkStyle, showBlink, shouldShowMultiScanEducationalPopup, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
-        mobileReceiptScan;
+    const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
+        });
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -330,7 +326,7 @@ function MobileWebCameraView({
             testID="IOURequestStepScan"
         >
             <View
-                onLayout={() => onLayout?.(setTestReceiptAndNavigate)}
+                onLayout={onLayout}
                 style={[styles.flex1]}
             >
                 <View style={[styles.flex1, styles.justifyContentCenter]}>

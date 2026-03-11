@@ -61,7 +61,7 @@ function useReceiptScan({
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [transactions, optimisticTransactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -217,7 +217,6 @@ function useReceiptScan({
 
     return {
         transactions,
-        optimisticTransactions,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
