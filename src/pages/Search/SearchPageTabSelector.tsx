@@ -1,10 +1,12 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ScrollableTabSelectorBase from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorBase';
 import ScrollableTabSelectorContextProvider from '@components/TabSelector/ScrollableTabSelector/ScrollableTabSelectorContext';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -12,9 +14,13 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import {getItemBadgeText} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
 
 type SearchPageTabSelectorProps = {
@@ -30,8 +36,21 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
+    const personalDetails = usePersonalDetails();
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    const taxRates = getAllTaxRates(allPolicies);
+    const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
         'ChatBubbles',
@@ -70,16 +89,35 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         }
     }
 
+    console.log({savedSearches});
+
     if (savedSearches) {
         for (const [key, item] of Object.entries(savedSearches)) {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
                 continue;
             }
 
+            let title = item.name;
+            if (queryJSON && title === item.query) {
+                title = buildUserReadableQueryString({
+                    queryJSON,
+                    PersonalDetails: personalDetails,
+                    reports,
+                    taxRates,
+                    cardList: cardsForSavedSearchDisplay,
+                    cardFeeds: allFeeds,
+                    policies: allPolicies,
+                    currentUserAccountID,
+                    autoCompleteWithSpace: false,
+                    translate,
+                    feedKeysWithCards,
+                });
+            }
+
             tabItems.push({
                 key,
                 icon: expensifyIcons.Bookmark,
-                title: item.name,
+                title,
                 disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: item.pendingAction,
             });
