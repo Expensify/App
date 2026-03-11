@@ -170,7 +170,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
-    const canUnfreezeCard = canManageCardFreeze && frozenByAccountID === session?.accountID;
 
     const policySelector = useCallback(
         (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
@@ -186,6 +185,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector}, [policySelector]);
     const policyIDForCurrentCard = policyForCurrentCard?.id;
     const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
+    const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
