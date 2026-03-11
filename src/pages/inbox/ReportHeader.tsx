@@ -34,6 +34,7 @@ function ReportHeader() {
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
+    const pendingAction = reportPendingAction ?? report?.pendingFields?.reimbursed;
 
     const onBackButtonPress = (prioritizeBackTo = false) => {
         if (isInSidePanel) {
@@ -59,31 +60,49 @@ function ReportHeader() {
         Navigation.goBack();
     };
 
-    return (
-        <OfflineWithFeedback
-            pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
-            errors={reportErrors}
-            shouldShowErrorMessages={false}
-            needsOffscreenAlphaCompositing
-        >
-            {isTransactionThreadView && (
+    if (isTransactionThreadView) {
+        return (
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                errors={reportErrors}
+                shouldShowErrorMessages={false}
+                needsOffscreenAlphaCompositing
+            >
                 <MoneyRequestHeader
                     reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
-            )}
-            {!isTransactionThreadView && isMoneyRequestOrInvoiceReport && (
+            </OfflineWithFeedback>
+        );
+    }
+
+    if (isMoneyRequestOrInvoiceReport) {
+        return (
+            <OfflineWithFeedback
+                pendingAction={pendingAction}
+                errors={reportErrors}
+                shouldShowErrorMessages={false}
+                needsOffscreenAlphaCompositing
+            >
                 <MoneyReportHeader
                     reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
                 />
-            )}
-            {!isTransactionThreadView && !isMoneyRequestOrInvoiceReport && (
-                <HeaderView
-                    reportID={reportIDFromRoute}
-                    onNavigationMenuButtonClicked={onBackButtonPress}
-                />
-            )}
+            </OfflineWithFeedback>
+        );
+    }
+
+    return (
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
+            errors={reportErrors}
+            shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
+        >
+            <HeaderView
+                reportID={reportIDFromRoute}
+                onNavigationMenuButtonClicked={onBackButtonPress}
+            />
         </OfflineWithFeedback>
     );
 }
