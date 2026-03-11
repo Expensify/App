@@ -416,6 +416,7 @@ Onyx.connect({
     },
 });
 
+// We use connectWithoutView because `allAttachments` doesn't affect the UI rendering, it's only used to retireve atttachment local source when deleting a comment
 let allAttachments: OnyxCollection<Attachment> = {};
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
