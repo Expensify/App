@@ -7,10 +7,35 @@ import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import useOnyx from './useOnyx';
+
+type TransactionMap = Record<string, Transaction | undefined>;
+
+function hasTransactions(transactions?: TransactionMap | null): transactions is TransactionMap {
+    return !!transactions && Object.keys(transactions).length > 0;
+}
+
+function getSearchTransactions(searchResultsRecord?: Record<string, unknown>): TransactionMap | undefined {
+    if (!searchResultsRecord) {
+        return undefined;
+    }
+
+    const searchTransactions = Object.entries(searchResultsRecord).reduce<TransactionMap>((acc, [key, value]) => {
+        if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) || !value) {
+            return acc;
+        }
+
+        acc[key] = value as Transaction;
+        return acc;
+    }, {});
+
+    return Object.keys(searchTransactions).length > 0 ? searchTransactions : undefined;
+}
 
 function useSearchDeleteTransactions() {
     const {currentSearchResults} = useSearchStateContext();
     const searchResultsRecord = currentSearchResults?.data as Record<string, unknown> | undefined;
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const deleteTransactionsOnSearch = useCallback(
         (hash: number, transactionIDs: string[], transactions?: OnyxCollection<Transaction>) => {
@@ -18,7 +43,9 @@ function useSearchDeleteTransactions() {
                 return;
             }
 
-            if (!searchResultsRecord || Object.keys(searchResultsRecord).length === 0) {
+            const availableTransactions = hasTransactions(transactions as TransactionMap | null | undefined) ? (transactions as TransactionMap) : getSearchTransactions(searchResultsRecord);
+
+            if (!hasTransactions(availableTransactions)) {
                 deleteMoneyRequestOnSearch(hash, transactionIDs, transactions);
                 return;
             }
@@ -27,7 +54,7 @@ function useSearchDeleteTransactions() {
             const nonSplitIDs: string[] = [];
 
             for (const transactionID of transactionIDs) {
-                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                const transaction = availableTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                 const originalTransactionID = transaction?.comment?.originalTransactionID;
 
                 if (originalTransactionID && transaction?.comment?.source === CONST.IOU.TYPE.SPLIT) {
@@ -41,7 +68,7 @@ function useSearchDeleteTransactions() {
                 const deletingIDs = new Set(splitTransactionIDs);
                 const siblings: Transaction[] = [];
 
-                for (const [key, value] of Object.entries(transactions ?? {})) {
+                for (const [key, value] of Object.entries(availableTransactions)) {
                     if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
                         continue;
                     }
@@ -72,6 +99,13 @@ function useSearchDeleteTransactions() {
                     if (!remaining) {
                         continue;
                     }
+
+                    const remainingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${remaining.reportID}`];
+                    if ((remainingReport?.statusNum ?? 0) >= CONST.REPORT.STATUS_NUM.SUBMITTED) {
+                        nonSplitIDs.push(...splitTransactionIDs);
+                        continue;
+                    }
+
                     const remainingPortion = Math.abs(hasValidModifiedAmount(remaining) ? Number(remaining.modifiedAmount) : Number(remaining.amount ?? 0));
                     const splitTransactionIDList = [...splitTransactionIDs];
                     if (remaining.transactionID !== originalTransactionID) {
@@ -79,7 +113,7 @@ function useSearchDeleteTransactions() {
                     }
                     const optimisticDeletedSplitTransactions = splitTransactionIDList.reduce<Record<string, Transaction>>((acc, transactionID) => {
                         const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-                        const splitTransaction = transactions?.[transactionKey];
+                        const splitTransaction = availableTransactions[transactionKey];
 
                         if (splitTransaction) {
                             acc[transactionKey] = splitTransaction;
@@ -87,6 +121,7 @@ function useSearchDeleteTransactions() {
 
                         return acc;
                     }, {});
+                    const optimisticOriginalTransaction = availableTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
                     const remainingModifiedAmount = hasValidModifiedAmount(remaining) ? remaining.modifiedAmount : '';
                     const optimisticRestoredTransaction: Transaction = {
                         ...remaining,
@@ -117,7 +152,14 @@ function useSearchDeleteTransactions() {
                         odometerEnd: remaining.comment?.odometerEnd,
                         waypoints: remaining.comment?.waypoints ? JSON.stringify(remaining.comment.waypoints) : undefined,
                     } as RevertSplitTransactionParams;
-                    revertSplitTransactionOnSearch(hash, originalTransactionID, revertSplitTransactionParams, optimisticDeletedSplitTransactions, optimisticRestoredTransaction);
+                    revertSplitTransactionOnSearch(
+                        hash,
+                        originalTransactionID,
+                        revertSplitTransactionParams,
+                        optimisticDeletedSplitTransactions,
+                        optimisticRestoredTransaction,
+                        optimisticOriginalTransaction,
+                    );
                     continue;
                 }
 
@@ -125,10 +167,10 @@ function useSearchDeleteTransactions() {
             }
 
             if (nonSplitIDs.length > 0) {
-                deleteMoneyRequestOnSearch(hash, nonSplitIDs, transactions);
+                deleteMoneyRequestOnSearch(hash, nonSplitIDs, availableTransactions as OnyxCollection<Transaction>);
             }
         },
-        [searchResultsRecord],
+        [allReports, searchResultsRecord],
     );
 
     return {deleteTransactionsOnSearch};

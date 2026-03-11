@@ -885,9 +885,10 @@ function revertSplitTransactionOnSearch(
     params: RevertSplitTransactionParams,
     optimisticDeletedSplitTransactions: Record<string, Transaction> = {},
     optimisticRestoredTransaction?: Transaction,
+    optimisticOriginalTransaction?: Transaction,
 ) {
-    let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
-    let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    let optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
+    let failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     let finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
 
     if (Object.keys(optimisticDeletedSplitTransactions).length > 0 && optimisticRestoredTransaction) {
@@ -906,6 +907,22 @@ function revertSplitTransactionOnSearch(
                 },
             },
         } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>);
+        // Keep the transaction collection in sync for screens that do not render from the search snapshot.
+        optimisticData.push(
+            ...Object.keys(optimisticDeletedSplitTransactions).map(
+                (transactionKey) =>
+                    ({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: transactionKey,
+                        value: null,
+                    }) as OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>,
+            ),
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+                value: optimisticRestoredTransaction,
+            },
+        );
 
         failureData = [
             {
@@ -918,6 +935,19 @@ function revertSplitTransactionOnSearch(
                     },
                 },
             } as unknown as OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>,
+            ...Object.entries(optimisticDeletedSplitTransactions).map(
+                ([transactionKey, transaction]) =>
+                    ({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: transactionKey,
+                        value: transaction,
+                    }) as OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>,
+            ),
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+                value: optimisticOriginalTransaction ?? null,
+            },
         ];
     }
 
