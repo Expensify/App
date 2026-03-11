@@ -9,7 +9,6 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -130,14 +129,13 @@ function FormProvider({
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
-    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+    const previousDraftValues = useRef(draftValues);
 
-    useEffect(() => {
-        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
-            return;
-        }
+    if (!isLoadingDraftValues && draftValues !== previousDraftValues.current) {
+        previousDraftValues.current = draftValues;
         setInputValues({...draftValues});
-    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
+    }
+
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
