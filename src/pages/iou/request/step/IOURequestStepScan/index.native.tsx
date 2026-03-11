@@ -48,6 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
+import captureReceipt from './captureReceipt';
 import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
@@ -366,16 +367,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        const useSnapshot = !(flash && hasFlash);
-        const photoPromise = useSnapshot
-            ? camera.current.takeSnapshot({quality: 100, path})
-            : camera.current.takePhoto({
-                  flash: flash && hasFlash ? 'on' : 'off',
-                  enableShutterSound: !isPlatformMuted,
-                  path,
-              });
-
-        photoPromise
+        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
