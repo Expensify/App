@@ -30,13 +30,16 @@ type HitTestArgs = {
 type UseChartInteractionsProps = {
     /** Callback triggered when a valid data point is tapped/clicked */
     handlePress: (index: number) => void;
+
     /**
      * Worklet function to determine if the cursor is technically "hovering"
      * over a specific chart element (e.g., within a bar's width or a point's radius).
      */
     checkIsOver: (args: HitTestArgs) => boolean;
+
     /** Worklet function to determine if the cursor is hovering over the label area */
     checkIsOverLabel?: (args: HitTestArgs, activeIndex: number) => boolean;
+
     /**
      * Optional worklet that, when the cursor is in the label area, scans all label bounding
      * boxes and returns the tick X of the label the cursor is inside (or the raw cursor X if
@@ -44,8 +47,11 @@ type UseChartInteractionsProps = {
      * labels whose bounding boxes extend past the midpoint between adjacent ticks.
      */
     resolveLabelTouchX?: (cursorX: number, cursorY: number) => number;
+
     /** Optional shared value containing bar dimensions used for hit-testing in bar charts */
     chartBottom?: SharedValue<number>;
+
+    /** Optional shared value containing the y-axis zero position */
     yZero?: SharedValue<number>;
 };
 
