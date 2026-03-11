@@ -82,10 +82,7 @@ beforeEach(() => {
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <ReportActionCompose
-                reportID="1"
-                isComposerFullSize
-            />
+            <ReportActionCompose reportID="1" />
         </ComposeProviders>
     );
 }

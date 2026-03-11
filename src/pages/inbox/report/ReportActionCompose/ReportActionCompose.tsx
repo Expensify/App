@@ -110,15 +110,12 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
-type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 'isComposerFullSize'> & {
+type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID'> & {
     /** A method to call when the input is focus */
     onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
-
-    /** Whether the main composer was hidden */
-    didHideComposerInput?: boolean;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -130,7 +127,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
-function ReportActionCompose({isComposerFullSize = false, reportID, onComposerFocus, onComposerBlur, didHideComposerInput}: ReportActionComposeProps) {
+function ReportActionCompose({reportID, onComposerFocus, onComposerBlur}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -175,6 +172,7 @@ function ReportActionCompose({isComposerFullSize = false, reportID, onComposerFo
     const {kickoffWaitingIndicator} = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
     const shouldHideStatusIndicators = isConciergeSidePanel && !hasUserSentMessage;
 
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
@@ -195,6 +193,15 @@ function ReportActionCompose({isComposerFullSize = false, reportID, onComposerFo
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+
+    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
+    useEffect(() => {
+        if (didHideComposerInput || shouldShowComposeInput) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDidHideComposerInput(true);
+    }, [shouldShowComposeInput, didHideComposerInput]);
 
     const handleCreateTask = (text: string): boolean => {
         const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
