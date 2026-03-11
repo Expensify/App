@@ -6,6 +6,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,10 @@ function useScanActions() {
 
             const quickActionReportID = policyChatReportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            startSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT, {
+                name: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+                op: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+            });
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatReportID, undefined, allTransactionDrafts, true);
         });
     };
