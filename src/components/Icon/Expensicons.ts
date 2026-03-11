@@ -48,6 +48,7 @@ import Download from '@assets/images/download.svg';
 import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -213,6 +214,7 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     ExpenseCopy,
     Exclamation,
     Exit,
