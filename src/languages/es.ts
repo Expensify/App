@@ -7215,7 +7215,7 @@ ${amount} para ${merchant} - ${date}`,
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
         },
         errors: {
-            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para De y A',
+            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
