@@ -81,12 +81,6 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let reportAttributes: ReportAttributesDerivedValue | undefined;
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => (reportAttributes = value),
-});
-
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
@@ -627,7 +621,11 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function triggerNotifications<TKey extends OnyxKey>(
+    onyxUpdates: Array<OnyxServerUpdate<TKey>>,
+    currentUserAccountIDParam: number,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -639,7 +637,7 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes?.reports);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes);
             }
         }
     }
@@ -866,7 +864,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -921,7 +919,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
