@@ -24,14 +24,14 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         skImage2 = Skia.Image.MakeImageFromEncoded(Skia.Data.fromBytes(new Uint8Array(buffer2)));
 
         if (!skImage1 || !skImage2) {
-            return null;
+            throw new Error('Failed to decode odometer images');
         }
 
         const {width, height, horizontal} = calculateStitchLayout(skImage1.width(), skImage1.height(), skImage2.width(), skImage2.height());
 
         surface = Skia.Surface.MakeOffscreen(width, height);
         if (!surface) {
-            return null;
+            throw new Error('Failed to create Skia surface');
         }
 
         const canvas = surface.getCanvas();
@@ -56,9 +56,6 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         await RNFS.writeFile(tempPath, base64, 'base64');
 
         return {uri: `file://${tempPath}`, name: filename, type: 'image/jpeg'};
-    } catch (error) {
-        Log.warn('stitchOdometerImages (native) failed', {error});
-        return null;
     } finally {
         skImage1?.dispose?.();
         skImage2?.dispose?.();

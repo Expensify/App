@@ -373,7 +373,16 @@ function IOURequestStepDistanceOdometer({
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
-        const stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
+
+        let stitchedImage: FileObject | null = null;
+        try {
+            stitchedImage = await stitchOdometerImages(odometerStartImage, odometerEndImage);
+        } catch (error) {
+            Log.warn('stitchOdometerImages failed', {error});
+            setFormError(translate('iou.error.stitchOdometerImagesFailed'));
+            return;
+        }
+
         if (stitchedImage ?? odometerStartImage ?? odometerEndImage) {
             const uri = stitchedImage?.uri ?? startImageSource ?? endImageSource ?? '';
             const name =
