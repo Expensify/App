@@ -576,7 +576,7 @@ function getSuggestedSearches(
     return {
         [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            translationPath: 'common.expenses',
+            translationPath: 'search.suggestedSearch.allExpenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Receipt',
             searchQuery: buildCannedSearchQuery(),
@@ -595,7 +595,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.REPORTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-            translationPath: 'common.reports',
+            translationPath: 'search.suggestedSearch.allReports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: icons?.Document,
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
@@ -614,7 +614,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.CHATS]: {
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
-            translationPath: 'common.chats',
+            translationPath: 'search.suggestedSearch.allChats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: 'ChatBubbles',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
@@ -633,7 +633,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: {
             key: CONST.SEARCH.SEARCH_KEYS.SUBMIT,
-            translationPath: 'common.submit',
+            translationPath: 'search.suggestedSearch.drafts',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: icons?.Send,
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -656,7 +656,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: {
             key: CONST.SEARCH.SEARCH_KEYS.APPROVE,
-            translationPath: 'search.bulkActions.approve',
+            translationPath: 'search.suggestedSearch.needsApproval',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: icons?.ThumbsUp,
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -679,7 +679,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.PAY]: {
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
-            translationPath: 'search.bulkActions.pay',
+            translationPath: 'search.suggestedSearch.readyToPay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'MoneyBag',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -703,7 +703,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: {
             key: CONST.SEARCH.SEARCH_KEYS.EXPORT,
-            translationPath: 'common.export',
+            translationPath: 'search.suggestedSearch.awaitingExport',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: Expensicons.CheckCircle,
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -727,7 +727,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            translationPath: 'search.cardStatements',
+            translationPath: 'search.suggestedSearch.cardStatements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'CreditCard',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -751,7 +751,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: {
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
-            translationPath: 'search.unapprovedCash',
+            translationPath: 'search.suggestedSearch.monthlyAccruals',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'MoneyHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -830,7 +830,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-            translationPath: 'workspace.common.reimburse',
+            translationPath: 'search.suggestedSearch.reimbursements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Bank',
             searchQuery: buildQueryStringFromFilterFormValues(
