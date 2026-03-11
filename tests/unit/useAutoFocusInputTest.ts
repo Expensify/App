@@ -118,7 +118,7 @@ describe('useAutoFocusInput', () => {
             return jest.fn();
         });
 
-        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(((task?: (() => void) | {gen?: () => void}) => {
+        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task?: (() => void) | {gen?: () => void}) => {
             if (typeof task === 'function') {
                 task();
             } else {
@@ -129,8 +129,8 @@ describe('useAutoFocusInput', () => {
                 then: jest.fn(() => Promise.resolve()),
                 done: jest.fn(),
                 cancel: jest.fn(),
-            };
-        }) as unknown as typeof InteractionManager.runAfterInteractions);
+            } as never;
+        });
     });
 
     afterEach(() => {
