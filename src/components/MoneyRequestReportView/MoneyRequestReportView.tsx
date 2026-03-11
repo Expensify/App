@@ -286,7 +286,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                 hasNewerActions={hasNewerActions}
                                 hasOlderActions={hasOlderActions}
-                                parentReportAction={parentReportAction}
                                 onLayout={onLayout}
                                 transactionThreadReportID={transactionThreadReportID}
                             />

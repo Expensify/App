@@ -4,21 +4,24 @@ import {InteractionManager} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useConciergeSidePanelReportActions from '@hooks/useConciergeSidePanelReportActions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -36,7 +39,15 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticCreatedReportAction,
+    buildOptimisticIOUReportAction,
+    canUserPerformWriteAction,
+    isConciergeChatReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isReportTransactionThread as isReportTransactionThreadUtil,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,9 +63,6 @@ type ReportActionsViewProps = {
 
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
-
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
@@ -72,27 +80,6 @@ type ReportActionsViewProps = {
     /** If the report has older actions to load */
     hasOlderActions: boolean;
 
-    /** If the report is a transaction thread report */
-    isReportTransactionThread?: boolean;
-
-    /** Whether this is the concierge chat report displayed in the side panel */
-    isConciergeSidePanel?: boolean;
-
-    /** Whether the current user has sent a message in this side panel session */
-    hasUserSentMessage?: boolean;
-
-    /** DB-time string marking when the current side panel session started */
-    sessionStartTime?: string | null;
-
-    /** Whether Concierge is currently processing */
-    isConciergeProcessing?: boolean;
-
-    /** Concierge reasoning history */
-    conciergeReasoningHistory?: ReasoningEntry[];
-
-    /** Concierge status label */
-    conciergeStatusLabel?: string;
-
     /** Callback executed on layout */
     onLayout?: (event: LayoutChangeEvent) => void;
 };
@@ -101,20 +88,12 @@ let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
-    parentReportAction,
     reportActions: allReportActions,
     isLoadingInitialReportActions,
     hasOnceLoadedReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
-    isReportTransactionThread,
-    isConciergeSidePanel = false,
-    hasUserSentMessage = false,
-    sessionStartTime = null,
-    isConciergeProcessing,
-    conciergeReasoningHistory,
-    conciergeStatusLabel,
     onLayout,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -122,6 +101,24 @@ function ReportActionsView({
     usePendingConciergeResponse(report.reportID);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const isInSidePanel = useIsInSidePanel();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
+    // Self-derived state (moved from ReportActionsList)
+    const parentReportAction = useParentReportAction(report);
+    const isReportTransactionThread = isReportTransactionThreadUtil(report);
+    const isConciergeChat = isConciergeChatReport(report);
+    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
+    const {sessionStartTime} = useSidePanelState();
+    const hasUserSentMessage =
+        !isConciergeSidePanel || !sessionStartTime
+            ? false
+            : (allReportActions ?? []).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+    const {
+        isProcessing: isConciergeProcessing,
+        reasoningHistory: conciergeReasoningHistory,
+        statusLabel: conciergeStatusLabel,
+    } = useAgentZeroStatusIndicator(String(report?.reportID ?? CONST.DEFAULT_NUMBER_ID), isConciergeChat);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canPerformWriteAction = useMemo(() => canUserPerformWriteAction(report, isReportArchived), [report, isReportArchived]);
 
