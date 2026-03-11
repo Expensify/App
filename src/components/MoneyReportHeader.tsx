@@ -6,7 +6,6 @@ import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,12 +18,14 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
@@ -48,7 +49,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -62,7 +63,16 @@ import {
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getIOUActionForReportID, getOriginalMessage, getReportAction, hasPendingDEWApprove, hasPendingDEWSubmit, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getFilteredReportActionsForReportView,
+    getIOUActionForReportID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -176,21 +186,8 @@ import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 
 type MoneyReportHeaderProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Array of report actions for the report */
-    reportActions: OnyxTypes.ReportAction[];
-
-    /** The reportID of the transaction thread report associated with this current report, if any */
-    // eslint-disable-next-line react/no-unused-prop-types
-    transactionThreadReportID: string | undefined;
-
-    /** whether we are loading report data in openReport command */
-    isLoadingInitialReportActions?: boolean;
+    /** The reportID of the report currently being looked at */
+    reportID: string | undefined;
 
     /** Whether back button should be displayed in header */
     shouldDisplayBackButton?: boolean;
@@ -199,15 +196,15 @@ type MoneyReportHeaderProps = {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({
-    policy,
-    report: moneyRequestReport,
-    transactionThreadReportID,
-    reportActions,
-    isLoadingInitialReportActions,
-    shouldDisplayBackButton = false,
-    onBackButtonPress,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    // Self-subscribe to report, policy, metadata
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [reportMetadataInternal] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDProp}`);
+    const isLoadingInitialReportActions = reportMetadataInternal?.isLoadingInitialReportActions;
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -225,6 +222,12 @@ function MoneyReportHeader({
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
+    const {isOffline} = useNetwork();
+    const allReportTransactions = useReportTransactionsCollection(reportIDProp);
+    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
+    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
@@ -382,7 +385,6 @@ function MoneyReportHeader({
         usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);

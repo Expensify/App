@@ -174,9 +174,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         () =>
             isTransactionThreadView ? (
                 <MoneyRequestHeader
-                    report={report}
-                    policy={policy}
-                    parentReportAction={parentReportAction}
+                    reportID={report?.reportID}
                     onBackButtonPress={() => {
                         if (!backToRoute) {
                             goBackFromSearchMoneyRequest();
@@ -187,11 +185,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 />
             ) : (
                 <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    isLoadingInitialReportActions={isLoadingInitialReportActions}
+                    reportID={report?.reportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
