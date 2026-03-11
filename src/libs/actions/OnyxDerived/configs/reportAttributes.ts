@@ -291,7 +291,10 @@ export default createOnyxDerivedValueConfig({
             }
 
             // Find the oldest child expense report
-            let oldestChild = children[0];
+            let oldestChild = children.at(0);
+            if (!oldestChild) {
+                continue;
+            }
             for (const child of children) {
                 if (child.created && (!oldestChild.created || child.created < oldestChild.created)) {
                     oldestChild = child;
