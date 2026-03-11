@@ -71,7 +71,7 @@ const isLoadingInitialReportActionsSelector = (reportMetadata: OnyxEntry<OnyxTyp
  * Self-subscribing composer component. Combines data subscriptions
  * with footer rendering — no intermediate wrapper needed.
  */
-function ReportComposer() {
+function ReportFooter() {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
@@ -88,7 +88,7 @@ function ReportComposer() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const isAnonymousUser = useIsAnonymousUser();
 
-    // --- Data subscriptions (from old ReportComposer) ---
+    // --- Data subscriptions (from old ReportFooter) ---
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -303,4 +303,4 @@ function ReportComposer() {
     );
 }
 
-export default ReportComposer;
+export default ReportFooter;

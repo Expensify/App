@@ -32,7 +32,7 @@ import {cancelSpan} from '@libs/telemetry/activeSpans';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
-import ReportComposer from '@pages/inbox/ReportComposer';
+import ReportFooter from '@pages/inbox/ReportFooter';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -228,7 +228,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />
                 <ReportActionsSkeletonView />
-                {shouldDisplayReportFooter ? <ReportComposer /> : null}
+                {shouldDisplayReportFooter ? <ReportFooter /> : null}
             </View>
         );
     }
@@ -293,7 +293,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         )}
                         {shouldDisplayReportFooter ? (
                             <>
-                                <ReportComposer />
+                                <ReportFooter />
                                 <PortalHost name="suggestions" />
                             </>
                         ) : null}

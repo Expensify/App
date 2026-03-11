@@ -19,8 +19,8 @@ import AccountManagerBanner from './AccountManagerBanner';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsList from './ReportActionsList';
-import ReportComposer from './ReportComposer';
 import ReportFetchController from './ReportFetchController';
+import ReportFooter from './ReportFooter';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
@@ -78,7 +78,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     testID="report-actions-view-wrapper"
                                 >
                                     <ReportActionsList />
-                                    <ReportComposer />
+                                    <ReportFooter />
                                 </View>
                             </View>
                             <PortalHost name="suggestions" />
