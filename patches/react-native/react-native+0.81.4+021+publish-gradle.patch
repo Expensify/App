@@ -15,7 +15,7 @@ index 32287a7..5607be3 100644
  
  def reactAndroidProjectDir = project(':packages:react-native:ReactAndroid').projectDir
 -def mavenTempLocalUrl = "file:///tmp/maven-local"
-+def mavenURL = "https://maven.pkg.github.com/Expensify/App"
++def mavenURL = "https://maven.pkg.github.com/mateuuszzzzz/App"
 +
 +def patchedVersion = System.getenv("PATCHED_VERSION")
 +def isHybridBuild = System.getenv("IS_HYBRID_BUILD")?.toBoolean()

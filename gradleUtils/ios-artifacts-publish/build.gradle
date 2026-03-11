@@ -52,7 +52,7 @@ publishing {
             pom {
                 name = 'react-native-artifacts'
                 description = 'Patched React Native iOS prebuilt artifacts for Expensify'
-                url = 'https://github.com/Expensify/App'
+                url = 'https://github.com/mateuuszzzzz/App'
 
                 properties = [
                     'patchesHash': patchesHash,
@@ -78,7 +78,7 @@ publishing {
 
     repositories {
         maven {
-            url = 'https://maven.pkg.github.com/Expensify/App'
+            url = 'https://maven.pkg.github.com/mateuuszzzzz/App'
             credentials {
                 username = System.getenv('GH_PUBLISH_ACTOR')
                 password = System.getenv('GH_PUBLISH_TOKEN')

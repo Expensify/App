@@ -23,7 +23,7 @@ VERSION="$(jq -r '.dependencies["react-native"]' package.json)"
 readonly VERSION
 
 # List all versions of the package
-PACKAGE_VERSIONS="$(gh api "/orgs/Expensify/packages/maven/com.expensify.${PACKAGE}.${ARTIFACT_ID}/versions" --paginate --jq '.[].name')"
+PACKAGE_VERSIONS="$(gh api "/users/mateuuszzzzz/packages/maven/com.expensify.${PACKAGE}.${ARTIFACT_ID}/versions" --paginate --jq '.[].name')"
 
 # Filter only versions matching the base React Native version
 PACKAGE_VERSIONS="$(echo "$PACKAGE_VERSIONS" | grep "$VERSION")"

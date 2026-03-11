@@ -25,7 +25,7 @@ on:
 jobs:
   verifyPatches:
     name: Verify React Native Patches
-    runs-on: 'blacksmith-4vcpu-ubuntu-2404'
+    runs-on: ubuntu-latest
     outputs:
       build_targets: ${{ steps.getArtifactBuildTargets.outputs.BUILD_TARGETS }}
       hybrid_app_patches_hash: ${{ steps.getNewPatchesHash.outputs.HYBRID_APP_HASH }}
@@ -124,7 +124,7 @@ jobs:
 
   buildSlice:
     name: Build iOS Slice
-    runs-on: macos-15-xlarge
+    runs-on: macos-15
     needs: verifyPatches
     if: needs.verifyPatches.outputs.build_targets != ''
     strategy:
@@ -174,7 +174,7 @@ jobs:
 
   composeXCFramework:
     name: Compose XCFramework
-    runs-on: macos-15-xlarge
+    runs-on: macos-15
     needs: [verifyPatches, buildSlice]
     strategy:
       fail-fast: false
@@ -282,9 +282,10 @@ jobs:
           PATCHES_HASH: ${{ matrix.is_hybrid == 'true' && needs.verifyPatches.outputs.hybrid_app_patches_hash || needs.verifyPatches.outputs.standalone_patches_hash }}
           PACKAGE_NAME: ${{ matrix.is_hybrid == 'true' && 'react-hybrid' || 'react-standalone' }}
 
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          CHANNEL: '#expensify-open-source'
+      # Disabled for fork testing — no SLACK_WEBHOOK secret available
+      # - name: Announce failed workflow in Slack
+      #   if: ${{ failure() }}
+      #   uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+      #   with:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      #     CHANNEL: '#expensify-open-source'
