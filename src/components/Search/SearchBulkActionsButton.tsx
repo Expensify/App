@@ -48,6 +48,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const {deleteTransactionsOnSearch} = useSearchDeleteTransactions();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const {
         headerButtonsOptions,
@@ -132,6 +133,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showDelegateNoAccessModal,
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
+                                        amountOwed,
                                     })
                                 }
                                 success
@@ -167,6 +169,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         showDelegateNoAccessModal,
                                         confirmPayment,
                                         userBillingGraceEndPeriods,
+                                        amountOwed,
                                     })
                                 }
                                 isSplitButton={false}
