@@ -5958,7 +5958,7 @@ function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashEx
  * @param originalDefaultReimbursable - original default reimbursable value
  * @param originalDefaultReimbursableDisabled - original default reimbursable disabled value
  */
-function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCashExpenseMode, originalDefaultReimbursable: boolean, originalDefaultReimbursableDisabled: boolean) {
+function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCashExpenseMode, originalDefaultReimbursable: boolean | undefined, originalDefaultReimbursableDisabled: boolean | undefined) {
     const defaultReimbursable =
         reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT || reimbursableMode === CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE;
     const reimbursableDisabled =
