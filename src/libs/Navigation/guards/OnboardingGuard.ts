@@ -146,6 +146,14 @@ function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
 }
 
 /**
+ * Check if the navigation action is targeting an onboarding screen.
+ * This handles REPLACE actions that target the OnboardingModalNavigator directly.
+ */
+function isNavigatingToOnboardingFlowWithReplaceAction(action: NavigationAction): boolean {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE && (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+}
+
+/**
  * OnboardingGuard handles ONLY the core NewDot onboarding flow
  */
 const OnboardingGuard: NavigationGuard = {
@@ -172,7 +180,15 @@ const OnboardingGuard: NavigationGuard = {
         }
 
         const shouldSkipOnboarding =
-            CONFIG.SKIP_ONBOARDING || context.isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isInvitedOrGroupMember;
+            CONFIG.SKIP_ONBOARDING ||
+            context.isLoading ||
+            isTransitioning ||
+            isOnboardingCompleted ||
+            isMigratedUser ||
+            isSingleEntry ||
+            needsExplanationModal ||
+            isInvitedOrGroupMember ||
+            isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};
