@@ -2316,6 +2316,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         youFroze: ({date}: {date: string}) => `你于${date}冻结了此卡。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}于${date}冻结了此卡。`,
         frozenByAdminPrefix: ({date}: {date: string}) => `此卡于${date}被冻结，操作人是`,
+        frozenByAdminNeedsUnfreezePrefix: '此卡已被',
+        frozenByAdminNeedsUnfreezeSuffix: '冻结。请联系管理员解冻。',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `此卡已被${person}冻结。请联系管理员解冻。`,
     },
     workflowsPage: {

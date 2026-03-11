@@ -2362,6 +2362,8 @@ ${amount} para ${merchant} - ${date}`,
         youFroze: ({date}: {date: string}) => `Você bloqueou este cartão em ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} bloqueou este cartão em ${date}.`,
         frozenByAdminPrefix: ({date}: {date: string}) => `Este cartão foi bloqueado em ${date} por `,
+        frozenByAdminNeedsUnfreezePrefix: 'Este cartão foi bloqueado por ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Entre em contato com um administrador para desbloqueá-lo.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Este cartão foi bloqueado por ${person}. Entre em contato com um administrador para desbloqueá-lo.`,
     },
     workflowsPage: {

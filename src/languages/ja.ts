@@ -2352,6 +2352,8 @@ ${date} の ${merchant} への ${amount}`,
         youFroze: ({date}: {date: string}) => `${date}にこのカードを一時停止しました。`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person}が${date}にこのカードを一時停止しました。`,
         frozenByAdminPrefix: ({date}: {date: string}) => `${date}にこのカードを一時停止したのは`,
+        frozenByAdminNeedsUnfreezePrefix: 'このカードは',
+        frozenByAdminNeedsUnfreezeSuffix: 'によって一時停止されました。解除するには管理者に連絡してください。',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `このカードは${person}によって一時停止されました。解除するには管理者に連絡してください。`,
     },
     workflowsPage: {

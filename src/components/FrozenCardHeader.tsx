@@ -40,6 +40,8 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     const frozenByName = frozenByAccountID ? getDisplayNameOrDefault(personalDetails?.[frozenByAccountID]) : '';
     const formattedDate = frozenDate ? DateUtils.formatWithUTCTimeZone(frozenDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
+    const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
+    const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
 
     const statusText = useMemo(() => {
         if (isCurrentUser) {
@@ -62,8 +64,23 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 </>
             );
         }
-        return translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
-    }, [adminFrozenTextPrefix, frozenByAccountID, frozenByName, formattedDate, isCurrentUser, isWorkspaceAdmin, styles.link, translate]);
+        if (!frozenByAccountID || !frozenByName) {
+            return translate('cardPage.frozenByAdminNeedsUnfreeze', {person: frozenByName || translate('common.someone')});
+        }
+
+        return (
+            <>
+                {frozenNeedsUnfreezePrefix}
+                <TextLink
+                    onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
+                    style={styles.link}
+                >
+                    {frozenByName}
+                </TextLink>
+                {frozenNeedsUnfreezeSuffix}
+            </>
+        );
+    }, [adminFrozenTextPrefix, frozenByAccountID, frozenByName, frozenNeedsUnfreezePrefix, frozenNeedsUnfreezeSuffix, isCurrentUser, isWorkspaceAdmin, styles.link, translate]);
 
     return (
         <View style={[styles.ph5, styles.pb5]}>

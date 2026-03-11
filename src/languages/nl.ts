@@ -2369,6 +2369,8 @@ ${amount} voor ${merchant} - ${date}`,
         youFroze: ({date}: {date: string}) => `Je hebt deze kaart op ${date} geblokkeerd.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} heeft deze kaart op ${date} geblokkeerd.`,
         frozenByAdminPrefix: ({date}: {date: string}) => `Deze kaart is op ${date} bevroren door `,
+        frozenByAdminNeedsUnfreezePrefix: 'Deze kaart is bevroren door ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Neem contact op met een beheerder om deze te deblokkeren.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Deze kaart is bevroren door ${person}. Neem contact op met een beheerder om deze te deblokkeren.`,
     },
     workflowsPage: {

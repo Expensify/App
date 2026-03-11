@@ -2376,6 +2376,8 @@ ${amount} für ${merchant} – ${date}`,
         youFroze: ({date}: {date: string}) => `Du hast diese Karte am ${date} gesperrt.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} hat diese Karte am ${date} gesperrt.`,
         frozenByAdminPrefix: ({date}: {date: string}) => `Diese Karte wurde am ${date} gesperrt von `,
+        frozenByAdminNeedsUnfreezePrefix: 'Diese Karte wurde von ',
+        frozenByAdminNeedsUnfreezeSuffix: ' gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Diese Karte wurde von ${person} gesperrt. Bitte kontaktiere einen Admin, um sie zu entsperren.`,
     },
     workflowsPage: {

@@ -2405,6 +2405,8 @@ const translations = {
         youFroze: ({date}: {date: string}) => `You froze this card on ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} froze this card on ${date}.`,
         frozenByAdminPrefix: ({date}: {date: string}) => `This card was frozen on ${date} by `,
+        frozenByAdminNeedsUnfreezePrefix: 'This card was frozen by ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Please contact an admin to unfreeze it.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `This card was frozen by ${person}. Please contact an admin to unfreeze it.`,
     },
     workflowsPage: {

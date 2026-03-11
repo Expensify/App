@@ -2231,6 +2231,8 @@ ${amount} para ${merchant} - ${date}`,
         youFroze: ({date}: {date: string}) => `Congelaste esta tarjeta el ${date}.`,
         frozenBy: ({person, date}: {person: string; date: string}) => `${person} congeló esta tarjeta el ${date}.`,
         frozenByAdminPrefix: ({date}: {date: string}) => `Esta tarjeta fue congelada el ${date} por `,
+        frozenByAdminNeedsUnfreezePrefix: 'Esta tarjeta fue congelada por ',
+        frozenByAdminNeedsUnfreezeSuffix: '. Ponte en contacto con un administrador para descongelarla.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Esta tarjeta fue congelada por ${person}. Ponte en contacto con un administrador para descongelarla.`,
     },
     workflowsPage: {
