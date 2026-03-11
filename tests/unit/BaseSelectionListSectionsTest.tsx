@@ -3,17 +3,16 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import {useState} from 'react';
 import {SectionList} from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import BaseSelectionList from '@components/SelectionListWithSections/BaseSelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
+import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
 type BaseSelectionListSections<TItem extends ListItem> = {
-    sections: SelectionListProps<TItem>['sections'];
+    sections: SelectionListWithSectionsProps<TItem>['sections'];
     canSelectMultiple?: boolean;
-    initialNumToRender?: number;
     searchText?: string;
     setSearchText?: (searchText: string) => void;
 };
@@ -70,21 +69,22 @@ describe('BaseSelectionList', () => {
     const onSelectRowMock = jest.fn();
 
     function BaseListItemRenderer<TItem extends ListItem>(props: BaseSelectionListSections<TItem>) {
-        const {sections, canSelectMultiple, initialNumToRender, setSearchText, searchText} = props;
+        const {sections, canSelectMultiple, setSearchText, searchText} = props;
         const focusedKey = sections[0].data.find((item) => item.isSelected)?.keyForList;
         return (
             <OnyxListItemProvider>
-                <BaseSelectionList
+                <BaseSelectionListWithSections
                     sections={sections}
-                    textInputLabel="common.search"
+                    textInputOptions={{
+                        label: 'common.search',
+                        onChangeText: setSearchText,
+                        value: searchText,
+                    }}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRowMock}
                     shouldSingleExecuteRowSelect
                     canSelectMultiple={canSelectMultiple}
-                    initiallyFocusedOptionKey={focusedKey}
-                    initialNumToRender={initialNumToRender}
-                    onChangeText={setSearchText}
-                    textInputValue={searchText}
+                    initiallyFocusedItemKey={focusedKey}
                 />
             </OnyxListItemProvider>
         );
@@ -92,14 +92,14 @@ describe('BaseSelectionList', () => {
 
     it('should not trigger item press if screen is not focused', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
-        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledTimes(0);
     });
 
     it('should handle item press correctly', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
-        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
 
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledWith({
@@ -114,9 +114,9 @@ describe('BaseSelectionList', () => {
             ...section,
             isSelected: section.keyForList === '2',
         }));
-        const {rerender} = render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        const {rerender} = render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeSelected();
-        rerender(<BaseListItemRenderer sections={[{data: updatedMockSections}]} />);
+        rerender(<BaseListItemRenderer sections={[{data: updatedMockSections, sectionIndex: 0}]} />);
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
     });
 
@@ -124,7 +124,10 @@ describe('BaseSelectionList', () => {
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
         render(
             <BaseListItemRenderer
-                sections={[{data: []}, {data: mockSections}]}
+                sections={[
+                    {data: [], sectionIndex: 0},
+                    {data: mockSections, sectionIndex: 1},
+                ]}
                 canSelectMultiple
             />,
         );
@@ -135,9 +138,8 @@ describe('BaseSelectionList', () => {
     it('should show only elements from first page when items exceed page limit', () => {
         render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+                sections={[{data: largeMockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={60}
             />,
         );
 
@@ -153,9 +155,8 @@ describe('BaseSelectionList', () => {
     it('should render all items when they fit within initial render limit', () => {
         render(
             <BaseListItemRenderer
-                sections={[{data: mockSections}]}
+                sections={[{data: mockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={60}
             />,
         );
 
@@ -167,9 +168,8 @@ describe('BaseSelectionList', () => {
     it('should load more items when scrolled to end', () => {
         render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+                sections={[{data: largeMockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
@@ -195,11 +195,10 @@ describe('BaseSelectionList', () => {
 
             return (
                 <BaseListItemRenderer
-                    sections={[{data: filteredSections}]}
+                    sections={[{data: filteredSections, sectionIndex: 0}]}
                     searchText={searchText}
                     setSearchText={setSearchText}
                     canSelectMultiple={false}
-                    initialNumToRender={110}
                 />
             );
         }
@@ -229,9 +228,8 @@ describe('BaseSelectionList', () => {
     it('does not reset page when only selectedOptions changes', () => {
         const {rerender} = render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+                sections={[{data: largeMockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
@@ -242,9 +240,8 @@ describe('BaseSelectionList', () => {
         // Rerender with only selection change
         rerender(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
+                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3})), sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
@@ -258,9 +255,8 @@ describe('BaseSelectionList', () => {
     it('should reset current page when text input changes', () => {
         const {rerender} = render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+                sections={[{data: largeMockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 
@@ -271,10 +267,9 @@ describe('BaseSelectionList', () => {
         // Rerender with search text - should still show items (filtered or not)
         rerender(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3}))}]}
+                sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3})), sectionIndex: 0}]}
                 canSelectMultiple={false}
                 searchText="Item"
-                initialNumToRender={50}
             />,
         );
 
@@ -286,9 +281,8 @@ describe('BaseSelectionList', () => {
     it('should focus next/previous item relative to focused item when arrow keys are pressed', async () => {
         render(
             <BaseListItemRenderer
-                sections={[{data: largeMockSections}]}
+                sections={[{data: largeMockSections, sectionIndex: 0}]}
                 canSelectMultiple={false}
-                initialNumToRender={50}
             />,
         );
 

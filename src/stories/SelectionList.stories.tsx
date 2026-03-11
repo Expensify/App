@@ -1,14 +1,12 @@
 import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem, SelectionListProps} from '@components/SelectionListWithSections/types';
 import withNavigationFallback from '@components/withNavigationFallback';
-// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
+import SelectionList from '@components/SelectionList/SelectionListWithSections';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -72,7 +70,7 @@ const SECTIONS = [
     },
 ];
 
-function Default(props: SelectionListProps<ListItem>) {
+function Default(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -111,8 +109,8 @@ Default.args = {
     initiallyFocusedOptionKey: 'option-2',
 };
 
-function WithTextInput(props: SelectionListProps<ListItem>) {
-    const [searchText, setSearchText] = useState('');
+function WithTextInput(props: SelectionListWithSectionsProps<ListItem>) {
+    const [searchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -145,8 +143,6 @@ function WithTextInput(props: SelectionListProps<ListItem>) {
             {...props}
             sections={sections}
             ListItem={RadioListItem}
-            textInputValue={searchText}
-            onChangeText={setSearchText}
             onSelectRow={onSelectRow}
         />
     );
@@ -160,10 +156,9 @@ WithTextInput.args = {
     inputMode: CONST.INPUT_MODE.NUMERIC,
     initiallyFocusedOptionKey: 'option-2',
     onSelectRow: () => {},
-    onChangeText: () => {},
 };
 
-function WithHeaderMessage(props: SelectionListProps<ListItem>) {
+function WithHeaderMessage(props: SelectionListWithSectionsProps<ListItem>) {
     return (
         <WithTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -178,7 +173,7 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-function WithAlternateText(props: SelectionListProps<ListItem>) {
+function WithAlternateText(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
     const sections = props.sections.map((section) => {
@@ -219,7 +214,7 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-function MultipleSelection(props: SelectionListProps<ListItem>) {
+function MultipleSelection(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -263,14 +258,6 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -278,7 +265,6 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }
@@ -286,10 +272,9 @@ function MultipleSelection(props: SelectionListProps<ListItem>) {
 MultipleSelection.args = {
     ...Default.args,
     canSelectMultiple: true,
-    onSelectAll: () => {},
 };
 
-function WithSectionHeader(props: SelectionListProps<ListItem>) {
+function WithSectionHeader(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -333,14 +318,6 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -348,7 +325,6 @@ function WithSectionHeader(props: SelectionListProps<ListItem>) {
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }
@@ -357,7 +333,7 @@ WithSectionHeader.args = {
     ...MultipleSelection.args,
 };
 
-function WithConfirmButton(props: SelectionListProps<ListItem>) {
+function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
     const memo = useMemo(() => {
@@ -401,14 +377,6 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
         setSelectedIds(newSelectedIds);
     };
 
-    const onSelectAll = () => {
-        if (selectedIds.length === memo.allIds.length) {
-            setSelectedIds([]);
-        } else {
-            setSelectedIds(memo.allIds);
-        }
-    };
-
     return (
         <SelectionListWithNavigation
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -416,7 +384,6 @@ function WithConfirmButton(props: SelectionListProps<ListItem>) {
             sections={memo.sections}
             ListItem={RadioListItem}
             onSelectRow={onSelectRow}
-            onSelectAll={onSelectAll}
         />
     );
 }
