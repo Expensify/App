@@ -73,6 +73,7 @@ import {
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
@@ -122,6 +123,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
@@ -220,9 +222,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID) && !isReportArchived,
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID],
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
+        [hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
@@ -232,6 +233,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
+
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'HeaderView',
+        hasReportID: !!report?.reportID,
+        hasTitle: !!title,
+    };
 
     const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
@@ -273,7 +280,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
+                        <ReportHeaderSkeletonView
+                            onBackButtonPress={onNavigationMenuButtonClicked}
+                            reasonAttributes={reasonAttributes}
+                        />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                             {shouldShowBackButton && (
