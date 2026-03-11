@@ -512,6 +512,7 @@ function MoneyRequestConfirmationList({
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
             setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
+            clearFormErrors([errorKey]);
             return;
         }
 
