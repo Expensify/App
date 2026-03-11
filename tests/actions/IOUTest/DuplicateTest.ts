@@ -976,6 +976,211 @@ describe('actions/Duplicate', () => {
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
+
+        it('should handle cross-report duplicates by finding IOU actions in each transaction own report', async () => {
+            // Given: Duplicate transactions that belong to different reports
+            const reportA = 'reportA';
+            const reportB = 'reportB';
+            const mainTransactionID = 'mainTx';
+            const crossReportDuplicateID = 'crossDupTx';
+            const childReportIDMain = 'childMain';
+            const childReportIDCross = 'childCross';
+
+            // Main transaction lives in reportA
+            const mainTransaction = createMockTransaction(mainTransactionID, reportA, 100);
+            // Duplicate transaction lives in reportB (cross-report duplicate)
+            const crossDuplicateTransaction = createMockTransaction(crossReportDuplicateID, reportB, 100);
+
+            const mainViolations = createMockViolations();
+            const crossDuplicateViolations = createMockViolations();
+
+            // IOU actions live in their respective transaction reports
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionMain', childReportIDMain);
+            const crossIouAction = createMockIouAction(crossReportDuplicateID, 'actionCross', childReportIDCross);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`, crossDuplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`, crossDuplicateViolations);
+            // Each IOU action is stored under its own report's report actions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportA}`, {
+                actionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportB}`, {
+                actionCross: crossIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDMain}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [crossReportDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID: reportA,
+            };
+
+            // When: Call resolveDuplicates with cross-report duplicates
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            // Then: The cross-report duplicate transaction should be put on hold
+            const updatedCrossDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${crossReportDuplicateID}`);
+            expect(updatedCrossDuplicate?.comment?.hold).toBeDefined();
+
+            // Then: Hold report action should be created in the cross-report duplicate's child report thread
+            const crossChildReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportIDCross}`);
+            expect(Object.keys(crossChildReportActions ?? {})).toHaveLength(1);
+
+            // Then: The cross-report duplicate should have HOLD violation but no DUPLICATED_TRANSACTION
+            const updatedCrossViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${crossReportDuplicateID}`);
+            expect(updatedCrossViolations).toEqual(
+                expect.arrayContaining([
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ]),
+            );
+            expect(updatedCrossViolations).not.toEqual(expect.arrayContaining([{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]));
+
+            // Then: Verify API was called with correct parameters
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: [crossReportDuplicateID],
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([]),
+                    failureData: expect.arrayContaining([]),
+                }),
+            );
+        });
+
+        it('should skip transactions that do not exist in Onyx', async () => {
+            // Given: A main transaction and a duplicate ID that has no corresponding transaction in Onyx
+            const reportID = 'reportSkip';
+            const mainTransactionID = 'mainSkip';
+            const nonExistentDuplicateID = 'nonExistent';
+            const mainChildReportID = 'childSkip';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionSkipMain', mainChildReportID);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            // Do NOT set nonExistentDuplicateID in Onyx transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                actionSkipMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [nonExistentDuplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+            };
+
+            // When: Call resolveDuplicates with a non-existent duplicate transaction
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            // Then: The main transaction should still be updated
+            const updatedMainTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`);
+            expect(updatedMainTransaction).toMatchObject({
+                category: 'Travel',
+                modifiedMerchant: 'Updated Merchant',
+            });
+
+            // Then: API should be called with empty reportActionIDList since no hold actions were created
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    reportActionIDList: [],
+                }),
+                expect.objectContaining({}),
+            );
+        });
+
+        it('should skip transactions whose IOU action cannot be found in their report', async () => {
+            // Given: A duplicate transaction exists but has no matching IOU action in its report
+            const reportID = 'reportNoAction';
+            const mainTransactionID = 'mainNoAction';
+            const duplicateID = 'dupNoAction';
+            const mainChildReportID = 'childNoAction';
+
+            const mainTransaction = createMockTransaction(mainTransactionID, reportID, 100);
+            const duplicateTransaction = createMockTransaction(duplicateID, reportID, 100);
+            const mainViolations = createMockViolations();
+            const duplicateViolations = createMockViolations();
+            const mainIouAction = createMockIouAction(mainTransactionID, 'actionNoActionMain', mainChildReportID);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`, duplicateTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`, duplicateViolations);
+            // Only set the main IOU action, not the duplicate's
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                actionNoActionMain: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mainChildReportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: [duplicateID],
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 100,
+                currency: CONST.CURRENCY.EUR,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: false,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+            };
+
+            // When: Call resolveDuplicates where duplicate has no IOU action
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            // Then: The duplicate transaction should NOT be put on hold (no hold action found)
+            const updatedDuplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`);
+            expect(updatedDuplicate?.comment?.hold).toBeUndefined();
+
+            // Then: API should be called with empty reportActionIDList
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    reportActionIDList: [],
+                }),
+                expect.objectContaining({}),
+            );
+        });
     });
 
     describe('duplicateExpenseTransaction', () => {
