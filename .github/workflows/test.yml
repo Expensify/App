@@ -12,8 +12,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   jest:
-    if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
+    needs: [validate]
+    if: |
+      always()
+      && (needs.validate.result == 'skipped' || needs.validate.outputs.IS_AUTHORIZED == 'true')
+      && (github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call')
     runs-on: blacksmith-4vcpu-ubuntu-2404
     env:
       CI: true
@@ -84,7 +96,11 @@ jobs:
           fail_ci_if_error: false
 
   storybookTests:
-    if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
+    needs: [validate]
+    if: |
+      always()
+      && (needs.validate.result == 'skipped' || needs.validate.outputs.IS_AUTHORIZED == 'true')
+      && (github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call')
     runs-on: blacksmith-4vcpu-ubuntu-2404
     name: Storybook tests
     steps:
