@@ -37,7 +37,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     getConnectedIntegration: jest.fn(() => true),
     isPolicyAdmin: jest.fn(() => true),
 }));
-
+const CURRENT_USER_LOGIN = 'test@example.com';
 describe('SidebarUtils', () => {
     beforeAll(async () => {
         Onyx.init({
@@ -357,6 +357,8 @@ describe('SidebarUtils', () => {
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
 
+                currentUserLogin: CURRENT_USER_LOGIN,
+
                 reportAttributesDerived: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -376,6 +378,8 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+
+                currentUserLogin: CURRENT_USER_LOGIN,
 
                 reportAttributesDerived: undefined,
             });
@@ -1522,7 +1526,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1588,7 +1592,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1629,7 +1633,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1669,7 +1673,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1709,7 +1713,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1777,7 +1781,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
-
+                currentUserLogin: CURRENT_USER_LOGIN,
                 reportAttributesDerived: undefined,
             });
 
@@ -1831,6 +1835,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1874,6 +1879,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: true,
                     lastActionReport: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
 
                     reportAttributesDerived: undefined,
                 });
@@ -1916,6 +1922,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -2056,6 +2063,8 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
 
+                    currentUserLogin: CURRENT_USER_LOGIN,
+
                     reportAttributesDerived: mockReportAttributesDerived,
                 });
 
@@ -2102,6 +2111,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -2176,6 +2186,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -2239,6 +2250,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -2293,6 +2305,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     lastMessageTextFromReport: report.lastMessageText,
                     currentUserAccountID: session.accountID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result?.alternateText).toBe('You: someMessage');
@@ -2381,6 +2394,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: session.accountID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                     visibleReportActionsData: {
                         [iouReportR14932.reportID]: {
                             [linkedCreateAction.reportActionID]: true,
@@ -2511,6 +2525,7 @@ describe('SidebarUtils', () => {
                     isReportArchived: undefined,
                     lastMessageTextFromReport: 'test action',
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -2599,6 +2614,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -2699,6 +2715,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
@@ -2800,6 +2817,7 @@ describe('SidebarUtils', () => {
                     lastActionReport: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: managerID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
@@ -2833,6 +2851,7 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 // Then isConciergeChat should be true
@@ -2864,6 +2883,7 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 // Then isConciergeChat should be false
@@ -2894,6 +2914,7 @@ describe('SidebarUtils', () => {
                     invoiceReceiverPolicy: undefined,
                     isReportArchived: undefined,
                     currentUserAccountID: 0,
+                    currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
                 // Then isConciergeChat should be false
@@ -3334,6 +3355,7 @@ describe('SidebarUtils', () => {
                 lastActionReport: undefined,
                 isReportArchived: undefined,
                 currentUserAccountID: 0,
+                currentUserLogin: '',
                 reportAttributesDerived: undefined,
             });
         }
