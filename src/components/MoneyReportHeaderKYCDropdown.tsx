@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import type {DropdownOption} from './ButtonWithDropdownMenu/types';
+import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import KYCWall from './KYCWall';
 import type {KYCWallProps} from './KYCWall/types';
 
@@ -20,6 +20,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     applicableSecondaryActions: Array<DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>>;
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+
+    /** Ref for the inner ButtonWithDropdownMenu */
+    dropdownMenuRef?: React.Ref<ButtonWithDropdownMenuRef>;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -29,6 +32,7 @@ function MoneyReportHeaderKYCDropdown({
     applicableSecondaryActions,
     iouReport,
     onPaymentSelect,
+    dropdownMenuRef,
     ref,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
@@ -57,6 +61,7 @@ function MoneyReportHeaderKYCDropdown({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
+                    ref={dropdownMenuRef}
                     success={false}
                     onPress={() => {}}
                     onSubItemSelected={(item, index, event) => {
