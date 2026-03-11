@@ -23,6 +23,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -252,6 +253,7 @@ function MoneyReportHeader({
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
+    const personalPolicy = usePersonalPolicy();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
@@ -300,7 +302,7 @@ function MoneyReportHeader({
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleDigit} = useLocalize();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
     const exportTemplates = useMemo(
@@ -1759,7 +1761,19 @@ function MoneyReportHeader({
                     Navigation.goBack(backToRoute);
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
-                        deleteAppReport(moneyRequestReport, selfDMReport, email ?? '', accountID, reportTransactions, allTransactionViolations, bankAccountList, currentSearchHash);
+                        deleteAppReport({
+                            report: moneyRequestReport,
+                            selfDMReport,
+                            currentUserEmailParam: email ?? '',
+                            currentUserAccountIDParam: accountID,
+                            reportTransactions,
+                            allTransactionViolations,
+                            bankAccountList,
+                            personalPolicy,
+                            translate,
+                            toLocaleDigit,
+                            hash: currentSearchHash,
+                        });
                     });
                 });
             },
