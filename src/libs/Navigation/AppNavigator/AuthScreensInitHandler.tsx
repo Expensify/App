@@ -22,14 +22,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-function initializePusher(currentUserAccountID?: number) {
+function initializePusher(conciergeReportID: string | undefined, currentUserAccountID?: number) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, conciergeReportID);
     });
 }
 
@@ -54,13 +55,18 @@ function AuthScreensInitHandler() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
     useEffect(() => {
         if (!Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
+        if (isLoadingOnyxValue(conciergeReportIDMetadata)) {
+            return;
+        }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID);
-    }, [session?.accountID]);
+        initializePusher(conciergeReportID, session?.accountID);
+    }, [session?.accountID, conciergeReportID, conciergeReportIDMetadata]);
 
     useEffect(() => {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
@@ -82,7 +88,7 @@ function AuthScreensInitHandler() {
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
         PusherConnectionManager.init();
-        initializePusher(session?.accountID).finally(() => {
+        initializePusher(conciergeReportID, session?.accountID).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
