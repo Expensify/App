@@ -1,6 +1,19 @@
 import type {ImageSource} from 'expo-image';
 import {useEffect, useState} from 'react';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
+
+const clearAuthImagesCache = async () => {
+    if (!('caches' in window)) {
+        return;
+    }
+
+    try {
+        await caches.delete(CONST.CACHE_NAME.AUTH_IMAGES);
+    } catch (error) {
+        Log.alert('[AuthImageCache] Error clearing auth image cache:', {message: (error as Error).message});
+    }
+};
 
 function useCachedImageSource(source: ImageSource | undefined): ImageSource | null | undefined {
     const uri = typeof source === 'object' ? source.uri : undefined;
@@ -54,7 +67,10 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                 } else {
                     URL.revokeObjectURL(objectURL);
                 }
-            } catch {
+            } catch (error) {
+                if ((error as Error).message?.includes('Quota exceeded')) {
+                    await clearAuthImagesCache();
+                }
                 if (!revoked) {
                     setHasError(true);
                 }
@@ -91,3 +107,4 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 }
 
 export default useCachedImageSource;
+export {clearAuthImagesCache};
