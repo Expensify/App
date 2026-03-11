@@ -23,6 +23,7 @@ import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -58,6 +59,18 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
+
+    const initialSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.InitialSkeleton',
+        isLoadingUnreportedTransactions,
+    };
+
+    const paginationSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'AddUnreportedExpense.PaginationSkeleton',
+        isLoadingUnreportedTransactions,
+        hasMoreUnreportedTransactionsResults,
+        isOffline,
+    };
 
     const getUnreportedTransactions = useCallback(
         (transactions: OnyxCollection<Transaction>) => {
@@ -250,7 +263,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     title={translate('iou.addUnreportedExpense')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <UnreportedExpensesSkeleton />
+                <UnreportedExpensesSkeleton reasonAttributes={initialSkeletonReasonAttributes} />
             </ScreenWrapper>
         );
     }
@@ -323,7 +336,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
-                listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
+                listFooterContent={
+                    shouldShowUnreportedTransactionsSkeletons ? (
+                        <UnreportedExpensesSkeleton
+                            fixedNumberOfItems={3}
+                            reasonAttributes={paginationSkeletonReasonAttributes}
+                        />
+                    ) : undefined
+                }
                 footerContent={footerContent}
                 disableMaintainingScrollPosition
             />
