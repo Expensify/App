@@ -998,16 +998,6 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchChangeApproverPage').default,
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAddApproverPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_TRANSACTIONS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultiplePage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_AMOUNT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleAmountPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_DESCRIPTION_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleDescriptionPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_MERCHANT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleMerchantPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_DATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleDatePage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_CATEGORY_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleCategoryPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_TAG_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTagPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_BILLABLE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleBooleanPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_REIMBURSABLE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleBooleanPage').default,
-    [SCREENS.SEARCH.EDIT_MULTIPLE_TAX_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchEditMultiple/SearchEditMultipleTaxPage').default,
 });
 
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({

@@ -156,8 +156,6 @@ function MoneyRequestReportActionsList({
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-
     const parentReportAction = useParentReportAction(report);
 
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
@@ -681,7 +679,6 @@ function MoneyRequestReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
-                    policies={policies}
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
                     parentReportActionForTransactionThread={EmptyParentReportActionForTransactionThread}
@@ -718,7 +715,6 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            policies,
             userWalletTierName,
             isUserValidated,
             personalDetails,

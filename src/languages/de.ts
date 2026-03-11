@@ -476,6 +476,7 @@ const translations: TranslationDeepObject<typeof en> = {
         validate: 'Validieren',
         downloadAsPDF: 'Als PDF herunterladen',
         downloadAsCSV: 'Als CSV herunterladen',
+        print: 'Drucken',
         help: 'Hilfe',
         expenseReport: 'Spesenabrechnung',
         expenseReports: 'Spesenabrechnungen',
@@ -680,8 +681,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Biometrie-Test',
             authenticationSuccessful: 'Authentifizierung erfolgreich',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Du hast dich erfolgreich mit ${authType} authentifiziert.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrie (${registered ? 'Registriert' : 'Nicht registriert'})`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Sie haben sich erfolgreich mit ${authType} authentifiziert.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrische Daten (${status})`,
             yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
             youCouldNotBeAuthenticated: 'Du konntest nicht authentifiziert werden',
             areYouSureToReject: 'Sind Sie sicher? Der Authentifizierungsversuch wird abgelehnt, wenn Sie diesen Bildschirm schließen.',
@@ -697,6 +698,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Nie registriert',
+            statusNotRegistered: 'Nicht registriert',
+            statusRegisteredThisDevice: 'Registriert',
+            statusRegisteredOtherDevice: () => ({one: 'Anderes Gerät registriert', other: 'Andere Geräte registriert'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Bitte aktiviere die Gesichts-/Fingerabdrucküberprüfung oder richte einen Gerätecode auf deinem Gerät ein',
@@ -716,15 +721,25 @@ const translations: TranslationDeepObject<typeof en> = {
             biometrics: 'Aktiviere eine schnelle, sichere Verifizierung mit deinem Gesicht oder Fingerabdruck. Keine Passwörter oder Codes erforderlich.',
         },
         revoke: {
-            title: 'Gesicht/Fingerabdruck & Passkeys',
+            title: 'Gesicht/Fingerabdruck & Zugangsschlüssel',
             explanation:
-                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Das Widerrufen des Zugriffs erfordert für die nächste Verifizierung auf jedem Gerät einen magischen Code.',
-            confirmationPrompt: 'Bist du sicher? Du brauchst einen magischen Code für die nächste Verifizierung auf jedem Gerät.',
-            cta: 'Zugriff widerrufen',
-            noDevices: 'Sie haben keine Geräte für die Überprüfung per Gesicht/Fingerabdruck oder Passkey registriert. Wenn Sie welche registrieren, können Sie den Zugriff hier widerrufen.',
+                'Gesichts-/Fingerabdruck- oder Passkey-Verifizierung ist auf einem oder mehreren Geräten aktiviert. Beim Entziehen des Zugriffs ist für die nächste Verifizierung auf diesem Gerät ein magischer Code erforderlich.',
+            confirmationPrompt: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesem Gerät.',
+            cta: 'Zugriff entziehen',
+            noDevices: 'Sie haben keine Geräte für Gesichts-/Fingerabdruck- oder Passkey-Verifizierung registriert. Wenn Sie welche registrieren, können Sie deren Zugriff hier widerrufen.',
             dismiss: 'Verstanden',
             error: 'Anfrage fehlgeschlagen. Versuche es später noch einmal.',
             revoke: 'Widerrufen',
+            confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Magic Code für die nächste Verifizierung auf jedem Gerät.',
+            ctaAll: 'Alle widerrufen',
+            thisDevice: 'Dieses Gerät',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} weitere ${otherDeviceCount === 1 ? 'Gerät' : 'Geräte'}`;
+            },
+            confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen Magic-Code für die nächste Verifizierung auf diesem Gerät.',
+            confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen magischen Code für die nächste Verifizierung auf diesen Geräten.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Nicht unterstütztes Gerät',
@@ -1964,7 +1979,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Gespeicherten Login wiederherstellen',
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Lies die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Lesen Sie die <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und die <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a>.`,
         help: 'Hilfe',
         whatIsNew: 'Was ist neu',
         accountSettings: 'Kontoeinstellungen',
@@ -2652,7 +2667,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Durch das Einloggen stimmst du den <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und der <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a> zu.</muted-text-xs>`,
-        license: `<muted-text-xs>Geldübermittlung wird bereitgestellt von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS-ID:2017010) gemäß seinen <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">Lizenzen</a>.</muted-text-xs>`,
+        license: `Die Geldübermittlung wird von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS-ID:2017010) gemäß seinen <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">Lizenzen</a> bereitgestellt.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Keinen magischen Code erhalten?',
@@ -5279,6 +5294,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         learnHow: 'Mehr erfahren.',
                         subsections: {
                             currentTravelSpendLabel: 'Aktuelle Reisekosten',
+                            currentTravelSpendPaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
                             currentTravelSpendCta: 'Saldo bezahlen',
                             currentTravelLimitLabel: 'Aktuelles Reisekontingent',
                             settlementAccountLabel: 'Verrechnungskonto',
@@ -5295,6 +5311,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                         title: 'Reiseabrechnung kann nicht deaktiviert werden',
                         body: 'Sie haben noch einen offenen Reisensaldo. Bitte begleichen Sie zuerst Ihren Saldo.',
                         confirm: 'Verstanden',
+                    },
+                    payBalanceModal: {
+                        title: (amount: string) => `Saldo von ${amount} bezahlen?`,
+                        body: 'Die Zahlung wird in die Warteschlange gestellt und kurz darauf verarbeitet. Diese Aktion kann nach dem Start nicht mehr rückgängig gemacht werden.',
                     },
                     exportToPDF: 'Als PDF exportieren',
                     exportToCSV: 'Als CSV exportieren',
@@ -7264,9 +7284,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
-            editMultiple: 'Mehrere bearbeiten',
-            editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
-            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',
