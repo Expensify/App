@@ -12,9 +12,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
-import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
@@ -118,14 +117,6 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setFirstRender(false);
     }, []);
-
-    // --- Task report init ---
-    useEffect(() => {
-        if (!!report?.lastReadTime || !isTaskReport(report)) {
-            return;
-        }
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
 
     return (
         <FullPageNotFoundView

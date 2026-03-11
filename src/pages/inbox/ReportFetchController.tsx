@@ -13,9 +13,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {getReportTransactions, isChatThread, isHiddenForCurrentUser, isPolicyExpenseChat, isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {getReportTransactions, isChatThread, isHiddenForCurrentUser, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {setShouldShowComposeInput} from '@userActions/Composer';
-import {createTransactionThreadReport, openReport, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
+import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -256,6 +256,14 @@ function ReportFetchController() {
         reportMetadata?.hasOnceLoadedReportActions,
         reportActions.length,
     ]);
+
+    // --- Task report init ---
+    useEffect(() => {
+        if (!!report?.lastReadTime || !isTaskReport(report)) {
+            return;
+        }
+        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
+    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
 
     return null;
 }
