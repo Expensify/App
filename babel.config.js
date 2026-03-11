@@ -63,7 +63,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [require('@react-native/babel-preset')],
+    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
@@ -174,5 +174,14 @@ module.exports = (api) => {
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    // Jest runs in Node.js without Metro's experimentalImportSupport transform,
+    // so Babel must handle import/export transforms for tests.
+    if (runningIn === 'babel-jest') {
+        return {
+            ...metro,
+            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
+        };
+    }
+
+    return runningIn === 'metro' ? metro : webpack;
 };
