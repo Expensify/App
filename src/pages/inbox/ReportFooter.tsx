@@ -243,64 +243,91 @@ function ReportFooter() {
         return null;
     }
 
-    return (
-        <>
-            {!!shouldHideComposer && (
-                <View
-                    style={[
-                        styles.chatFooter,
-                        isArchivedRoom || isAnonymousUser || !canWriteInReport || (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) ? styles.mt4 : {},
-                        shouldUseNarrowLayout ? styles.mb5 : null,
-                    ]}
-                >
-                    {isAnonymousUser && !isArchivedRoom && (
-                        <AnonymousReportFooter
-                            report={report}
-                            isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
-                        />
-                    )}
-                    {isArchivedRoom && (
-                        <ArchivedReportFooter
-                            report={report}
-                            currentUserAccountID={personalDetail.accountID}
-                        />
-                    )}
-                    {!isArchivedRoom && !!isBlockedFromChat && <BlockedReportFooter />}
-                    {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
-                    {isAdminsOnlyPostingRoom && !isUserPolicyAdmin && !isArchivedRoom && !isAnonymousUser && !isBlockedFromChat && (
-                        <Banner
-                            containerStyles={[styles.chatFooterBanner]}
-                            text={translate('adminOnlyCanPost')}
-                            icon={expensifyIcons.Lightbulb}
-                            shouldShowIcon
-                        />
-                    )}
-                    {!shouldUseNarrowLayout && (
-                        <View style={styles.offlineIndicatorContainer}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
-                    )}
-                </View>
-            )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
-                <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onSubmit={onSubmitComment}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={reportPendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
-                            reportTransactions={reportTransactions}
-                            transactionThreadReportID={effectiveTransactionThreadReportID}
-                            shouldHideStatusIndicators={shouldHideStatusIndicators}
-                            kickoffWaitingIndicator={kickoffWaitingIndicator}
-                        />
-                    </SwipeableView>
-                </View>
-            )}
-        </>
-    );
+    // Happy path — user can compose
+    if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
+        return (
+            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <ReportActionCompose
+                        onSubmit={onSubmitComment}
+                        reportID={report.reportID}
+                        report={report}
+                        lastReportAction={lastReportAction}
+                        pendingAction={reportPendingAction}
+                        isComposerFullSize={isComposerFullSize}
+                        didHideComposerInput={didHideComposerInput}
+                        reportTransactions={reportTransactions}
+                        transactionThreadReportID={effectiveTransactionThreadReportID}
+                        shouldHideStatusIndicators={shouldHideStatusIndicators}
+                        kickoffWaitingIndicator={kickoffWaitingIndicator}
+                    />
+                </SwipeableView>
+            </View>
+        );
+    }
+
+    // Archived room
+    if (isArchivedRoom) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <ArchivedReportFooter
+                    report={report}
+                    currentUserAccountID={personalDetail.accountID}
+                />
+                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            </View>
+        );
+    }
+
+    // Anonymous user
+    if (isAnonymousUser) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <AnonymousReportFooter
+                    report={report}
+                    isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
+                />
+                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            </View>
+        );
+    }
+
+    // Blocked from chat
+    if (isBlockedFromChat) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <BlockedReportFooter />
+                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            </View>
+        );
+    }
+
+    // System chat where user can't write
+    if (!canWriteInReport && isSystemChat) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <SystemChatReportFooterMessage />
+                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            </View>
+        );
+    }
+
+    // Admins-only room
+    if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        return (
+            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                <Banner
+                    containerStyles={[styles.chatFooterBanner]}
+                    text={translate('adminOnlyCanPost')}
+                    icon={expensifyIcons.Lightbulb}
+                    shouldShowIcon
+                />
+                {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+            </View>
+        );
+    }
+
+    return null;
 }
 
 export default ReportFooter;
