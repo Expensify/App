@@ -1,6 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -202,9 +202,23 @@ export default createOnyxDerivedValueConfig({
                 isReportArchived,
             });
 
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
+
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
+            if (
+                SidebarUtils.shouldShowRedBrickRoad(
+                    report,
+                    chatReport,
+                    reportActionsList,
+                    hasAnyViolations || hasFieldViolations,
+                    reportErrors,
+                    transactions,
+                    transactionViolations,
+                    !!isReportArchived,
+                )
+            ) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot
