@@ -176,7 +176,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
 
     await waitForBatchedUpdates();
 
