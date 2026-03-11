@@ -7,8 +7,16 @@ on:
     paths-ignore: [docs/**, help/**, .github/**, contributingGuides/**, tests/**, '**.md', '**.sh']
 
 jobs:
+  validate:
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
+    needs: [validate]
+    if: ${{ needs.validate.outputs.IS_AUTHORIZED == 'true' && github.actor != 'OSBotify' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
