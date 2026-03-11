@@ -31,7 +31,7 @@ This error is typically related to role configuration or bundle version.
 
 ## How to Fix the NS0510 Export Error
 
-**Update the Expensify Connect Bundle**
+### Option One: Update the Expensify Connect Bundle
 
 1. Log in to **NetSuite** as an Administrator.
 2. Go to **Customization**.
@@ -47,12 +47,12 @@ After updating the bundle:
 2. Select **Workspaces**.
 3. Select your Workspace.
 4. Click **Accounting**.
-5. Click **Sync Now**.
+5. Click **Sync**.
 6. Retry exporting the report.
 
 ---
 
-**Update NetSuite Role Permissions**
+### Option Two: Update NetSuite Role Permissions
 
 If the bundle is already up to date, review the role permissions.
 
@@ -71,7 +71,7 @@ After updating permissions:
 2. Select **Workspaces**.
 3. Select your Workspace.
 4. Click **Accounting**.
-5. Click **Sync Now**.
+5. Click **Sync**.
 6. Retry exporting the report.
 
 ---
