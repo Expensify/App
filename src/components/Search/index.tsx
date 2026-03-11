@@ -213,6 +213,7 @@ function Search({
     onDEWModalOpen,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
+    const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(true);
 
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -382,11 +383,54 @@ function Search({
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
+    const deferHeavySearchWork = useCallback((useDoubleFrame = false) => {
+        setShouldDeferHeavySearchWork(true);
+
+        // Search can do a lot of synchronous grouping/sorting work. Deferring by one frame keeps
+        // normal query transitions responsive, while two frames gives the submit-to-search route a
+        // chance to paint the first post-navigation frame before we start the heavier transforms.
+        let secondFrameID: number | undefined;
+        const frameID = requestAnimationFrame(() => {
+            if (!useDoubleFrame) {
+                setShouldDeferHeavySearchWork(false);
+                return;
+            }
+
+            secondFrameID = requestAnimationFrame(() => setShouldDeferHeavySearchWork(false));
+        });
+
+        return () => {
+            cancelAnimationFrame(frameID);
+            if (secondFrameID) {
+                cancelAnimationFrame(secondFrameID);
+            }
+        };
+    }, []);
+
+    useEffect(deferHeavySearchWork, [hash, deferHeavySearchWork]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const pendingSubmitFollowUpAction = getPendingSubmitFollowUpAction();
+            const doesSpanExist = !!getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_AFTER_EXPENSE_CREATE);
+            const isPendingSearchNavigation = pendingSubmitFollowUpAction?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+
+            if (!doesSpanExist && !isPendingSearchNavigation) {
+                return;
+            }
+
+            // Re-applying the defer only on the submit-return path keeps the optimization scoped to
+            // the transition we care about instead of slowing every search refocus.
+            return deferHeavySearchWork(true);
+        }, [deferHeavySearchWork]),
+    );
+
     // For to-do searches, we never show loading state since the data is always available locally from Onyx
     const shouldShowLoadingState =
         !shouldUseLiveData &&
         !isOffline &&
-        (!isDataLoaded ||
+        (shouldDeferHeavySearchWork ||
+            !isDataLoaded ||
             (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0) ||
             (hasErrors && searchRequestResponseStatusCode === null) ||
             isCardFeedsLoading);
@@ -420,7 +464,7 @@ function Search({
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const [baseFilteredData, filteredDataLength, allDataLength] = useMemo(() => {
-        if (searchResults === undefined || !isDataLoaded) {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded) {
             return [[], 0, 0];
         }
 
@@ -461,6 +505,7 @@ function Search({
         exportReportActions,
         validGroupBy,
         isDataLoaded,
+        shouldDeferHeavySearchWork,
         searchResults,
         type,
         archivedReportsIdSet,
@@ -494,7 +539,7 @@ function Search({
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
     const filteredData = useMemo(() => {
-        if (!validGroupBy || isExpenseReportType) {
+        if (shouldDeferHeavySearchWork || !validGroupBy || isExpenseReportType) {
             return baseFilteredData;
         }
 
@@ -527,6 +572,7 @@ function Search({
     }, [
         validGroupBy,
         isExpenseReportType,
+        shouldDeferHeavySearchWork,
         baseFilteredData,
         groupByTransactionSnapshots,
         accountID,
