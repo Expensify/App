@@ -9200,7 +9200,7 @@ function hasReportViolations(reportID: string | undefined) {
     if (!reportID) {
         return false;
     }
-    const reportViolations = allReportsViolations?.[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+    const reportViolations = getReportViolations(reportID);
     return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
@@ -12311,11 +12311,8 @@ function getFieldViolationTranslation(reportField: PolicyReportField, violation?
  * Returns all violations for report
  */
 function getReportViolations(reportID: string): ReportViolations | undefined {
-    if (!allReportsViolations) {
-        return undefined;
-    }
-
-    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+    const reportViolationKey = `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`;
+    return allReportsViolations?.[reportViolationKey];
 }
 
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
