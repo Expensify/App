@@ -783,6 +783,10 @@ export default {
         paddingBottom: 24,
     },
 
+    pb7: {
+        paddingBottom: 28,
+    },
+
     pb8: {
         paddingBottom: 32,
     },

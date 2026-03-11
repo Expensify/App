@@ -50,12 +50,10 @@ function TrialPaymentReminderModal({isVisible, variant, daysRemaining, countdown
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
-            <View style={[styles.alignItemsCenter, {backgroundColor: colors.blue800}]}>
+            <View style={[styles.alignItemsCenter, styles.wAuto, {backgroundColor: colors.blue800, height: CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}, styles.pb7]}>
                 <ImageSVG
                     src={illustrations.ArmWithCardPos}
                     contentFit="contain"
-                    width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
-                    height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
                 />
             </View>
             <View style={[styles.m5]}>
