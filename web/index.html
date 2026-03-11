@@ -61,14 +61,14 @@
             -webkit-user-select: none !important;
             -webkit-touch-callout: none !important;
         }
-        :focus-visible {
+        :focus-visible:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        :focus-visible[data-inner-box-shadow-element]{
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]{
             overflow: hidden;
         }
-        :focus-visible[data-inner-box-shadow-element]::before {
+        :focus-visible:not([data-programmatic-focus="true"])[data-inner-box-shadow-element]::before {
             content: '';
             position: absolute;
             top: 0;
@@ -79,7 +79,7 @@
             pointer-events: none;
             z-index: 1000;
         }
-        :focus[data-focusvisible-polyfill] {
+        :focus[data-focusvisible-polyfill]:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }

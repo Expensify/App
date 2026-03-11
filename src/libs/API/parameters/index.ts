@@ -387,6 +387,7 @@ export type {default as UpdateCardSettlementAccountParams} from './UpdateCardSet
 export type {default as ConfigureTravelInvoicingForPolicyParams} from './ConfigureTravelInvoicingForPolicyParams';
 export type {default as DeactivateTravelInvoicingParams} from './DeactivateTravelInvoicingParams';
 export type {default as SetTravelInvoicingSettlementAccountParams} from './SetTravelInvoicingSettlementAccountParams';
+export type {default as PayTravelInvoicingSpendParams} from './PayTravelInvoicingSpendParams';
 export type {default as UpdateTravelInvoicingSettlementFrequencyParams} from './UpdateTravelInvoicingSettlementFrequencyParams';
 export type {default as GetTravelInvoiceStatementPDFParams} from './GetTravelInvoiceStatementPDFParams';
 export type {default as ExportTravelInvoiceStatementCSVParams} from './ExportTravelInvoiceStatementCSVParams';
@@ -484,6 +485,7 @@ export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCodingRuleParams} from './SetPolicyCodingRuleParams';
 export type {default as RegisterAuthenticationKeyParams} from './RegisterAuthenticationKeyParams';
+export type {default as RevokeMultifactorAuthenticationCredentialsParams} from './RevokeMultifactorAuthenticationCredentialsParams';
 export type {default as TroubleshootMultifactorAuthenticationParams} from './TroubleshootMultifactorAuthenticationParams';
 export type {default as RequestAuthenticationChallengeParams} from './RequestAuthenticationChallengeParams';
 export type {default as GetTransactionsMatchingCodingRuleParams} from './GetTransactionsMatchingCodingRuleParams';

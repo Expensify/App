@@ -14,6 +14,7 @@ import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@componen
 import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 type PieChartProps = ChartProps & {
     /** Callback when a slice is pressed */
@@ -133,9 +134,13 @@ function PieChartContent({data, title, titleIcon, isLoading, valueUnit, valueUni
     };
 
     if (isLoading) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
             <View style={[styles.pieChartContainer, styles.highlightBG, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator
+                    size="large"
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
         );
     }
