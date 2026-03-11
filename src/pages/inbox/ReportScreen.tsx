@@ -4,17 +4,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
-// eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
-import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
@@ -48,7 +44,6 @@ import {
     isMoneyRequestAction,
     isReportActionVisible,
     isSentMoneyReportAction,
-    isTransactionThread,
     isWhisperAction,
 } from '@libs/ReportActionsUtils';
 import {
@@ -90,6 +85,7 @@ import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
+import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -259,7 +255,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [transactionThreadReportActions = getEmptyObject<OnyxTypes.ReportActions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const isSentMoneyReport = useMemo(() => reportActions.some((action) => isSentMoneyReportAction(action)), [reportActions]);
@@ -560,26 +555,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [reportMetadata?.isLoadingInitialReportActions, reportMetadata?.hasOnceLoadedReportActions],
     );
 
-    // In this case we want to use this value. The  shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
-
-    // WideRHP should be visible only on wide layout when report is opened in RHP and contains only one expense.
-    // This view is only available for reports of type CONST.REPORT.TYPE.EXPENSE or CONST.REPORT.TYPE.IOU.
-    const shouldShowWideRHP =
-        route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
-        !isSmallScreenWidth &&
-        !shouldDisplayMoneyRequestActionsList &&
-        (isTransactionThread(parentReportAction) ||
-            parentReportAction?.childType === CONST.REPORT.TYPE.EXPENSE ||
-            parentReportAction?.childType === CONST.REPORT.TYPE.IOU ||
-            report?.type === CONST.REPORT.TYPE.EXPENSE ||
-            report?.type === CONST.REPORT.TYPE.IOU);
-
-    useShowWideRHPVersion(shouldShowWideRHP);
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
@@ -629,17 +606,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 <ReportHeader />
                                 <AccountManagerBanner reportID={reportIDFromRoute} />
                                 <View style={[styles.flex1, styles.flexRow]}>
-                                    {shouldShowWideRHP && (
-                                        <Animated.View style={styles.wideRHPMoneyRequestReceiptViewContainer}>
-                                            <ScrollView contentContainerStyle={styles.wideRHPMoneyRequestReceiptViewScrollViewContainer}>
-                                                <MoneyRequestReceiptView
-                                                    report={transactionThreadReport ?? report}
-                                                    fillSpace
-                                                    isDisplayedInWideRHP
-                                                />
-                                            </ScrollView>
-                                        </Animated.View>
-                                    )}
+                                    <WideRHPReceiptPanel />
                                     <View
                                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                         testID="report-actions-view-wrapper"
