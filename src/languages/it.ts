@@ -6889,6 +6889,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     return `${enabled ? 'attivato' : 'disattivato'} contabilità`;
                 case 'Expensify Cards':
                     return `${enabled ? 'attivato' : 'disattivato'} Carte Expensify`;
+                case 'travel invoicing':
+                    return `fatturazione viaggi ${enabled ? 'attivato' : 'disattivato'}`;
                 case 'company cards':
                     return `${enabled ? 'attivato' : 'disattivato'} carte aziendali`;
                 case 'invoicing':

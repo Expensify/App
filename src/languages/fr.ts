@@ -6927,6 +6927,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     return `Comptabilité ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activé' : 'Désactivé'} Cartes Expensify`;
+                case 'travel invoicing':
+                    return `Facturation de voyages ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'company cards':
                     return `${enabled ? 'activé' : 'Désactivé'} cartes de société`;
                 case 'invoicing':
