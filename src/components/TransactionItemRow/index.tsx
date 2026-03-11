@@ -802,7 +802,7 @@ function TransactionItemRow({
                         <PressableWithFeedback
                             disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
-                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
