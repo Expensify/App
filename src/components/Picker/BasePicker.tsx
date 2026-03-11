@@ -235,7 +235,6 @@ function BasePicker<TPickerValue>({
                         accessible: true,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         accessibilityLabel: enhancedAccessibilityLabel,
-                        accessibilityState: {disabled: isDisabled, expanded: isHighlighted},
                     }}
                     pickerProps={{
                         ref: picker,
