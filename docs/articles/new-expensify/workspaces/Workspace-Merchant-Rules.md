@@ -116,10 +116,6 @@ This ensures office-related purchases follow company coding standards.
 
 # FAQ
 
-## Who Can Enable Workspace Merchant Rules?
-
-## Who can enable Workspace Merchant Rules?
-
 ## What fields can Workspace Merchant Rules update?
 
 Workspace Merchant Rules can update expense fields such as the category, tag, reimbursable status, billable status, tax, merchant name, and description.
