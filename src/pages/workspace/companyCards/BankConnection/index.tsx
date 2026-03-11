@@ -11,6 +11,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -113,10 +114,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
                 />
             );
         }
+        const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BankConnection',
+            isPlaid,
+            isAllFeedsResultLoading,
+            isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
+        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
+                reasonAttributes={activityReasonAttributes}
             />
         );
     };

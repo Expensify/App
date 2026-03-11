@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
@@ -69,7 +70,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate(isRefreshConnectionFlow ? 'workspace.moreFeatures.companyCards.assignNewCards' : 'workspace.companyCards.assignCard') : headerTitleAddCards;
 
-    const renderLoading = () => <FullScreenLoadingIndicator />;
+    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BankConnection',
+    };
+    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BankConnection',
+        isAllFeedsResultLoading,
+        isBlockedToAddNewFeedsWithoutFeed: isBlockedToAddNewFeeds && !feed,
+        isConnectionCompleted,
+        isPlaid,
+    };
+    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
@@ -120,6 +131,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, isRefreshConn
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
+                reasonAttributes={activityReasonAttributes}
             />
         );
     };
