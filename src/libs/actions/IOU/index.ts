@@ -125,9 +125,9 @@ import {
     buildOptimisticMovedTransactionAction,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
+    buildOptimisticReopenedReportAction,
     buildOptimisticReportLevelRejectAction,
     buildOptimisticReportLevelRejectCommentAction,
-    buildOptimisticReopenedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRetractedReportAction,
     buildOptimisticSelfDMReport,
@@ -12963,10 +12963,7 @@ function rejectExpenseReport(reportID: string, targetAccountID: number, comment:
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, targetAccountID, baseTimestamp);
-    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
-        comment,
-        DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
-    );
+    const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
 
     const optimisticStateNum = isRejectToSubmitter ? CONST.REPORT.STATE_NUM.OPEN : CONST.REPORT.STATE_NUM.SUBMITTED;
     const optimisticStatusNum = isRejectToSubmitter ? CONST.REPORT.STATUS_NUM.OPEN : CONST.REPORT.STATUS_NUM.SUBMITTED;

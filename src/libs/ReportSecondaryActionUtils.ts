@@ -933,7 +933,6 @@ function getSecondaryReportActions({
     }
 
     if (canRejectReportAction(currentUserLogin, report)) {
-        console.log("xxxxxxxxxxxxxxx", report)
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 

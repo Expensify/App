@@ -12865,11 +12865,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
  * Builds an optimistic report action for report-level rejection.
  * Uses REJECTED when rejecting to a previous approver, REJECTEDTOSUBMITTER when rejecting to the submitter.
  */
-function buildOptimisticReportLevelRejectAction(
-    isRejectToSubmitter: boolean,
-    targetAccountID: number,
-    created = DateUtils.getDBTime(),
-): OptimisticRejectReportAction {
+function buildOptimisticReportLevelRejectAction(isRejectToSubmitter: boolean, targetAccountID: number, created = DateUtils.getDBTime()): OptimisticRejectReportAction {
     return {
         reportActionID: rand64(),
         actionName: isRejectToSubmitter ? CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER : CONST.REPORT.ACTIONS.TYPE.REJECTED,
