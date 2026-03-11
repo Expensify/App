@@ -36,7 +36,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {environmentURL} = useEnvironment();
 
     const actionHasReasoning = hasReasoning(action);
-    const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}<sparkles-icon/>` : message;
+    const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
 
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
