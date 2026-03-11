@@ -164,7 +164,7 @@ import ViolationsUtils from './Violations/ViolationsUtils';
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
 type GroupBySection = {
-    title: string;
+    sectionIndex: number;
     options: Array<SingleSelectItem<SearchGroupBy>>;
 };
 
@@ -3988,22 +3988,21 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
 
     return [
         {
-            title: translate('common.member'),
-            options: [getOption(CONST.SEARCH.GROUP_BY.FROM)],
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
         },
         {
-            title: `${translate('common.expense')} ${translate('common.details')}`,
-            options: [getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.TAG)],
+            options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
         },
         {
-            title: translate('common.date'),
-            options: [getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.QUARTER), getOption(CONST.SEARCH.GROUP_BY.YEAR)],
+            options: [getOption(CONST.SEARCH.GROUP_BY.MONTH), getOption(CONST.SEARCH.GROUP_BY.WEEK), getOption(CONST.SEARCH.GROUP_BY.YEAR), getOption(CONST.SEARCH.GROUP_BY.QUARTER)],
         },
         {
-            title: translate('search.reconciliation'),
             options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
         },
-    ];
+    ].map((section, sectionIndex) => ({
+        ...section,
+        sectionIndex,
+    }));
 }
 
 function getViewOptions(translate: LocalizedTranslate) {
@@ -4802,4 +4801,4 @@ export {
     isEligibleForApproveSuggestion,
     applySelectionToItem,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection};

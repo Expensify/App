@@ -1,18 +1,17 @@
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
-import Text from '@components/Text';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -168,16 +167,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
     const groupByOptions = getGroupByOptions(translate);
-    const groupBySections = getGroupBySections(translate).map((section, sectionIndex) => ({
-        title: section.title,
-        sectionIndex,
-        customHeader: (
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionIndex > 0 && styles.mt4]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
-            </View>
-        ),
-        data: section.options,
-    }));
+    const groupBySections = getGroupBySections(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -296,9 +286,8 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
+        <GroupByPopup
             label={translate('search.groupBy')}
-            items={groupByOptions}
             sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}

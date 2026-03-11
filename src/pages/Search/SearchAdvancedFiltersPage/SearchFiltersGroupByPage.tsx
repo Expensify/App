@@ -8,7 +8,6 @@ import type {SearchGroupBy} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,21 +24,16 @@ function SearchFiltersGroupByPage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const sections = useMemo(() => {
-        return getGroupBySections(translate).map((section, sectionIndex) => ({
-            title: section.title,
-            sectionIndex,
-            customHeader: (
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionIndex > 0 && styles.mt4]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
-                </View>
-            ),
-            data: section.options.map((groupOption) => ({
+        return getGroupBySections(translate).map((section) => ({
+            sectionIndex: section.sectionIndex,
+            ...(section.sectionIndex > 0 ? {customHeader: <View style={styles.dividerLine} />} : {}),
+            data: section.options.map<ListItem<SearchGroupBy>>((groupOption) => ({
                 text: groupOption.text,
                 keyForList: groupOption.value,
                 isSelected: selectedItem === groupOption.value,
             })),
         }));
-    }, [selectedItem, styles.justifyContentCenter, styles.mt4, styles.optionsListSectionHeader, styles.ph5, styles.textLabelSupporting, translate]);
+    }, [selectedItem, styles.dividerLine, translate]);
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);
     }, []);
