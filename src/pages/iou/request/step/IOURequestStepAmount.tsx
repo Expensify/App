@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
@@ -19,7 +19,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import {getDraftTransactionByID, setTransactionReport} from '@libs/actions/Transaction';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
@@ -30,7 +30,6 @@ import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
-    getAllTransactionViolations,
     getMoneyRequestParticipantsFromReport,
     requestMoney,
     setMoneyRequestAmount,
@@ -131,7 +130,9 @@ function IOURequestStepAmount({
     const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -250,7 +251,7 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
-                    const existingTransactionDraft = existingTransactionID ? getDraftTransactionByID(existingTransactionID) : undefined;
+                    const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                     requestMoney({
                         report,
@@ -273,11 +274,11 @@ function IOURequestStepAmount({
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
                         currentUserEmailParam,
-                        transactionViolations: getAllTransactionViolations(),
+                        transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         existingTransactionDraft,
-                        draftTransactionIDs: draftTransactionIDs ?? [],
+                        draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
                     });
