@@ -439,6 +439,7 @@ function SettlementButton({
                     betas,
                     userBillingGraceEndPeriods,
                     amountOwed,
+                    ownerBillingGraceEndPeriod,
                     full: false,
                 });
             }

@@ -370,6 +370,7 @@ function MoneyRequestReportPreviewContent({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
             });
         }

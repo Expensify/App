@@ -9693,6 +9693,7 @@ type ApproveMoneyRequestParam = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
     full?: boolean;
 };
 
@@ -9707,13 +9708,14 @@ function approveMoneyRequest({
     betas,
     userBillingGraceEndPeriods,
     amountOwed,
+    ownerBillingGraceEndPeriod,
     full,
 }: ApproveMoneyRequestParam) {
     if (!expenseReport) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }

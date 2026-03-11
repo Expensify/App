@@ -195,6 +195,7 @@ describe('PaymentUtils', () => {
             betas: [],
             userBillingGraceEndPeriods: undefined,
             amountOwed: 0,
+            ownerBillingGraceEndPeriod: undefined,
         };
 
         beforeEach(() => {
@@ -204,7 +205,7 @@ describe('PaymentUtils', () => {
 
         it('should navigate to restricted action page when billable actions are restricted and amountOwed > 0', () => {
             mockShouldRestrict.mockReturnValue(true);
-            const params = {...baseParams, amountOwed: 100};
+            const params = {...baseParams, amountOwed: 100, ownerBillingGraceEndPeriod: 999};
 
             selectPaymentType(params);
 
@@ -214,19 +215,19 @@ describe('PaymentUtils', () => {
 
         it('should not navigate to restricted action page when amountOwed is 0', () => {
             mockShouldRestrict.mockReturnValue(false);
-            const params = {...baseParams, amountOwed: 0};
+            const params = {...baseParams, amountOwed: 0, ownerBillingGraceEndPeriod: undefined};
 
             selectPaymentType(params);
 
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed to shouldRestrictUserBillableActions', () => {
-            const params = {...baseParams, amountOwed: 42};
+        it('should pass amountOwed and ownerBillingGraceEndPeriod to shouldRestrictUserBillableActions', () => {
+            const params = {...baseParams, amountOwed: 42, ownerBillingGraceEndPeriod: 999};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42, 999);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -258,8 +259,8 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).not.toHaveBeenCalled();
         });
 
-        it('should call approveMoneyRequest with amountOwed when payment type is APPROVE and no confirmApproval', () => {
-            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42};
+        it('should call approveMoneyRequest with amountOwed and ownerBillingGraceEndPeriod when payment type is APPROVE and no confirmApproval', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42, ownerBillingGraceEndPeriod: 999};
 
             selectPaymentType(params);
 
@@ -274,12 +275,13 @@ describe('PaymentUtils', () => {
                 betas: params.betas,
                 userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
                 amountOwed: 42,
+                ownerBillingGraceEndPeriod: 999,
                 full: true,
             });
         });
 
-        it('should pass amountOwed as undefined to approveMoneyRequest when amountOwed is undefined', () => {
-            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined};
+        it('should pass amountOwed and ownerBillingGraceEndPeriod as undefined to approveMoneyRequest when they are undefined', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined, ownerBillingGraceEndPeriod: undefined};
 
             selectPaymentType(params);
 
@@ -294,6 +296,7 @@ describe('PaymentUtils', () => {
                 betas: params.betas,
                 userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
                 amountOwed: undefined,
+                ownerBillingGraceEndPeriod: undefined,
                 full: true,
             });
         });
@@ -315,12 +318,12 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed as undefined when it is undefined', () => {
-            const params = {...baseParams, amountOwed: undefined};
+        it('should pass amountOwed and ownerBillingGraceEndPeriod as undefined when they are undefined', () => {
+            const params = {...baseParams, amountOwed: undefined, ownerBillingGraceEndPeriod: undefined};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined, undefined);
         });
     });
 });

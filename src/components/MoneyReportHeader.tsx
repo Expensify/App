@@ -753,6 +753,7 @@ function MoneyReportHeader({
                 betas,
                 userBillingGraceEndPeriods,
                 amountOwed,
+                ownerBillingGraceEndPeriod,
                 full: true,
             });
         }
@@ -1952,6 +1953,7 @@ function MoneyReportHeader({
             betas,
             userBillingGraceEndPeriods,
             amountOwed,
+            ownerBillingGraceEndPeriod,
         });
 
     const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
