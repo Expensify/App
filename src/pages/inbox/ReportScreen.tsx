@@ -66,9 +66,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             route={route}
                             navigation={navigation}
                         />
-                        <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
                         <ReportFetchController />
                         <ReportNotFoundGuard>
+                            <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
                             <ReportHeader />
                             <AccountManagerBanner reportID={reportIDFromRoute} />
                             <View style={[styles.flex1, styles.flexRow]}>
