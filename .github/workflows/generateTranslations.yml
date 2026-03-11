@@ -13,9 +13,21 @@ on:
         type: string
 
 jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   generateTranslations:
+    needs: [validate]
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork }}
+    if: |
+      always()
+      && (needs.validate.result == 'skipped' || needs.validate.outputs.IS_AUTHORIZED == 'true')
+      && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.head.repo.fork)
     steps:
       - name: Get PR details
         id: pr-data
