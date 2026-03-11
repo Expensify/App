@@ -1,15 +1,25 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {emailSelector} from '@selectors/Session';
+import colors from '@styles/theme/colors';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type GetStartedTravelProps = {
@@ -19,11 +29,17 @@ type GetStartedTravelProps = {
 function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
+    const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const primaryContactMethod = account?.primaryLogin ?? sessionEmail ?? '';
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
@@ -32,10 +48,31 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     };
 
     const handleManageTravel = () => {
-        // TODO: Show the prevention modal when the beta is enabled
         if (isPreventSpotnanaTravelEnabled) {
+            showConfirmModal({
+                title: translate('travel.blockedFeatureModal.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                prompt: translate('travel.blockedFeatureModal.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
+
+        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+
+        if (isEmailPublicDomain(primaryContactMethod)) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
+            return;
+        }
+
         openTravelDotLink(policyID);
     };
 
