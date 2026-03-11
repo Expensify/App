@@ -564,7 +564,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseDocument: 'Choisir un fichier',
         attachmentTooLarge: 'La pièce jointe est trop volumineuse',
         sizeExceeded: 'La taille de la pièce jointe dépasse la limite de 24 Mo',
-        sizeExceededWithLimit: (maxUploadSizeInMB) => `La taille de la pièce jointe dépasse la limite de ${maxUploadSizeInMB} Mo`,
+        sizeExceededWithLimit: (maxUploadSizeInMB: number) => `La taille de la pièce jointe dépasse la limite de ${maxUploadSizeInMB} Mo`,
         attachmentTooSmall: 'La pièce jointe est trop petite',
         sizeNotMet: 'La taille de la pièce jointe doit être supérieure à 240 octets',
         wrongFileType: 'Type de fichier non valide',
@@ -575,9 +575,9 @@ const translations: TranslationDeepObject<typeof en> = {
         attachmentImageTooLarge: 'Cette image est trop volumineuse pour être prévisualisée avant le téléversement.',
         imageDimensionsTooLarge: "Les dimensions de l'image sont trop grandes pour être traitées. Veuillez utiliser une image plus petite.",
         tooManyFiles: (fileLimit: number) => `Vous pouvez téléverser au maximum ${fileLimit} fichiers à la fois.`,
-        sizeExceededWithValue: (maxUploadSizeInMB) => `Les fichiers dépassent ${maxUploadSizeInMB} Mo. Veuillez réessayer.`,
+        sizeExceededWithValue: (maxUploadSizeInMB: number) => `Les fichiers dépassent ${maxUploadSizeInMB} Mo. Veuillez réessayer.`,
         someFilesCantBeUploaded: 'Certains fichiers ne peuvent pas être téléversés',
-        sizeLimitExceeded: (maxUploadSizeInMB) => `Les fichiers doivent être inférieurs à ${maxUploadSizeInMB} Mo. Les fichiers plus volumineux ne seront pas téléversés.`,
+        sizeLimitExceeded: (maxUploadSizeInMB: number) => `Les fichiers doivent être inférieurs à ${maxUploadSizeInMB} Mo. Les fichiers plus volumineux ne seront pas téléversés.`,
         maxFileLimitExceeded: "Vous pouvez téléverser jusqu'à 30 reçus à la fois. Les reçus supplémentaires ne seront pas téléversés.",
         unsupportedFileType: (fileType: string) => `Les fichiers ${fileType} ne sont pas pris en charge. Seuls les types de fichiers pris en charge seront téléchargés.`,
         learnMoreAboutSupportedFiles: 'En savoir plus sur les formats pris en charge.',
@@ -912,8 +912,10 @@ const translations: TranslationDeepObject<typeof en> = {
             shouldUseYou
                 ? `Cette discussion n’est plus active, car <strong>vous</strong> n’êtes plus membre de l’espace de travail ${policyName}.`
                 : `Cette discussion n’est plus active, car ${displayName} n’est plus membre de l’espace de travail ${policyName}.`,
-        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: (policyName) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
-        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: (policyName) => `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
+        [CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
+            `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
+        [CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED]: ({policyName}: ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams) =>
+            `Cette discussion n’est plus active, car ${policyName} n’est plus un espace de travail actif.`,
         [CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED]: 'Cette réservation est archivée.',
     },
     writeCapabilityPage: {
@@ -1542,7 +1544,7 @@ const translations: TranslationDeepObject<typeof en> = {
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
         changeApprover: {
             title: 'Modifier l’approbateur',
-            header: (workflowSettingLink) =>
+            header: (workflowSettingLink: string) =>
                 `Choisissez une option pour modifier l’approbateur de cette note de frais. (Mettez à jour vos <a href="${workflowSettingLink}">paramètres d’espace de travail</a> pour changer cela définitivement pour toutes les notes de frais.)`,
             changedApproverMessage: (managerID: number) => `a changé l'approbateur en <mention-user accountID="${managerID}"/>`,
             actions: {
@@ -2263,16 +2265,17 @@ const translations: TranslationDeepObject<typeof en> = {
         availableSpend: 'Plafond restant',
         smartLimit: {
             name: 'Limite intelligente',
-            title: (formattedLimit) =>
+            title: (formattedLimit: string) =>
                 `Vous pouvez dépenser jusqu'à ${formattedLimit} avec cette carte, et la limite sera réinitialisée au fur et à mesure que vos dépenses soumises seront approuvées.`,
         },
         fixedLimit: {
             name: 'Limite fixe',
-            title: (formattedLimit) => `Vous pouvez dépenser jusqu’à ${formattedLimit} avec cette carte, après quoi elle sera désactivée.`,
+            title: (formattedLimit: string) => `Vous pouvez dépenser jusqu’à ${formattedLimit} avec cette carte, après quoi elle sera désactivée.`,
         },
         monthlyLimit: {
             name: 'Plafond mensuel',
-            title: (formattedLimit) => `Vous pouvez dépenser jusqu’à ${formattedLimit} avec cette carte par mois. La limite sera réinitialisée le 1er jour de chaque mois calendaire.`,
+            title: (formattedLimit: string) =>
+                `Vous pouvez dépenser jusqu’à ${formattedLimit} avec cette carte par mois. La limite sera réinitialisée le 1er jour de chaque mois calendaire.`,
         },
         virtualCardNumber: 'Numéro de carte virtuelle',
         travelCardCvv: 'Cryptogramme de sécurité de la carte de voyage',
@@ -2733,7 +2736,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         workEmailValidation: {
             title: 'Vérifiez votre adresse e-mail professionnelle',
-            magicCodeSent: (workEmail) => `Veuillez saisir le code magique envoyé à ${workEmail}. Il devrait arriver d’ici une à deux minutes.`,
+            magicCodeSent: (workEmail: string | undefined) => `Veuillez saisir le code magique envoyé à ${workEmail}. Il devrait arriver d’ici une à deux minutes.`,
         },
         workEmailValidationError: {
             publicEmail: 'Veuillez saisir une adresse e-mail professionnelle valide provenant d’un domaine privé, par ex. mitch@company.com',
@@ -2741,7 +2744,8 @@ ${amount} pour ${merchant} - ${date}`,
         },
         mergeBlockScreen: {
             title: 'Impossible d’ajouter l’adresse e-mail professionnelle',
-            subtitle: (workEmail) => `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
+            subtitle: (workEmail: string | undefined) =>
+                `Nous n’avons pas pu ajouter ${workEmail}. Veuillez réessayer plus tard dans les Paramètres ou discuter avec Concierge pour obtenir de l’aide.`,
         },
         tasks: {
             testDriveAdminTask: {
@@ -3182,9 +3186,9 @@ ${
         setVacationDelegate: `Définissez un délégué de vacances pour approuver les notes de frais en votre nom pendant votre absence du bureau.`,
         cannotSetVacationDelegate: `Vous ne pouvez pas définir un délégué de vacances car vous êtes actuellement le délégué des membres suivants :`,
         vacationDelegateError: 'Une erreur s’est produite lors de la mise à jour de votre remplaçant de congés.',
-        asVacationDelegate: (nameOrEmail) => `en tant que délégué de vacances de ${nameOrEmail}`,
+        asVacationDelegate: (nameOrEmail: string) => `en tant que délégué de vacances de ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `à ${submittedToName} en tant que délégué de congés pour ${vacationDelegateName}`,
-        vacationDelegateWarning: (nameOrEmail) =>
+        vacationDelegateWarning: (nameOrEmail: string) =>
             `Vous assignez ${nameOrEmail} comme remplaçant pendant vos congés. Cette personne n’est pas encore présente dans tous vos espaces de travail. Si vous choisissez de continuer, un e-mail sera envoyé aux administrateurs de tous vos espaces de travail pour l’ajouter.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
@@ -3225,7 +3229,7 @@ ${
         hasPhoneLoginError: (contactMethodRoute: string) =>
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajouter une adresse e-mail comme identifiant principal</a> puis réessayer. Vous pouvez ajouter votre numéro de téléphone comme identifiant secondaire.`,
         hasBeenThrottledError: 'Une erreur s’est produite lors de l’ajout de votre compte bancaire. Veuillez patienter quelques minutes, puis réessayer.',
-        hasCurrencyError: (workspaceRoute) =>
+        hasCurrencyError: (workspaceRoute: string) =>
             `Oups ! Il semble que la devise de votre espace de travail soit définie sur une devise différente du dollar américain (USD). Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a>, la définir sur USD, puis réessayer.`,
         bbaAdded: 'Compte bancaire professionnel ajouté !',
         bbaAddedDescription: 'Il est prêt à être utilisé pour les paiements.',
@@ -3353,7 +3357,7 @@ ${
         haveReadAndAgreePlain: 'J’ai lu et j’accepte de recevoir les communications électroniques.',
         haveReadAndAgree: `J’ai lu et j’accepte de recevoir les <a href="${CONST.ELECTRONIC_DISCLOSURES_URL}">notifications électroniques</a>.`,
         agreeToThePlain: "J'accepte la politique de confidentialité et l'accord de portefeuille.",
-        agreeToThe: (walletAgreementUrl) =>
+        agreeToThe: (walletAgreementUrl: string) =>
             `J’accepte la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politique de confidentialité</a> et le <a href="${walletAgreementUrl}">contrat du portefeuille</a>.`,
         enablePayments: 'Activer les paiements',
         monthlyFee: 'Frais mensuels',
@@ -3365,7 +3369,7 @@ ${
         checkTheBoxes: 'Veuillez cocher les cases ci-dessous.',
         agreeToTerms: 'Acceptez les conditions et vous serez prêt à démarrer !',
         shortTermsForm: {
-            expensifyPaymentsAccount: (walletProgram) => `Le portefeuille Expensify est émis par ${walletProgram}.`,
+            expensifyPaymentsAccount: (walletProgram: string) => `Le portefeuille Expensify est émis par ${walletProgram}.`,
             perPurchase: 'Par achat',
             atmWithdrawal: 'Retrait au distributeur',
             cashReload: 'Rechargement en espèces',
@@ -4020,7 +4024,7 @@ ${
             appliedOnExport: 'Non importé dans Expensify, appliqué à l’export',
             shareNote: {
                 header: 'Partagez votre espace de travail avec d’autres membres',
-                content: (adminsRoomLink) =>
+                content: (adminsRoomLink: string) =>
                     `Partagez ce code QR ou copiez le lien ci-dessous pour permettre aux membres de demander facilement l’accès à votre espace de travail. Toutes les demandes pour rejoindre l’espace de travail apparaîtront dans le salon <a href="${adminsRoomLink}">${CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}</a> pour votre examen.`,
             },
             connectTo: ({connectionName}: ConnectionNameParams) => `Se connecter à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -5727,7 +5731,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
-            workspaceMembersCount: (count) => `Nombre total de membres de l'espace de travail : ${count}`,
+            workspaceMembersCount: (count: number) => `Nombre total de membres de l'espace de travail : ${count}`,
             importMembers: 'Importer des membres',
             removeMemberPromptApprover: (approver: string, workspaceOwner: string) =>
                 `Si vous supprimez ${approver} de cet espace de travail, nous le remplacerons dans le workflow d’approbation par ${workspaceOwner}, le responsable de l’espace de travail.`,
@@ -6362,7 +6366,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 perActiveMember: 'par membre actif et par mois.',
                 perMember: 'par membre et par mois.',
             },
-            note: (subscriptionLink) =>
+            note: (subscriptionLink: string) =>
                 `<muted-text>Mettez à niveau pour accéder à cette fonctionnalité, ou <a href="${subscriptionLink}">en savoir plus</a> sur nos offres et nos tarifs.</muted-text>`,
             upgradeToUnlock: 'Débloquer cette fonctionnalité',
             completed: {
@@ -6429,7 +6433,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         restrictedAction: {
             restricted: 'Restreint',
             actionsAreCurrentlyRestricted: (workspaceName: string) => `Les actions sur l’espace de travail ${workspaceName} sont actuellement restreintes`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: (workspaceOwnerName) =>
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: (workspaceOwnerName: string) =>
                 `Le responsable de l’espace de travail, ${workspaceOwnerName}, doit ajouter ou mettre à jour la carte de paiement enregistrée pour débloquer la nouvelle activité de l’espace de travail.`,
             youWillNeedToAddOrUpdatePaymentCard: 'Vous devez ajouter ou mettre à jour la carte de paiement enregistrée afin de débloquer la nouvelle activité de l’espace de travail.',
             addPaymentCardToUnlock: 'Ajoutez une carte de paiement pour tout débloquer !',
@@ -6779,7 +6783,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
-        updateCustomUnitTaxEnabled: (newValue) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
+        updateCustomUnitTaxEnabled: (newValue: boolean) => `Suivi fiscal ${newValue ? 'activé' : 'Désactivé'} sur les taux de distance`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `a ajouté un nouveau taux ${customUnitName} « ${rateName} »`,
         updatedCustomUnitRate: (customUnitName: string, customUnitRateName: string, updatedField: string, newValue: string, oldValue: string) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » en « ${newValue} » (auparavant « ${oldValue} »)`,
@@ -6955,7 +6959,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 : `définir le site web de l’entreprise de la facture sur « ${newValue} »`,
         changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
             previousReimburser ? `a modifié le payeur autorisé en « ${newReimburser} » (auparavant « ${previousReimburser} »)` : `a modifié le payeur autorisé en « ${newReimburser} »`,
-        updateReimbursementEnabled: (enabled) => `Remboursements ${enabled ? 'Activé' : 'Désactivé'}`,
+        updateReimbursementEnabled: (enabled: boolean) => `Remboursements ${enabled ? 'Activé' : 'Désactivé'}`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
             `a modifié le taux de taxe par défaut de la devise de l'espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
@@ -6994,15 +6998,15 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         setMaxExpenseAge: (newValue: string) => `définir l’ancienneté maximale des dépenses à « ${newValue} » jours`,
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `âge maximal de dépense modifié à « ${newValue} » jours (auparavant « ${oldValue} »)`,
         removedMaxExpenseAge: (oldValue: string) => `âge maximal de dépense supprimé (auparavant « ${oldValue} » jours)`,
-        updateCategories: (count) => `${count} catégories mises à jour`,
-        updateTagList: (tagListName) => `a mis à jour les tags dans la liste « ${tagListName} »`,
+        updateCategories: (count: number) => `${count} catégories mises à jour`,
+        updateTagList: (tagListName: string) => `a mis à jour les tags dans la liste « ${tagListName} »`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
             `a modifié la liste de tags « ${tagListsName} » en ${isRequired ? 'obligatoire' : 'non obligatoire'}`,
         importTags: 'tags importés depuis une feuille de calcul',
         deletedAllTags: 'a supprimé tous les tags',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `a modifié la catégorie par défaut pour ${customUnitName} en « ${newValue} » ${oldValue ? `(auparavant « ${oldValue} »)` : ''}`,
-        importCustomUnitRates: (customUnitName) => `taux importés pour l’unité personnalisée « ${customUnitName} »`,
+        importCustomUnitRates: (customUnitName: string) => `taux importés pour l’unité personnalisée « ${customUnitName} »`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
             `a modifié le taux « ${customUnitName} », le sous-taux « ${customUnitRateName} », le sous-taux « ${customUnitSubRateName} » ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
@@ -7076,7 +7080,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
             return `a supprimé le budget de ${entityType} « ${entityName} »`;
         },
-        updatedTimeEnabled: (enabled) => {
+        updatedTimeEnabled: (enabled?: boolean) => {
             return `Suivi du temps ${enabled ? 'activé' : 'désactivé'}`;
         },
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
@@ -7091,7 +7095,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             `a modifié la formule du nom de note de frais personnalisée en « ${newDefaultTitle} » (précédemment « ${oldDefaultTitle} »)`,
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `a pris la responsabilité de ${policyName} à la place de ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: (enabled) => `Soumission planifiée pour ${enabled ? 'activé' : 'désactivé'}`,
+        updatedAutoHarvesting: (enabled: boolean) => `Soumission planifiée pour ${enabled ? 'activé' : 'désactivé'}`,
         updatedIndividualBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -7839,13 +7843,13 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         billableExpense: 'Facturable n’est plus valide',
         cashExpenseWithNoReceipt: (formattedLimit?: string) => `Reçu obligatoire${formattedLimit ? `au-delà de ${formattedLimit}` : ''}`,
         categoryOutOfPolicy: 'Catégorie plus valide',
-        conversionSurcharge: (surcharge) => `Surcharge de conversion de ${surcharge}% appliquée`,
+        conversionSurcharge: (surcharge: number) => `Surcharge de conversion de ${surcharge}% appliquée`,
         customUnitOutOfPolicy: 'Taux non valide pour cet espace de travail',
         duplicatedTransaction: 'Doublon potentiel',
         fieldRequired: 'Les champs de note de frais sont obligatoires',
         futureDate: 'Date future non autorisée',
-        invoiceMarkup: (invoiceMarkup) => `Majoration de ${invoiceMarkup} %`,
-        maxAge: (maxAge) => `Date antérieure de plus de ${maxAge} jours`,
+        invoiceMarkup: (invoiceMarkup: number) => `Majoration de ${invoiceMarkup} %`,
+        maxAge: (maxAge: number) => `Date antérieure de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
         missingComment: 'Description requise pour la catégorie sélectionnée',
         missingAttendees: 'Plusieurs participants sont requis pour cette catégorie',
@@ -7865,12 +7869,12 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         },
         modifiedDate: 'La date diffère du reçu scanné',
         nonExpensiworksExpense: 'Dépense non Expensiworks',
-        overAutoApprovalLimit: (formattedLimit) => `La dépense dépasse la limite d’auto-approbation de ${formattedLimit}`,
-        overCategoryLimit: (formattedLimit) => `Montant dépassant la limite de catégorie de ${formattedLimit}/personne`,
-        overLimit: (formattedLimit) => `Montant dépassant la limite de ${formattedLimit}/personne`,
-        overTripLimit: (formattedLimit) => `Montant dépassant la limite de ${formattedLimit}/trajet`,
-        overLimitAttendee: (formattedLimit) => `Montant dépassant la limite de ${formattedLimit}/personne`,
-        perDayLimit: (formattedLimit) => `Montant dépassant la limite quotidienne de catégorie de ${formattedLimit}/personne`,
+        overAutoApprovalLimit: (formattedLimit: string) => `La dépense dépasse la limite d’auto-approbation de ${formattedLimit}`,
+        overCategoryLimit: (formattedLimit: string) => `Montant dépassant la limite de catégorie de ${formattedLimit}/personne`,
+        overLimit: (formattedLimit: string) => `Montant dépassant la limite de ${formattedLimit}/personne`,
+        overTripLimit: (formattedLimit: string) => `Montant dépassant la limite de ${formattedLimit}/trajet`,
+        overLimitAttendee: (formattedLimit: string) => `Montant dépassant la limite de ${formattedLimit}/personne`,
+        perDayLimit: (formattedLimit: string) => `Montant dépassant la limite quotidienne de catégorie de ${formattedLimit}/personne`,
         receiptNotSmartScanned: 'Détails du reçu et de la dépense ajoutés manuellement.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             if (formattedLimit && category) {
@@ -7914,7 +7918,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             }
             return `${preMessage} ${types.map(getProhibitedExpenseTypeText).join(', ')}`;
         },
-        customRules: (message) => message,
+        customRules: (message: string) => message,
         reviewRequired: 'Examen requis',
         rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
@@ -8136,9 +8140,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             title: 'Votre offre',
             exploreAllPlans: 'Découvrir toutes les offres',
             customPricing: 'Tarification personnalisée',
-            asLowAs: (price) => `à partir de ${price} par membre actif/mois`,
-            pricePerMemberMonth: (price) => `${price} par membre/mois`,
-            pricePerMemberPerMonth: (price) => `${price} par membre et par mois`,
+            asLowAs: (price: string) => `à partir de ${price} par membre actif/mois`,
+            pricePerMemberMonth: (price: string) => `${price} par membre/mois`,
+            pricePerMemberPerMonth: (price: string) => `${price} par membre et par mois`,
             perMemberMonth: 'par membre/mois',
             collect: {
                 title: 'Encaisser',
@@ -8255,7 +8259,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 title: 'Abonnement annulé',
                 subtitle: 'Votre abonnement annuel a été annulé.',
                 info: 'Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail à l’utilisation, tout est prêt.',
-                preventFutureActivity: (workspacesListRoute) =>
+                preventFutureActivity: (workspacesListRoute: string) =>
                     `Si vous souhaitez empêcher toute activité et tout prélèvement futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a>. Notez que lorsque vous supprimez votre/vos espace(s) de travail, vous serez facturé pour toute activité en cours survenue durant le mois civil en cours.`,
             },
             requestSubmitted: {

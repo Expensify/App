@@ -6888,7 +6888,7 @@ const translations = {
             }
             return `removed budget from the ${entityType} "${entityName}"`;
         },
-        updatedTimeEnabled: (enabled: boolean | undefined) => {
+        updatedTimeEnabled: (enabled?: boolean) => {
             return `${enabled ? 'enabled' : 'disabled'} time tracking`;
         },
 
