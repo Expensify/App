@@ -13,6 +13,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
@@ -38,6 +39,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionSelector});
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
     const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const reportID = useMemo(() => generateReportID(), []);
 
     const policyChatForActivePolicySelector = useCallback(
@@ -54,13 +56,20 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
     const onPress = () => {
         interceptAnonymousUser(() => {
-            if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods)) {
+            if (
+                policyChatForActivePolicy?.policyID &&
+                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
+            startSpan(CONST.TELEMETRY.SPAN_SCAN_SHORTCUT, {
+                name: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+                op: CONST.TELEMETRY.SPAN_SCAN_SHORTCUT,
+            });
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts, true);
         });
     };

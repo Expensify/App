@@ -66,7 +66,6 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportPreview
-                            policies={{}}
                             policyID={mockChatReport.policyID}
                             action={mockAction}
                             iouReportID={mockIOUReport.reportID}
