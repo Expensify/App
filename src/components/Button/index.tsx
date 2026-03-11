@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import shouldUseNativeDisabledOnWebDefault from './shouldUseNativeDisabledOnWeb';
+import enableNativeDisabledDefault from './enableNativeDisabled';
 import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -186,7 +186,7 @@ type ButtonProps = Partial<ChildrenProps> &
         /**
          * Whether disabled/loading states should also set native disabled semantics on web.
          */
-        shouldUseNativeDisabledOnWeb?: boolean;
+        enableNativeDisabled?: boolean;
     };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -292,7 +292,7 @@ function Button({
     secondLineText = '',
     shouldBlendOpacity = false,
     shouldStayNormalOnDisable = false,
-    shouldUseNativeDisabledOnWeb = shouldUseNativeDisabledOnWebDefault,
+    enableNativeDisabled = enableNativeDisabledDefault,
     sentryLabel,
     ref,
     ...rest
@@ -516,7 +516,7 @@ function Button({
                 onMouseDown={onMouseDown}
                 shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isDisabledOrLoading}
-                fullDisabled={shouldUseNativeDisabledOnWeb && isDisabledOrLoading}
+                fullDisabled={enableNativeDisabled && isDisabledOrLoading}
                 wrapperStyle={[
                     isDisabled && !shouldStayNormalOnDisable ? {...styles.cursorDisabled, ...styles.noSelect} : {},
                     styles.buttonContainer,
