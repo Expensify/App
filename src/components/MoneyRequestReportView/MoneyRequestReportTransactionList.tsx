@@ -4,7 +4,7 @@ import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, u
 import {View} from 'react-native';
 // ScrollView type is needed for the horizontal scroll ref; the project ScrollView component is used for rendering.
 // eslint-disable-next-line no-restricted-imports
-import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -101,6 +101,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
     isLoadingInitialReportActions?: boolean;
+
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -156,6 +159,7 @@ function MoneyRequestReportTransactionList({
     scrollToNewTransaction,
     policy,
     hasComments,
+    onLayout,
     isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
@@ -185,6 +189,7 @@ function MoneyRequestReportTransactionList({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -195,8 +200,19 @@ function MoneyRequestReportTransactionList({
 
     const addExpenseDropdownOptions = useMemo(
         () =>
-            getAddExpenseDropdownOptions(translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, undefined, undefined, lastDistanceExpenseType),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType],
+            getAddExpenseDropdownOptions(
+                translate,
+                expensifyIcons,
+                report?.reportID,
+                policy,
+                userBillingGraceEndPeriodCollection,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
+                undefined,
+                undefined,
+                lastDistanceExpenseType,
+            ),
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriodCollection, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -510,7 +526,10 @@ function MoneyRequestReportTransactionList({
     );
 
     const transactionListContent = (
-        <View style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}>
+        <View
+            style={[listHorizontalPadding, styles.gap2, styles.pb4, styles.mb2]}
+            onLayout={onLayout}
+        >
             {shouldShowGroupedTransactions
                 ? groupedTransactions.map((group) => {
                       const selectionState = groupSelectionState.get(group.groupKey) ?? {
@@ -629,6 +648,7 @@ function MoneyRequestReportTransactionList({
         return (
             <>
                 <SearchMoneyRequestReportEmptyState
+                    onLayout={onLayout}
                     report={report}
                     policy={policy}
                 />
@@ -665,6 +685,7 @@ function MoneyRequestReportTransactionList({
                     contentContainerStyle={{width: minTableWidth}}
                     onScroll={handleHorizontalScroll}
                     scrollEventThrottle={16}
+                    onLayout={onLayout}
                 >
                     <View style={[styles.flex1]}>
                         {tableHeaderContent}

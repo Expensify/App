@@ -156,6 +156,7 @@ describe('useGetExpensifyCardFromReportAction', () => {
 
             it('returns undefined when card does not exist in allExpensifyCards', async () => {
                 const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}123_${CONST.EXPENSIFY_CARD.BANK}`;
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {}});
 
                 const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
