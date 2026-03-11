@@ -2066,8 +2066,14 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
  * @param parentReport The parent report
  * @param currentUserAccountID the account ID of the current user, used for creating optimistic report if needed
  */
-function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>, currentUserAccountID: number) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID);
+function navigateToAndOpenChildReport(
+    childReport: OnyxEntry<Report>,
+    parentReportAction: ReportAction,
+    parentReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+) {
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
@@ -2077,7 +2083,13 @@ function navigateToAndOpenChildReport(childReport: OnyxEntry<Report>, parentRepo
  * If childReportID is not provided, creates an optimistic report and calls openReport()
  * so the optimistic data is available when navigating to the thread.
  */
-function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: ReportAction, parentReport: OnyxEntry<Report>, currentUserAccountID: number): Report {
+function createChildReport(
+    childReport: OnyxEntry<Report>,
+    parentReportAction: ReportAction,
+    parentReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
     const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
@@ -2099,7 +2111,7 @@ function createChildReport(childReport: OnyxEntry<Report>, parentReportAction: R
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
         openReport({
             reportID: newChat.reportID,
-            introSelected: deprecatedIntroSelected,
+            introSelected,
             participantLoginList: participantLogins,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
@@ -2122,6 +2134,7 @@ function explain(
     reportAction: OnyxEntry<ReportAction>,
     translate: LocalizedTranslate,
     currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
 ) {
     if (!originalReport?.reportID || !reportAction) {
@@ -2129,7 +2142,7 @@ function explain(
     }
 
     // Check if explanation thread report already exists
-    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID);
+    const report = childReport ?? createChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
     // Schedule adding the explanation comment on the next animation frame
@@ -2908,10 +2921,11 @@ function toggleSubscribeToChildReport(
     currentUserAccountID: number,
     parentReportAction: ReportAction,
     parentReport: OnyxEntry<Report>,
+    introSelected: OnyxEntry<IntroSelected>,
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport({reportID: childReportID, introSelected: deprecatedIntroSelected});
+        openReport({reportID: childReportID, introSelected});
         const parentReportActionID = parentReportAction.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(
@@ -2948,7 +2962,7 @@ function toggleSubscribeToChildReport(
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
         openReport({
             reportID: newChat.reportID,
-            introSelected: deprecatedIntroSelected,
+            introSelected,
             participantLoginList: participantLogins,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
@@ -4925,6 +4939,7 @@ type CompleteOnboardingProps = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldWaitForRHPVariantInitialization?: boolean;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
 };
 
@@ -4945,6 +4960,7 @@ async function completeOnboarding({
     onboardingPurposeSelected,
     shouldWaitForRHPVariantInitialization = false,
     introSelected,
+    isSelfTourViewed,
     betas,
 }: CompleteOnboardingProps) {
     const onboardingData = prepareOnboardingOnyxData({
@@ -4959,6 +4975,7 @@ async function completeOnboarding({
         selectedInterestedFeatures,
         isInvitedAccountant,
         onboardingPurposeSelected,
+        isSelfTourViewed,
         betas,
     });
     if (!onboardingData) {

@@ -17,8 +17,6 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
-    computePerDiemExpenseAmount,
-    isValidPerDiemExpenseAmount,
     setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestCategory,
@@ -28,6 +26,7 @@ import {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU';
+import {computePerDiemExpenseAmount, isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {adjustRemainingSplitShares, resetSplitShares, setIndividualShare, setSplitShares} from '@libs/actions/IOU/Split';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
