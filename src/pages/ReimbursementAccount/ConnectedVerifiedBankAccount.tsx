@@ -69,7 +69,7 @@ function ConnectedVerifiedBankAccount({
     const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const policyID = reimbursementAccount?.achData?.policyID;
     const currency = reimbursementAccount?.achData?.currency;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const hasOtherEligibleAccountsToConnect = getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, reimbursementAccount?.achData?.bankAccountID).length > 0;
 
     const handleChangeBankAccount = () => {
@@ -123,7 +123,7 @@ function ConnectedVerifiedBankAccount({
                         <Text style={[styles.mv3]}>{translate('workspace.bankAccount.accountDescriptionWithCards')}</Text>
                         <MenuItem
                             title={translate('workspace.bankAccount.changeBankAccount')}
-                            icon={Bank}
+                            icon={icon}
                             onPress={handleChangeBankAccount}
                             shouldShowRightIcon
                             outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
