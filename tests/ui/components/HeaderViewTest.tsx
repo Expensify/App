@@ -82,9 +82,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={report}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={null}
                         reportID={report.reportID}
                     />
                 </OnyxListItemProvider>
@@ -120,11 +118,8 @@ describe('HeaderView', () => {
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <HeaderView
-                    report={report}
                     onNavigationMenuButtonClicked={() => {}}
-                    parentReportAction={null}
                     reportID={report.reportID}
-                    shouldUseNarrowLayout
                 />
             </ComposeProviders>,
         );
@@ -178,9 +173,7 @@ describe('HeaderView', () => {
             <LocaleContextProvider>
                 <OnyxListItemProvider>
                     <HeaderView
-                        report={threadReport}
                         onNavigationMenuButtonClicked={() => {}}
-                        parentReportAction={parentReportAction}
                         reportID={threadReport.reportID}
                     />
                 </OnyxListItemProvider>

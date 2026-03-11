@@ -5,7 +5,6 @@ import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
-import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -27,11 +26,10 @@ function ReportHeader() {
     const backTo = routeParams?.backTo;
 
     const isInSidePanel = useIsInSidePanel();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {closeSidePanel} = useSidePanelActions();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const parentReportAction = useParentReportAction(report);
 
     const isTransactionThreadView = isReportTransactionThread(report);
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
@@ -84,9 +82,6 @@ function ReportHeader() {
                 <HeaderView
                     reportID={reportIDFromRoute}
                     onNavigationMenuButtonClicked={onBackButtonPress}
-                    report={report}
-                    parentReportAction={parentReportAction}
-                    shouldUseNarrowLayout={shouldUseNarrowLayout}
                 />
             )}
         </OfflineWithFeedback>
