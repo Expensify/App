@@ -10,6 +10,6 @@
     2. Adds `userSelect` with 'contain' value support to `WebStyle`, matching the web implementation of React Native's style system.
     ```
 
-- Upstream PR/issue: TODO
-- E/App issue: 🛑
+- Upstream PR/issue: https://github.com/DefinitelyTyped/DefinitelyTyped/pull/74673
+- E/App issue: https://github.com/Expensify/App/issues/75120
 - PR introducing patch: https://github.com/Expensify/App/pull/79962
