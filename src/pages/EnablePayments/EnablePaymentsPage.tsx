@@ -44,10 +44,11 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
-    if (isEmptyObject(userWallet)) {
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
-            isWalletEmpty: isEmptyObject(userWallet),
+            isUserWalletEmpty,
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

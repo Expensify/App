@@ -27,10 +27,11 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
     const domainAccountID = route.params.domainAccountID;
     const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
 
-    if (isLoadingOnyxValue(isAdminResults)) {
+    const isAdminLoading = isLoadingOnyxValue(isAdminResults);
+    if (isAdminLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'DomainAddedPage',
-            isLoadingAdmin: isLoadingOnyxValue(isAdminResults),
+            isAdminLoading,
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

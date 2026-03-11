@@ -45,10 +45,11 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const {domainAccountID} = route.params;
     const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
-    if (isLoadingOnyxValue(domainNameResults)) {
+    const isDomainNameLoading = isLoadingOnyxValue(domainNameResults);
+    if (isDomainNameLoading) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'DomainAccessRestrictedPage',
-            isLoadingDomainName: isLoadingOnyxValue(domainNameResults),
+            isDomainNameLoading,
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

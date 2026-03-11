@@ -40,10 +40,11 @@ function EnablePaymentsPage() {
         }
     }, [isOffline, userWallet]);
 
-    if (isEmptyObject(userWallet)) {
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'EnablePaymentsPage',
-            isWalletEmpty: isEmptyObject(userWallet),
+            isUserWalletEmpty,
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

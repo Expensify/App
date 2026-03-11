@@ -49,7 +49,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     if (shouldShowFullScreenLoadingIndicator) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'DomainNotFoundPageWrapper',
-            isDomainLoading: isLoadingOnyxValue(domainMetadata),
+            shouldShowFullScreenLoadingIndicator,
         };
         return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
