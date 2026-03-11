@@ -130,9 +130,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Whether the compose input should show */
-        shouldShowComposeInput: OnyxEntry<boolean>;
-
         /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
@@ -159,9 +156,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
         /** policy ID of the report */
         policyID?: string;
-
-        /** Whether the main composer was hidden */
-        didHideComposerInput?: boolean;
 
         /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
@@ -224,7 +218,6 @@ function ComposerWithSuggestions({
     disabled,
     setIsCommentEmpty,
     onEnterKeyPress,
-    shouldShowComposeInput,
     measureParentContainer = () => {},
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
@@ -238,7 +231,6 @@ function ComposerWithSuggestions({
 
     // For testing
     children,
-    didHideComposerInput,
 
     // Fullstory
     forwardedFSClass,
@@ -424,7 +416,7 @@ function ComposerWithSuggestions({
     }, [value]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(value);

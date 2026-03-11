@@ -87,7 +87,6 @@ import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     createTransactionThreadReport,
     navigateToConciergeChat,
@@ -652,12 +651,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setShouldShowComposeInput(true);
-        });
         return () => {
-            interactionTask.cancel();
             if (!didSubscribeToReportLeavingEvents.current) {
                 return;
             }
@@ -767,18 +761,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             Navigation.isNavigationReady().then(() => {
                 navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
             });
-            return;
         }
-
-        // If you already have a report open and are deeplinking to a new report on native,
-        // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
-        // Therefore, we need to compare if the existing reportID is the same as the one in the route
-        // before deciding that we shouldn't call OpenReport.
-        if (reportIDFromRoute === lastReportIDFromRoute && (!onyxReportID || onyxReportID === reportIDFromRoute)) {
-            return;
-        }
-
-        setShouldShowComposeInput(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         route.name,

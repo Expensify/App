@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -19,8 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setShouldShowComposeInput} from '@libs/actions/Composer';
-import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
+import {clearActive, isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {saveReportActionDraft} from '@libs/actions/Report';
 import {isMobileChrome} from '@libs/Browser';
@@ -31,7 +30,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
-import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -196,9 +194,6 @@ function ReportActionItemMessageEdit({
             emojiPickerSelectionRef.current = undefined;
         }, true);
     }, [focus]);
-
-    // show the composer after editing is complete for devices that hide the composer during editing.
-    useEffect(() => () => setShouldShowComposeInput(true), []);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -461,9 +456,8 @@ function ReportActionItemMessageEdit({
                                 if (isMobileChrome() && reportScrollManager.ref?.current) {
                                     reportScrollManager.ref.current.scrollToIndex({index, animated: false});
                                 }
-                                setShouldShowComposeInputKeyboardAware(false);
                                 // The last composer that had focus should re-gain focus
-                                setUpComposeFocusManager();
+                                // setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
                                 if (!isEmojiPickerActive(action.reportActionID)) {
@@ -473,14 +467,7 @@ function ReportActionItemMessageEdit({
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={(event: BlurEvent) => {
-                                setIsFocused(false);
-                                const relatedTargetId = event.nativeEvent?.target;
-                                if (relatedTargetId === tag.get() || isEmojiPickerVisible()) {
-                                    return;
-                                }
-                                setShouldShowComposeInputKeyboardAware(true);
-                            }}
+                            onBlur={() => setIsFocused(false)}
                             onLayout={(event) => {
                                 if (!isFocused) {
                                     return;

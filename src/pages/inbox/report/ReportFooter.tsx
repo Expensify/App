@@ -1,6 +1,6 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
@@ -91,7 +91,6 @@ function ReportFooter({
     const personalDetail = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
-    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
@@ -200,17 +199,6 @@ function ReportFooter({
         });
     };
 
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
-
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
-
     return (
         <>
             {!!shouldHideComposer && (
@@ -248,7 +236,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && !isSmallScreenWidth && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -260,7 +248,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={reportPendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
                             reportTransactions={reportTransactions}
                             transactionThreadReportID={transactionThreadReportID}
                             isInSidePanel={isInSidePanel}

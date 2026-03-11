@@ -49,7 +49,6 @@ export default function () {
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-            [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
                 willAlertModalBecomeVisible: false,

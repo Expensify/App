@@ -111,9 +111,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
-    /** Whether the main composer was hidden */
-    didHideComposerInput?: boolean;
-
     /** Whether the report screen is being displayed in the side panel */
     isInSidePanel?: boolean;
 
@@ -139,7 +136,6 @@ function ReportActionCompose({
     lastReportAction,
     onComposerFocus,
     onComposerBlur,
-    didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
     isInSidePanel = false,
@@ -156,7 +152,6 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -186,7 +181,7 @@ function ReportActionCompose({
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+        return shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
@@ -626,12 +621,10 @@ function ReportActionCompose({
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
                             onEnterKeyPress={sendMessage}
-                            shouldShowComposeInput={shouldShowComposeInput}
                             onFocus={onFocus}
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
-                            didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
