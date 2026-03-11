@@ -49,6 +49,7 @@ import {
     allHavePendingRTERViolation,
     getTransactionViolations,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -109,7 +110,6 @@ function isSubmitAction(
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
         return false;
     }
-    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -118,6 +118,10 @@ function isSubmitAction(
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (hasSmartScanFailedWithMissingFields(reportTransactions ?? [], report)) {
         return false;
     }
 
@@ -133,7 +137,7 @@ function isSubmitAction(
         return false;
     }
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0 && transactionAreComplete;
+    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
@@ -436,6 +440,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     // We want to have action displayed for either paid or approved animations
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
