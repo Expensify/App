@@ -87,6 +87,19 @@ function SearchEditMultipleAmountPage() {
         return isIOUReport(report);
     });
 
+    const isAnyInvoice = selectedTransactionIDs.some((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return false;
+        }
+        const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const iouReport =
+            transactionReport?.type === CONST.REPORT.TYPE.CHAT && transactionReport?.parentReportID
+                ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport.parentReportID}`]
+                : transactionReport;
+        return isInvoiceReport(iouReport);
+    });
+
     const amountForForm = allowNegative ? amount : Math.abs(amount);
 
     const saveAmount = (currentMoney: CurrentMoney) => {
@@ -127,6 +140,7 @@ function SearchEditMultipleAmountPage() {
                 currency={selectedCurrency}
                 isEditing
                 isP2P={isP2P}
+                iouType={isAnyInvoice ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT}
                 // TODO: Enable currency picker in a separate PR
                 isCurrencyPressable={false}
                 // TODO: Enable currency symbol in a separate PR
