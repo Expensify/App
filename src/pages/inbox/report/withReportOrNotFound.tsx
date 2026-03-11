@@ -106,7 +106,6 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                         context: 'withReportOrNotFound',
                         isLoadingReportData: isLoadingReportData !== false,
                         shouldFetchReport,
-                        isReportLoaded,
                     };
                     return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
                 }

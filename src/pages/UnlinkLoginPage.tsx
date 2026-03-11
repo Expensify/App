@@ -36,7 +36,6 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'UnlinkLoginPage',
-        isAccountLoading: !!account?.isLoading,
     };
     return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }

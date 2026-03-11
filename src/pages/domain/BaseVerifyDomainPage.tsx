@@ -77,10 +77,11 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         resetDomainValidationError(domainAccountID);
     }, [domainAccountID, doesDomainExist]);
 
-    if (isLoadingOnyxValue(domainMetadata)) {
+    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
+    if (isLoadingDomain) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
             context: 'BaseVerifyDomainPage',
-            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
+            isLoadingDomain,
         };
         return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }

@@ -80,7 +80,6 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'LogOutPreviousUserPage',
-        isAccountLoading: !!isAccountLoading,
     };
     return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
 }

@@ -92,6 +92,7 @@ function ValidateLoginPage({
                         context: 'ValidateLoginPage',
                         isSigningIn: autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN,
                         shouldStartSignInWithValidateCode,
+                        hasAutoAuthState: !!autoAuthState,
                     }}
                 />
             )}
