@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useEffect, useRef} from 'react';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -38,7 +38,7 @@ function useNavigateOnParamsChange({navigation, parentRoute, state}: CustomEffec
 
         // Already showing the correct screen with the same params — nothing to do.
         const lastRoute = state.routes.at(-1);
-        if (lastRoute?.name === screenToNavigate && isEqual(lastRoute?.params, screenParams)) {
+        if (lastRoute?.name === screenToNavigate && deepEqual(lastRoute?.params, screenParams)) {
             return;
         }
 
