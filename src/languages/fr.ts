@@ -362,6 +362,8 @@ const translations: TranslationDeepObject<typeof en> = {
         per: 'par',
         mi: 'mile',
         km: 'kilomètre',
+        milesAbbreviated: 'mi',
+        kilometersAbbreviated: 'km',
         copied: 'Copié !',
         someone: 'Quelqu’un',
         total: 'Total',
@@ -511,6 +513,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Activé',
         before: 'Avant',
         after: 'Après',
+        range: 'Intervalle',
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
@@ -545,6 +548,7 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
+        concierge: {sidePanelGreeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
     },
@@ -683,8 +687,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Test biométrique',
             authenticationSuccessful: 'Authentification réussie',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Vous vous êtes authentifié avec succès en utilisant ${authType}.`,
-            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Données biométriques (${registered ? 'Enregistré' : 'Non inscrit'})`,
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Vous vous êtes authentifié avec succès à l’aide de ${authType}.`,
+            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Données biométriques (${status})`,
             yourAttemptWasUnsuccessful: 'Votre tentative d’authentification a échoué.',
             youCouldNotBeAuthenticated: 'Vous n’avez pas pu être authentifié',
             areYouSureToReject: 'Voulez-vous vraiment continuer ? La tentative d’authentification sera rejetée si vous fermez cet écran.',
@@ -700,6 +704,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 touchId: 'Touch ID',
                 opticId: 'Optic ID',
             },
+            statusNeverRegistered: 'Jamais enregistré',
+            statusNotRegistered: 'Non enregistré',
+            statusRegisteredThisDevice: 'Enregistré',
+            statusRegisteredOtherDevice: () => ({one: 'Un autre appareil enregistré', other: 'Autres appareils enregistrés'}),
         },
         pleaseEnableInSystemSettings: {
             start: 'Veuillez activer la vérification par reconnaissance faciale/empreinte digitale ou définir un code d’accès à l’appareil dans vos',
@@ -721,14 +729,24 @@ const translations: TranslationDeepObject<typeof en> = {
         revoke: {
             title: 'Reconnaissance faciale/empreinte digitale et passkeys',
             explanation:
-                'La vérification par reconnaissance faciale/empreinte digitale ou par passkey est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur n’importe quel appareil.',
-            confirmationPrompt: 'Vous êtes sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
+                'La vérification par reconnaissance faciale/empreinte digitale ou par clé d’accès est activée sur un ou plusieurs appareils. Révoquer l’accès exigera un code magique pour la prochaine vérification sur cet appareil.',
+            confirmationPrompt: 'Êtes-vous sûr(e) ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
             cta: 'Révoquer l’accès',
             noDevices:
-                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale, empreinte digitale ou passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
+                'Vous n’avez enregistré aucun appareil pour la vérification par reconnaissance faciale/empreinte digitale ou par passkey. Si vous en enregistrez, vous pourrez révoquer cet accès ici.',
             dismiss: 'Compris',
             error: 'La requête a échoué. Réessayez plus tard.',
             revoke: 'Révoquer',
+            confirmationPromptAll: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur n’importe quel appareil.',
+            ctaAll: 'Tout révoquer',
+            thisDevice: 'Cet appareil',
+            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+                const numberWords = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf'];
+                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
+                return `${displayCount} autre(s) ${otherDeviceCount === 1 ? 'appareil' : 'appareils'}`;
+            },
+            confirmationPromptThisDevice: 'Êtes-vous sûr ? Vous aurez besoin d’un code magique pour la prochaine vérification sur cet appareil.',
+            confirmationPromptMultiple: 'Voulez-vous vraiment continuer ? Vous aurez besoin d’un code magique pour la prochaine vérification sur ces appareils.',
         },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',
@@ -1592,7 +1610,7 @@ const translations: TranslationDeepObject<typeof en> = {
             amountTooLargeError: 'Le montant total est trop élevé. Réduisez le nombre d’heures ou diminuez le taux.',
         },
         correctRateError: 'Corrigez l’erreur de taux et réessayez.',
-        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}"><strong>Expliquer</strong></a> &#x2728;`,
+        AskToExplain: `. <a href="${CONST.CONCIERGE_EXPLAIN_LINK_PATH}">Expliquer<sparkles-icon/></a>`,
         duplicateNonDefaultWorkspacePerDiemError:
             'Vous ne pouvez pas dupliquer les indemnités journalières entre plusieurs espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
         rulesModifiedFields: {
@@ -1968,7 +1986,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Restaurer la connexion mise de côté',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Lisez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.`,
         help: 'Aide',
         whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
@@ -2103,6 +2121,12 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
+        replaceDevice: 'Remplacer l’appareil',
+        replaceDeviceTitle: 'Remplacer l’appareil d’authentification à deux facteurs',
+        verifyOldDeviceTitle: 'Vérifier l’ancien appareil',
+        verifyOldDeviceDescription: 'Saisissez le code à six chiffres depuis votre application d’authentification actuelle pour confirmer que vous y avez accès.',
+        verifyNewDeviceTitle: 'Configurer un nouvel appareil',
+        verifyNewDeviceDescription: 'Scannez le code QR avec votre nouvel appareil, puis saisissez le code pour terminer la configuration.',
     },
     recoveryCodeForm: {
         error: {
@@ -2655,7 +2679,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>En vous connectant, vous acceptez les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Conditions d'utilisation</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Politique de confidentialité</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>Le transfert d’argent est fourni par ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) conformément à ses <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licences</a>.</muted-text-xs>`,
+        license: `Les services de transfert d’argent sont fournis par ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (ID NMLS :2017010) conformément à ses <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licences</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Vous n'avez pas reçu de code magique ?",
@@ -2765,6 +2789,7 @@ ${amount} pour ${merchant} - ${date}`,
         },
         workEmailValidationError: {
             publicEmail: 'Veuillez saisir une adresse e-mail professionnelle valide provenant d’un domaine privé, par ex. mitch@company.com',
+            sameAsSignupEmail: 'Veuillez saisir une adresse e-mail différente de celle avec laquelle vous vous êtes inscrit',
             offline: 'Nous n’avons pas pu ajouter votre adresse e-mail professionnelle, car vous semblez être hors ligne',
         },
         mergeBlockScreen: {
@@ -3044,7 +3069,7 @@ ${
                 descriptionTwo: 'Catégoriser et taguer les dépenses',
                 descriptionThree: 'Créer et partager des notes de frais',
             },
-            price: 'Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>5 $/utilisateur/mois</strong>.',
+            price: (price?: string) => `Essayez-le gratuitement pendant 30 jours, puis passez à l’offre supérieure pour seulement <strong>${price ?? '5 $'}/utilisateur/mois</strong>.`,
             createWorkspace: 'Créer un espace de travail',
         },
         confirmWorkspace: {
@@ -4016,6 +4041,9 @@ ${
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
+            outstandingBalanceWarning:
+                'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
+            settleBalance: 'Aller à l’abonnement',
             unavailable: 'Espace de travail indisponible',
             memberNotFound: 'Membre introuvable. Pour inviter un nouveau membre dans l’espace de travail, veuillez utiliser le bouton d’invitation ci-dessus.',
             notAuthorized: `Vous n’avez pas accès à cette page. Si vous essayez de rejoindre cet espace de travail, demandez simplement au responsable de l’espace de travail de vous ajouter en tant que membre. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}.`,
@@ -6900,6 +6928,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                     return `Comptabilité ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'Expensify Cards':
                     return `${enabled ? 'activé' : 'Désactivé'} Cartes Expensify`;
+                case 'travel invoicing':
+                    return `Facturation de voyages ${enabled ? 'activé' : 'Désactivé'}`;
                 case 'company cards':
                     return `${enabled ? 'activé' : 'Désactivé'} cartes de société`;
                 case 'invoicing':
@@ -7303,6 +7333,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 before: (date?: string) => `Avant ${date ?? ''}`,
                 after: (date?: string) => `Après ${date ?? ''}`,
                 on: (date?: string) => `Le ${date ?? ''}`,
+                customDate: 'Date personnalisée',
+                customRange: 'Intervalle personnalisé',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
@@ -7413,6 +7445,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
     },
@@ -8313,6 +8348,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         switchAccount: 'Changer de compte :',
         copilotDelegatedAccess: 'Copilot : Accès délégué',
         copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
+        learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
         membersCanAccessYourAccount: 'Ces membres peuvent accéder à votre compte :',
         youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes via le sélecteur de compte :',
