@@ -2,12 +2,11 @@ import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-n
 import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
+import {dynamicRoutePaths} from './isDynamicRouteSuffix';
 
 type State = NavigationState | Omit<PartialState<NavigationState>, 'stale'>;
-
-const dynamicRouteEntries = Object.values(DYNAMIC_ROUTES);
 
 /**
  * Checks if a screen name is a dynamic route screen
@@ -19,12 +18,7 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
         return false;
     }
 
-    for (const {path} of dynamicRouteEntries) {
-        if (screenPath === path) {
-            return true;
-        }
-    }
-    return false;
+    return dynamicRoutePaths.has(screenPath as DynamicRouteSuffix);
 }
 
 const getPathFromState = (state: State): string => {

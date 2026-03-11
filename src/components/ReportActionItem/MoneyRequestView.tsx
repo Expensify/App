@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -10,7 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePolicyCategories, usePolicyTags} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -36,7 +36,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
 import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
-import {initSplitExpense} from '@libs/actions/IOU/Split';
+import initSplitExpense from '@libs/actions/SplitExpenses';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
@@ -69,6 +69,7 @@ import {
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
     isInvoiceReport,
+    isOpenReport,
     isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
@@ -90,6 +91,7 @@ import {
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
+    hasMultipleSplitChildren,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
     isFromCreditCardImport as isCardTransactionTransactionUtils,
@@ -121,9 +123,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
-
     /** The report currently being looked at */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
@@ -160,7 +159,6 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
 };
 
 function MoneyRequestView({
-    allReports,
     transactionThreadReport,
     parentReportID,
     expensePolicy,
@@ -181,10 +179,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-
-    const {currentSearchResults} = useSearchContext();
-
+    const {currentSearchResults} = useSearchStateContext();
     const reportAttributes = useReportAttributes();
 
     // When this component is used when merging from the search page, we might not have the parent report stored in the main collection
@@ -192,12 +187,14 @@ function MoneyRequestView({
     parentReport = parentReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(parentReport?.reportID)}`);
 
-    const parentReportActionSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) =>
-        transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined;
+    const parentReportActionID = transactionThreadReport?.parentReportActionID;
+    const parentReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxEntry<OnyxTypes.ReportAction> => reportActions?.[`${parentReportActionID}`],
+        [parentReportActionID],
+    );
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
-
         selector: parentReportActionSelector,
     });
 
@@ -334,6 +331,14 @@ function MoneyRequestView({
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const hasMultipleSplits = useMemo(
+        () => hasMultipleSplitChildren(allTransactions, allReports, transaction?.comment?.originalTransactionID),
+        [allTransactions, allReports, transaction?.comment?.originalTransactionID],
+    );
+    const isReportOpen = isOpenReport(moneyRequestReport);
+    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
@@ -343,7 +348,7 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
+        (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
         isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
 
@@ -422,14 +427,12 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
-    let rateToDisplay = isCustomUnitOutOfPolicy
-        ? translate('common.rateOutOfPolicy')
-        : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
+    let rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate, undefined, isManualDistanceRequest);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount?.toString() || '';
@@ -510,14 +513,14 @@ function MoneyRequestView({
     } else if (shouldShowPaid) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
     }
-    if (isExpenseSplit) {
+    if (shouldShowSplitIndicator) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
     if (shouldShowConvertedAmount) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
 
-    if (isFromMergeTransaction) {
+    if (isFromMergeTransaction && !rateName) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
         // We need to extract the rate from the merchant string
         // See https://github.com/Expensify/App/pull/71675#issuecomment-3425488228 for more information
@@ -612,11 +615,6 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
-                            return;
-                        }
-
                         if (isOdometerDistanceRequest) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport.reportID),
@@ -662,11 +660,6 @@ function MoneyRequestView({
                     titleStyle={styles.flex1}
                     onPress={() => {
                         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
-                            return;
-                        }
-
-                        if (isExpenseSplit && isSplitAvailable) {
-                            initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
 
@@ -815,7 +808,6 @@ function MoneyRequestView({
             <>
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
                     <MoneyRequestReceiptView
-                        allReports={allReports}
                         report={transactionThreadReport ?? parentReport}
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
@@ -852,8 +844,8 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit && isSplitAvailable) {
-                                initSplitExpense(allTransactions, allReports, transaction);
+                            if (shouldShowSplitIndicator && isSplitAvailable) {
+                                initSplitExpense(transaction, policy);
                                 return;
                             }
 
@@ -1101,7 +1093,12 @@ function MoneyRequestView({
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
                     >
                         <View>
-                            <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {Str.UCFirst(translate('iou.reimbursable'))}
+                            </Text>
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
@@ -1117,7 +1114,12 @@ function MoneyRequestView({
                         contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
                     >
                         <View>
-                            <Text>{translate('common.billable')}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('common.billable')}
+                            </Text>
                             {!!getErrorForField('billable') && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}

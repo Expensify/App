@@ -356,22 +356,24 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5]}>
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}
                             disabled={items.length === 0}
+                            shouldSelectOnPressEnter
                         />
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={toggleAllItems}
-                            accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
+                            accessible={false}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                            tabIndex={-1}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DUPLICATE_SELECT_FEATURES_SELECT_ALL}
                         >
                             <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.common.selectAll')}</Text>
                         </PressableWithFeedback>

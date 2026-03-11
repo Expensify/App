@@ -8,7 +8,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -33,7 +33,7 @@ type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpense
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentSearchResults} = useSearchContext();
+    const {currentSearchResults} = useSearchStateContext();
 
     const {reportID, transactionID, backTo} = route.params;
 
@@ -53,7 +53,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE]);
+        resetSplitExpensesByDateRange(transaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], currentPolicy);
         Navigation.goBack(backTo);
     };
 

@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
@@ -133,6 +133,15 @@ type AttachmentModalBaseContentProps = {
 
     /** Allows users to swipe down to close the modal */
     shouldCloseOnSwipeDown?: boolean;
+
+    /** Footer action buttons to display below the image */
+    footerActionButtons?: React.ReactNode;
+
+    /** Custom content to render instead of the default attachment view (e.g., crop view) */
+    customAttachmentContent?: React.ReactNode;
+
+    /** Extra styles to pass for the attachment view container */
+    attachmentViewContainerStyles?: StyleProp<ViewStyle>;
 };
 
 export type {

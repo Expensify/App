@@ -9,7 +9,7 @@ import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isActionLoadingSelector from '@src/selectors/ReportMetaData';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 

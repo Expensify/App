@@ -53,6 +53,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -66,7 +67,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const showLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
@@ -81,6 +82,7 @@ function ShareTab({ref}: ShareTabProps) {
               includeUserToInvite: true,
               countryCode,
               loginList,
+              visibleReportActionsData,
               currentUserAccountID,
               currentUserEmail,
               policyCollection: allPolicies,
@@ -159,7 +161,7 @@ function ShareTab({ref}: ShareTabProps) {
             textInputOptions={textInputOptions}
             style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}

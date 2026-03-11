@@ -64,11 +64,12 @@ function IOURequestEditReportCommon({
     createReport,
     isPerDiemRequest,
 }: Props) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document']);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document'] as const);
     const {translate, localeCompare} = useLocalize();
     const personalDetails = usePersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -209,7 +210,7 @@ function IOURequestEditReportCommon({
             return;
         }
 
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID)) {
+        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }
@@ -308,7 +309,7 @@ function IOURequestEditReportCommon({
                 isVisible={perDiemWarningModalVisible}
                 onConfirm={hidePerDiemWarningModal}
                 onCancel={hidePerDiemWarningModal}
-                title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
+                title={translate('iou.moveExpenses')}
                 prompt={translate('iou.moveExpensesError')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}

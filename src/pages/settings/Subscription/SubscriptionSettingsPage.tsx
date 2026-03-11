@@ -64,6 +64,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 icon={illustrations.CreditCardsNew}
                 shouldUseHeadlineHeader
             />

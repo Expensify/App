@@ -5,8 +5,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -32,7 +30,7 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
@@ -116,7 +114,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                         <PressableWithDelayToggle
                                             text={translate('twoFactorAuth.copy')}
                                             textChecked={translate('common.copied')}
-                                            icon={Expensicons.Copy}
+                                            icon={icons.Copy}
                                             inline={false}
                                             onPress={() => {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
@@ -125,9 +123,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
                                             text={translate('common.download')}
@@ -140,9 +139,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
-                                            accessible={false}
                                             tooltipText=""
                                             tooltipTextChecked=""
+                                            accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>
                                 </>

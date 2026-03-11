@@ -1,42 +1,52 @@
+// This component is compiled by the React Compiler
+/* eslint-disable react/jsx-no-constructed-context-values */
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type LoginContextType = {
+type LoginStateContextType = {
     login: string;
+};
+
+type LoginActionsContextType = {
     setLogin: (login: string) => void;
 };
 
-const defaultLoginContext: LoginContextType = {
+const LoginStateContext = React.createContext<LoginStateContextType>({
     login: '',
-    setLogin: () => {},
-};
+});
 
-const Context = React.createContext<LoginContextType>(defaultLoginContext);
+const LoginActionsContext = React.createContext<LoginActionsContextType>({
+    setLogin: () => {},
+});
 
 function LoginProvider({children}: ChildrenProps) {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [login, setLoginState] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
-    const setLogin = useCallback((newLogin: string) => {
+    const setLogin = (newLogin: string) => {
         setLoginState(newLogin);
-    }, []);
+    };
 
-    const loginContext = useMemo<LoginContextType>(
-        () => ({
-            login,
-            setLogin,
-        }),
-        [login, setLogin],
+    const stateValue = {login};
+    const actionsValue = {setLogin};
+
+    return (
+        <LoginStateContext.Provider value={stateValue}>
+            <LoginActionsContext.Provider value={actionsValue}>{children}</LoginActionsContext.Provider>
+        </LoginStateContext.Provider>
     );
-
-    return <Context.Provider value={loginContext}>{children}</Context.Provider>;
 }
 
-function useLogin() {
-    return useContext(Context);
+function useLoginState() {
+    return useContext(LoginStateContext);
 }
 
-export {LoginProvider, useLogin, Context};
+function useLoginActions() {
+    return useContext(LoginActionsContext);
+}
+
+export {LoginProvider, LoginStateContext, LoginActionsContext, useLoginState, useLoginActions};
+export type {LoginStateContextType, LoginActionsContextType};

@@ -7,8 +7,6 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -137,19 +135,19 @@ function AttachmentPickerWithMenuItems({
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
     const icons = useMemoizedLazyExpensifyIcons([
+        'Cash',
+        'Coins',
         'Collapse',
         'Document',
         'Expand',
-        'Location',
-        'Paperclip',
-        'Task',
-        'Coins',
-        'Receipt',
-        'Cash',
         'InvoiceGeneric',
-        'Transfer',
-        'Receipt',
+        'Location',
         'MoneyCircle',
+        'Paperclip',
+        'Plus',
+        'Receipt',
+        'Task',
+        'Transfer',
     ] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
@@ -161,6 +159,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const {isProduction} = useEnvironment();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
@@ -178,14 +177,19 @@ function AttachmentPickerWithMenuItems({
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id)) {
+            if (
+                shouldRestrictAction &&
+                policy &&
+                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
 
             onSelected();
         },
-        [policy],
+        [policy, ownerBillingGraceEndPeriod],
     );
 
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
@@ -457,7 +461,7 @@ function AttachmentPickerWithMenuItems({
                                         >
                                             <Icon
                                                 fill={theme.icon}
-                                                src={Expensicons.Plus}
+                                                src={icons.Plus}
                                             />
                                         </PressableWithFeedback>
                                     </Tooltip>

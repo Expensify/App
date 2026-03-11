@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -42,7 +42,7 @@ import {
     setIsComingFromGlobalReimbursementsFlow,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
-import {filterInactiveCards} from '@libs/CardUtils';
+import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -97,7 +97,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const policyID = policy?.id;
     const defaultFundID = useDefaultFundID(policyID);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
-    const isBankAccountVerified = !!cardSettings?.paymentBankAccountID;
+    const settings = getCardSettings(cardSettings);
+    const isBankAccountVerified = !!settings?.paymentBankAccountID;
 
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const outputCurrency = policy?.outputCurrency ?? '';
@@ -122,42 +123,48 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
 
-    const onPressCurrency = useCallback(() => {
+    const onPressCurrency = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID));
-    }, [policyID]);
-    const onPressAddress = useCallback(() => {
+    };
+    const onPressAddress = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policyID));
-    }, [policyID]);
-    const onPressName = useCallback(() => {
+    };
+    const onPressName = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policyID));
-    }, [policyID]);
-    const onPressDescription = useCallback(() => {
+    };
+    const onPressDescription = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policyID));
-    }, [policyID]);
-    const onPressShare = useCallback(() => {
+    };
+    const onPressClientID = () => {
+        if (!policyID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.getRoute(policyID));
+    };
+    const onPressShare = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_SHARE.getRoute(policyID));
-    }, [policyID]);
-    const onPressPlanType = useCallback(() => {
+    };
+    const onPressPlanType = () => {
         if (!policyID) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_PLAN.getRoute(policyID));
-    }, [policyID]);
+    };
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const policyCurrency = policy?.outputCurrency ?? '';
@@ -165,7 +172,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
     const shouldShowAddress = !readOnly || !!formattedAddress;
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const {isBetaEnabled} = usePermissions();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -184,12 +192,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteWorkspaceErrorModalOpen, setIsDeleteWorkspaceErrorModalOpen] = useState(false);
     const policyLastErrorMessage = getLatestErrorMessage(policy);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (policyDraft?.id) {
             return;
         }
         openPolicyProfilePage(route.params.policyID);
-    }, [policyDraft?.id, route.params.policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchPolicyData});
 
@@ -222,9 +230,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const continueDeleteWorkspace = useCallback(() => {
+    const continueDeleteWorkspace = () => {
         setIsDeleteModalOpen(true);
-    }, []);
+    };
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -232,7 +240,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const confirmDelete = useCallback(() => {
+    const confirmDelete = () => {
         if (!policyID || !policyName) {
             return;
         }
@@ -256,24 +264,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             setIsDeleteModalOpen(false);
             goBackFromInvalidPolicy();
         }
-    }, [
-        policies,
-        policyID,
-        policyName,
-        lastAccessedWorkspacePolicyID,
-        defaultCardFeeds,
-        reportsToArchive,
-        transactionViolations,
-        reimbursementAccountError,
-        lastPaymentMethod,
-        localeCompare,
-        isOffline,
-        activePolicyID,
-        bankAccountList,
-        personalPolicyID,
-    ]);
+    };
 
-    const handleLeaveWorkspace = useCallback(() => {
+    const handleLeaveWorkspace = () => {
         if (!policy) {
             return;
         }
@@ -281,7 +274,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         leaveWorkspace(currentUserPersonalDetails.accountID, policy);
         setIsLeaveModalOpen(false);
         goBackFromInvalidPolicy();
-    }, [currentUserPersonalDetails.accountID, policy]);
+    };
 
     const hideDeleteWorkspaceErrorModal = () => {
         setIsDeleteWorkspaceErrorModalOpen(false);
@@ -295,33 +288,33 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
-    useEffect(() => {
-        if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
-            return;
+    const [prevDeleteState, setPrevDeleteState] = useState({isFocused, isPendingDelete});
+    if (prevDeleteState.isPendingDelete !== isPendingDelete || prevDeleteState.isFocused !== isFocused) {
+        setPrevDeleteState({isFocused, isPendingDelete});
+        if (isFocused && prevDeleteState.isPendingDelete && !isPendingDelete) {
+            if (!policyLastErrorMessage) {
+                goBackFromInvalidPolicy();
+            } else {
+                setIsDeleteModalOpen(false);
+                setIsDeleteWorkspaceErrorModalOpen(true);
+            }
         }
+    }
 
-        if (!policyLastErrorMessage) {
-            goBackFromInvalidPolicy();
-            return;
-        }
-        setIsDeleteModalOpen(false);
-        setIsDeleteWorkspaceErrorModalOpen(true);
-    }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
-
-    const onDeleteWorkspace = useCallback(() => {
+    const onDeleteWorkspace = () => {
         if (shouldBlockWorkspaceDeletionForInvoicifyUser(isSubscriptionTypeOfInvoicing(subscriptionType), ownerPolicies, policyID)) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
-        if (shouldCalculateBillNewDot(canDowngrade)) {
+        if (shouldCalculateBillNewDot(canDowngrade, policies)) {
             setIsDeletingPaidWorkspace(true);
             calculateBillNewDot();
             return;
         }
 
         continueDeleteWorkspace();
-    }, [continueDeleteWorkspace, setIsDeletingPaidWorkspace, canDowngrade, policyID, subscriptionType, ownerPolicies]);
+    };
 
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
@@ -338,7 +331,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         Navigation.goBack();
     };
 
-    const startChangeOwnershipFlow = useCallback(() => {
+    const startChangeOwnershipFlow = () => {
         clearWorkspaceOwnerChangeFlow(policyID);
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(
@@ -349,9 +342,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 Navigation.getActiveRoute(),
             ),
         );
-    }, [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID, policy]);
+    };
 
-    const handleLeave = useCallback(() => {
+    const handleLeave = () => {
         const isReimburser = policy?.achAccount?.reimburser === session?.email;
 
         if (isReimburser) {
@@ -360,7 +353,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         }
 
         setIsLeaveModalOpen(true);
-    }, [policy?.achAccount?.reimburser, session?.email]);
+    };
 
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policy);
@@ -403,46 +396,28 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     };
 
-    const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
-        <ButtonWithDropdownMenu
-            ref={dropdownMenuRef}
-            success={false}
-            onPress={() => {}}
-            shouldAlwaysShowDropdownMenu
-            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
-            customText={translate('common.more')}
-            options={options}
-            isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
-        />
-    );
-
-    const handleInvitePress = useCallback(() => {
+    const handleInvitePress = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
         }
         clearInviteDraft(route.params.policyID);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-    }, [isAccountLocked, showLockedAccountModal, route.params.policyID]);
+    };
 
-    const getHeaderButtons = () => {
-        const secondaryActions: Array<DropdownOption<string>> = [];
-        const canLeave = !isOwner;
+    const canLeave = !isOwner;
+    const secondaryActions: Array<DropdownOption<string>> = [];
 
-        if (readOnly) {
-            if (canLeave) {
-                secondaryActions.push({
-                    value: 'leave',
-                    text: translate('common.leave'),
-                    icon: expensifyIcons.Exit,
-                    onSelected: () => close(handleLeave),
-                });
-                return renderDropdownMenu(secondaryActions);
-            }
-            return null;
+    if (readOnly) {
+        if (canLeave) {
+            secondaryActions.push({
+                value: 'leave',
+                text: translate('common.leave'),
+                icon: expensifyIcons.Exit,
+                onSelected: () => close(handleLeave),
+            });
         }
-
+    } else {
         secondaryActions.push({
             value: 'share',
             text: translate('common.share'),
@@ -458,7 +433,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade),
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(account?.canDowngrade, policies),
             });
         }
         const isCurrentUserAdmin = policy?.employeeList?.[currentUserPersonalDetails?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
@@ -479,25 +454,41 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: () => close(handleLeave),
             });
         }
+    }
 
-        return (
-            <View style={[styles.flexRow, styles.gap2]}>
-                {isPolicyAdmin && (
-                    <Button
-                        success
-                        text={translate('common.invite')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
-                        icon={expensifyIcons.UserPlus}
-                        onPress={handleInvitePress}
-                        medium
-                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    />
-                )}
-                {renderDropdownMenu(secondaryActions)}
-            </View>
-        );
-    };
+    const dropdownMenu = secondaryActions.length > 0 && (
+        <ButtonWithDropdownMenu
+            ref={dropdownMenuRef}
+            success={false}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.MORE_DROPDOWN}
+            customText={translate('common.more')}
+            options={secondaryActions}
+            isSplitButton={false}
+            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+        />
+    );
+
+    const headerButtons = readOnly ? (
+        dropdownMenu || null
+    ) : (
+        <View style={[styles.flexRow, styles.gap2]}>
+            {isPolicyAdmin && (
+                <Button
+                    success
+                    text={translate('common.invite')}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.INVITE_BUTTON}
+                    icon={expensifyIcons.UserPlus}
+                    onPress={handleInvitePress}
+                    medium
+                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                />
+            )}
+            {dropdownMenu}
+        </View>
+    );
 
     const modals = (
         <>
@@ -558,12 +549,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            headerContent={!shouldUseNarrowLayout && headerButtons}
             modals={modals}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{headerButtons}</View>}
                     <Section
                         isCentralPane
                         title=""
@@ -591,13 +582,13 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 if (!policyID) {
                                     return;
                                 }
-                                updateWorkspaceAvatar(policyID, file as File);
+                                updateWorkspaceAvatar(policyID, policy.avatarURL, file as File);
                             }}
                             onImageRemoved={() => {
-                                if (!policyID) {
+                                if (!policyID || !policy.avatarURL) {
                                     return;
                                 }
-                                deleteWorkspaceAvatar(policyID);
+                                deleteWorkspaceAvatar(policyID, policy.avatarURL, policy.originalFileName);
                             }}
                             editorMaskImage={expensifyIcons.ImageCropSquareMask}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.AVATAR}
@@ -648,6 +639,27 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressDescription}
                                     shouldRenderAsHTML
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {!!account?.isApprovedAccountant && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.clientID}
+                                errors={getLatestErrorField(policy ?? {}, 'clientID')}
+                                onClose={() => {
+                                    if (!policy?.id) {
+                                        return;
+                                    }
+                                    clearPolicyErrorField(policy.id, 'clientID');
+                                }}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={policy?.clientID}
+                                    description={translate('workspace.common.clientID')}
+                                    shouldShowRightIcon={!readOnly}
+                                    interactive={!readOnly}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={onPressClientID}
                                 />
                             </OfflineWithFeedback>
                         )}

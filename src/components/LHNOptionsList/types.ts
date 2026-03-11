@@ -123,7 +123,7 @@ type OptionRowLHNDataProps = {
     viewMode?: OptionMode;
 
     /** The last message text from the report */
-    lastMessageTextFromReport: string;
+    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -211,6 +211,9 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
+
+    /** The concierge report ID from Onyx */
+    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

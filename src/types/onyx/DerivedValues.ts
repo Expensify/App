@@ -78,6 +78,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
+
+/**
  * The errors of a card.
  */
 type CardErrors = {
@@ -258,6 +263,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
