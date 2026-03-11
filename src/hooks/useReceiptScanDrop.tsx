@@ -79,7 +79,7 @@ function useReceiptScanDrop() {
         if (
             isPaidGroupPolicy(activePolicy) &&
             activePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+            !shouldRestrictUserBillableActions(activePolicy.id, undefined, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)
         ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;

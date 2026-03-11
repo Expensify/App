@@ -58,7 +58,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         interceptAnonymousUser(() => {
             if (
                 policyChatForActivePolicy?.policyID &&
-                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+                shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, undefined, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                 return;

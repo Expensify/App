@@ -229,7 +229,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(subDays(new Date(), 3)), // past due
@@ -250,7 +250,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(addDays(new Date(), 3)), // not past due
@@ -271,7 +271,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(subDays(new Date(), 3)), // past due
@@ -435,7 +435,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, 500, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, 500, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
         });
 
         it('should not restrict when amountOwed is passed directly as 0', async () => {
@@ -450,7 +450,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, 0, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, 0, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
         });
 
         it('should not restrict when amountOwed is passed directly as undefined', async () => {

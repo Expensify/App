@@ -530,7 +530,7 @@ function MoneyRequestParticipantsSelector({
             if (
                 option.isPolicyExpenseChat &&
                 option.policyID &&
-                shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)
+                shouldRestrictUserBillableActions(option.policyID, undefined, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
