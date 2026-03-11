@@ -172,7 +172,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {setDownload} from '@userActions/Download';
 import {
     clearReportActionDrafts,
-    deleteReportActionDraft,
     explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
@@ -526,10 +525,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                 clearReportActionDrafts(reportID);
 
                 if (draftMessage) {
-                    deleteReportActionDraft(reportID, reportAction);
-                } else {
-                    saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
+                    return;
                 }
+
+                saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
             };
 
             if (closePopover) {

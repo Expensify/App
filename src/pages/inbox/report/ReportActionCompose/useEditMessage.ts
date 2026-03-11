@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import {isActive as isEmojiPickerActive} from '@libs/actions/EmojiPickerAction';
-import {deleteReportActionDraft, editReportComment} from '@libs/actions/Report';
+import {clearReportActionDrafts, editReportComment} from '@libs/actions/Report';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalReportID} from '@libs/ReportUtils';
@@ -70,7 +70,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
 
         setEditingState('cancelled');
 
-        deleteReportActionDraft(reportID, reportAction);
+        clearReportActionDrafts(reportID);
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);

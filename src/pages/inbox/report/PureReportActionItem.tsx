@@ -231,6 +231,7 @@ import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import {
+    clearReportActionDrafts,
     createTransactionThreadReport,
     expandURLPreview,
     resolveActionableMentionConfirmWhisper,
@@ -367,9 +368,6 @@ type PureReportActionItemProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport?: OnyxTypes.Report;
-
-    /** Function to deletes the draft for a comment report action. */
-    deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
 
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
@@ -516,7 +514,6 @@ function PureReportActionItem({
     blockedFromConcierge,
     originalReportID = '-1',
     originalReport,
-    deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
     toggleEmojiReaction = () => {},
@@ -708,8 +705,8 @@ function PureReportActionItem({
         if (draftMessage === undefined || !isDeletedAction(action)) {
             return;
         }
-        deleteReportActionDraft(reportID, action);
-    }, [draftMessage, action, reportID, deleteReportActionDraft]);
+        clearReportActionDrafts(reportID);
+    }, [draftMessage, action, reportID]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
