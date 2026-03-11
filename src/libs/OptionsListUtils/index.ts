@@ -429,13 +429,23 @@ function getAlternateText(
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
     currentUserLogin: string,
-    policy?: OnyxEntry<Policy>,
-    report?: OnyxEntry<Report>,
-    chatReport?: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null = {},
-    visibleReportActionsData: VisibleReportActionsDerivedValue = {},
-    translate?: LocalizedTranslate,
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    {
+        policy,
+        report,
+        chatReport,
+        lastActorDetails = {},
+        visibleReportActionsData = {},
+        translate,
+        reportAttributesDerived,
+    }: {
+        policy?: OnyxEntry<Policy>;
+        report?: OnyxEntry<Report>;
+        chatReport?: OnyxEntry<Report>;
+        lastActorDetails?: Partial<PersonalDetails> | null;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
+        translate?: LocalizedTranslate;
+        reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    } = {},
 ) {
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
@@ -1054,19 +1064,14 @@ function createOption(
         result.alternateText =
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
-                : getAlternateText(
-                      result,
-                      {showChatPreviewLine, forcePolicyNamePreview},
-                      !!result.private_isArchived,
-                      currentUserLogin,
-                      undefined,
+                : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, currentUserLogin, {
                       report,
                       chatReport,
                       lastActorDetails,
                       visibleReportActionsData,
-                      translateFn,
+                      translate: translateFn,
                       reportAttributesDerived,
-                  );
+                  });
 
         const computedReportName = getReportName(report, reportAttributesDerived);
 
@@ -2253,19 +2258,12 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
 
-        const alternateText = getAlternateText(
-            option,
-            {showChatPreviewLine, forcePolicyNamePreview},
-            !!option.private_isArchived,
-            currentUserLogin,
-            undefined,
+        const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived, currentUserLogin, {
             report,
             chatReport,
-            null,
             visibleReportActionsData,
-            undefined,
             reportAttributesDerived,
-        );
+        });
         const isSelected = isReportSelected(option, selectedOptions);
 
         let isOptionUnread = option.isUnread;
@@ -2929,10 +2927,17 @@ function formatSectionsFromSearchTerm(
     privateIsArchivedMap: Record<string, string | undefined>,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    reports: OnyxCollection<Report>,
-    shouldGetOptionDetails = false,
-    filteredWorkspaceChats: SearchOptionData[] = [],
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
+    {
+        reports,
+        shouldGetOptionDetails = false,
+        filteredWorkspaceChats = [],
+        reportAttributesDerived,
+    }: {
+        reports?: OnyxCollection<Report>;
+        shouldGetOptionDetails?: boolean;
+        filteredWorkspaceChats?: SearchOptionData[];
+        reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    } = {},
 ): SectionForSearchTerm {
     if (searchTerm === '') {
         return {

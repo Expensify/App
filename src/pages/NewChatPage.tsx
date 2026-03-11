@@ -282,10 +282,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         privateIsArchivedMap,
         currentUserAccountID,
         allPersonalDetails,
-        reports,
-        undefined,
-        undefined,
-        reportAttributesDerived,
+        {reports, reportAttributesDerived},
     );
     // Just a temporary fix to satisfy the type checker
     // Will be fixed when migrating to use new SelectionListWithSections

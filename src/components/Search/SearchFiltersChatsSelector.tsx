@@ -74,7 +74,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         );
         const isReportArchived = !!privateIsArchived;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, policy, reportData, chatReport, {}, undefined, undefined, reportAttributesDerived);
+        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserEmail, {policy, report: reportData, chatReport, reportAttributesDerived});
         return {...report, alternateText};
     });
 
@@ -112,10 +112,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            reports,
-            false,
-            undefined,
-            reportAttributesDerived,
+            {reports, reportAttributesDerived},
         );
 
         sections.push(formattedResults.section);

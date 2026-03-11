@@ -167,10 +167,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            reports,
-            true,
-            undefined,
-            reportAttributesDerived,
+            {reports, shouldGetOptionDetails: true, reportAttributesDerived},
         );
         newSections.push({...formatResults.section, sectionIndex: 0});
 

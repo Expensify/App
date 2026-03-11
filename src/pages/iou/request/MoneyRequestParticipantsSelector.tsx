@@ -299,10 +299,7 @@ function MoneyRequestParticipantsSelector({
             privateIsArchivedMap,
             currentUserAccountID,
             personalDetails,
-            reports,
-            true,
-            undefined,
-            reportAttributesDerived,
+            {reports, shouldGetOptionDetails: true, reportAttributesDerived},
         );
         // Just a temporary fix to satisfy the type checker
         // Will be fixed when migrating to use new SelectionListWithSections

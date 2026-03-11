@@ -275,8 +275,10 @@ describe('OptionsListUtils', () => {
                 {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
-                {},
-                true,
+                {
+                    reports: {},
+                    shouldGetOptionDetails: true,
+                },
             ),
         );
     });
@@ -287,6 +289,8 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, undefined, true));
+        await measureFunction(() =>
+            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, {shouldGetOptionDetails: true}),
+        );
     });
 });
