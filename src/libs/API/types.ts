@@ -481,6 +481,7 @@ const WRITE_COMMANDS = {
     DEACTIVATE_TRAVEL_INVOICING: 'DeactivateTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
+    PAY_TRAVEL_INVOICING_SPEND: 'PayTravelInvoicingSpend',
     UPDATE_XERO_IMPORT_TRACKING_CATEGORIES: 'UpdateXeroImportTrackingCategories',
     UPDATE_XERO_IMPORT_TAX_RATES: 'UpdateXeroImportTaxRates',
     UPDATE_XERO_TENANT_ID: 'UpdateXeroTenantID',
@@ -1080,6 +1081,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DEACTIVATE_TRAVEL_INVOICING]: Parameters.DeactivateTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
+    [WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND]: Parameters.PayTravelInvoicingSpendParams;
     [WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS]: Parameters.SetPersonalDetailsAndShipExpensifyCardsParams;
     [WRITE_COMMANDS.SELF_TOUR_VIEWED]: null;
 
@@ -1183,7 +1185,6 @@ const READ_COMMANDS = {
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
     GET_ROUTE_FOR_SPLIT_DRAFT: 'GetRouteForSplitDraft',
     GET_ROUTE_FOR_BACKUP: 'GetRouteForBackup',
-    GET_STATEMENT_PDF: 'GetStatementPDF',
     OPEN_ONFIDO_FLOW: 'OpenOnfidoFlow',
     OPEN_INITIAL_SETTINGS_PAGE: 'OpenInitialSettingsPage',
     OPEN_ENABLE_PAYMENTS_PAGE: 'OpenEnablePaymentsPage',
@@ -1201,6 +1202,8 @@ const READ_COMMANDS = {
     OPEN_POLICY_RULES_PAGE: 'OpenPolicyRulesPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
     OPEN_POLICY_TRAVEL_PAGE: 'OpenPolicyTravelPage',
+    GET_TRAVEL_INVOICE_STATEMENT_PDF: 'GetTravelInvoiceStatementPDF',
+    EXPORT_TRAVEL_INVOICE_STATEMENT_CSV: 'ExportTravelInvoiceStatementCSV',
     OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_ASSIGN_FEED_CARD_PAGE: 'OpenAssignFeedCardPage',
     OPEN_POLICY_COMPANY_CARDS_PAGE: 'OpenPolicyCompanyCardsPage',
@@ -1224,6 +1227,7 @@ const READ_COMMANDS = {
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
+    OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE: 'OpenMultifactorAuthenticationRevokePage',
     OPEN_TROUBLESHOOT_SETTINGS_PAGE: 'OpenTroubleshootSettingsPage',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
@@ -1269,7 +1273,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_SPLIT_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_BACKUP]: Parameters.GetRouteParams;
-    [READ_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [READ_COMMANDS.OPEN_ONFIDO_FLOW]: null;
     [READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE]: null;
@@ -1297,6 +1300,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TRAVEL_PAGE]: Parameters.OpenPolicyTravelPageParams;
+    [READ_COMMANDS.GET_TRAVEL_INVOICE_STATEMENT_PDF]: Parameters.GetTravelInvoiceStatementPDFParams;
+    [READ_COMMANDS.EXPORT_TRAVEL_INVOICE_STATEMENT_CSV]: Parameters.ExportTravelInvoiceStatementCSVParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED]: Parameters.OpenPolicyCompanyCardsFeedParams;
     [READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE]: Parameters.OpenPolicyCompanyCardsFeedParams;
@@ -1312,6 +1317,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
+    [READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE]: null;
     [READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
@@ -1352,6 +1358,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
+    GET_STATEMENT_PDF: 'GetStatementPDF',
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
@@ -1387,10 +1394,11 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS]: EmptyObject;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_CREDENTIALS]: Parameters.RevokeMultifactorAuthenticationCredentialsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION]: Parameters.AuthorizeTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DENY_TRANSACTION]: Parameters.DenyTransactionParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_TRANSACTIONS_PENDING_3DS_REVIEW]: null;
