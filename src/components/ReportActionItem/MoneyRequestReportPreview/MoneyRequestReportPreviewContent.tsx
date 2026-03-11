@@ -512,6 +512,21 @@ function MoneyRequestReportPreviewContent({
     // undefined makes arrow buttons react on currentIndex changes when scrolling manually
     const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlashListRef<Transaction> | null>(null);
+    const prevTransactionCountForScroll = useRef(carouselTransactions.length);
+    const [carouselKey, setCarouselKey] = useState(0);
+
+    // Reset carousel when transitioning from empty to non-empty data.
+    // scrollToOffset doesn't clear RecyclerListView's internal layout cache on iOS mobile web,
+    // so we force a full re-mount via key to prevent new items from rendering off-screen.
+    useEffect(() => {
+        if (carouselTransactions.length > 0 && prevTransactionCountForScroll.current === 0) {
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+            setCarouselKey((prev) => prev + 1);
+        }
+        prevTransactionCountForScroll.current = carouselTransactions.length;
+    }, [carouselTransactions.length]);
+
     const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
         const lastItemWithGap = lastItemWidth + styles.gap2.gap;
@@ -988,6 +1003,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
                                             <FlashList
+                                                key={carouselKey}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToOffsets={snapOffsets}

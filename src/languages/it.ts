@@ -1974,7 +1974,7 @@ const translations: TranslationDeepObject<typeof en> = {
         restoreStashed: 'Ripristina accesso nascosto',
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `<muted-text-micro>Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.</muted-text-micro>`,
+        readTheTermsAndPrivacy: `Leggi i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.`,
         help: 'Aiuto',
         whatIsNew: 'Novità',
         accountSettings: 'Impostazioni account',
@@ -2659,7 +2659,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     termsOfUse: {
         terms: `<muted-text-xs>Accedendo, accetti i <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Termini di servizio</a> e l’<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Informativa sulla privacy</a>.</muted-text-xs>`,
-        license: `<muted-text-xs>Il servizio di trasferimento di denaro è fornito da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in conformità alle sue <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenze</a>.</muted-text-xs>`,
+        license: `L’attività di trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in conformità alle sue <a href="${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}">licenze</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Non hai ricevuto un codice magico?',
