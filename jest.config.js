@@ -38,6 +38,5 @@ module.exports = {
         '@noble/ed25519': '<rootDir>/node_modules/@noble/ed25519/index.ts',
         '@noble/hashes/(.*)': '<rootDir>/node_modules/@noble/hashes/src/$1.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
-        '^stringify-entities$': '<rootDir>/__mocks__/stringify-entities.ts',
     },
 };
