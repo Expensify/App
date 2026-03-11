@@ -25,6 +25,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
@@ -135,6 +136,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldShowLoadingBar = useLoadingBarVisibility();
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -567,6 +569,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     breadcrumbLabel={translate('initialSettingsPage.account')}
                     shouldDisplaySearch
                     shouldDisplayHelpButton
+                    shouldShowLoadingBar={shouldShowLoadingBar}
                 />
             )}
             {headerContent}
