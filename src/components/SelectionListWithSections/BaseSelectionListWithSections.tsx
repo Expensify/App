@@ -1089,7 +1089,6 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
                         addOfflineIndicatorBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addOfflineIndicatorBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
-                        CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
                     {children}
                 </>

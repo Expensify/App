@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +12,7 @@ import {getTagLists} from '@libs/PolicyUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+import type {OptionData} from '@libs/ReportUtils';
 
 type DebugTagPickerProps = {
     /** The policyID we are getting tags for */
@@ -22,7 +22,7 @@ type DebugTagPickerProps = {
     tagName?: string;
 
     /** Callback to submit the selected tag */
-    onSubmit: (item: ListItem) => void;
+    onSubmit: (item: Partial<OptionData>) => void;
 };
 
 const policyHasMultipleTagListsSelector = (policy: OnyxEntry<Policy>) => policy?.hasMultipleTagLists;
@@ -38,11 +38,11 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyHasMultipleTagListsSelector});
     const updateTagName = useCallback(
         (index: number) =>
-            ({text}: ListItem) => {
+            ({text}: Partial<OptionData>) => {
                 const newTag = text === selectedTags.at(index) ? undefined : text;
                 const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
                 if (policyTagLists.length === 1) {
-                    return onSubmit({text: updatedTagName});
+                    return onSubmit({text: updatedTagName, keyForList: updatedTagName});
                 }
                 setNewTagName(updatedTagName);
             },
@@ -50,7 +50,7 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     );
 
     const submitTag = useCallback(() => {
-        onSubmit({text: newTagName});
+        onSubmit({text: newTagName, keyForList: newTagName});
     }, [newTagName, onSubmit]);
 
     return (

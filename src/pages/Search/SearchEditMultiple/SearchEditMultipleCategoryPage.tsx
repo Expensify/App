@@ -2,7 +2,6 @@ import React from 'react';
 import CategoryPicker from '@components/CategoryPicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
@@ -10,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ListItem} from '@components/SelectionList/types';
 
 function SearchEditMultipleCategoryPage() {
     const {translate} = useLocalize();

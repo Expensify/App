@@ -4,7 +4,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +15,7 @@ import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import ConstantPicker from './ConstantPicker';
 import DebugTagPicker from './DebugTagPicker';
+import {ListItem} from '@components/SelectionList/types';
 
 type DebugDetailsConstantPickerPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE>;
 
@@ -52,6 +52,7 @@ function DebugDetailsConstantPickerPage({
                     onSelect={({currencyCode}) =>
                         onSubmit({
                             text: currencyCode,
+                            keyForList: currencyCode,
                         })
                     }
                     searchInputLabel={translate('common.search')}

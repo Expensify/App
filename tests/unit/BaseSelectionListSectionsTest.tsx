@@ -1,7 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {useState} from 'react';
-import {SectionList} from 'react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import BaseSelectionListWithSections from '@components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -9,6 +8,14 @@ import type {ListItem, SelectionListWithSectionsProps} from '@components/Selecti
 import type Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+
+// FlashList requires layout events to render items; mock it with FlatList for tests
+jest.mock('@shopify/flash-list', () => {
+    const {FlatList} = require('react-native');
+    return {
+        FlashList: FlatList,
+    };
+});
 
 type BaseSelectionListSections<TItem extends ListItem> = {
     sections: SelectionListWithSectionsProps<TItem>['sections'];
@@ -121,7 +128,8 @@ describe('BaseSelectionList', () => {
     });
 
     it('should scroll to top when selecting a multi option list', () => {
-        const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
+        const {FlatList} = require('react-native');
+        const spy = jest.spyOn(FlatList.prototype, 'scrollToIndex');
         render(
             <BaseListItemRenderer
                 sections={[
@@ -132,10 +140,10 @@ describe('BaseSelectionList', () => {
             />,
         );
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`));
-        expect(spy).toHaveBeenCalledWith(expect.objectContaining({itemIndex: 0}));
+        expect(spy).toHaveBeenCalledWith(expect.objectContaining({index: 0}));
     });
 
-    it('should show only elements from first page when items exceed page limit', () => {
+    it('should render all items', () => {
         render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections, sectionIndex: 0}]}
@@ -143,13 +151,9 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should render first page (items 0-49, so 50 items total)
+        // FlashList renders all items (virtualization is handled internally)
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeTruthy();
-
-        // Should NOT render items from second page
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}50`)).toBeFalsy();
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeFalsy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
     });
 
     it('should render all items when they fit within initial render limit', () => {
@@ -165,7 +169,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}9`)).toBeTruthy();
     });
 
-    it('should load more items when scrolled to end', () => {
+    it('should render items from all sections', () => {
         render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections, sectionIndex: 0}]}
@@ -173,15 +177,10 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should initially show first page items (0-48, 49 items total)
+        // All items should be rendered with FlashList
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
-
-        // Items beyond first page should not be initially visible
-        expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeFalsy();
-
-        // Note: Scroll-based loading in test environment might not work as expected
-        // This test verifies the initial state - actual scroll behavior would need integration testing
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}49`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
     });
 
     it('should search for first item then scroll back to preselected item when search is cleared', () => {
@@ -225,7 +224,7 @@ describe('BaseSelectionList', () => {
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
     });
 
-    it('does not reset page when only selectedOptions changes', () => {
+    it('does not lose items when only selectedOptions changes', () => {
         const {rerender} = render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections, sectionIndex: 0}]}
@@ -233,9 +232,8 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should show first page items
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
 
         // Rerender with only selection change
         rerender(
@@ -245,14 +243,14 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should still show the same items (no pagination reset)
+        // All items should still be rendered
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
         // Item 3 should now be selected
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeSelected();
     });
 
-    it('should reset current page when text input changes', () => {
+    it('should still render items when text input changes', () => {
         const {rerender} = render(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections, sectionIndex: 0}]}
@@ -260,11 +258,9 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Should show first page items initially
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}48`)).toBeTruthy();
 
-        // Rerender with search text - should still show items (filtered or not)
+        // Rerender with search text - items should still be visible
         rerender(
             <BaseListItemRenderer
                 sections={[{data: largeMockSections.map((item, index) => ({...item, isSelected: index === 3})), sectionIndex: 0}]}
@@ -273,7 +269,6 @@ describe('BaseSelectionList', () => {
             />,
         );
 
-        // Search functionality should work - items should still be visible
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeTruthy();
     });

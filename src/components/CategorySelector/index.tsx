@@ -2,11 +2,11 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import CONST from '@src/CONST';
 import CategorySelectorModal from './CategorySelectorModal';
+import {ListItem} from '@components/SelectionList/types';
 
 type CategorySelectorProps = {
     /** The ID of the associated policy */

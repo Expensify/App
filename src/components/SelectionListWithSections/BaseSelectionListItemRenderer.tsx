@@ -118,7 +118,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 index={index}
                 shouldShowRightCaret={shouldShowRightCaret}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                sectionIndex={sectionIndex}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
             />
             {item.footerContent && item.footerContent}

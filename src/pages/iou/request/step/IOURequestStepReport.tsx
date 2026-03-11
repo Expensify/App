@@ -3,7 +3,6 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -31,6 +30,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import type {ListItem} from '@components/SelectionList/types';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -236,7 +236,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
+        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };
 
     const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
