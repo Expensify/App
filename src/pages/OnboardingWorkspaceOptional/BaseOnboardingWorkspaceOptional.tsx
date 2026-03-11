@@ -104,6 +104,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                 onboardingPolicyID: resolvedPolicyID,
                 introSelected,
                 betas,
+                isSelfTourViewed,
             });
 
             setOnboardingAdminsChatReportID();
@@ -133,6 +134,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             introSelected,
             conciergeChatReportID,
             betas,
+            isSelfTourViewed,
         ],
     );
 

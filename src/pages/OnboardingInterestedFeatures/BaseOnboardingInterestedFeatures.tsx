@@ -224,6 +224,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
                 shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                 introSelected,
+                isSelfTourViewed,
                 betas,
             });
 

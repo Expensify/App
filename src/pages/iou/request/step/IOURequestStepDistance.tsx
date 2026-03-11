@@ -49,6 +49,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -104,6 +105,7 @@ function IOURequestStepDistance({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -341,6 +343,7 @@ function IOURequestStepDistance({
             policyForMovingExpenses,
             betas,
             recentWaypoints,
+            isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
         });
     }, [
@@ -376,6 +379,7 @@ function IOURequestStepDistance({
         selfDMReport,
         betas,
         recentWaypoints,
+        isSelfTourViewed,
         amountOwed,
     ]);
 
