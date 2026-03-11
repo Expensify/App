@@ -252,7 +252,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount && !isDistance) {
-            if (difference > 0) {
+            if (hasMixedSignSplits ? difference > 0 : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount)) {
                 setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
             } else {
                 setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
@@ -399,7 +399,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     let warningMessage = '';
 
     if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
-        if (difference > 0) {
+        if (hasMixedSignSplits ? difference > 0 : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount)) {
             warningMessage = translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
         } else {
             warningMessage = translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
