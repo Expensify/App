@@ -38,6 +38,9 @@ function createTimingRuntimeModule(): webpack.RuntimeModule {
  */
 class ModuleInitTimingPlugin {
     apply(compiler: Compiler): void {
+        if (compiler.isChild()) {
+            return;
+        }
         compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
             // Ensure webpack generates the __webpack_require__.i interception
             // mechanism for every chunk that has a runtime.
