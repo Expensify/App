@@ -337,7 +337,7 @@
     "react-native-clean-project": "^4.0.0-alpha4.0",
     "react-refresh": "^0.14.2",
     "react-test-renderer": "19.1.0",
-    "reassure": "^1.0.0-rc.4",
+    "reassure": "^1.0.0",
     "rock": "0.12.10",
     "semver": "7.5.2",
     "setimmediate": "^1.0.5",
