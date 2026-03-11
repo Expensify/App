@@ -9,6 +9,7 @@ import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,9 +70,10 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
-        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
-        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`, {canBeMissing: true});
+        const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+        const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+        const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
+        const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
         const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -83,12 +85,16 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport(route.params.reportID);
+            openReport({reportID: route.params.reportID, introSelected});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         if (isEditing && isLoadingApp) {
-            return <FullScreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withWritableReportOrNotFound',
+                isLoadingApp,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''}, isReportArchived)) {

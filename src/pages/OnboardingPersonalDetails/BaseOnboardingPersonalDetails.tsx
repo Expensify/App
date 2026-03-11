@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -35,17 +36,20 @@ import type {BaseOnboardingPersonalDetailsProps} from './types';
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {onboardingMessages} = useOnboardingMessages();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -80,6 +84,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
                 shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
             });
 
             setOnboardingAdminsChatReportID();
@@ -88,6 +95,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             navigateAfterOnboardingWithMicrotaskQueue(
                 isSmallScreenWidth,
                 isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
                 archivedReportsIdSet,
                 onboardingPolicyID,
                 mergedAccountConciergeReportID,
@@ -103,6 +111,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             archivedReportsIdSet,
             isSmallScreenWidth,
             mergedAccountConciergeReportID,
+            conciergeChatReportID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
         ],
     );
 
@@ -214,7 +226,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 shouldTrimValues={false}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.whatsYourName')}
+                    </Text>
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -230,6 +247,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
                         spellCheck={false}
+                        autoComplete="given-name"
                     />
                 </View>
                 <View>
@@ -245,6 +263,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
                         spellCheck={false}
+                        autoComplete="family-name"
                     />
                 </View>
             </FormProvider>

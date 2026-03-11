@@ -39,11 +39,11 @@ type BankInfoProps = {
 function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-    const currency = policy?.outputCurrency ?? '';
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
     const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
@@ -106,6 +106,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames}: BankInfoPr
         prevScreen,
         moveTo,
         goToTheLastStep,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {

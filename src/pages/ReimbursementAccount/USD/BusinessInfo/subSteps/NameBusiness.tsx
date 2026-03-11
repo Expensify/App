@@ -16,7 +16,7 @@ const STEP_FIELDS = [COMPANY_NAME_KEY];
 function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;

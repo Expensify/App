@@ -17,6 +17,9 @@ const frenchGlossary = new Glossary([
     {sourceTerm: 'Member', targetTerm: 'Membre'},
     {sourceTerm: 'Owner', targetTerm: 'Responsable', usage: 'Workspace or policy owner'},
 
+    // Branded product names
+    {sourceTerm: 'Expensify Card', targetTerm: 'Carte Expensify', usage: 'Branded Expensify payment card'},
+
     // Core product objects
     {sourceTerm: 'Report', targetTerm: 'Note de frais', usage: 'Expense container'},
     {sourceTerm: 'Expense', targetTerm: 'Dépense'},

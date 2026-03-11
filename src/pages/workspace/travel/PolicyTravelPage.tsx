@@ -1,11 +1,12 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -22,11 +23,11 @@ import {getTravelStep} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
-import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type WorkspaceTravelPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
 
@@ -36,17 +37,17 @@ function WorkspaceTravelPage({
     },
 }: WorkspaceTravelPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
-    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const fetchTravelData = useCallback(() => {
         openPolicyTravelPage(policyID, workspaceAccountID);
@@ -72,10 +73,6 @@ function WorkspaceTravelPage({
     const step = getTravelStep(policy, travelSettings, isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED), policies, currentUserLogin);
 
     const mainContent = (() => {
-        // TODO: Remove this conditional when Travel Invoicing feature is fully implemented
-        if (isTravelInvoicingEnabled) {
-            return <WorkspaceTravelInvoicingSection policyID={policyID} />;
-        }
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
                 return <BookOrManageYourTrip policyID={policyID} />;
@@ -85,6 +82,15 @@ function WorkspaceTravelPage({
                 return <GetStartedTravel policyID={policyID} />;
         }
     })();
+
+    const secondaryActions = [
+        {
+            icon: icons.Exit,
+            text: translate('common.export'),
+            value: CONST.POLICY.SECONDARY_ACTIONS.EXPORT,
+            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_EXPORT.getRoute(policyID)),
+        },
+    ];
 
     return (
         <AccessOrNotFoundWrapper
@@ -104,8 +110,20 @@ function WorkspaceTravelPage({
                     title={translate('workspace.moreFeatures.travel.title')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.popToSidebar}
-                />
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                >
+                    {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && (
+                        <ButtonWithDropdownMenu
+                            success={false}
+                            onPress={() => {}}
+                            customText={translate('common.more')}
+                            options={secondaryActions}
+                            isSplitButton={false}
+                            shouldUseOptionIcon
+                        />
+                    )}
+                </HeaderWithBackButton>
                 <ScrollViewWithContext addBottomSafeAreaPadding>
                     <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
                 </ScrollViewWithContext>

@@ -1,6 +1,5 @@
 import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,8 +29,7 @@ type RegisterResult =
           reason: MultifactorAuthenticationReason;
       } & Partial<BaseRegisterResult>);
 
-type AuthorizeParams<T extends MultifactorAuthenticationScenario> = {
-    scenario: T;
+type AuthorizeParams = {
     challenge: AuthenticationChallenge;
 };
 
@@ -53,17 +51,17 @@ type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;
 // Instead, the providers abstraction will be added.
 // For context, see: https://github.com/Expensify/App/pull/79473#discussion_r2747993460
 type UseNativeBiometricsReturn = {
-    /** Whether server has any registered credentials for this account */
-    serverHasAnyCredentials: boolean;
-
     /** List of credential IDs known to server (from Onyx) */
     serverKnownCredentialIDs: string[];
 
+    /** Whether biometric credentials have ever been configured for this account */
+    haveCredentialsEverBeenConfigured: boolean;
+
+    /** Retrieve the public key stored locally on this device */
+    getLocalPublicKey: () => Promise<string | undefined>;
+
     /** Check if device supports biometrics */
     doesDeviceSupportBiometrics: () => boolean;
-
-    /** Check if device has biometric credentials stored locally */
-    hasLocalCredentials: () => Promise<boolean>;
 
     /** Check if local credentials are known to server (local credential exists in server's list) */
     areLocalCredentialsKnownToServer: () => Promise<boolean>;
@@ -72,7 +70,7 @@ type UseNativeBiometricsReturn = {
     register: (onResult: (result: RegisterResult) => Promise<void> | void) => Promise<void>;
 
     /** Authorize using biometrics */
-    authorize: <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
+    authorize: (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => Promise<void>;
 
     /** Reset keys for account */
     resetKeysForAccount: () => Promise<void>;
@@ -93,34 +91,13 @@ async function resetKeys(accountID: number) {
     await Promise.all([PrivateKeyStore.delete(accountID), PublicKeyStore.delete(accountID)]);
 }
 
-/**
- * Determines if biometric authentication is configured locally for the current account.
- * Checks local public key storage and compares with the provided auth public keys.
- * Note: We only check public key here because checking private key requires biometric authentication.
- * If private key is missing, it will be detected during authorize() and trigger re-registration.
- * @param accountID - The account ID to check biometric configuration for.
- * @param authPublicKeys - The list of public keys registered in auth backend (from Onyx).
- * @returns Object indicating if biometry is locally configured and if local key is in auth.
- */
-async function isBiometryConfigured(accountID: number, authPublicKeys: string[] = []) {
-    const {value: localPublicKey} = await PublicKeyStore.get(accountID);
-
-    const isBiometryRegisteredLocally = !!localPublicKey;
-    const isLocalPublicKeyInAuth = isBiometryRegisteredLocally && authPublicKeys.includes(localPublicKey);
-
-    return {
-        isBiometryRegisteredLocally,
-        isLocalPublicKeyInAuth,
-    };
-}
-
 function useNativeBiometrics(): UseNativeBiometricsReturn {
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
 
-    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs, canBeMissing: true});
+    const [multifactorAuthenticationPublicKeyIDs] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getMultifactorAuthenticationPublicKeyIDs});
     const serverKnownCredentialIDs = useMemo(() => multifactorAuthenticationPublicKeyIDs ?? [], [multifactorAuthenticationPublicKeyIDs]);
-    const serverHasAnyCredentials = serverKnownCredentialIDs.length > 0;
+    const haveCredentialsEverBeenConfigured = multifactorAuthenticationPublicKeyIDs !== undefined;
 
     /**
      * Checks if the device supports biometric authentication methods.
@@ -132,15 +109,18 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         return biometrics || credentials;
     }, []);
 
-    const hasLocalCredentials = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID);
-        return config.isBiometryRegisteredLocally;
+    // Only the public key is checked here because reading the private key
+    // requires biometric authentication. If the private key is missing, it
+    // will be detected during authorize() and trigger re-registration.
+    const getLocalPublicKey = useCallback(async () => {
+        const {value} = await PublicKeyStore.get(accountID);
+        return value ?? undefined;
     }, [accountID]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
-        const config = await isBiometryConfigured(accountID, serverKnownCredentialIDs);
-        return config.isLocalPublicKeyInAuth;
-    }, [accountID, serverKnownCredentialIDs]);
+        const key = await getLocalPublicKey();
+        return !!key && serverKnownCredentialIDs.includes(key);
+    }, [getLocalPublicKey, serverKnownCredentialIDs]);
 
     const resetKeysForAccount = useCallback(async () => {
         await resetKeys(accountID);
@@ -198,7 +178,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
         });
     };
 
-    const authorize = async <T extends MultifactorAuthenticationScenario>(params: AuthorizeParams<T>, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
+    const authorize = async (params: AuthorizeParams, onResult: (result: AuthorizeResult) => Promise<void> | void) => {
         const {challenge} = params;
 
         // Extract public keys from challenge.allowCredentials
@@ -215,8 +195,7 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
             return;
         }
 
-        // Get public key
-        const {value: publicKey} = await PublicKeyStore.get(accountID);
+        const publicKey = await getLocalPublicKey();
 
         if (!publicKey || !authPublicKeys.includes(publicKey)) {
             await resetKeys(accountID);
@@ -258,10 +237,10 @@ function useNativeBiometrics(): UseNativeBiometricsReturn {
     };
 
     return {
-        serverHasAnyCredentials,
         serverKnownCredentialIDs,
+        haveCredentialsEverBeenConfigured,
+        getLocalPublicKey,
         doesDeviceSupportBiometrics,
-        hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,
         authorize,

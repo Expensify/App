@@ -6,9 +6,8 @@ import useDragAndDrop from '@hooks/useDragAndDrop';
 import useThemeStyles from '@hooks/useThemeStyles';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
-import type {DragAndDropContextParams, DragAndDropProviderProps, SetOnDropHandlerCallback} from './types';
-
-const DragAndDropContext = React.createContext<DragAndDropContextParams>({});
+import {DragAndDropActionsContext, DragAndDropStateContext} from './DragAndDropContext';
+import type {DragAndDropActionsContextType, DragAndDropProviderProps, DragAndDropStateContextType, SetOnDropHandlerCallback} from './types';
 
 function shouldAcceptDrop(event: DragEvent): boolean {
     return !!event.dataTransfer?.types.some((type) => type === 'Files');
@@ -35,24 +34,39 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
         setIsDraggingOver(isDraggingOver);
     }, [isDraggingOver, setIsDraggingOver]);
 
-    const contextValue = useMemo(() => ({isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}), [isDraggingOver, setOnDropHandler]);
+    const stateValue = useMemo<DragAndDropStateContextType>(
+        () => ({
+            isDraggingOver: isDraggingOver ?? false,
+            dropZoneID: dropZoneID.current,
+        }),
+        [isDraggingOver],
+    );
+
+    const actionsValue = useMemo<DragAndDropActionsContextType>(
+        () => ({
+            setOnDropHandler,
+        }),
+        [setOnDropHandler],
+    );
 
     return (
-        <DragAndDropContext.Provider value={contextValue}>
-            <View
-                ref={viewRef(dropZone)}
-                style={[styles.flex1, styles.w100, styles.h100]}
-            >
-                {isDraggingOver && (
-                    <View style={[styles.fullScreen, styles.invisibleOverlay]}>
-                        <PortalHost name={dropZoneID.current} />
-                    </View>
-                )}
-                {children}
-            </View>
-        </DragAndDropContext.Provider>
+        <DragAndDropStateContext.Provider value={stateValue}>
+            <DragAndDropActionsContext.Provider value={actionsValue}>
+                <View
+                    ref={viewRef(dropZone)}
+                    style={[styles.flex1, styles.w100, styles.h100]}
+                >
+                    {isDraggingOver && (
+                        <View style={[styles.fullScreen, styles.invisibleOverlay]}>
+                            <PortalHost name={dropZoneID.current} />
+                        </View>
+                    )}
+                    {children}
+                </View>
+            </DragAndDropActionsContext.Provider>
+        </DragAndDropStateContext.Provider>
     );
 }
 
 export default DragAndDropProvider;
-export {DragAndDropContext};
+export {useDragAndDropActions, useDragAndDropState} from './DragAndDropContext';

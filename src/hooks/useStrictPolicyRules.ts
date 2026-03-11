@@ -12,9 +12,9 @@ type UseStrictPolicyRulesResult = {
  * When enabled, users cannot submit reports that have policy violations.
  */
 function useStrictPolicyRules(): UseStrictPolicyRulesResult {
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
-    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
+    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Get the user's domain from their email
     const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;

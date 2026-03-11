@@ -90,6 +90,10 @@ const cardFeedsMock: OnyxCollection<CardFeeds> = {
                 [cardFeedCitiBankMock]: {preferredPolicy: 'AA1BB2CC3'},
                 [cardFeedStripeMock]: {preferredPolicy: 'XX1YY2ZZ3'},
             },
+            oAuthAccountDetails: {
+                [cardFeedAmericaExpressMock]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
+                [cardFeedCitiBankMock]: {accountList: ['CREDIT CARD...5678'], credentials: 'xxxxx', expiration: 1730998958},
+            },
         },
     },
 };

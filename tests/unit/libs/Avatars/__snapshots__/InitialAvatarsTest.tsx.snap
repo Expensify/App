@@ -5,6 +5,7 @@ exports[`getInitialAvatarSvg matches snapshot for a letter avatar 1`] = `
   accessibilityElementsHidden={true}
   accessible={false}
   importantForAccessibility="no-hide-descendants"
+  pointerEvents="none"
   style={[]}
   testID=""
 >

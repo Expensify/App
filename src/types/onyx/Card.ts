@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CardFeedWithNumber} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -12,6 +13,33 @@ type CardStatusChanges = {
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
+/** Model of possible fraud data stored on a card */
+type PossibleFraudData = {
+    /** Fraud state of the card */
+    state?: number;
+
+    /** Date when fraud was detected */
+    date?: string;
+
+    /** Card ID that triggered the fraud detection (for domain-level fraud) */
+    triggerCardID?: number;
+
+    /** Amount that triggered the fraud detection (in cents) */
+    triggerAmount?: number;
+
+    /** Merchant name that triggered the fraud detection */
+    triggerMerchant?: string;
+
+    /** Currency of the transaction that triggered the fraud detection */
+    currency?: string;
+
+    /** Report ID for the fraud alert action (used for deeplink) */
+    fraudAlertReportID?: number;
+
+    /** Report action ID for the fraud alert (used for deeplink) */
+    fraudAlertReportActionID?: number;
+};
+
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -21,7 +49,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 
     /** Bank name */
-    bank: string;
+    bank: CardFeedWithNumber;
 
     /** Available amount to spend */
     availableSpend?: number;
@@ -164,6 +192,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
          * null/undefined if card is not frozen
          */
         frozen?: FrozenCardData | null;
+
+        /** Possible fraud information */
+        possibleFraud?: PossibleFraudData;
     }> &
         OnyxCommon.OnyxValueWithOfflineFeedback<
             /** Type of export card */
@@ -381,10 +412,11 @@ export type {
     IssueNewCardStep,
     IssueNewCardData,
     WorkspaceCardsList,
-    CardAssignmentData,
     CardLimitType,
     ProvisioningCardData,
     AssignableCardsList,
+    CardAssignmentData,
     UnassignedCard,
+    PossibleFraudData,
     FrozenCardData,
 };

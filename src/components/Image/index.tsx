@@ -123,6 +123,7 @@ function Image({
                 if (!!session?.creationDate && !isExpiredSession(session.creationDate)) {
                     return {
                         ...propsSource,
+                        cacheKey: propsSource.uri,
                         headers: {
                             [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
                         },

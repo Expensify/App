@@ -1,5 +1,5 @@
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -46,6 +46,7 @@ import Mailbox from '@assets/images/simple-illustrations/simple-illustration__ma
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
@@ -68,8 +69,8 @@ export {
     CreditCardEyes,
     CreditCardsNewGreen,
     EmailAddress,
-    EmptyCardState,
     EmptyShelves,
+    ExpensifyCardCoins,
     EmptyStateTravel,
     Encryption,
     EnvelopeReceipt,
@@ -96,6 +97,7 @@ export {
     Pencil,
     PendingTravel,
     Puzzle,
+    TravelCVV,
     ThumbsUpStars,
     TurtleInShell,
 };

@@ -56,7 +56,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
 
         // Define link style based on context
         let linkStyle: StyleProp<TextStyle> = styles.link;

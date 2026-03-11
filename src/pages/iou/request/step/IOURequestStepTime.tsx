@@ -10,12 +10,14 @@ import TimeModalPicker from '@components/TimeModalPicker';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,8 +52,16 @@ function IOURequestStepTime({
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const iouPolicyID = getIOURequestPolicyID(transaction, report);
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: iouPolicyID,
+        action,
+        iouType,
+        isPerDiemRequest: true,
+    });
+
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
@@ -60,7 +70,7 @@ function IOURequestStepTime({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
     const navigateBack = () => {
@@ -74,7 +84,9 @@ function IOURequestStepTime({
             return;
         }
 
-        if (transaction?.isFromGlobalCreate) {
+        if (transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK) {
+            // We want to navigate to destination step only when the first step was the workspace selector.
+            // If there is only one policy with per diem enabled, we want to navigate back to the start step because there is no separate destination step in that flow.
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
                 Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
                 return;
@@ -127,7 +139,16 @@ function IOURequestStepTime({
     };
 
     if (isLoadingTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'IOURequestStepTime',
+            isLoadingTransaction,
+        };
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.flex1, styles.pRelative]}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     return (

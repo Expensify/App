@@ -1,7 +1,7 @@
 import {useMemo, useRef, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
-import {useAnimatedReaction, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
+import {useAnimatedReaction, useDerivedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {useChartInteractionState} from './useChartInteractionState';
 
@@ -49,33 +49,8 @@ type CartesianActionsHandle = {
 };
 
 /**
- * Hook to manage complex chart interactions including hover gestures (web),
- * tap gestures (mobile/web), hit-testing, and animated tooltip positioning.
- *
- * It synchronizes high-frequency interaction data from the UI thread to React state
- * for metadata display (like tooltips) and navigation.
- *
- * @param props - Configuration including press handlers and hit-test logic.
- * @returns An object containing refs, gestures, and state for the chart component.
- *
- * @example
- * ```tsx
- * const { actionsRef, customGestures, activeDataIndex, isTooltipActive, tooltipStyle } = useChartInteractions({
- * handlePress: (index) => console.log("Pressed index:", index),
- * checkIsOver: ({ cursorX, targetX, barWidth }) => {
- * 'worklet';
- * return Math.abs(cursorX - targetX) < barWidth / 2;
- * },
- * barGeometry: myBarSharedValue,
- * });
- *
- * return (
- * <View>
- * <CartesianChart customGestures={customGestures} actionsRef={actionsRef} ... />
- * {isTooltipActive && <Animated.View style={tooltipStyle}><Tooltip index={activeDataIndex} /></Animated.View>}
- * </View>
- * );
- * ```
+ * Manages chart interactions (hover, tap, hit-testing) and animated tooltip positioning.
+ * Synchronizes high-frequency UI thread data to React state for tooltip display and navigation.
  */
 function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
@@ -195,22 +170,19 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
     const customGestures = useMemo(() => Gesture.Race(hoverGesture, tapGesture), [hoverGesture, tapGesture]);
 
     /**
-     * Animated style for positioning a tooltip relative to the matched data point.
-     * Automatically applies vertical offset and centering.
-     * For negative bars, positions tooltip at yZero (top of bar) instead of targetY (bottom of bar).
+     * Raw tooltip positioning data.
+     * We return these as individual derived values so the caller can
+     * compose them into their own useAnimatedStyle.
      */
-    const tooltipStyle = useAnimatedStyle(() => {
+    const initialTooltipPosition = useDerivedValue(() => {
         const targetY = chartInteractionState.y.y.position.get();
         const currentYZero = yZero?.get() ?? targetY;
         // Position tooltip at the top of the bar (min of targetY and yZero)
         const barTopY = Math.min(targetY, currentYZero);
 
         return {
-            position: 'absolute',
-            left: chartInteractionState.x.position.get(),
-            top: barTopY - TOOLTIP_BAR_GAP,
-            transform: [{translateX: '-50%'}, {translateY: '-100%'}],
-            opacity: chartInteractionState.isActive.get() ? 1 : 0,
+            x: chartInteractionState.x.position.get(),
+            y: barTopY - TOOLTIP_BAR_GAP,
         };
     });
 
@@ -223,10 +195,10 @@ function useChartInteractions({handlePress, checkIsOver, chartBottom, yZero}: Us
         activeDataIndex,
         /** Whether the tooltip should currently be rendered and visible */
         isTooltipActive: isOverTarget && isTooltipActiveState,
-        /** Animated styles for the tooltip container */
-        tooltipStyle,
+        /** Raw tooltip positioning data */
+        initialTooltipPosition,
     };
 }
 
-export {useChartInteractions};
+export {useChartInteractions, TOOLTIP_BAR_GAP};
 export type {HitTestArgs};
