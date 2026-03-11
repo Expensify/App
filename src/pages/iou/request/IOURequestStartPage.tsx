@@ -73,8 +73,6 @@ function IOURequestStartPage({
     route: {
         params: {iouType, reportID},
     },
-    report,
-    reportDraft,
     navigation,
     // This is currently only being used for testing
     defaultSelectedTab = CONST.TAB_REQUEST.SCAN,
@@ -83,6 +81,8 @@ function IOURequestStartPage({
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const personalPolicy = usePersonalPolicy();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
@@ -286,7 +286,6 @@ function IOURequestStartPage({
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
-            report={report}
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
