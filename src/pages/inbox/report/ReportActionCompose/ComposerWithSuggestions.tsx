@@ -309,22 +309,31 @@ function ComposerWithSuggestions({
         });
     }, []);
 
+    type ApplyComposerValueOptions = {
+        isEditingInComposer?: boolean;
+        shouldForceSelectionToEnd?: boolean;
+    };
+
     const applyComposerValue = useCallback(
-        (nextValue: string, isEditingInComposer?: boolean) => {
+        (nextValue: string, options?: ApplyComposerValueOptions) => {
             const defaultSelection: TextSelection = {start: nextValue.length, end: nextValue.length};
-            const selectionToApply = isEditingInComposer ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection;
+            const shouldUseEditingSelection = options?.isEditingInComposer ?? false;
+            const shouldForceSelectionToEnd = options?.shouldForceSelectionToEnd ?? false;
+
+            const selectionToApply = shouldUseEditingSelection && !shouldForceSelectionToEnd ? (currentEditMessageSelection ?? defaultSelection) : defaultSelection;
 
             commentRef.current = nextValue;
             emojisPresentBefore.current = extractEmojis(nextValue);
 
             setValue(nextValue);
             setSelection(selectionToApply);
+            updateSelectionImperatively(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
 
-            if (isEditingInComposer) {
+            if (options?.isEditingInComposer) {
                 composerRef.current?.focus();
             }
         },
-        [currentEditMessageSelection],
+        [currentEditMessageSelection, updateSelectionImperatively],
     );
 
     useEffect(() => {
@@ -344,7 +353,7 @@ function ComposerWithSuggestions({
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment.
                 const nextValue = draftComment ?? '';
-                applyComposerValue(nextValue, false);
+                applyComposerValue(nextValue);
             }
 
             wasEditing.current = false;
@@ -361,17 +370,17 @@ function ComposerWithSuggestions({
                 // Wide layout – another editor handles the edit, keep composer draft as-is.
                 return;
             }
-
             // In narrow layout we always show the message being edited.
             const nextValue = editingMessage ?? '';
-            applyComposerValue(nextValue, true);
+            // When starting to edit in the composer, always place the cursor at the end of the message.
+            applyComposerValue(nextValue, {isEditingInComposer: true, shouldForceSelectionToEnd: true});
             return;
         }
 
         // We are already in editing mode, but the target message changed.
         if (didChangeEditedAction && shouldUseNarrowLayout) {
             const nextValue = editingMessage ?? '';
-            applyComposerValue(nextValue, true);
+            applyComposerValue(nextValue, {isEditingInComposer: true});
             return;
         }
 
@@ -380,7 +389,7 @@ function ComposerWithSuggestions({
             wasEditingInComposerRef.current = true;
             // We just moved from wide to narrow while editing – start editing in the composer.
             const nextValue = editingMessage ?? '';
-            applyComposerValue(nextValue, true);
+            applyComposerValue(nextValue, {isEditingInComposer: true});
             return;
         }
 
@@ -388,7 +397,7 @@ function ComposerWithSuggestions({
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
             const nextValue = draftComment ?? '';
-            applyComposerValue(nextValue, false);
+            applyComposerValue(nextValue);
         }
     }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, getEditingState, shouldUseNarrowLayout]);
 
