@@ -90,7 +90,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isComingFromGlobalReimbursementsFlow] = useOnyx(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW);
     const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID);
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountErrorSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -255,7 +254,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
-            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,

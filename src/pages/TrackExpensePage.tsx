@@ -13,6 +13,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,10 +63,18 @@ function TrackExpensePage() {
         [],
     );
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'TrackExpensePage',
+        isLoadingHasSeenTrackTraining,
+    };
+
     return (
         <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
-                <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
+                <ReportHeaderSkeletonView
+                    onBackButtonPress={Navigation.goBack}
+                    reasonAttributes={reasonAttributes}
+                />
             </View>
             <ReportActionsSkeletonView />
         </ScreenWrapper>
