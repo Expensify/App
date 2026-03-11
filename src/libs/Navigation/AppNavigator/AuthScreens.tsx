@@ -29,7 +29,6 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import '@src/libs/subscribeToFullReconnect';
@@ -49,6 +48,7 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import RootTabNavigator from './Navigators/RootTabNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -63,14 +63,10 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadHomePage = () => require<ReactComponentModule>('../../../pages/home/HomePage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-const loadReportSplitNavigator = () => require<ReactComponentModule>('./Navigators/ReportsSplitNavigator').default;
-const loadSettingsSplitNavigator = () => require<ReactComponentModule>('./Navigators/SettingsSplitNavigator').default;
 const loadWorkspaceSplitNavigator = () => require<ReactComponentModule>('./Navigators/WorkspaceSplitNavigator').default;
 const loadDomainSplitNavigator = () => require<ReactComponentModule>('./Navigators/DomainSplitNavigator').default;
-const loadSearchNavigator = () => require<ReactComponentModule>('./Navigators/SearchFullscreenNavigator').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -188,37 +184,18 @@ function AuthScreens() {
                 >
                     <RootStack.Navigator
                         persistentScreens={[
-                            NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                            NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
+                            NAVIGATORS.ROOT_TAB_NAVIGATOR,
                             NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
                             NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
-                            NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
                             NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
-                            SCREENS.WORKSPACES_LIST,
-                            SCREENS.HOME,
                             SCREENS.SEARCH.ROOT,
                         ]}
                     >
-                        {/* SCREENS.HOME has to be the first navigator in auth screens. */}
+                        {/* ROOT_TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
-                            name={SCREENS.HOME}
+                            name={NAVIGATORS.ROOT_TAB_NAVIGATOR}
                             options={rootNavigatorScreenOptions.fullScreenTabPage}
-                            getComponent={loadHomePage}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadReportSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSettingsSplitNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                            options={getFullscreenNavigatorOptions}
-                            getComponent={loadSearchNavigator}
+                            component={RootTabNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
@@ -239,11 +216,6 @@ function AuthScreens() {
                             }}
                             listeners={fullScreenListeners}
                             getComponent={loadValidateLoginPage}
-                        />
-                        <RootStack.Screen
-                            name={SCREENS.WORKSPACES_LIST}
-                            options={rootNavigatorScreenOptions.fullScreenTabPage}
-                            component={WorkspacesListPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.TRANSITION_BETWEEN_APPS}

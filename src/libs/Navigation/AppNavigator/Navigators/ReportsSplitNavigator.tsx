@@ -8,7 +8,7 @@ import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSpl
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RootTabNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -24,7 +24,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
  * There can be multiple report screens in the stack with different report IDs.
  */
-function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
+function ReportsSplitNavigator({route}: PlatformStackScreenProps<RootTabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -65,26 +65,24 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     };
 
     return (
-        <FreezeWrapper>
-            <Split.Navigator
-                persistentScreens={[SCREENS.INBOX]}
-                sidebarScreen={SCREENS.INBOX}
-                defaultCentralScreen={SCREENS.REPORT}
-                parentRoute={route}
-                screenOptions={splitNavigatorScreenOptions.centralScreen}
-            >
-                <Split.Screen
-                    name={SCREENS.INBOX}
-                    getComponent={loadSidebarScreen}
-                    options={splitNavigatorScreenOptions.sidebarScreen}
-                />
-                <Split.Screen
-                    name={SCREENS.REPORT}
-                    initialParams={reportScreenInitialParams}
-                    getComponent={loadReportScreen}
-                />
-            </Split.Navigator>
-        </FreezeWrapper>
+        <Split.Navigator
+            persistentScreens={[SCREENS.INBOX]}
+            sidebarScreen={SCREENS.INBOX}
+            defaultCentralScreen={SCREENS.REPORT}
+            parentRoute={route}
+            screenOptions={splitNavigatorScreenOptions.centralScreen}
+        >
+            <Split.Screen
+                name={SCREENS.INBOX}
+                getComponent={loadSidebarScreen}
+                options={splitNavigatorScreenOptions.sidebarScreen}
+            />
+            <Split.Screen
+                name={SCREENS.REPORT}
+                initialParams={reportScreenInitialParams}
+                getComponent={loadReportScreen}
+            />
+        </Split.Navigator>
     );
 }
 

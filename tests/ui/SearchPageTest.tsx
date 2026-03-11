@@ -1,5 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
+import type {NavigatorScreenParams} from '@react-navigation/native';
 import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
@@ -14,7 +15,7 @@ import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootSt
 import navigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
-import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 // eslint-disable-next-line no-restricted-imports, no-restricted-syntax
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import SearchPage from '@pages/Search/SearchPage';
@@ -31,7 +32,11 @@ jest.mock('@react-navigation/native', () => ({
 
 type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
 
-const RootStack = createRootStackNavigator<AuthScreensParamList>();
+type SearchTestRootParamList = {
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+};
+
+const RootStack = createRootStackNavigator<SearchTestRootParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 
 function TestSearchFullscreenNavigator() {

@@ -139,14 +139,16 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     if (RHP_TO_HOME[route.name]) {
         return {
-            name: SCREENS.HOME,
+            name: NAVIGATORS.ROOT_TAB_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.HOME}]),
             path: normalizePath(ROUTES.HOME),
         };
     }
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
-            name: SCREENS.WORKSPACES_LIST,
+            name: NAVIGATORS.ROOT_TAB_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}]),
             // prepending a slash to ensure closing the RHP after refreshing the page
             // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
             path: normalizePath(ROUTES.WORKSPACES_LIST.route),
@@ -259,7 +261,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
         );
     }
 
-    return {name: SCREENS.HOME};
+    return {name: NAVIGATORS.ROOT_TAB_NAVIGATOR, state: getRoutesWithIndex([{name: SCREENS.HOME}])};
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
@@ -283,7 +285,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
     if (isWorkspaceSplitNavigator) {
-        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+        const workspacesListRoute = {name: NAVIGATORS.ROOT_TAB_NAVIGATOR, state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}])};
         return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
     }
 
@@ -298,7 +300,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
+                    const workspacesListRoute = {name: NAVIGATORS.ROOT_TAB_NAVIGATOR, state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}])};
                     routes.unshift(workspacesListRoute);
                 }
                 return getRoutesWithIndex(routes);
@@ -314,7 +316,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([{name: SCREENS.HOME}, adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([{name: NAVIGATORS.ROOT_TAB_NAVIGATOR, state: getRoutesWithIndex([{name: SCREENS.HOME}])}, adaptedOnboardingNavigator]);
         }
 
         const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);

@@ -29,7 +29,11 @@ function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<P
             const currentState = navigation.getState() as StackNavigationState<ParamListBase> & {preloadedRoutes?: NavigationPartialRoute[]};
             const stateWithoutPreloadedInbox = {
                 ...currentState,
-                preloadedRoutes: currentState.preloadedRoutes?.filter((route: NavigationPartialRoute) => route.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
+                preloadedRoutes: currentState.preloadedRoutes?.filter(
+                    (route: NavigationPartialRoute) =>
+                        route.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+                        !(route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && route.params && 'screen' in route.params && route.params.screen === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
+                ),
             };
             navigation.reset(stateWithoutPreloadedInbox);
             return;

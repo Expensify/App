@@ -64,6 +64,17 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
+/**
+ * Returns true when both current and target states are within RootTabNavigator (tab switching).
+ * In this case we must keep NAVIGATE (not PUSH) because tab navigators use jumpTo/navigate.
+ */
+function isSwitchingTabsWithinRootTabNavigator(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+    const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
+    const targetFullScreenRoute = stateFromPath.routes?.findLast((route) => isFullScreenName(route.name));
+
+    return lastFullScreenRoute?.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && targetFullScreenRoute?.name === NAVIGATORS.ROOT_TAB_NAVIGATOR;
+}
+
 function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
 
@@ -154,7 +165,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     else if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
-        !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath)
+        !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath) &&
+        !isSwitchingTabsWithinRootTabNavigator(currentState, stateFromPath)
     ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;

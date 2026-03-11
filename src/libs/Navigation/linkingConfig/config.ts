@@ -20,7 +20,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
-        [SCREENS.HOME]: ROUTES.HOME,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
         [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
         [SCREENS.REPORT_ADD_ATTACHMENT]: ROUTES.REPORT_ADD_ATTACHMENT.route,
@@ -36,11 +35,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW]: ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.route,
         [SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW]: ROUTES.MONEY_REQUEST_ODOMETER_PREVIEW.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.WORKSPACES_LIST]: {
-            path: ROUTES.WORKSPACES_LIST.route,
-            exact: true,
-        },
-
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: {
             screens: {
@@ -2111,65 +2105,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
-            path: ROUTES.ROOT,
-            screens: {
-                [SCREENS.INBOX]: {
-                    path: ROUTES.INBOX,
-                    exact: true,
-                },
-                [SCREENS.REPORT]: {
-                    path: ROUTES.REPORT_WITH_ID.route,
-                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
-                    // We want to avoid that situation, so we will return an empty string instead.
-                    parse: {
-                        // eslint-disable-next-line
-                        reportID: (reportID: string | undefined) => reportID ?? '',
-                    },
-                    stringify: {
-                        // eslint-disable-next-line
-                        reportID: (reportID: string | undefined) => reportID ?? '',
-                    },
-                },
-            },
-        },
-
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
-            screens: {
-                [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
-                [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                    path: ROUTES.SETTINGS_PROFILE.route,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.SECURITY]: {
-                    path: ROUTES.SETTINGS_SECURITY,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.WALLET.ROOT]: {
-                    path: ROUTES.SETTINGS_WALLET,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.RULES.ROOT]: {
-                    path: ROUTES.SETTINGS_RULES,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.ABOUT]: {
-                    path: ROUTES.SETTINGS_ABOUT,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.TROUBLESHOOT]: {
-                    path: ROUTES.SETTINGS_TROUBLESHOOT,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                    path: ROUTES.SETTINGS_PREFERENCES,
-                    // exact: true,
-                },
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION.route,
-            },
-        },
-
         [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
             // The path given as initialRouteName does not have route params.
             // initialRouteName is not defined in this split navigator because in this case the initial route requires a policyID defined in its route params.
@@ -2252,13 +2187,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
-            screens: {
-                [SCREENS.SEARCH.ROOT]: {
-                    path: ROUTES.SEARCH_ROOT.route,
-                },
-            },
-        },
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: {
             initialRouteName: SCREENS.SHARE.ROOT,
             screens: {
@@ -2284,6 +2212,80 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
                     path: ROUTES.TEST_TOOLS_MODAL.route,
+                    exact: true,
+                },
+            },
+        },
+        [NAVIGATORS.ROOT_TAB_NAVIGATOR]: {
+            initialRouteName: SCREENS.HOME,
+            screens: {
+                [SCREENS.HOME]: {
+                    path: ROUTES.HOME,
+                    exact: true,
+                },
+                [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
+                    path: ROUTES.ROOT,
+                    screens: {
+                        [SCREENS.INBOX]: {
+                            path: ROUTES.INBOX,
+                            exact: true,
+                        },
+                        [SCREENS.REPORT]: {
+                            path: ROUTES.REPORT_WITH_ID.route,
+                            parse: {
+                                // eslint-disable-next-line
+                                reportID: (reportID: string | undefined) => reportID ?? '',
+                            },
+                            stringify: {
+                                // eslint-disable-next-line
+                                reportID: (reportID: string | undefined) => reportID ?? '',
+                            },
+                        },
+                    },
+                },
+                [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.SEARCH.ROOT]: {
+                            path: ROUTES.SEARCH_ROOT.route,
+                        },
+                    },
+                },
+                [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
+                    screens: {
+                        [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
+                        [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                            path: ROUTES.SETTINGS_PROFILE.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.SECURITY]: {
+                            path: ROUTES.SETTINGS_SECURITY,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.ROOT]: {
+                            path: ROUTES.SETTINGS_WALLET,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.RULES.ROOT]: {
+                            path: ROUTES.SETTINGS_RULES,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ABOUT]: {
+                            path: ROUTES.SETTINGS_ABOUT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                            path: ROUTES.SETTINGS_TROUBLESHOOT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                            path: ROUTES.SETTINGS_PREFERENCES,
+                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION.route,
+                    },
+                },
+                [SCREENS.WORKSPACES_LIST]: {
+                    path: ROUTES.WORKSPACES_LIST.route,
                     exact: true,
                 },
             },

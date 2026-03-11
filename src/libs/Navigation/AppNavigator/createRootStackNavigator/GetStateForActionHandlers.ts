@@ -47,7 +47,7 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     actionToPushWorkspaceSplitNavigator: StackActionType,
     splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
 ) {
-    const actionToPushWorkspacesList = StackActions.push(SCREENS.WORKSPACES_LIST);
+    const actionToPushWorkspacesList = StackActions.push(NAVIGATORS.ROOT_TAB_NAVIGATOR, {screen: SCREENS.WORKSPACES_LIST});
 
     const stateWithWorkspacesList = stackRouter.getStateForAction(state, actionToPushWorkspacesList, configOptions);
 

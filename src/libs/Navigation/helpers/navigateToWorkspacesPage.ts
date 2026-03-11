@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Log from '@libs/Log';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -51,8 +52,12 @@ const getWorkspaceNavigationRouteState = () => {
 // Navigates to the appropriate workspace tab or workspace list page.
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
+    const rootState = navigationRef.getRootState();
+    const focusedRoute = rootState ? findFocusedRoute(rootState) : undefined;
+    const isOnWorkspacesList =
+        topmostFullScreenRoute?.name === SCREENS.WORKSPACES_LIST || (topmostFullScreenRoute?.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && focusedRoute?.name === SCREENS.WORKSPACES_LIST);
 
-    if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
+    if (!topmostFullScreenRoute || isOnWorkspacesList) {
         // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
         return;
     }

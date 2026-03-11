@@ -1,5 +1,6 @@
 import type {InitialState} from '@react-navigation/native';
 import {NavigationContainer} from '@react-navigation/native';
+import type {NavigatorScreenParams} from '@react-navigation/native';
 import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
@@ -17,7 +18,14 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createRootStackNavigator<AuthScreensParamList>();
+/** Test-specific param list with split navigators at root level for simplified test setup */
+type TestRootParamList = AuthScreensParamList & {
+    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+};
+
+const RootStack = createRootStackNavigator<TestRootParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();

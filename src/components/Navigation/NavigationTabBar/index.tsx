@@ -1,4 +1,3 @@
-import {StackActions} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,12 +19,9 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
-import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import navigationRef from '@navigation/navigationRef';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -103,17 +99,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
 
-        if (!shouldUseNarrowLayout) {
-            if (doesLastReportExist && lastReportRoute) {
-                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
-                return;
-            }
-
-            if (isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-                navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
-                return;
-            }
+        if (!shouldUseNarrowLayout && doesLastReportExist && lastReportRoute) {
+            const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
+            return;
         }
 
         Navigation.navigate(ROUTES.INBOX);
@@ -124,13 +113,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
         interceptAnonymousUser(() => {
-            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
-
-            if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
-                return;
-            }
-            navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
+            Navigation.navigate(ROUTES.SETTINGS);
         });
     };
 
