@@ -77,65 +77,75 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         'Pencil',
     ] as const);
 
-    const flattenedItems = typeMenuSections.flatMap((section) => section.menuItems);
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
     let activeKey = '';
 
-    for (const item of flattenedItems) {
-        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
-        const badgeText = getItemBadgeText(item.key, reportCounts);
-        const title = translate(item.translationPath);
+    const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
+        ? Object.entries(savedSearches)
+              .map(([key, item]): TabSelectorBaseItem | null => {
+                  if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                      return null;
+                  }
 
-        tabItems.push({
-            key: item.key,
-            icon,
-            title,
-            badgeText,
-        });
-        queryMap.set(item.key, {query: item.searchQuery});
-        if (queryJSON && item.similarSearchHash === queryJSON.similarSearchHash) {
-            activeKey = item.key;
-        }
-    }
+                  let title = item.name;
+                  const itemJsonQuery = buildSearchQueryJSON(item.query);
+                  if (queryJSON && itemJsonQuery && title === item.query) {
+                      title = buildUserReadableQueryString({
+                          queryJSON: itemJsonQuery,
+                          PersonalDetails: personalDetails,
+                          reports,
+                          taxRates,
+                          cardList: cardsForSavedSearchDisplay,
+                          cardFeeds: allFeeds,
+                          policies: allPolicies,
+                          currentUserAccountID,
+                          autoCompleteWithSpace: false,
+                          translate,
+                          feedKeysWithCards,
+                      });
+                  }
 
-    if (savedSearches) {
-        for (const [key, item] of Object.entries(savedSearches)) {
-            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
-                continue;
-            }
+                  queryMap.set(key, {query: item.query ?? '', name: item.name});
+                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, Number(key), item.query, translate, showDeleteModal, true, () =>
+                      setSavedSearchToModifyKey(null),
+                  );
 
-            let title = item.name;
-            const itemJsonQuery = buildSearchQueryJSON(item.query);
-            if (queryJSON && itemJsonQuery && title === item.query) {
-                title = buildUserReadableQueryString({
-                    queryJSON: itemJsonQuery,
-                    PersonalDetails: personalDetails,
-                    reports,
-                    taxRates,
-                    cardList: cardsForSavedSearchDisplay,
-                    cardFeeds: allFeeds,
-                    policies: allPolicies,
-                    currentUserAccountID,
-                    autoCompleteWithSpace: false,
-                    translate,
-                    feedKeysWithCards,
+                  if (queryJSON && Number(key) === queryJSON.hash) {
+                      activeKey = key;
+                  }
+
+                  return {
+                      key,
+                      icon: expensifyIcons.Bookmark,
+                      title,
+                      disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      pendingAction: item.pendingAction,
+                  };
+              })
+              .filter((item) => item !== null)
+        : [];
+
+    for (const section of typeMenuSections) {
+        if (section.translationPath === 'search.savedSearchesMenuItemTitle') {
+            tabItems.push(...savedSearchesTabItems);
+        } else {
+            for (const item of section.menuItems) {
+                const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+                const badgeText = getItemBadgeText(item.key, reportCounts);
+                const title = translate(item.translationPath);
+
+                tabItems.push({
+                    key: item.key,
+                    icon,
+                    title,
+                    badgeText,
                 });
-            }
-
-            tabItems.push({
-                key,
-                icon: expensifyIcons.Bookmark,
-                title,
-                disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: item.pendingAction,
-            });
-            queryMap.set(key, {query: item.query ?? '', name: item.name});
-            savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, Number(key), item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null));
-
-            if (queryJSON && Number(key) === queryJSON.hash) {
-                activeKey = key;
+                queryMap.set(item.key, {query: item.searchQuery});
+                if (queryJSON && item.similarSearchHash === queryJSON.similarSearchHash) {
+                    activeKey = item.key;
+                }
             }
         }
     }
