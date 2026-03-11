@@ -68,7 +68,7 @@ function DynamicCountrySelectionPage({route}: DynamicCountrySelectionPageProps) 
                 title={translate('common.country')}
                 shouldShowBackButton
                 onBackButtonPress={() => {
-                    Navigation.goBack(appendParam(backPath, 'country', currentCountry), {compareParams: false});
+                    Navigation.goBack(currentCountry ? appendParam(backPath, 'country', currentCountry) : (backPath as Route), {compareParams: false});
                 }}
             />
 
