@@ -4000,6 +4000,9 @@ ${
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
+            outstandingBalanceWarning:
+                'Você tem um saldo pendente que precisa ser quitado antes de excluir seu último espaço de trabalho. Acesse as configurações de assinatura para resolver o pagamento.',
+            settleBalance: 'Ir para a assinatura',
             unavailable: 'Espaço de trabalho indisponível',
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o workspace, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se estiver tentando entrar neste workspace, peça ao proprietário do workspace para adicioná-lo como membro. Outra coisa? Fale com ${CONST.EMAIL.CONCIERGE}.`,

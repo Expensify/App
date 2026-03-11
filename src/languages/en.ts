@@ -4061,6 +4061,9 @@ const translations = {
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
+            outstandingBalanceWarning:
+                'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
+            settleBalance: 'Go to subscription',
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
@@ -8604,7 +8607,10 @@ const translations = {
             addMember: 'Add member',
             email: 'Email address',
             closeAccountPrompt: 'Are you sure? This action is permanent.',
-            forceCloseAccount: () => ({one: 'Force close account', other: 'Force close accounts'}),
+            forceCloseAccount: () => ({
+                one: 'Force close account',
+                other: 'Force close accounts',
+            }),
             safeCloseAccount: () => ({
                 one: 'Close account safely',
                 other: 'Close accounts safely',
